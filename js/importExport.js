@@ -47,12 +47,32 @@ const ImportExport = (() => {
   // That's genuine, unrecoverable precision loss — NOT something we can safely
   // reconstruct — so we treat those as blank rather than importing a wrong number
   // that could ring up the wrong item at checkout.
-  const SCI_NOTATION = /^\d+(\.\d+)?E\+\d+$/i;
+  // (2026-07-13) Format barcode as zero-decimal whole numbers. Prev: regex strip
   function cleanBarcode(raw){
-    const trimmed = (raw||"").trim();
-    if(!trimmed) return { value:"", corrupted:false };
-    if(SCI_NOTATION.test(trimmed)) return { value:"", corrupted:true };
-    return { value: trimmed.replace(/[^0-9]/g,""), corrupted:false };
+    if(raw === null || raw === undefined) return { value:"", corrupted:false };
+    let str = String(raw).trim();
+    if(!str) return { value:"", corrupted:false };
+
+    if(/[eE][+-]?\d+/.test(str)){
+      const num = Number(str);
+      if(!isNaN(num) && num > 0){
+        try{
+          return { value: BigInt(Math.round(num)).toString(), corrupted: false };
+        }catch(e){}
+      }
+    }
+
+    if(str.includes(".")){
+      const parts = str.split(".");
+      if(parts.length === 2 && /^0+$/.test(parts[1])){
+        str = parts[0];
+      } else if(parts.length === 2){
+        str = parts[0];
+      }
+    }
+
+    const digits = str.replace(/[^0-9]/g, "");
+    return { value: digits, corrupted: false };
   }
 
   function importLoyverseRows(rows, existing, cats){

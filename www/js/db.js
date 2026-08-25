@@ -147,6 +147,7 @@ const DB = (() => {
     // (2026-07-13) Uppercase categories normalization & deduplication; was mixed
     const currentCats = read(KEYS.categories, []);
     if(currentCats && currentCats.length) write(KEYS.categories, dedupeCats(currentCats));
+    // (2026-07-13) Sanitize barcodes to unshortened whole numbers. Prev: unsanitized
     const currentProds = read(KEYS.products, []);
     if(currentProds && currentProds.length){
       let pChanged = false;
@@ -154,6 +155,23 @@ const DB = (() => {
         if(p.category && p.category !== p.category.trim().toUpperCase()){
           p.category = p.category.trim().toUpperCase();
           pChanged = true;
+        }
+        if(p.barcode){
+          let bStr = String(p.barcode).trim();
+          if(/[eE][+-]?\d+/.test(bStr)){
+            const num = Number(bStr);
+            if(!isNaN(num) && num > 0){
+              try{ bStr = BigInt(Math.round(num)).toString(); }catch(e){}
+            }
+          }
+          if(bStr.includes(".")){
+            bStr = bStr.split(".")[0];
+          }
+          const cleanB = bStr.replace(/[^0-9]/g, "");
+          if(cleanB !== p.barcode){
+            p.barcode = cleanB;
+            pChanged = true;
+          }
         }
       });
       if(pChanged) write(KEYS.products, currentProds);

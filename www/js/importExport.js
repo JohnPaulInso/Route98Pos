@@ -47,12 +47,32 @@ const ImportExport = (() => {
   // That's genuine, unrecoverable precision loss — NOT something we can safely
   // reconstruct — so we treat those as blank rather than importing a wrong number
   // that could ring up the wrong item at checkout.
-  const SCI_NOTATION = /^\d+(\.\d+)?E\+\d+$/i;
+  // (2026-07-13) Format barcode as zero-decimal whole numbers. Prev: regex strip
   function cleanBarcode(raw){
-    const trimmed = (raw||"").trim();
-    if(!trimmed) return { value:"", corrupted:false };
-    if(SCI_NOTATION.test(trimmed)) return { value:"", corrupted:true };
-    return { value: trimmed.replace(/[^0-9]/g,""), corrupted:false };
+    if(raw === null || raw === undefined) return { value:"", corrupted:false };
+    let str = String(raw).trim();
+    if(!str) return { value:"", corrupted:false };
+
+    if(/[eE][+-]?\d+/.test(str)){
+      const num = Number(str);
+      if(!isNaN(num) && num > 0){
+        try{
+          return { value: BigInt(Math.round(num)).toString(), corrupted: false };
+        }catch(e){}
+      }
+    }
+
+    if(str.includes(".")){
+      const parts = str.split(".");
+      if(parts.length === 2 && /^0+$/.test(parts[1])){
+        str = parts[0];
+      } else if(parts.length === 2){
+        str = parts[0];
+      }
+    }
+
+    const digits = str.replace(/[^0-9]/g, "");
+    return { value: digits, corrupted: false };
   }
 
   function importLoyverseRows(rows, existing, cats){
@@ -114,47 +134,23 @@ const ImportExport = (() => {
     return { added, updated, skipped, untracked, withImages, corruptedBarcodes };
   }
 
-  // (2026-07-13) Case-insensitive property extractor for CSV rows. Prev: strict keys
-  function getProp(obj, ...candidates){
-    if(!obj) return "";
-    const keys = Object.keys(obj);
-    for(const c of candidates){
-      const cLow = c.toLowerCase();
-      const match = keys.find(k => k.trim().toLowerCase() === cLow || k.trim().toLowerCase().startsWith(cLow));
-      if(match && obj[match] !== undefined && obj[match] !== null && String(obj[match]).trim() !== ""){
-        return String(obj[match]).trim();
-      }
-    }
-    return "";
-  }
-
   function importGenericRows(rows, existing, cats){
-    let added = 0, updated = 0, skipped = 0;
+    let added = 0, updated = 0;
     rows.forEach(r => {
-      const name = getProp(r, "name", "product name", "item name", "item", "description");
-      if(!name || name.startsWith("#")){ skipped++; return; }
-      const cat = (getProp(r, "category", "cat") || "MISC").toUpperCase();
+      if(!r.name) return;
+      const cat = (r.category || "MISC").trim().toUpperCase();
       cats.add(cat);
-      const cost = Number(getProp(r, "cost", "cost price", "cost / manufacturer price", "unit cost", "buy price")) || 0;
-      const price = Number(getProp(r, "price", "selling price", "retail price", "unit price")) || 0;
-      const stock = Number(getProp(r, "stock", "in stock", "qty", "quantity")) || 0;
-      const lowStockThreshold = Number(getProp(r, "lowstockthreshold", "low stock", "reorder point")) || 5;
-      const { value: barcode } = cleanBarcode(getProp(r, "barcode", "bar code", "upc", "ean"));
-      const imageUrl = getProp(r, "imageurl", "image link", "image", "photo", "img");
-      const brand = getProp(r, "brand", "brand name");
-      const distributor = getProp(r, "distributor", "supplier");
-      const unit = getProp(r, "unit", "uom") || "pc";
-
       const payload = {
-        name, brand, distributor, barcode, category: cat,
-        cost, price, stock, unit, lowStockThreshold, imageUrl
+        name: r.name, brand: r.brand||"", distributor: r.distributor||"", barcode: r.barcode||"", category: cat,
+        cost: Number(r.cost)||0, price: Number(r.price)||0, stock: Number(r.stock)||0,
+        unit: r.unit||"pc", lowStockThreshold: Number(r.lowStockThreshold)||5, imageUrl: r.imageUrl||""
       };
-      let match = barcode ? existing.find(p => p.barcode === barcode) : null;
-      if(!match) match = existing.find(p => p.name && p.name.trim().toLowerCase() === name.toLowerCase());
+      let match = r.barcode ? existing.find(p => p.barcode === r.barcode) : null;
+      if(!match) match = existing.find(p => p.name && p.name.trim().toLowerCase() === r.name.trim().toLowerCase());
       if(match){ Object.assign(match, payload); updated++; }
       else { existing.push({ id: Utils.uid("prod"), createdAt: Date.now(), ...payload }); added++; }
     });
-    return { added, updated, skipped, untracked:0 };
+    return { added, updated, skipped:0, untracked:0 };
   }
 
   async function importInventoryFile(file, onDone){

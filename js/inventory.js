@@ -821,7 +821,8 @@ const Inventory = (() => {
     const totalPotentialProfit = Math.max(0, totalPotentialRev - totalCostVal);
     const avgMargin = totalPotentialRev > 0 ? (totalPotentialProfit / totalPotentialRev) * 100 : 0;
 
-    // (2026-07-13) Add profit column & bottom totals row for inventory; was rev only
+    // (2026-07-13) Always render header action buttons in renderTable. Prev: select-only
+    renderHeaderActions();
     document.getElementById("inv-count").innerHTML = `${allItems.length} product${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Page ${currentPage} of ${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong>Potential Rev: <span style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</span></strong> · <strong>Profit: <span style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</span></strong> <span class="text-faint">(Cost: ${Utils.money(totalCostVal)})</span>`;
     tbody.innerHTML = items.length ? items.map(p => {
       const pct = p.lowStockThreshold ? Math.min(100, Math.round((p.stock/(p.lowStockThreshold*3))*100)) : 100;
