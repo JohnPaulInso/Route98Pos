@@ -1,0 +1,16 @@
+{
+  "name": "route98-pos",
+  "version": "1.0.0",
+  "description": "Route 98 POS and Business Management System",
+  "main": "index.html",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "sync": "node scripts/build.js && cap sync",
+    "cap": "cap"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  }
+}

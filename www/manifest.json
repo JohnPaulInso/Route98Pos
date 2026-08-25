@@ -1,0 +1,13 @@
+{
+  "name": "Route 98 — Route98 POS System",
+  "short_name": "Route 98",
+  "description": "Route 98 — POS, Inventory, and Gasoline Station Management.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F4EC",
+  "theme_color": "#2F42D8",
+  "icons": [
+    { "src": "route98_logo.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

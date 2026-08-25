@@ -1,0 +1,110 @@
+/* =========================================================
+   DESIGN TOKENS — "Royal Counter" system
+   Royal blue brand identity, Montserrat typography, with a
+   digital-blue "pump display" accent for the signature odometer.
+   ========================================================= */
+:root{
+  /* ---- Paper / ink (light mode) ---- */
+  --paper:        #F5F7FC;
+  --paper-raised: #FFFFFF;
+  --paper-dim:    #ECF0FA;
+  --ink:          #171B2E;
+  --ink-soft:     #5A6180;
+  --ink-faint:    #9099B8;
+  --line:         #E1E5F2;
+  --line-strong:  #CBD1E8;
+
+  /* ---- Brand: Royal Blue ---- */
+  --brand:       #2F42D8;
+  --brand-deep:  #1E2C9C;
+  --brand-bright:#5C74FF;
+  --brand-tint:  #E9ECFC;
+
+  /* ---- Semantic ---- */
+  --success:      #16A870;
+  --success-deep: #0E7D53;
+  --success-tint: #E3F8EF;
+  --warning:      #E8A33D;
+  --warning-deep: #B77816;
+  --warning-tint: #FBEDD6;
+  --danger:       #E5484D;
+  --danger-deep:  #B22B30;
+  --danger-tint:  #FBE2E3;
+  --info:         #0EA5E9;
+  --info-deep:    #0876A8;
+  --info-tint:    #E1F4FC;
+
+  /* ---- Fuel-type accents (independent of brand) ---- */
+  --fuel-gasoline: #E8A33D;
+  --fuel-gasoline-tint: #FBEDD6;
+  --fuel-diesel: #D2451E;
+  --fuel-diesel-tint: #F9E1D6;
+  --fuel-premium: #1E9E6B;
+  --fuel-premium-tint: #E0F6EC;
+
+  /* ---- Odometer (digital pump-display counter) ---- */
+  --digit-bg:   #0B1220;
+  --digit-fg:   #6FA8FF;
+  --digit-fg-dim: #2C4270;
+
+  /* ---- Type ---- */
+  --font-display: "Montserrat", "Segoe UI", sans-serif;
+  --font-body:    "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    "IBM Plex Mono", "Roboto Mono", ui-monospace, monospace;
+
+  /* ---- Scale ---- */
+  --fs-xs: .68rem;
+  --fs-sm: .76rem;
+  --fs-base: .85rem;
+  --fs-md: .95rem;
+  --fs-lg: 1.15rem;
+  --fs-xl: 1.4rem;
+  --fs-2xl: 1.8rem;
+
+  /* ---- Radius / shadow ---- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --shadow-sm: 0 1px 2px rgba(23,27,46,.06), 0 1px 1px rgba(23,27,46,.04);
+  --shadow-md: 0 6px 18px rgba(31,44,120,.10), 0 2px 5px rgba(31,44,120,.06);
+  --shadow-lg: 0 16px 40px rgba(23,27,46,.18);
+  --shadow-brand: 0 8px 20px rgba(47,66,216,.28);
+
+  /* (2026-07-13) Tighten shell dimensions for spacious feel; was 232px/58px */
+  /* ---- Layout ---- */
+  --sidebar-w: 220px;
+  --topbar-h: 54px;
+  --bottomnav-h: 60px;
+  --gutter: 16px;
+
+  --transition: 160ms cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="dark"]{
+  --paper:        #10131F;
+  --paper-raised: #171B2C;
+  --paper-dim:    #0C0F19;
+  --ink:          #EDEFFB;
+  --ink-soft:     #A8AFCC;
+  --ink-faint:    #6E7594;
+  --line:         #262C44;
+  --line-strong:  #363E5C;
+
+  --brand-tint:  #1B2050;
+  --success-tint: #0E2A22;
+  --warning-tint: #35270F;
+  --danger-tint: #3A181A;
+  --info-tint: #10283A;
+  --fuel-gasoline-tint: #35270F;
+  --fuel-diesel-tint: #33190E;
+  --fuel-premium-tint: #0E2A22;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md: 0 6px 18px rgba(0,0,0,.45);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.55);
+}
+
+/* Fuel-type accent classes — reused across POS, Gasoline, Dashboard */
+.fuel-gasoline{ --fuel-c: var(--fuel-gasoline); --fuel-tint: var(--fuel-gasoline-tint); }
+.fuel-diesel  { --fuel-c: var(--fuel-diesel); --fuel-tint: var(--fuel-diesel-tint); }
+.fuel-premium { --fuel-c: var(--fuel-premium); --fuel-tint: var(--fuel-premium-tint); }

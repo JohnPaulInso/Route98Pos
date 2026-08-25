@@ -1,0 +1,11 @@
+# (2026-07-13) Add root gitignore for build & node artifacts. Prev: none
+node_modules/
+android/app/build/
+android/.gradle/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+.gradle/
+*.apk
+*.log
+.DS_Store
+Thumbs.db
