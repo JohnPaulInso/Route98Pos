@@ -839,11 +839,16 @@ const Inventory = (() => {
       return `
       <tr class="${p.stock<=0 || low ? "low-stock":""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
        ${selectMode ? `<td class="inv-select-col"><input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""}></td>` : ""}
-        <td>
-          <span class="prod-thumb-sm" style="width:28px;height:28px;">${Utils.productThumb(p, { iconSize:15 })}</span>
-          <strong style="font-size:.88rem;max-width:220px;">${Utils.escapeHtml(p.name)}</strong>
-          ${hasDual ? `<span class="badge badge-brand text-xs" style="font-size:.62rem;padding:1px 5px;margin-left:3px;font-weight:800;">${p.piecesPerPack} pcs/pack</span>` : ""}
-          ${p.brand ? `<span class="brand-cell" style="font-size:.72rem;">${Utils.escapeHtml(p.brand)}${p.distributor?` · ${Utils.escapeHtml(p.distributor)}`:""}</span>` : ""}
+        <!-- (2026-07-13) Responsive flex layout for product cell. Prev: uncontained wrap -->
+        <td style="min-width:180px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="prod-thumb-sm" style="width:30px;height:30px;flex-shrink:0;margin:0;">${Utils.productThumb(p, { iconSize:15 })}</span>
+            <div style="min-width:0;flex:1;">
+              <strong style="font-size:.88rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;" title="${Utils.escapeHtml(p.name)}">${Utils.escapeHtml(p.name)}</strong>
+              ${hasDual ? `<span class="badge badge-brand text-xs" style="font-size:.62rem;padding:1px 5px;font-weight:800;display:inline-block;">${p.piecesPerPack} pcs/pack</span>` : ""}
+              ${p.brand ? `<span class="brand-cell" style="font-size:.72rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${Utils.escapeHtml(p.brand)}${p.distributor?` · ${Utils.escapeHtml(p.distributor)}`:""}</span>` : ""}
+            </div>
+          </div>
         </td>
         <td class="mono font-bold" style="font-size:.80rem;letter-spacing:-.02em;">${p.barcode||"—"}${hasDual && p.packBarcode ? `<div class="text-xs text-faint">Pk: ${p.packBarcode}</div>` : ""}</td>
         <td><span class="badge badge-brand" style="font-size:.70rem;font-weight:750;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;padding:2px 6px;" title="${Utils.escapeHtml(p.category)}">${Utils.escapeHtml(p.category)}</span></td>
@@ -988,8 +993,15 @@ const Inventory = (() => {
       <div id="inv-pagination" class="pagination-bar" style="display:none;"></div>
       <input type="file" id="inv-import-file" accept=".csv,.json" class="hidden">`;
 
-    renderHeaderActions();
-    document.getElementById("inv-import-file").addEventListener("change", (e)=> ImportExport.importInventoryFile(e.target.files[0], renderTable));
+    // (2026-07-13) Re-render inventory and reset file input on import. Prev: table only
+    document.getElementById("inv-import-file").addEventListener("change", (e)=> {
+      if(e.target.files && e.target.files[0]){
+        ImportExport.importInventoryFile(e.target.files[0], () => {
+          e.target.value = "";
+          render();
+        });
+      }
+    });
 
     document.getElementById("inv-search").addEventListener("input", Utils.debounce((e)=>{ searchTerm=e.target.value; currentPage=1; renderTable(); },150));
 

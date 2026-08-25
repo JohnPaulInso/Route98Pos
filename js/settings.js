@@ -98,14 +98,83 @@ const Settings = (() => {
     };
   }
 
+  // (2026-07-13) Firestore collections & 11:59 PM daily backups UI. Prev: basic
   function renderDataTab(){
     const wrap = document.getElementById("view-tab-body");
     const settings = DB.getSettings();
+    const backups = DB.getBackups();
+    const target1159 = Sync.getNext1159Target();
+    const targetStr = target1159.toLocaleDateString("en-PH", { month:"short", day:"numeric" }) + " at 11:59 PM";
+
     wrap.innerHTML = `
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <h3 style="margin:0 0 2px;">${Icons.get("cloud",{size:16})} Firestore Database (Multi-Collection)</h3>
+            <p class="text-sm text-faint" style="margin:0;">Grouped collections: <code>products</code>, <code>sales</code>, <code>fuelSales</code>, <code>expenses</code>, <code>venueLeads</code>, <code>restaurantBookings</code>, <code>backups</code></p>
+          </div>
+          <span class="badge ${settings.firebaseConfig ? "badge-success" : "badge-faint"}">${settings.firebaseConfig ? "Connected" : "Local Only"}</span>
+        </div>
+        <div class="field"><label>Firebase Project Config (JSON)</label>
+          <textarea class="input" id="firebase-config" rows="4" placeholder='{"apiKey":"...","projectId":"...","...":"..."}'>${settings.firebaseConfig ? JSON.stringify(settings.firebaseConfig,null,2) : ""}</textarea>
+        </div>
+        <div class="switch-row" style="margin-bottom:14px;">
+          <div>
+            <strong>Auto-Sync after changes</strong>
+            <p class="text-sm text-faint" style="margin:0;">Automatically pushes records to Firestore collections in background.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="s-autosync" ${settings.autoSync?"checked":""}><span class="track"></span></label>
+        </div>
+        <div class="input-row" style="flex-wrap:wrap;gap:8px;">
+          <button class="btn" id="btn-save-firebase">${Icons.get("check",{size:14})} Save Config</button>
+          <button class="btn btn-primary" id="btn-sync-now">${Icons.get("cloud-check",{size:15})} Push Collections Now</button>
+          <button class="btn btn-ghost" id="btn-pull-now">${Icons.get("download",{size:15})} Pull Collections</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <h3 style="margin:0 0 2px;">${Icons.get("database",{size:16})} Daily Automated Backups (11:59 PM)</h3>
+            <p class="text-sm text-faint" style="margin:0;">Automated backup triggers daily at 11:59 PM. Next scheduled: <strong>${targetStr}</strong></p>
+          </div>
+          <button class="btn btn-sm btn-primary" id="btn-create-backup-now">${Icons.get("plus",{size:13})} Run Backup Now</button>
+        </div>
+        ${backups.length ? `
+          <div class="table-wrap" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Type</th>
+                  <th>Summary</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${backups.slice(0, 15).map(b => `
+                  <tr>
+                    <td><strong>${Utils.escapeHtml(b.dateStr || new Date(b.createdAt).toLocaleString())}</strong></td>
+                    <td><span class="badge ${b.exportType==="automatic_1159"?"badge-info":"badge-amber"}">${b.exportType==="automatic_1159"?"11:59 PM Auto":"Manual"}</span></td>
+                    <td class="text-xs text-faint">${b.summary ? `${b.summary.products||0} Prods · ${b.summary.sales||0} Sales · ${b.summary.expenses||0} OPEX` : "Full Snapshot"}</td>
+                    <td style="text-align:right;white-space:nowrap;">
+                      <button class="btn btn-xs btn-ghost" data-view-backup="${b.id}">${Icons.get("eye",{size:12})} View</button>
+                      <button class="btn btn-xs btn-ghost" data-download-backup="${b.id}">${Icons.get("download",{size:12})} Download</button>
+                      <button class="btn btn-xs btn-outline" data-restore-backup="${b.id}">${Icons.get("upload",{size:12})} Restore</button>
+                    </td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>` : `
+          <div style="padding:18px;text-align:center;background:var(--card-sub);border-radius:var(--radius-sm);color:var(--text-faint);">
+            <p style="margin:0;font-size:.85rem;">No backups recorded yet. Automatic backup will trigger tonight at 11:59 PM, or click "Run Backup Now".</p>
+          </div>`}
+      </div>
+
       <div class="grid-2">
         <div class="card">
-          <h3 style="margin-bottom:10px;">${Icons.get("download",{size:16})} Export</h3>
-          <p class="text-sm text-faint" style="margin-bottom:12px;">Download full JSON backup, inventory CSV, or category list.</p>
+          <h3 style="margin-bottom:10px;">${Icons.get("download",{size:16})} Manual File Export</h3>
+          <p class="text-sm text-faint" style="margin-bottom:12px;">Download standalone JSON backup file or CSV spreadsheets.</p>
           <button class="btn btn-block" id="btn-export-json" style="margin-bottom:8px;">Full Backup (.json)</button>
           <div class="grid-2" style="gap:8px;">
             <button class="btn btn-block" id="btn-export-csv">Inventory (.csv)</button>
@@ -113,37 +182,21 @@ const Settings = (() => {
           </div>
         </div>
         <div class="card">
-          <h3 style="margin-bottom:10px;">${Icons.get("upload",{size:16})} Import / Restore</h3>
-          <p class="text-sm text-faint" style="margin-bottom:12px;">Restore a full backup, or bulk-import products from CSV/JSON.</p>
-          <button class="btn btn-block" id="btn-import-json" style="margin-bottom:8px;">Restore Full Backup</button>
+          <h3 style="margin-bottom:10px;">${Icons.get("upload",{size:16})} File Import</h3>
+          <p class="text-sm text-faint" style="margin-bottom:12px;">Restore a downloaded full backup file or import product catalog.</p>
+          <button class="btn btn-block" id="btn-import-json" style="margin-bottom:8px;">Restore Full Backup File</button>
           <button class="btn btn-block" id="btn-import-csv">Import Products (CSV/JSON)</button>
           <input type="file" id="file-json" accept=".json" class="hidden">
           <input type="file" id="file-csv" accept=".csv,.json" class="hidden">
         </div>
       </div>
-      <div class="card" style="margin-top:14px;">
-        <h3 style="margin-bottom:10px;">${Icons.get("cloud",{size:16})} Firestore Sync (optional)</h3>
-        <p class="text-sm text-faint" style="margin-bottom:12px;">Everything already saves to this device instantly. Paste your Firebase project config below to also back up a snapshot to Firestore — great for syncing across devices.</p>
-        <div class="field"><label>Firebase config (JSON)</label>
-          <textarea class="input" id="firebase-config" rows="5" placeholder='{"apiKey":"...","projectId":"...","...":"..."}'>${settings.firebaseConfig ? JSON.stringify(settings.firebaseConfig,null,2) : ""}</textarea>
-        </div>
-        <div class="switch-row" style="margin-bottom:12px;">
-          <span class="text-sm">Auto-sync after every change</span>
-          <label class="switch"><input type="checkbox" id="s-autosync" ${settings.autoSync?"checked":""}><span class="track"></span></label>
-        </div>
-        <div class="input-row">
-          <button class="btn" id="btn-save-firebase">Save Config</button>
-          <button class="btn btn-primary" id="btn-sync-now">${Icons.get("cloud-check",{size:15})} Sync Now</button>
-          <button class="btn btn-ghost" id="btn-pull-now">${Icons.get("download",{size:15})} Pull Latest</button>
-        </div>
-      </div>
+
       <div class="card" style="margin-top:14px;border-color:var(--danger);">
         <h3 style="margin-bottom:10px;color:var(--danger-deep);">${Icons.get("alert-triangle",{size:16})} Danger Zone</h3>
-        <p class="text-sm text-faint" style="margin-bottom:12px;">These actions can't be undone. Export a backup first.</p>
+        <p class="text-sm text-faint" style="margin-bottom:12px;">These actions cannot be undone. Download or create a backup before resetting.</p>
         <button class="btn btn-danger" id="btn-wipe">Reset All Data</button>
       </div>`;
 
-    // (2026-07-13) Add categories export button; was full backup and products only
     document.getElementById("btn-export-json").onclick = ImportExport.exportFullBackup;
     document.getElementById("btn-export-csv").onclick = ImportExport.exportInventoryCSV;
     document.getElementById("btn-export-cats").onclick = ImportExport.exportCategoriesCSV;
@@ -161,10 +214,101 @@ const Settings = (() => {
         DB.setSettings(s);
         Utils.toast("Firebase config saved.", "success");
         Sync.paintStatus();
+        renderDataTab();
       }catch(e){ Utils.toast("That doesn't look like valid JSON.", "error"); }
     };
     document.getElementById("btn-sync-now").onclick = () => Sync.pushSnapshot();
     document.getElementById("btn-pull-now").onclick = () => Sync.pullSnapshot();
+
+    document.getElementById("btn-create-backup-now").onclick = async () => {
+      const rec = await Sync.createDailyBackup("manual");
+      Utils.toast(`Backup ${rec.id} created.`, "success");
+      renderDataTab();
+    };
+
+    // (2026-07-13) View detailed daily backup contents in modal. Prev: download only
+    wrap.querySelectorAll("[data-view-backup]").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.viewBackup;
+        const item = DB.getBackups().find(x => x.id === id);
+        if(!item) return;
+        const snap = item.data || item;
+        const body = `
+          <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+            <div class="card" style="padding:10px 14px;background:var(--paper-dim);">
+              <div class="text-xs text-faint">Backup Timestamp</div>
+              <strong>${Utils.escapeHtml(item.dateStr || new Date(item.createdAt).toLocaleString())}</strong>
+            </div>
+            <div class="card" style="padding:10px 14px;background:var(--paper-dim);">
+              <div class="text-xs text-faint">Export Mode</div>
+              <strong>${item.exportType==="automatic_1159"?"Daily 11:59 PM Auto":"Manual Export"}</strong>
+            </div>
+          </div>
+          <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
+            <table class="data">
+              <thead><tr><th>Section</th><th>Record Count</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Products & Catalog</strong></td><td>${(snap.products||[]).length} items</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Minimart Transactions</strong></td><td>${(snap.sales||[]).length} sales</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Gasoline Fuel Sales</strong></td><td>${(snap.fuelSales||[]).length} pump transactions</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Fuel Bulk Deliveries</strong></td><td>${(snap.fuelDeliveries||[]).length} deliveries</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Expenses (OPEX)</strong></td><td>${(snap.expenses||[]).length} entries</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Event Venue Leads & Bookings</strong></td><td>${(snap.venueLeads||[]).length + (snap.bookings||[]).length} bookings</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Restaurant Bookings</strong></td><td>${(snap.restaurantBookings||[]).length} reservations</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Stock Movement Audit Logs</strong></td><td>${(snap.stockLog||[]).length} logs</td><td><span class="badge badge-success">Saved</span></td></tr>
+                <tr><td><strong>Settings & Staff Roles</strong></td><td>${(snap.users||[]).length} accounts</td><td><span class="badge badge-success">Saved</span></td></tr>
+              </tbody>
+            </table>
+          </div>`;
+
+        Modal.open({
+          title: `${Icons.get("database",{size:17})} Backup Details (${item.id})`,
+          body,
+          actions: [
+            { label: "Close", cls: "btn-ghost" },
+            { label: "Download JSON", cls: "btn-primary", onClick: () => {
+              const blob = new Blob([JSON.stringify(snap, null, 2)], { type:"application/json" });
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = `route98_${id}.json`;
+              a.click();
+            }}
+          ]
+        });
+      };
+    });
+
+    wrap.querySelectorAll("[data-download-backup]").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.downloadBackup;
+        const item = DB.getBackups().find(x => x.id === id);
+        if(!item) return;
+        const blob = new Blob([JSON.stringify(item.data || item, null, 2)], { type:"application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `route98_${id}.json`;
+        a.click();
+      };
+    });
+
+    wrap.querySelectorAll("[data-restore-backup]").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.restoreBackup;
+        const item = DB.getBackups().find(x => x.id === id);
+        if(!item) return;
+        Modal.confirm({
+          title: "Restore Backup?",
+          message: `Restore data snapshot from ${item.dateStr}? Current live data will be replaced with this backup.`,
+          danger: true,
+          onConfirm: () => {
+            DB.restoreSnapshot(item.data || item);
+            Utils.toast("Backup restored successfully.", "success");
+            App.boot();
+          }
+        });
+      };
+    });
+
     document.getElementById("btn-wipe").onclick = () => Modal.confirm({
       title:"Reset ALL data?", message:"Every product, sale, and setting will be permanently erased, leaving a blank slate. This can't be undone.", danger:true,
       onConfirm: () => { DB.wipeAll(); Utils.toast("All data reset.", "success"); App.boot(); }

@@ -1,9 +1,8 @@
 // ============================================================
-// sw.js — app-shell cache so the POS still works with no signal.
-// Bump CACHE_NAME whenever you change any cached file so the
-// new version gets picked up instead of a stale cached copy.
+// sw.js — app-shell cache for Route 98 POS (Network-first with offline fallback)
 // ============================================================
-const CACHE_NAME = "goodmart-pos-v3";
+// (2026-07-13) Network-first cache strategy with v8 shell. Prev: cache-first v3
+const CACHE_NAME = "route98-pos-v8";
 const SHELL_FILES = [
   "./",
   "./index.html",
@@ -27,6 +26,7 @@ const SHELL_FILES = [
   "./js/inventory.js",
   "./js/dashboard.js",
   "./js/venue.js",
+  "./js/restaurant.js",
   "./js/reports.js",
   "./js/settings.js",
   "./js/app.js"
@@ -46,23 +46,21 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// (2026-07-13) Filter unsupported schemes & handle network fail; was unhandled
 self.addEventListener("fetch", (event) => {
   if(event.request.method !== "GET") return;
   const url = event.request.url;
   if(!url.startsWith("http://") && !url.startsWith("https://")) return;
+
+  // Network-first for fresh logic updates, cache fallback if offline
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResp) => {
-          if(networkResp && networkResp.status === 200){
-            const clone = networkResp.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
-          }
-          return networkResp;
-        })
-        .catch(() => cached || new Response("", { status: 408, statusText: "Offline" }));
-      return cached || fetchPromise;
-    })
+    fetch(event.request)
+      .then((networkResp) => {
+        if(networkResp && networkResp.status === 200){
+          const clone = networkResp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+        }
+        return networkResp;
+      })
+      .catch(() => caches.match(event.request).then((cached) => cached || new Response("", { status: 408, statusText: "Offline" })))
   );
 });

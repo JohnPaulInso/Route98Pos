@@ -7,7 +7,8 @@ const App = (() => {
     {
       group: "OVERVIEW",
       views: [
-        { id:"dashboard", label:"Executive Dashboard", ic:"bar-chart", mod:Dashboard, roles:["admin","cashier"], color:"#312E81" }
+        // (2026-07-13) Executive dashboard restricted to admin; was admin,cashier
+        { id:"dashboard", label:"Executive Dashboard", ic:"bar-chart", mod:Dashboard, roles:["admin"], color:"#312E81" }
       ]
     },
     {
@@ -185,10 +186,11 @@ const App = (() => {
   function boot(){
     document.documentElement.dataset.theme = DB.getSettings().theme || "light";
     shell();
+    // (2026-07-13) Safe view resolution for non-admin accounts; was unassigned
     const views = accessibleViews();
     const remembered = DB.getSettings().lastView;
     if(views.find(v => v.id === remembered)) currentView = remembered;
-    else if(!views.find(v=>v.id===currentView)) currentView = views[0]?.id || "pos";
+    else currentView = views[0]?.id || "pos";
     navigate(currentView);
   }
 

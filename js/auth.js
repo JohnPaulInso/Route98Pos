@@ -85,16 +85,79 @@ const Auth = (() => {
               return `<button data-k="${k}">${k}</button>`;
             }).join("")}
           </div>
-          <p class="login-hint">Demo PINs — Admin: 1234 · Cashier: 1111<br>(change these anytime in Settings)</p>
+          <!-- (2026-07-13) Add change PIN action to login screen. Prev: static hint -->
+          <div style="margin-top:10px;display:flex;justify-content:center;">
+            <button class="btn btn-sm btn-ghost" id="btn-login-change-pin" style="color:var(--text-faint);font-size:.80rem;">
+              ${Icons.get("key",{size:13})} Change PIN
+            </button>
+          </div>
         </div>
       </div>`;
 
     renderPinDots();
     document.getElementById("role-cashier").onclick = () => setRole("cashier");
     document.getElementById("role-admin").onclick = () => setRole("admin");
+    document.getElementById("btn-login-change-pin").onclick = () => openChangePinModal(pendingRole);
     document.getElementById("pin-pad").addEventListener("click", (e)=>{
       const btn = e.target.closest("button"); if(!btn) return;
       handleKey(btn.dataset.k);
+    });
+  }
+
+  // (2026-07-13) Direct self-service PIN change for Cashier and Admin. Prev: none
+  function openChangePinModal(presetRole = pendingRole){
+    const body = `
+      <div class="field"><label>Account</label>
+        <select class="input" id="change-pin-role">
+          <option value="cashier" ${presetRole==="cashier"?"selected":""}>Cashier</option>
+          <option value="admin" ${presetRole==="admin"?"selected":""}>Owner / Admin</option>
+        </select>
+      </div>
+      <div class="field"><label>Current 4-digit PIN</label>
+        <input class="input" id="curr-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      </div>
+      <div class="field"><label>New 4-digit PIN</label>
+        <input class="input" id="new-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      </div>
+      <div class="field"><label>Confirm New PIN</label>
+        <input class="input" id="confirm-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      </div>`;
+
+    Modal.open({
+      title: `${Icons.get("key",{size:17})} Change Account PIN`,
+      body,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost" },
+        {
+          label: "Update PIN",
+          cls: "btn-primary",
+          onClick: () => {
+            const role = document.getElementById("change-pin-role").value;
+            const currPin = document.getElementById("curr-pin-input").value.trim();
+            const newPin = document.getElementById("new-pin-input").value.trim();
+            const confirmPin = document.getElementById("confirm-pin-input").value.trim();
+
+            const user = DB.getUsers().find(u => u.role === role);
+            if(!user || user.pin !== currPin){
+              Utils.toast("Current PIN is incorrect.", "error");
+              return;
+            }
+            if(!/^\d{4}$/.test(newPin)){
+              Utils.toast("New PIN must be exactly 4 digits.", "error");
+              return;
+            }
+            if(newPin !== confirmPin){
+              Utils.toast("New PIN confirmation does not match.", "error");
+              return;
+            }
+
+            const users = DB.getUsers().map(u => u.id === user.id ? { ...u, pin: newPin } : u);
+            DB.setUsers(users);
+            Utils.toast(`${user.name} PIN updated successfully.`, "success");
+            Modal.close();
+          }
+        }
+      ]
     });
   }
 

@@ -5,13 +5,14 @@
 // ============================================================
 const DB = (() => {
   const NS = "mm_"; // minimart namespace
+  // (2026-07-13) Add backups key to storage mapping; was 17 items
   const KEYS = {
     products: NS+"products", categories: NS+"categories", sales: NS+"sales",
     fuelSales: NS+"fuelSales", fuelConfig: NS+"fuelConfig", settings: NS+"settings",
     users: NS+"users", heldSales: NS+"heldSales", venueLeads: NS+"venueLeads",
     stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
-    restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries"
+    restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups"
   };
 
   function read(key, fallback = null){
@@ -37,7 +38,7 @@ const DB = (() => {
   // ---------- defaults ----------
   const DEFAULT_CATEGORIES = ["Misc"];
 
-  // (2026-07-13) Set default business name to Route 98; was Good Minimart
+  // (2026-07-13) Set default Route 98 Firebase config & autoSync. Prev: null
   const DEFAULT_SETTINGS = {
     businessName: "Route 98",
     address: "Cebu City, Philippines",
@@ -48,8 +49,15 @@ const DB = (() => {
     vatRate: 12,
     theme: "light",
     lowStockThreshold: 5,
-    firebaseConfig: null,
-    autoSync: false,
+    firebaseConfig: {
+      apiKey: "AIzaSyA79noblcXcY2rhe4VmK3vHUnzXqRhl4w8",
+      authDomain: "route98-bogo.firebaseapp.com",
+      projectId: "route98-bogo",
+      storageBucket: "route98-bogo.firebasestorage.app",
+      messagingSenderId: "177232035309",
+      appId: "1:177232035309:web:87fa8430b141e7afb97be4"
+    },
+    autoSync: true,
     lastView: "pos"
   };
 
@@ -74,7 +82,15 @@ const DB = (() => {
 
   function init(){
     if(read(KEYS.categories) === null) write(KEYS.categories, DEFAULT_CATEGORIES);
-    if(read(KEYS.settings) === null) write(KEYS.settings, DEFAULT_SETTINGS);
+    // (2026-07-13) Auto-set default Firebase config in stored settings; was unconfigured
+    const curSettings = read(KEYS.settings);
+    if(curSettings === null){
+      write(KEYS.settings, DEFAULT_SETTINGS);
+    } else if(!curSettings.firebaseConfig){
+      curSettings.firebaseConfig = DEFAULT_SETTINGS.firebaseConfig;
+      curSettings.autoSync = true;
+      write(KEYS.settings, curSettings);
+    }
     if(read(KEYS.users) === null) write(KEYS.users, DEFAULT_USERS);
     const curFuelCfg = read(KEYS.fuelConfig);
     // (2026-07-13) Fix duplicate premium pump; enforce 3 distinct fuels
@@ -401,13 +417,28 @@ const DB = (() => {
     }
   }
 
+  // (2026-07-13) Manage backup records and complete all-unit snapshots. Prev: partial
+  function getBackups(){ return read(KEYS.backups, []); }
+  function setBackups(b){ return write(KEYS.backups, b); }
+  function saveBackup(rec){
+    const list = getBackups().filter(x => x.id !== rec.id);
+    list.unshift(rec);
+    return setBackups(list.slice(0, 50));
+  }
+  function deleteBackup(id){
+    const list = getBackups().filter(x => x.id !== id);
+    return setBackups(list);
+  }
+
   // ---------- full snapshot (for export + firestore sync) ----------
   function snapshot(){
     return {
       products:getProducts(), categories:getCategories(), sales:getSales(), fuelSales:getFuelSales(),
-      fuelConfig:getFuelConfig(), settings:getSettings(), users:getUsers(), heldSales:getHeldSales(),
-      venueLeads:getVenueLeads(), stockLog:getStockLog(), restockLogs:getRestockLogs(), shift:getShift(),
-      exportedAt: Date.now(), version:2
+      fuelConfig:getFuelConfig(), fuelDeliveries:getFuelDeliveries(), settings:getSettings(), users:getUsers(),
+      heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
+      restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
+      stockLog:getStockLog(), restockLogs:getRestockLogs(), shift:getShift(),
+      exportedAt: Date.now(), version:3
     };
   }
   function restoreSnapshot(snap){
@@ -417,11 +448,16 @@ const DB = (() => {
     if(snap.sales) setSales(snap.sales);
     if(snap.fuelSales) setFuelSales(snap.fuelSales);
     if(snap.fuelConfig) setFuelConfig(snap.fuelConfig);
+    if(snap.fuelDeliveries) setFuelDeliveries(snap.fuelDeliveries);
     if(snap.settings) setSettings({ ...DEFAULT_SETTINGS, ...snap.settings });
     if(snap.users) setUsers(snap.users);
     if(snap.heldSales) setHeldSales(snap.heldSales);
     if(snap.venueLeads) setVenueLeads(snap.venueLeads);
+    if(snap.bookings) setBookings(snap.bookings);
+    if(snap.restaurantBookings) setRestaurantBookings(snap.restaurantBookings);
+    if(snap.expenses) setExpenses(snap.expenses);
     if(snap.stockLog) setStockLog(snap.stockLog);
+    if(snap.restockLogs) setRestockLogs(snap.restockLogs);
     if(snap.shift) setShift(snap.shift);
   }
   function wipeAll(){
@@ -445,6 +481,7 @@ const DB = (() => {
     getBookings, setBookings, addBooking, updateBooking, deleteBooking,
     getRestaurantBookings, setRestaurantBookings, addRestaurantBooking, updateRestaurantBooking, deleteRestaurantBooking,
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
+    getBackups, setBackups, saveBackup, deleteBackup,
     getShift, setShift,
     getSyncMeta, setSyncMeta,
     getSavedCart, saveCart,

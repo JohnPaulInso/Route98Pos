@@ -31,14 +31,16 @@ const ImportExport = (() => {
     Utils.toast("Full backup downloaded.", "success");
   }
 
+  // (2026-07-13) Flexible Loyverse CSV header detection. Prev: strict 3-col match
   function isLoyverseFormat(headers){
-    return headers.includes("Handle") && headers.includes("Cost / Manufacturer Price") && headers.includes("Barcode");
+    const hStr = headers.map(h => String(h).toLowerCase()).join(" ");
+    return (hStr.includes("handle") || hStr.includes("sku")) && (hStr.includes("barcode") || hStr.includes("name"));
   }
 
   // Loyverse "Items" export has per-store-location columns like
   // "Price [Your Store Name]" — find them by prefix since the
   // exact store name varies per user.
-  function findCol(headers, prefix){ return headers.find(h => h.startsWith(prefix)); }
+  function findCol(headers, prefix){ return headers.find(h => h.toLowerCase().startsWith(prefix.toLowerCase())); }
 
   // Excel/Sheets silently mangles long numeric barcodes into scientific notation
   // (e.g. "748485200019" -> "7.48E+11") the moment the CSV is opened and re-saved.
@@ -55,30 +57,32 @@ const ImportExport = (() => {
 
   function importLoyverseRows(rows, existing, cats){
     const headers = Object.keys(rows[0]);
-    const priceKey = findCol(headers, "Price [");
-    const stockKey = findCol(headers, "In stock [");
-    const lowStockKey = findCol(headers, "Low stock [");
-    const availKey = findCol(headers, "Available for sale [");
-    const imageKey = headers.includes("IMAGE LINK") ? "IMAGE LINK" : findCol(headers, "IMAGE");
+    const priceKey = findCol(headers, "Price [") || headers.find(h => /^price/i.test(h));
+    const stockKey = findCol(headers, "In stock [") || headers.find(h => /^in stock/i.test(h) || /^stock/i.test(h));
+    const lowStockKey = findCol(headers, "Low stock [") || headers.find(h => /^low stock/i.test(h));
+    const availKey = findCol(headers, "Available for sale [") || headers.find(h => /^available/i.test(h));
+    const imageKey = headers.find(h => /^image/i.test(h));
+    const costKey = headers.find(h => /^cost/i.test(h) || /manufacturer price/i.test(h)) || "Cost";
+    const nameKey = headers.find(h => /^name/i.test(h)) || "Name";
+    const catKey = headers.find(h => /^category/i.test(h)) || "Category";
+    const barcodeKey = headers.find(h => /^barcode/i.test(h)) || "Barcode";
 
     let added = 0, updated = 0, skipped = 0, untracked = 0, withImages = 0, corruptedBarcodes = 0;
 
     rows.forEach(r => {
-      const name = (r["Name"]||"").trim();
-      if(!name || name.startsWith("#")){ skipped++; return; } // Loyverse placeholder/"custom amount" rows
+      const name = (r[nameKey]||"").trim();
+      if(!name || name.startsWith("#")){ skipped++; return; }
       if(availKey && r[availKey] && r[availKey] !== "Y"){ skipped++; return; }
 
       const priceRaw = priceKey ? r[priceKey] : "";
       const price = Number(priceRaw);
-      if(priceRaw === "" || priceRaw === undefined || isNaN(price)){ skipped++; return; } // e.g. "variable" priced items
+      if(priceRaw === "" || priceRaw === undefined || isNaN(price)){ skipped++; return; }
 
-      // (2026-07-13) Fix CSV import blank stock to 0 & merge by name/barcode; was 9999
-      const category = ((r["Category"]||"").trim() || "MISC").toUpperCase();
+      const category = ((r[catKey]||"").trim() || "MISC").toUpperCase();
       cats.add(category);
-      const cost = Number(r["Cost / Manufacturer Price"]) || 0;
+      const cost = Number(r[costKey]) || 0;
 
-      // Column N (Barcode). SKU column is ignored entirely, per your instructions.
-      const { value: barcode, corrupted } = cleanBarcode(r["Barcode"]);
+      const { value: barcode, corrupted } = cleanBarcode(r[barcodeKey]);
       if(corrupted) corruptedBarcodes++;
 
       const stockRaw = stockKey ? r[stockKey] : "";

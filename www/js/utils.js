@@ -98,9 +98,25 @@ const Utils = (() => {
     return lines.join("\n");
   }
 
+  // (2026-07-13) Strip BOM & unwrap quoted/concatenated CSV rows. Prev: raw split
   function fromCSV(text){
+    if(!text) return [];
+    if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
     const lines = text.split(/\r?\n/).filter(l => l.trim().length);
     if(!lines.length) return [];
+
+    if(lines[0].startsWith('"') && lines[0].includes("Handle,") && lines[0].includes("Barcode")){
+      const unpacked = lines.map(line => {
+        if(line.startsWith('"')){
+          const endIdx = line.indexOf('",');
+          if(endIdx !== -1) return line.slice(1, endIdx);
+          if(line.endsWith('"')) return line.slice(1, -1);
+        }
+        return line;
+      });
+      return fromCSV(unpacked.join("\n"));
+    }
+
     const parseLine = (line) => {
       const out = []; let cur = ""; let inQ = false;
       for(let i=0;i<line.length;i++){
@@ -111,11 +127,11 @@ const Utils = (() => {
           else cur += c;
         } else {
           if(c === '"') inQ = true;
-          else if(c === ","){ out.push(cur); cur=""; }
+          else if(c === ","){ out.push(cur.trim()); cur=""; }
           else cur += c;
         }
       }
-      out.push(cur);
+      out.push(cur.trim());
       return out;
     };
     const headers = parseLine(lines[0]);

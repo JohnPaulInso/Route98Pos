@@ -31,14 +31,16 @@ const ImportExport = (() => {
     Utils.toast("Full backup downloaded.", "success");
   }
 
+  // (2026-07-13) Flexible Loyverse CSV header detection. Prev: strict 3-col match
   function isLoyverseFormat(headers){
-    return headers.includes("Handle") && headers.includes("Cost / Manufacturer Price") && headers.includes("Barcode");
+    const hStr = headers.map(h => String(h).toLowerCase()).join(" ");
+    return (hStr.includes("handle") || hStr.includes("sku")) && (hStr.includes("barcode") || hStr.includes("name"));
   }
 
   // Loyverse "Items" export has per-store-location columns like
   // "Price [Your Store Name]" — find them by prefix since the
   // exact store name varies per user.
-  function findCol(headers, prefix){ return headers.find(h => h.startsWith(prefix)); }
+  function findCol(headers, prefix){ return headers.find(h => h.toLowerCase().startsWith(prefix.toLowerCase())); }
 
   // Excel/Sheets silently mangles long numeric barcodes into scientific notation
   // (e.g. "748485200019" -> "7.48E+11") the moment the CSV is opened and re-saved.
@@ -55,30 +57,32 @@ const ImportExport = (() => {
 
   function importLoyverseRows(rows, existing, cats){
     const headers = Object.keys(rows[0]);
-    const priceKey = findCol(headers, "Price [");
-    const stockKey = findCol(headers, "In stock [");
-    const lowStockKey = findCol(headers, "Low stock [");
-    const availKey = findCol(headers, "Available for sale [");
-    const imageKey = headers.includes("IMAGE LINK") ? "IMAGE LINK" : findCol(headers, "IMAGE");
+    const priceKey = findCol(headers, "Price [") || headers.find(h => /^price/i.test(h));
+    const stockKey = findCol(headers, "In stock [") || headers.find(h => /^in stock/i.test(h) || /^stock/i.test(h));
+    const lowStockKey = findCol(headers, "Low stock [") || headers.find(h => /^low stock/i.test(h));
+    const availKey = findCol(headers, "Available for sale [") || headers.find(h => /^available/i.test(h));
+    const imageKey = headers.find(h => /^image/i.test(h));
+    const costKey = headers.find(h => /^cost/i.test(h) || /manufacturer price/i.test(h)) || "Cost";
+    const nameKey = headers.find(h => /^name/i.test(h)) || "Name";
+    const catKey = headers.find(h => /^category/i.test(h)) || "Category";
+    const barcodeKey = headers.find(h => /^barcode/i.test(h)) || "Barcode";
 
     let added = 0, updated = 0, skipped = 0, untracked = 0, withImages = 0, corruptedBarcodes = 0;
 
     rows.forEach(r => {
-      const name = (r["Name"]||"").trim();
-      if(!name || name.startsWith("#")){ skipped++; return; } // Loyverse placeholder/"custom amount" rows
+      const name = (r[nameKey]||"").trim();
+      if(!name || name.startsWith("#")){ skipped++; return; }
       if(availKey && r[availKey] && r[availKey] !== "Y"){ skipped++; return; }
 
       const priceRaw = priceKey ? r[priceKey] : "";
       const price = Number(priceRaw);
-      if(priceRaw === "" || priceRaw === undefined || isNaN(price)){ skipped++; return; } // e.g. "variable" priced items
+      if(priceRaw === "" || priceRaw === undefined || isNaN(price)){ skipped++; return; }
 
-      // (2026-07-13) Fix CSV import blank stock to 0 & merge by name/barcode; was 9999
-      const category = ((r["Category"]||"").trim() || "MISC").toUpperCase();
+      const category = ((r[catKey]||"").trim() || "MISC").toUpperCase();
       cats.add(category);
-      const cost = Number(r["Cost / Manufacturer Price"]) || 0;
+      const cost = Number(r[costKey]) || 0;
 
-      // Column N (Barcode). SKU column is ignored entirely, per your instructions.
-      const { value: barcode, corrupted } = cleanBarcode(r["Barcode"]);
+      const { value: barcode, corrupted } = cleanBarcode(r[barcodeKey]);
       if(corrupted) corruptedBarcodes++;
 
       const stockRaw = stockKey ? r[stockKey] : "";
@@ -110,23 +114,47 @@ const ImportExport = (() => {
     return { added, updated, skipped, untracked, withImages, corruptedBarcodes };
   }
 
+  // (2026-07-13) Case-insensitive property extractor for CSV rows. Prev: strict keys
+  function getProp(obj, ...candidates){
+    if(!obj) return "";
+    const keys = Object.keys(obj);
+    for(const c of candidates){
+      const cLow = c.toLowerCase();
+      const match = keys.find(k => k.trim().toLowerCase() === cLow || k.trim().toLowerCase().startsWith(cLow));
+      if(match && obj[match] !== undefined && obj[match] !== null && String(obj[match]).trim() !== ""){
+        return String(obj[match]).trim();
+      }
+    }
+    return "";
+  }
+
   function importGenericRows(rows, existing, cats){
-    let added = 0, updated = 0;
+    let added = 0, updated = 0, skipped = 0;
     rows.forEach(r => {
-      if(!r.name) return;
-      const cat = (r.category || "MISC").trim().toUpperCase();
+      const name = getProp(r, "name", "product name", "item name", "item", "description");
+      if(!name || name.startsWith("#")){ skipped++; return; }
+      const cat = (getProp(r, "category", "cat") || "MISC").toUpperCase();
       cats.add(cat);
+      const cost = Number(getProp(r, "cost", "cost price", "cost / manufacturer price", "unit cost", "buy price")) || 0;
+      const price = Number(getProp(r, "price", "selling price", "retail price", "unit price")) || 0;
+      const stock = Number(getProp(r, "stock", "in stock", "qty", "quantity")) || 0;
+      const lowStockThreshold = Number(getProp(r, "lowstockthreshold", "low stock", "reorder point")) || 5;
+      const { value: barcode } = cleanBarcode(getProp(r, "barcode", "bar code", "upc", "ean"));
+      const imageUrl = getProp(r, "imageurl", "image link", "image", "photo", "img");
+      const brand = getProp(r, "brand", "brand name");
+      const distributor = getProp(r, "distributor", "supplier");
+      const unit = getProp(r, "unit", "uom") || "pc";
+
       const payload = {
-        name: r.name, brand: r.brand||"", distributor: r.distributor||"", barcode: r.barcode||"", category: cat,
-        cost: Number(r.cost)||0, price: Number(r.price)||0, stock: Number(r.stock)||0,
-        unit: r.unit||"pc", lowStockThreshold: Number(r.lowStockThreshold)||5, imageUrl: r.imageUrl||""
+        name, brand, distributor, barcode, category: cat,
+        cost, price, stock, unit, lowStockThreshold, imageUrl
       };
-      let match = r.barcode ? existing.find(p => p.barcode === r.barcode) : null;
-      if(!match) match = existing.find(p => p.name && p.name.trim().toLowerCase() === r.name.trim().toLowerCase());
+      let match = barcode ? existing.find(p => p.barcode === barcode) : null;
+      if(!match) match = existing.find(p => p.name && p.name.trim().toLowerCase() === name.toLowerCase());
       if(match){ Object.assign(match, payload); updated++; }
       else { existing.push({ id: Utils.uid("prod"), createdAt: Date.now(), ...payload }); added++; }
     });
-    return { added, updated, skipped:0, untracked:0 };
+    return { added, updated, skipped, untracked:0 };
   }
 
   async function importInventoryFile(file, onDone){
