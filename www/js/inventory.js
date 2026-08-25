@@ -248,10 +248,47 @@ const Inventory = (() => {
     UISelect.bind("adj-reason");
   }
 
-  function deleteProduct(product){
-    Modal.confirm({
-      title:"Delete product?", message:`"${Utils.escapeHtml(product.name)}" will be permanently removed from inventory.`, danger:true,
-      onConfirm: () => { DB.deleteProduct(product.id); Utils.toast("Product deleted.","success"); renderTable(); }
+  // (2026-07-13) Modal preview for clean product image & link. Prev: none
+  function openImagePreviewModal(p){
+    if(!p) return;
+    const body = `
+      <div style="text-align:center;padding:4px 0;">
+        <div style="background:var(--paper-dim);padding:14px;border-radius:12px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;min-height:220px;max-height:340px;overflow:hidden;box-shadow:var(--shadow-sm);">
+          ${p.imageUrl ? `
+            <img src="${Utils.escapeHtml(p.imageUrl)}" alt="${Utils.escapeHtml(p.name)}" style="max-height:300px;max-width:100%;object-fit:contain;border-radius:8px;" onerror="this.parentElement.innerHTML='<div style=\\'padding:30px;color:var(--text-faint);\\'>${Icons.get(DB.categoryIcon(p.category),{size:48})}<p style=\\'margin-top:8px;font-weight:600;\\'>Image could not be loaded</p></div>';">
+          ` : `
+            <div style="padding:30px;color:var(--text-faint);">
+              ${Icons.get(DB.categoryIcon(p.category),{size:52})}
+              <p style="margin-top:8px;font-weight:600;font-size:.95rem;">No image URL assigned</p>
+            </div>
+          `}
+        </div>
+        <div style="margin-top:14px;text-align:left;background:var(--paper-dim);padding:12px 14px;border-radius:10px;border:1px solid var(--line);">
+          <div class="flex-between" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+            <span class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;">Image Source Link</span>
+            <span class="badge badge-brand text-xs" style="font-size:.70rem;">${Utils.escapeHtml(p.category || 'MISC')}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input class="input text-xs" readonly value="${Utils.escapeHtml(p.imageUrl || 'No image URL')}" style="background:var(--card);flex:1;font-size:.82rem;" id="modal-img-url-input">
+            ${p.imageUrl ? `
+              <button class="btn btn-sm btn-ghost" id="modal-copy-img-link">${Icons.get("copy",{size:13})} Copy Link</button>
+              <a href="${Utils.escapeHtml(p.imageUrl)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">${Icons.get("external-link",{size:13})} Open</a>
+            ` : ""}
+          </div>
+        </div>
+      </div>`;
+
+    const modal = Modal.open({
+      title: `${Icons.get("image",{size:17})} ${Utils.escapeHtml(p.name)}`,
+      body,
+      actions: [
+        { label: "Close", cls: "btn-ghost" },
+        { label: "Edit Product", cls: "btn-primary", onClick: () => { Modal.close(); openProductForm(p); } }
+      ]
+    });
+
+    modal.querySelector("#modal-copy-img-link")?.addEventListener("click", () => {
+      if(p.imageUrl) Utils.copyToClipboard(p.imageUrl);
     });
   }
 
@@ -840,12 +877,12 @@ const Inventory = (() => {
       return `
       <tr class="${p.stock<=0 || low ? "low-stock":""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
        ${selectMode ? `<td class="inv-select-col"><input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""}></td>` : ""}
-        <!-- (2026-07-13) Responsive flex layout for product cell. Prev: uncontained wrap -->
+        <!-- (2026-07-13) Click-to-copy name & modal image preview. Prev: static text -->
         <td style="min-width:180px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <span class="prod-thumb-sm" style="width:30px;height:30px;flex-shrink:0;margin:0;">${Utils.productThumb(p, { iconSize:15 })}</span>
+            <span class="prod-thumb-sm" data-preview-img="${p.id}" style="width:30px;height:30px;flex-shrink:0;margin:0;cursor:pointer;" title="Click to view image">${Utils.productThumb(p, { iconSize:15 })}</span>
             <div style="min-width:0;flex:1;">
-              <strong style="font-size:.88rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;" title="${Utils.escapeHtml(p.name)}">${Utils.escapeHtml(p.name)}</strong>
+              <strong data-copy-name="${Utils.escapeHtml(p.name)}" style="font-size:.88rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;cursor:pointer;" title="Click to copy name">${Utils.escapeHtml(p.name)}</strong>
               ${hasDual ? `<span class="badge badge-brand text-xs" style="font-size:.62rem;padding:1px 5px;font-weight:800;display:inline-block;">${p.piecesPerPack} pcs/pack</span>` : ""}
               ${p.brand ? `<span class="brand-cell" style="font-size:.72rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${Utils.escapeHtml(p.brand)}${p.distributor?` · ${Utils.escapeHtml(p.distributor)}`:""}</span>` : ""}
             </div>
@@ -923,6 +960,20 @@ const Inventory = (() => {
         };
       });
     }
+
+    tbody.querySelectorAll("[data-copy-name]").forEach(el => {
+      el.onclick = (e) => {
+        e.stopPropagation();
+        Utils.copyToClipboard(el.dataset.copyName);
+      };
+    });
+    tbody.querySelectorAll("[data-preview-img]").forEach(el => {
+      el.onclick = (e) => {
+        e.stopPropagation();
+        const p = DB.getProducts().find(x => x.id === el.dataset.previewImg);
+        if(p) openImagePreviewModal(p);
+      };
+    });
 
     tbody.querySelectorAll("[data-edit]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductForm(DB.getProducts().find(p=>p.id===b.dataset.edit)); });
     tbody.querySelectorAll("[data-adj]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openStockAdjust(DB.getProducts().find(p=>p.id===b.dataset.adj)); });

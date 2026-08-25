@@ -214,6 +214,7 @@ const Settings = (() => {
         DB.setSettings(s);
         Utils.toast("Firebase config saved.", "success");
         Sync.paintStatus();
+        Sync.startRealtimeListener();
         renderDataTab();
       }catch(e){ Utils.toast("That doesn't look like valid JSON.", "error"); }
     };

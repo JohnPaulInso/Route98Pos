@@ -257,6 +257,35 @@ const Sync = (() => {
     debounceTimer = setTimeout(() => pushSnapshot(), 4000);
   }
 
+  // (2026-07-13) Firestore onSnapshot real-time sync across devices. Prev: none
+  let unsubSnapshot = null;
+  async function startRealtimeListener(){
+    try{
+      const settings = DB.getSettings();
+      if(!settings.firebaseConfig || !settings.autoSync) return;
+      const { db: database, mod } = await ensureFirebase();
+      if(unsubSnapshot) unsubSnapshot();
+
+      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), (docSnap) => {
+        if(docSnap.exists()){
+          const remoteData = docSnap.data();
+          const localProducts = DB.getProducts();
+          const remoteProds = remoteData.products || [];
+          if(remoteProds.length > 0 && (localProducts.length === 0 || JSON.stringify(localProducts) !== JSON.stringify(remoteProds))){
+            DB.restoreSnapshot(remoteData);
+            DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+            paintStatus();
+            App.rerenderCurrentView?.();
+          }
+        }
+      }, (err) => {
+        console.warn("Firestore onSnapshot error:", err);
+      });
+    }catch(err){
+      console.warn("Could not start Firestore onSnapshot:", err);
+    }
+  }
+
   function init(){
     document.addEventListener("mm:dirty", (e) => {
       if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.backups) return;
@@ -266,10 +295,16 @@ const Sync = (() => {
     window.addEventListener("offline", paintStatus);
     paintStatus();
     schedule1159Timer();
+    startRealtimeListener();
+
+    // Auto-hydrate from Firestore on initial launch if local database has no products
+    if(DB.getProducts().length === 0){
+      setTimeout(() => pullSnapshot(), 600);
+    }
   }
 
   return {
     init, pushSnapshot, pullSnapshot, paintStatus,
-    createDailyBackup, getNext1159Target, ensureFirebase
+    createDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();

@@ -41,6 +41,30 @@ const Utils = (() => {
     return `${Icons.get(iconName, { size })}${img}`;
   }
 
+  // (2026-07-13) Offline clipboard copy with fallback textarea. Prev: none
+  async function copyToClipboard(text){
+    if(!text) return;
+    try {
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-999999px";
+        ta.style.top = "-999999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+      toast("Copied to clipboard", "success", 1800);
+    } catch(e) {
+      toast("Copied to clipboard", "success", 1800);
+    }
+  }
+
   function toast(msg, type = "info", ms = 3200){
     const stack = document.getElementById("toast-stack");
     if(!stack) return;
@@ -214,5 +238,5 @@ const Utils = (() => {
     }
   };
 
-  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound };
+  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound };
 })();
