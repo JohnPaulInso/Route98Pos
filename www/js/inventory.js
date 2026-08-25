@@ -248,47 +248,34 @@ const Inventory = (() => {
     UISelect.bind("adj-reason");
   }
 
-  // (2026-07-13) Modal preview for clean product image & link. Prev: none
+  // (2026-07-13) Clean photo modal without link card. Prev: cluttered link card
   function openImagePreviewModal(p){
     if(!p) return;
     const body = `
-      <div style="text-align:center;padding:4px 0;">
-        <div style="background:var(--paper-dim);padding:14px;border-radius:12px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;min-height:220px;max-height:340px;overflow:hidden;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 0;">
+        <div style="background:var(--paper-dim);padding:16px;border-radius:14px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;width:100%;max-height:380px;min-height:220px;overflow:hidden;box-sizing:border-box;">
           ${p.imageUrl ? `
-            <img src="${Utils.escapeHtml(p.imageUrl)}" alt="${Utils.escapeHtml(p.name)}" style="max-height:300px;max-width:100%;object-fit:contain;border-radius:8px;" onerror="this.parentElement.innerHTML='<div style=\\'padding:30px;color:var(--text-faint);\\'>${Icons.get(DB.categoryIcon(p.category),{size:48})}<p style=\\'margin-top:8px;font-weight:600;\\'>Image could not be loaded</p></div>';">
-          ` : `
-            <div style="padding:30px;color:var(--text-faint);">
+            <img src="${Utils.escapeHtml(p.imageUrl)}" alt="${Utils.escapeHtml(p.name)}" style="max-height:340px;max-width:100%;object-fit:contain;border-radius:8px;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div style="display:none;flex-direction:column;align-items:center;padding:30px;color:var(--ink-faint);">
               ${Icons.get(DB.categoryIcon(p.category),{size:52})}
-              <p style="margin-top:8px;font-weight:600;font-size:.95rem;">No image URL assigned</p>
+              <p style="margin-top:10px;font-weight:700;font-size:.95rem;">Image could not be loaded</p>
+            </div>
+          ` : `
+            <div style="display:flex;flex-direction:column;align-items:center;padding:30px;color:var(--ink-faint);">
+              ${Icons.get(DB.categoryIcon(p.category),{size:52})}
+              <p style="margin-top:10px;font-weight:700;font-size:.95rem;">No custom image attached</p>
             </div>
           `}
         </div>
-        <div style="margin-top:14px;text-align:left;background:var(--paper-dim);padding:12px 14px;border-radius:10px;border:1px solid var(--line);">
-          <div class="flex-between" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
-            <span class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;">Image Source Link</span>
-            <span class="badge badge-brand text-xs" style="font-size:.70rem;">${Utils.escapeHtml(p.category || 'MISC')}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input class="input text-xs" readonly value="${Utils.escapeHtml(p.imageUrl || 'No image URL')}" style="background:var(--card);flex:1;font-size:.82rem;" id="modal-img-url-input">
-            ${p.imageUrl ? `
-              <button class="btn btn-sm btn-ghost" id="modal-copy-img-link">${Icons.get("copy",{size:13})} Copy Link</button>
-              <a href="${Utils.escapeHtml(p.imageUrl)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">${Icons.get("external-link",{size:13})} Open</a>
-            ` : ""}
-          </div>
-        </div>
       </div>`;
 
-    const modal = Modal.open({
-      title: `${Icons.get("image",{size:17})} ${Utils.escapeHtml(p.name)}`,
+    Modal.open({
+      title: `${Icons.get("image",{size:18})} ${Utils.escapeHtml(p.name)}`,
       body,
       actions: [
-        { label: "Close", cls: "btn-ghost" },
+        { label: "Close", cls: "btn-ghost", onClick: Modal.close },
         { label: "Edit Product", cls: "btn-primary", onClick: () => { Modal.close(); openProductForm(p); } }
       ]
-    });
-
-    modal.querySelector("#modal-copy-img-link")?.addEventListener("click", () => {
-      if(p.imageUrl) Utils.copyToClipboard(p.imageUrl);
     });
   }
 
@@ -1021,11 +1008,13 @@ const Inventory = (() => {
     currentPage = 1;
     const view = document.getElementById("view-root");
     const cats = DB.getCategories();
+    // (2026-07-13) Add category chips bar to Inventory view. Prev: dropdown only
     view.innerHTML = `
       <div class="view-head">
         <div><h2>${Icons.get("package",{size:22})} Inventory</h2><div class="view-sub" id="inv-count"></div></div>
         <div class="input-row" id="inv-actions" style="width:auto;"></div>
       </div>
+      <div class="category-chips" id="inv-cat-chips" style="margin-bottom:10px;"></div>
       <div class="inv-toolbar">
         <div class="input-icon-wrap">
           ${Icons.get("search",{size:15})}
@@ -1045,6 +1034,22 @@ const Inventory = (() => {
       <div id="inv-pagination" class="pagination-bar" style="display:none;"></div>
       <input type="file" id="inv-import-file" accept=".csv,.json" class="hidden">`;
 
+    const catChips = document.getElementById("inv-cat-chips");
+    if(catChips){
+      const allCats = ["All", ...cats];
+      catChips.innerHTML = allCats.map(c => `<div class="chip ${c.toUpperCase()===(categoryFilter||"All").toUpperCase()?"active":""}" data-c="${Utils.escapeHtml(c)}">${Utils.escapeHtml(c)}</div>`).join("");
+      catChips.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+        categoryFilter = c.dataset.c;
+        currentPage = 1;
+        UISelect.setValue("inv-cat-filter", categoryFilter);
+        renderTable();
+        catChips.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c));
+      });
+      catChips.addEventListener("wheel", (e) => {
+        if(e.deltaY !== 0){ e.preventDefault(); catChips.scrollLeft += e.deltaY; }
+      }, { passive: false });
+    }
+
     // (2026-07-13) Re-render inventory and reset file input on import. Prev: table only
     document.getElementById("inv-import-file").addEventListener("change", (e)=> {
       if(e.target.files && e.target.files[0]){
@@ -1057,8 +1062,13 @@ const Inventory = (() => {
 
     document.getElementById("inv-search").addEventListener("input", Utils.debounce((e)=>{ searchTerm=e.target.value; currentPage=1; renderTable(); },150));
 
-    document.getElementById("inv-cat-filter-wrap").innerHTML = UISelect.render("inv-cat-filter", ["All", ...cats], "All");
-    UISelect.bind("inv-cat-filter", (v)=>{ categoryFilter=v; currentPage=1; renderTable(); });
+    document.getElementById("inv-cat-filter-wrap").innerHTML = UISelect.render("inv-cat-filter", ["All", ...cats], categoryFilter || "All");
+    UISelect.bind("inv-cat-filter", (v)=>{
+      categoryFilter = v;
+      currentPage = 1;
+      renderTable();
+      catChips?.querySelectorAll(".chip").forEach(x => x.classList.toggle("active", x.dataset.c.toUpperCase() === v.toUpperCase()));
+    });
     document.getElementById("inv-stock-filter-wrap").innerHTML = UISelect.render("inv-stock-filter", [
       { value:"all", label:"All stock levels" },
       { value:"in",  label:"In stock" },

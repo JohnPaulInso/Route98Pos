@@ -280,16 +280,18 @@ table.data tr.low-stock td{ background:var(--danger-tint); }
   position:fixed; inset:0; background:rgba(10,13,30,.55); display:flex; align-items:center; justify-content:center;
   z-index:100; padding:16px; backdrop-filter:blur(2px);
 }
+/* (2026-07-13) Fix modal flex structure & footer alignment. Prev: block flow */
 .modal{
   background:var(--paper-raised); border-radius:var(--r-lg); width:100%; max-width:640px;
-  max-height:92vh; overflow:auto; box-shadow:var(--shadow-lg); animation:pop-in .16s ease;
+  max-height:92vh; overflow-y:auto; overflow-x:hidden; box-shadow:var(--shadow-lg); animation:pop-in .16s ease;
+  display:flex; flex-direction:column; position:relative;
 }
 .modal.modal-wide{ max-width:920px; }
-.modal-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1.5px solid var(--line); position:sticky; top:0; z-index:10; background:var(--paper-raised); }
+.modal-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1.5px solid var(--line); position:sticky; top:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
 .modal-head h3{ display:flex; align-items:center; gap:10px; font-size:1.35rem; font-weight:850; letter-spacing:-.01em; color:var(--ink); }
 .modal-head h3 .ic-svg{ color:var(--brand); }
-.modal-body{ padding:22px 24px; font-size:1.05rem; }
-.modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1.5px solid var(--line); position:sticky; bottom:0; z-index:10; background:var(--paper-raised); }
+.modal-body{ padding:22px 24px; font-size:1.05rem; flex:1; }
+.modal-foot{ display:flex; justify-content:flex-end; align-items:center; gap:10px; padding:16px 24px; border-top:1.5px solid var(--line); position:sticky; bottom:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
 .modal .field{ margin-bottom:14px; }
 .modal .field label{ font-size:.90rem; font-weight:850; color:var(--ink); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
 .modal .input, .modal textarea.input{ font-size:1.10rem; font-weight:600; padding:11px 14px; border-radius:10px; }

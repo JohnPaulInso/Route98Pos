@@ -172,6 +172,7 @@ const Reports = (() => {
       wide: true,
       actions: [
         { label: "Close", cls: "btn-ghost btn-lg", onClick: Modal.close },
+        { label: "Delete Sale", cls: "btn-danger btn-lg", onClick: () => { Modal.close(); deleteSaleRecord(sale.id); } },
         { label: "Print Receipt", cls: "btn-primary btn-lg", onClick: () => { POS.printByRecord(sale); } }
       ]
     });
@@ -198,6 +199,37 @@ const Reports = (() => {
     }
   }
 
+  // (2026-07-13) Delete store & fuel sale records with confirmation. Prev: view only
+  function deleteSaleRecord(saleId){
+    const sale = DB.getSales().find(x => x.id === saleId);
+    if(!sale) return;
+    Modal.confirm({
+      title: "Delete Sale Record?",
+      message: `Delete transaction ${sale.receiptNo || sale.id} (${Utils.money(sale.total)})? This will remove it from sales history and reports.`,
+      danger: true,
+      onConfirm: () => {
+        DB.setSales(DB.getSales().filter(x => x.id !== saleId));
+        Utils.toast("Sale record deleted.", "success");
+        render();
+      }
+    });
+  }
+
+  function deleteFuelSaleRecord(fuelId){
+    const sale = DB.getFuelSales().find(x => x.id === fuelId);
+    if(!sale) return;
+    Modal.confirm({
+      title: "Delete Fuel Sale?",
+      message: `Delete fuel sale ${sale.pumpLabel || ""} (${Utils.money(sale.amount)})?`,
+      danger: true,
+      onConfirm: () => {
+        DB.setFuelSales(DB.getFuelSales().filter(x => x.id !== fuelId));
+        Utils.toast("Fuel sale record deleted.", "success");
+        render();
+      }
+    });
+  }
+
   // ---------------- plain history tables ----------------
   function historyTable(){
     let sales = DB.getSales();
@@ -211,9 +243,10 @@ const Reports = (() => {
         <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
         <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
         <td style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier}</td>
-        <td style="text-align:right;">
+        <td style="text-align:right;white-space:nowrap;">
           <button class="btn btn-sm btn-outline" data-view-receipt="${s.id}">${Icons.get("receipt",{size:13})} View Receipt</button>
           <button class="btn btn-sm btn-ghost" data-reprint="${s.id}" style="margin-left:4px;">${Icons.get("printer",{size:13})} Print</button>
+          <button class="btn btn-sm btn-ghost" data-delete-sale="${s.id}" style="margin-left:4px;color:var(--danger);" title="Delete Sale">${Icons.get("trash",{size:13})}</button>
         </td>
       </tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">${Icons.get("receipt",{size:34})}<h3>No sales ${todayOnly?"today":"yet"}</h3></div>`;
@@ -223,8 +256,19 @@ const Reports = (() => {
     if(todayOnly) sales = sales.filter(s => s.ts >= Utils.startOfDay());
     sales = sales.slice(0,100);
     return sales.length ? `
-      <div class="table-wrap"><table class="data"><thead><tr><th>Time</th><th>Pump</th><th>Fuel</th><th>Liters</th><th>Total</th><th>Method</th><th>Cashier</th></tr></thead><tbody>
-      ${sales.map(s => `<tr><td>${Utils.fmtDate(s.ts)}</td><td>${s.pumpLabel}</td><td>${s.fuelName}</td><td class="mono">${s.liters.toFixed(2)} L</td><td class="mono">${Utils.money(s.amount)}</td><td>${s.method}</td><td>${s.cashier}</td></tr>`).join("")}
+      <div class="table-wrap"><table class="data"><thead><tr><th>Time</th><th>Pump</th><th>Fuel</th><th>Liters</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
+      ${sales.map(s => `<tr>
+        <td>${Utils.fmtDate(s.ts)}</td>
+        <td>${s.pumpLabel}</td>
+        <td>${s.fuelName}</td>
+        <td class="mono">${s.liters.toFixed(2)} L</td>
+        <td class="mono">${Utils.money(s.amount)}</td>
+        <td>${s.method}</td>
+        <td>${s.cashier}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-sm btn-ghost" data-delete-fuel-sale="${s.id}" style="color:var(--danger);" title="Delete Fuel Sale">${Icons.get("trash",{size:13})}</button>
+        </td>
+      </tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">${Icons.get("fuel",{size:34})}<h3>No fuel sales ${todayOnly?"today":"yet"}</h3></div>`;
   }
 
@@ -505,6 +549,14 @@ const Reports = (() => {
         e.stopPropagation();
         const s = DB.getSales().find(x=>x.id===b.dataset.reprint);
         if(s) POS.printByRecord(s);
+      });
+      document.querySelectorAll("[data-delete-sale]").forEach(b=>b.onclick=(e)=>{
+        e.stopPropagation();
+        deleteSaleRecord(b.dataset.deleteSale);
+      });
+      document.querySelectorAll("[data-delete-fuel-sale]").forEach(b=>b.onclick=(e)=>{
+        e.stopPropagation();
+        deleteFuelSaleRecord(b.dataset.deleteFuelSale);
       });
     }
   }
