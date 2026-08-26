@@ -25,6 +25,9 @@ const Sync = (() => {
     } else if(meta.status === "error"){
       el.classList.add("error");
       el.querySelector(".lbl").textContent = "Sync error";
+    } else if(meta.status === "quota"){
+      el.classList.add("offline");
+      el.querySelector(".lbl").textContent = "Quota reached (Local)";
     } else if(meta.lastSynced){
       el.classList.add("online");
       const mins = Math.round((Date.now()-meta.lastSynced)/60000);
@@ -56,95 +59,30 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  // Push all organized collections to Firestore
+  // (2026-07-13) Master snapshot single-write with quota-exhausted guard; was loop spam
   async function pushSnapshot(){
     const meta = DB.getSyncMeta();
+    if(meta.status === "quota") return; // Prevent spamming when quota exceeded
     try{
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
       const snap = DB.snapshot();
 
-      // 1. Sync Products
-      for(const p of snap.products || []){
-        const docId = String(p.id || p.barcode || Utils.uid("p"));
-        await mod.setDoc(mod.doc(database, "products", docId), p, { merge:true });
-      }
-
-      // 2. Sync Categories
-      await mod.setDoc(mod.doc(database, "categories", "categories_list"), { list: snap.categories || [] }, { merge:true });
-
-      // (2026-07-13) Forward all localstorage collections to Firestore. Prev: sliced 300
-      // 3. Sync Sales / Transactions
-      for(const s of (snap.sales || [])){
-        const docId = String(s.id || s.receiptNo || Utils.uid("sale"));
-        await mod.setDoc(mod.doc(database, "sales", docId), s, { merge:true });
-      }
-
-      // 4. Sync Fuel Sales
-      for(const fs of (snap.fuelSales || [])){
-        const docId = String(fs.id || Utils.uid("fuel"));
-        await mod.setDoc(mod.doc(database, "fuelSales", docId), fs, { merge:true });
-      }
-
-      // 5. Sync Fuel Deliveries & Fuel Config
-      for(const fd of (snap.fuelDeliveries || [])){
-        const docId = String(fd.id || Utils.uid("deliv"));
-        await mod.setDoc(mod.doc(database, "fuelDeliveries", docId), fd, { merge:true });
-      }
-      if(snap.fuelConfig){
-        await mod.setDoc(mod.doc(database, "fuelConfig", "config"), snap.fuelConfig, { merge:true });
-      }
-
-      // 6. Sync Expenses (OPEX)
-      for(const e of (snap.expenses || [])){
-        const docId = String(e.id || Utils.uid("exp"));
-        await mod.setDoc(mod.doc(database, "expenses", docId), e, { merge:true });
-      }
-
-      // 7. Sync Venue Leads & Bookings
-      for(const vl of (snap.venueLeads || [])){
-        const docId = String(vl.id || Utils.uid("lead"));
-        await mod.setDoc(mod.doc(database, "venueLeads", docId), vl, { merge:true });
-      }
-      for(const b of (snap.bookings || [])){
-        const docId = String(b.id || Utils.uid("bk"));
-        await mod.setDoc(mod.doc(database, "bookings", docId), b, { merge:true });
-      }
-
-      // 8. Sync Restaurant Bookings
-      for(const rb of (snap.restaurantBookings || [])){
-        const docId = String(rb.id || Utils.uid("rest"));
-        await mod.setDoc(mod.doc(database, "restaurantBookings", docId), rb, { merge:true });
-      }
-
-      // 9. Sync Stock & Restock Logs
-      if(snap.stockLog){
-        await mod.setDoc(mod.doc(database, "stockLog", "latest_logs"), { logs: (snap.stockLog||[]).slice(0, 100) }, { merge:true });
-      }
-      if(snap.restockLogs){
-        await mod.setDoc(mod.doc(database, "restockLogs", "latest_restocks"), { logs: (snap.restockLogs||[]).slice(0, 100) }, { merge:true });
-      }
-
-      // 10. Sync Settings & Users
-      if(snap.settings){
-        const cleanSettings = { ...snap.settings };
-        delete cleanSettings.firebaseConfig; // Keep credentials local
-        await mod.setDoc(mod.doc(database, "settings", "store_settings"), cleanSettings, { merge:true });
-      }
-      for(const u of snap.users || []){
-        const docId = String(u.id || Utils.uid("usr"));
-        await mod.setDoc(mod.doc(database, "users", docId), u, { merge:true });
-      }
-
-      // Master snapshot document for fast complete recovery
+      // Master snapshot document write (1 atomic document write)
       await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), snap, { merge:false });
 
       DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-      Utils.toast("Grouped collections synced to Firestore ☁️", "success");
+      Utils.toast("Database snapshot synced to Firestore ☁️", "success");
     }catch(err){
       console.error("Firestore sync failed", err);
-      DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
-      Utils.toast("Sync failed — check Firebase connection / rules", "error");
+      const isQuota = err?.code === "resource-exhausted" || String(err?.message||"").includes("resource-exhausted") || String(err?.message||"").includes("Quota exceeded");
+      if(isQuota){
+        DB.setSyncMeta({ ...DB.getSyncMeta(), status:"quota" });
+        Utils.toast("Firebase free daily write quota reached. Switched to Local-Only mode.", "warn", 4500);
+      } else {
+        DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
+        Utils.toast("Sync failed — check Firebase connection / rules", "error");
+      }
     }
     paintStatus();
   }
@@ -286,12 +224,33 @@ const Sync = (() => {
     }
   }
 
+  // (2026-07-13) Auto-drain offline queue when reconnecting; was disconnected
+  async function syncOfflineQueue(){
+    const queue = DB.getOfflineQueue ? DB.getOfflineQueue() : [];
+    if(!queue || !queue.length) return;
+    try {
+      const { db: database, mod } = await ensureFirebase();
+      for(const txn of queue){
+        const docId = String(txn.id || Utils.uid("sale"));
+        await mod.setDoc(mod.doc(database, "sales", docId), txn, { merge:true });
+      }
+      DB.setOfflineQueue([]);
+      Utils.toast(`Synced ${queue.length} offline transactions to cloud ☁️`, "success");
+    } catch(e) {
+      console.warn("Could not sync offline queue:", e);
+    }
+  }
+
   function init(){
     document.addEventListener("mm:dirty", (e) => {
       if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.backups) return;
       scheduleAutoSync();
     });
-    window.addEventListener("online", paintStatus);
+    window.addEventListener("online", () => {
+      paintStatus();
+      syncOfflineQueue();
+      pushSnapshot();
+    });
     window.addEventListener("offline", paintStatus);
     paintStatus();
     schedule1159Timer();
@@ -304,7 +263,7 @@ const Sync = (() => {
   }
 
   return {
-    init, pushSnapshot, pullSnapshot, paintStatus,
+    init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue,
     createDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();

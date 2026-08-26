@@ -5,14 +5,15 @@
 // ============================================================
 const DB = (() => {
   const NS = "mm_"; // minimart namespace
-  // (2026-07-13) Add backups key to storage mapping; was 17 items
+  // (2026-07-13) Add voidLogs & offlineQueue keys to storage mapping; was 19 items
   const KEYS = {
     products: NS+"products", categories: NS+"categories", sales: NS+"sales",
     fuelSales: NS+"fuelSales", fuelConfig: NS+"fuelConfig", settings: NS+"settings",
     users: NS+"users", heldSales: NS+"heldSales", venueLeads: NS+"venueLeads",
     stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
-    restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups"
+    restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
+    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue"
   };
 
   function read(key, fallback = null){
@@ -237,7 +238,7 @@ const DB = (() => {
   const setVenueLeads  = (v) => write(KEYS.venueLeads, v);
   const getStockLog    = () => read(KEYS.stockLog, []);
   const setStockLog    = (v) => write(KEYS.stockLog, v);
-  // (2026-07-13) Add restockLogs purchase expense tracking; was stockLog only
+  // (2026-07-13) Add restockLogs rollback, sequential TXN & void log methods; was basic log
   const getRestockLogs = () => read(KEYS.restockLogs, []);
   const setRestockLogs = (v) => write(KEYS.restockLogs, v);
   function addRestockLog(entry){
@@ -258,6 +259,82 @@ const DB = (() => {
     logs.unshift(record);
     setRestockLogs(logs.slice(0, 1000));
     return record;
+  }
+  function updateRestockLog(logId, updated){
+    const logs = getRestockLogs();
+    const idx = logs.findIndex(l => l.id === logId);
+    if(idx === -1) return null;
+    const oldLog = logs[idx];
+    const oldQty = Number(oldLog.quantity_added || 0);
+    const newQty = Number(updated.quantity_added ?? oldQty);
+    const diff = newQty - oldQty;
+    if(diff !== 0){
+      const prods = getProducts();
+      const p = prods.find(x => x.id === oldLog.product_id || x.name === oldLog.product_name || x.barcode === oldLog.product_id);
+      if(p){
+        p.stock = Math.max(0, Utils.round2(p.stock + diff));
+        setProducts(prods);
+      }
+    }
+    const merged = { ...oldLog, ...updated, total_cost: newQty * Number(updated.unit_cost ?? oldLog.unit_cost) };
+    logs[idx] = merged;
+    setRestockLogs(logs);
+    return merged;
+  }
+  function deleteRestockLog(logId){
+    const logs = getRestockLogs();
+    const oldLog = logs.find(l => l.id === logId);
+    if(oldLog){
+      const rollQty = Number(oldLog.quantity_added || 0);
+      if(rollQty > 0){
+        const prods = getProducts();
+        const p = prods.find(x => x.id === oldLog.product_id || x.name === oldLog.product_name || x.barcode === oldLog.product_id);
+        if(p){
+          p.stock = Math.max(0, Utils.round2(p.stock - rollQty));
+          setProducts(prods);
+        }
+      }
+      setRestockLogs(logs.filter(l => l.id !== logId));
+    }
+  }
+  function getNextTransactionId(prefix = "TXN"){
+    const sales = read(KEYS.sales, []);
+    const fuelSales = read(KEYS.fuelSales, []);
+    let max = 0;
+    const re = new RegExp(`^${prefix}-(\\d+)$`);
+    [...sales, ...fuelSales].forEach(s => {
+      const match = String(s.id || "").match(re);
+      if(match){
+        const num = parseInt(match[1], 10);
+        if(num > max) max = num;
+      }
+    });
+    if(max === 0) max = sales.length + fuelSales.length;
+    return `${prefix}-${String(max + 1).padStart(4, "0")}`;
+  }
+  const getVoidLogs    = () => read(KEYS.voidLogs, []);
+  const setVoidLogs    = (v) => write(KEYS.voidLogs, v);
+  function addVoidLog(entry){
+    const logs = getVoidLogs();
+    const item = {
+      id: Utils.uid("void"),
+      origTxnId: entry.origTxnId || "UNKNOWN",
+      itemSummary: entry.itemSummary || "Altered item",
+      priceDiff: Number(entry.priceDiff || 0),
+      reason: entry.reason || "Admin Void/Modification",
+      admin: entry.admin || (typeof Auth !== "undefined" ? Auth.currentUser()?.name : "Admin"),
+      ts: Date.now()
+    };
+    logs.unshift(item);
+    setVoidLogs(logs.slice(0, 500));
+    return item;
+  }
+  const getOfflineQueue = () => read(KEYS.offlineQueue, []);
+  const setOfflineQueue = (v) => write(KEYS.offlineQueue, v);
+  function queueOfflineTransaction(txn){
+    const q = getOfflineQueue();
+    q.push({ ...txn, queuedAt: Date.now() });
+    setOfflineQueue(q);
   }
   const getShift       = () => read(KEYS.shift, { openedAt:Date.now(), openingCash:0 });
   const setShift       = (v) => write(KEYS.shift, v);
@@ -417,19 +494,31 @@ const DB = (() => {
     const products = getProducts();
     const p = products.find(x => x.id === id);
     if(!p) return;
+    const oldStock = p.stock;
     p.stock = Math.max(0, Utils.round2(p.stock + delta));
     setProducts(products);
+    
+    // (2026-08-26) Log ALL stock changes including negatives to track theft/damage; was positive only
     const log = getStockLog();
     log.unshift({ id: Utils.uid("log"), productId:id, productName:p.name, delta, reason, ts: Date.now() });
     setStockLog(log.slice(0,500));
-    if(delta > 0 && reason === "Restock / Delivery"){
+    
+    // Enhanced restock logging with negative quantity support
+    if(delta !== 0){
+      const qty = Math.abs(delta);
+      const unitCost = p.cost || 0;
+      const totalCost = delta > 0 ? qty * unitCost : -(qty * unitCost);
+      
       addRestockLog({
         product_id: p.id,
         product_name: p.name,
-        quantity_added: delta,
-        unit_cost: p.cost || 0,
-        total_cost: delta * (p.cost || 0),
-        supplier_name: supplier || p.distributor || p.brand || "Direct Supplier",
+        quantity_added: delta, // Can be negative for theft/damage
+        unit_cost: unitCost,
+        total_cost: totalCost,
+        supplier_name: delta > 0 ? (supplier || p.distributor || p.brand || "Direct Supplier") : "N/A",
+        reason: reason,
+        oldStock: oldStock,
+        newStock: p.stock,
         timestamp: Date.now()
       });
     }
@@ -484,7 +573,7 @@ const DB = (() => {
   }
 
   return {
-    KEYS, init, categoryIcon,
+    KEYS, init, categoryIcon, getNextTransactionId,
     getProducts, setProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
     getCategories, setCategories,
     getSales, setSales, getFuelSales, setFuelSales,
@@ -494,7 +583,9 @@ const DB = (() => {
     getHeldSales, setHeldSales,
     getVenueLeads, setVenueLeads,
     getStockLog, setStockLog,
-    getRestockLogs, setRestockLogs, addRestockLog,
+    getRestockLogs, setRestockLogs, addRestockLog, updateRestockLog, deleteRestockLog,
+    getVoidLogs, setVoidLogs, addVoidLog,
+    getOfflineQueue, setOfflineQueue, queueOfflineTransaction,
     getExpenses, setExpenses, addExpense, deleteExpense,
     getBookings, setBookings, addBooking, updateBooking, deleteBooking,
     getRestaurantBookings, setRestaurantBookings, addRestaurantBooking, updateRestaurantBooking, deleteRestaurantBooking,

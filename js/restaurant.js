@@ -494,6 +494,7 @@ const Restaurant = (() => {
       });
     }
 
+    // (2026-07-13) Touch & mouse table chart drag selection with passive:false; was mouse only
     scrollWrap.querySelectorAll(".venue-cell-slot").forEach(cell => {
       cell.addEventListener("mousedown", (e) => {
         if(e.button !== 0) return;
@@ -512,6 +513,17 @@ const Restaurant = (() => {
         dragEndH = parseInt(cell.dataset.hour.split(":")[0], 10);
         updateHighlight();
       });
+
+      cell.addEventListener("touchstart", (e) => {
+        if(cell.dataset.past === "true" || e.touches.length > 1) return;
+        e.preventDefault();
+        isDragging = true;
+        dragDate = cell.dataset.date;
+        dragStartH = parseInt(cell.dataset.hour.split(":")[0], 10);
+        dragEndH = dragStartH;
+        dragTable = cell.dataset.table || "";
+        updateHighlight();
+      }, { passive: false });
     });
 
     const handleMouseUp = () => {
@@ -532,8 +544,24 @@ const Restaurant = (() => {
       }
     };
 
+    const handleTouchMove = (e) => {
+      if(!isDragging) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      const slot = target ? target.closest(".venue-cell-slot") : null;
+      if(slot && slot.dataset.date === dragDate){
+        dragEndH = parseInt(slot.dataset.hour.split(":")[0], 10);
+        updateHighlight();
+      }
+    };
+
     window.removeEventListener("mouseup", handleMouseUp);
     window.addEventListener("mouseup", handleMouseUp);
+    window.removeEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.removeEventListener("touchend", handleMouseUp);
+    window.addEventListener("touchend", handleMouseUp, { passive: false });
   }
 
   function renderWeekCalendar(weekDays, weekBookings, today){

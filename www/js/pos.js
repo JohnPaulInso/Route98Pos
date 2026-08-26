@@ -2,15 +2,34 @@
 // pos.js — the point-of-sale screen
 // ============================================================
 const POS = (() => {
-  // (2026-07-13) Restore & persist cart across page reloads; was volatile in-memory
+  // (2026-07-13) Auto-sync active held sale & persistent cart; was static cart
   const savedCartState = DB.getSavedCart ? DB.getSavedCart() : { cart: [], discount: { type:"percent", value:0 } };
   let cart = Array.isArray(savedCartState.cart) ? savedCartState.cart : [];
   let searchTerm = "";
   let activeCategory = "ALL";
   let discount = savedCartState.discount || { type:"percent", value:0 };
+  let activeHeldId = null;
   let undoStack = [];
   let redoStack = [];
   const PAY_ICON = { Cash:"wallet", Card:"credit-card", GCash:"smartphone", Other:"more-horizontal" };
+
+  function syncHeldState(){
+    if(!activeHeldId) return;
+    const held = DB.getHeldSales();
+    const idx = held.findIndex(x => x.id === activeHeldId);
+    if(idx !== -1){
+      if(cart.length){
+        held[idx].items = JSON.parse(JSON.stringify(cart));
+        held[idx].discount = { ...discount };
+        held[idx].ts = Date.now();
+      } else {
+        held.splice(idx, 1);
+        activeHeldId = null;
+      }
+      DB.setHeldSales(held);
+      renderHeldButton();
+    }
+  }
 
   function pushState(){
     undoStack.push({
@@ -341,13 +360,18 @@ const POS = (() => {
       cashInput.value = t.grand.toFixed(2);
       updateChange();
     });
-    modal.querySelectorAll("#cash-presets .cash-preset-btn").forEach(btn => {
-      btn.onclick = () => {
-        const v = Number(btn.dataset.v);
-        const cur = Number(cashInput.value||0);
-        cashInput.value = (cur + v).toFixed(2);
-        updateChange();
-      };
+    // (2026-07-13) Bind Enter key on cash input to confirm payment; was button-only
+    cashInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        finalizeSale(modal);
+      }
+    });
+    modal.querySelector("#ref-code-input")?.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        finalizeSale(modal);
+      }
     });
     cashInput.focus();
   }
@@ -477,13 +501,20 @@ const POS = (() => {
     });
     DB.setProducts(products);
 
+    // (2026-07-13) Use sequential TXN-0001 IDs & auto-persist held sales; was uid
+    const txnId = DB.getNextTransactionId ? DB.getNextTransactionId("TXN") : `TXN-${String(DB.getSales().length + 1).padStart(4, "0")}`;
     const sale = {
-      id: Utils.uid("sale"), ts: Date.now(), items: cart.map(l=>({...l})),
+      id: txnId, ts: Date.now(), items: cart.map(l=>({...l})),
       subtotal:t.subtotal, discountType:discount.type, discountValue:discount.value, discountAmt:t.discountAmt, vat:t.vat, total:t.grand,
       method, refCode, tendered, change: Utils.round2(tendered - t.grand),
       cashier: Auth.currentUser()?.name || "Unknown"
     };
     const sales = DB.getSales(); sales.unshift(sale); DB.setSales(sales);
+    if(activeHeldId){
+      DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== activeHeldId));
+      activeHeldId = null;
+      renderHeldButton();
+    }
 
     Modal.close();
     clearCart();
@@ -495,8 +526,16 @@ const POS = (() => {
   function holdSale(){
     if(!cart.length){ Utils.toast("Cart is empty.", "warn"); return; }
     const held = DB.getHeldSales();
-    held.unshift({ id: Utils.uid("hold"), ts: Date.now(), items: cart, discount, cashier: Auth.currentUser()?.name });
+    const existingIdx = activeHeldId ? held.findIndex(x => x.id === activeHeldId) : -1;
+    if(existingIdx !== -1){
+      held[existingIdx].items = JSON.parse(JSON.stringify(cart));
+      held[existingIdx].discount = { ...discount };
+      held[existingIdx].ts = Date.now();
+    } else {
+      held.unshift({ id: Utils.uid("hold"), ts: Date.now(), items: JSON.parse(JSON.stringify(cart)), discount, cashier: Auth.currentUser()?.name });
+    }
     DB.setHeldSales(held);
+    activeHeldId = null;
     clearCart();
     Utils.Sound.hold();
     Utils.toast("Sale parked. Recall it anytime from Held Sales.", "success");
@@ -517,13 +556,19 @@ const POS = (() => {
     const modal = Modal.open({ title:`${Icons.get("pause-circle",{size:17})} Held Sales`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
     modal.querySelectorAll("[data-recall]").forEach(btn => btn.onclick = () => {
       const h = DB.getHeldSales().find(x => x.id === btn.dataset.recall);
-      cart = h.items; discount = h.discount || { type:"percent", value:0 };
-      DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== h.id));
+      if(!h) return;
+      activeHeldId = h.id;
+      cart = JSON.parse(JSON.stringify(h.items));
+      discount = h.discount || { type:"percent", value:0 };
       renderCart(); Modal.close(); renderHeldButton();
+      Utils.toast("Parked sale restored.", "info", 1500);
     });
     modal.querySelectorAll("[data-del]").forEach(btn => btn.onclick = () => {
-      DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== btn.dataset.del));
+      const delId = btn.dataset.del;
+      if(activeHeldId === delId) activeHeldId = null;
+      DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== delId));
       openHeldSales();
+      renderHeldButton();
     });
   }
 
@@ -534,17 +579,25 @@ const POS = (() => {
 
   // ---------- continuous camera scan mode ----------
   function openScanMode(){
-    Scanner.openContinuousScan({
-      title: "Scan items into cart",
-      onHit: (code) => {
-        const product = DB.findByBarcode(code);
-        if(!product) return { ok:false, label:"Unknown code" };
-        const ok = addToCart(product);
-        return { ok, label: ok ? product.name : `${product.name} (max reached)` };
-      },
-      onClose: (count) => {
-        if(count > 0) Utils.toast(`${count} item(s) scanned — review your cart below.`, "success");
-        renderCart();
+    Modal.confirm({
+      title: `${Icons.get("camera",{size:18})} Camera Barcode Scanner`,
+      message: "Allow Route 98 POS to start the camera stream for hardware barcode scanning?",
+      confirmLabel: "Allow & Start",
+      cancelLabel: "Cancel",
+      onConfirm: () => {
+        Scanner.openContinuousScan({
+          title: "Scan items into cart",
+          onHit: (code) => {
+            const product = DB.findByBarcode(code);
+            if(!product) return { ok:false, label:"Unknown code" };
+            const ok = addToCart(product);
+            return { ok, label: ok ? product.name : `${product.name} (max reached)` };
+          },
+          onClose: (count) => {
+            if(count > 0) Utils.toast(`${count} item(s) scanned — review your cart below.`, "success");
+            renderCart();
+          }
+        });
       }
     });
   }
@@ -941,10 +994,12 @@ const POS = (() => {
       </div>
       <div class="pos-layout">
         <div class="pos-catalog">
+          <!-- (2026-07-13) Dynamic clear button in POS search bar; was plain input -->
           <div class="pos-search-row">
-            <div class="input-icon-wrap">
+            <div class="input-icon-wrap" style="position:relative;width:100%;">
               ${Icons.get("search",{size:15})}
-              <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan a barcode…" autofocus>
+              <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan a barcode…" style="padding-right:32px;" autofocus>
+              <button type="button" id="btn-clear-pos-search" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-faint);cursor:pointer;display:none;padding:4px;line-height:1;" title="Clear search">${Icons.get("x",{size:14})}</button>
             </div>
           </div>
           <div class="category-chips" id="cat-chips"></div>
@@ -968,8 +1023,23 @@ const POS = (() => {
       }
     }, { passive: false });
 
+    // (2026-07-13) Auto-reset POS search term on navigation; was persistent
+    searchTerm = "";
     const search = document.getElementById("pos-search");
-    search.addEventListener("input", Utils.debounce((e)=>{ searchTerm = e.target.value; renderCatalog(); }, 150));
+    const clearBtn = document.getElementById("btn-clear-pos-search");
+    const onSearchChange = (val) => {
+      searchTerm = val;
+      if(clearBtn) clearBtn.style.display = val.length > 0 ? "block" : "none";
+      renderCatalog();
+    };
+    search.addEventListener("input", Utils.debounce((e)=>{ onSearchChange(e.target.value); }, 120));
+    if(clearBtn){
+      clearBtn.onclick = () => {
+        search.value = "";
+        onSearchChange("");
+        search.focus();
+      };
+    }
 
     document.getElementById("btn-custom-item").onclick = openCustomItemModal;
     document.getElementById("btn-held").onclick = openHeldSales;
@@ -981,5 +1051,7 @@ const POS = (() => {
     renderHeldButton();
   }
 
-  return { render, addByBarcode, printByRecord: printReceipt };
+  function resetSearch(){ searchTerm = ""; }
+
+  return { render, addByBarcode, printByRecord: printReceipt, resetSearch };
 })();

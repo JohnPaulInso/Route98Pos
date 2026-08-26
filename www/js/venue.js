@@ -484,8 +484,7 @@ const Venue = (() => {
     });
   }
 
-  // Bind Mouse & Touch Drag Selection for Hours
-  // (2026-07-13) Unified single drag box with centered time badge; was segmented
+  // (2026-07-13) Smooth touch scrolling & tap-to-select on mobile/tablet; was e.preventDefault
   function bindDragSelection(){
     const scrollWrap = document.getElementById("venue-scroll-wrapper");
     if(!scrollWrap) return;
@@ -558,7 +557,7 @@ const Venue = (() => {
 
     scrollWrap.querySelectorAll(".venue-cell-slot").forEach(cell => {
       cell.addEventListener("mousedown", (e) => {
-        if(e.button !== 0) return; // left click only
+        if(e.button !== 0) return;
         if(cell.dataset.past === "true") return;
         isDragging = true;
         dragDate = cell.dataset.date;
@@ -573,6 +572,15 @@ const Venue = (() => {
         if(cell.dataset.date !== dragDate) return;
         dragEndH = parseInt(cell.dataset.hour.split(":")[0], 10);
         updateHighlight();
+      });
+
+      cell.addEventListener("click", () => {
+        if(cell.dataset.past === "true") return;
+        const date = cell.dataset.date;
+        const h = parseInt(cell.dataset.hour.split(":")[0], 10);
+        const startVal = `${String(h).padStart(2,"0")}:00`;
+        const endVal = `${String(Math.min(24, h + 4)).padStart(2,"0")}:00`;
+        openBookingModal(null, date, startVal, cell.dataset.area || "", endVal);
       });
     });
 

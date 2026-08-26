@@ -98,40 +98,14 @@ const Settings = (() => {
     };
   }
 
-  // (2026-07-13) Firestore collections & 11:59 PM daily backups UI. Prev: basic
+  // (2026-07-13) 11:59 PM daily backups & file export UI; was Firestore multi-doc card
   function renderDataTab(){
     const wrap = document.getElementById("view-tab-body");
-    const settings = DB.getSettings();
     const backups = DB.getBackups();
     const target1159 = Sync.getNext1159Target();
     const targetStr = target1159.toLocaleDateString("en-PH", { month:"short", day:"numeric" }) + " at 11:59 PM";
 
     wrap.innerHTML = `
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-          <div>
-            <h3 style="margin:0 0 2px;">${Icons.get("cloud",{size:16})} Firestore Database (Multi-Collection)</h3>
-            <p class="text-sm text-faint" style="margin:0;">Grouped collections: <code>products</code>, <code>sales</code>, <code>fuelSales</code>, <code>expenses</code>, <code>venueLeads</code>, <code>restaurantBookings</code>, <code>backups</code></p>
-          </div>
-          <span class="badge ${settings.firebaseConfig ? "badge-success" : "badge-faint"}">${settings.firebaseConfig ? "Connected" : "Local Only"}</span>
-        </div>
-        <div class="field"><label>Firebase Project Config (JSON)</label>
-          <textarea class="input" id="firebase-config" rows="4" placeholder='{"apiKey":"...","projectId":"...","...":"..."}'>${settings.firebaseConfig ? JSON.stringify(settings.firebaseConfig,null,2) : ""}</textarea>
-        </div>
-        <div class="switch-row" style="margin-bottom:14px;">
-          <div>
-            <strong>Auto-Sync after changes</strong>
-            <p class="text-sm text-faint" style="margin:0;">Automatically pushes records to Firestore collections in background.</p>
-          </div>
-          <label class="switch"><input type="checkbox" id="s-autosync" ${settings.autoSync?"checked":""}><span class="track"></span></label>
-        </div>
-        <div class="input-row" style="flex-wrap:wrap;gap:8px;">
-          <button class="btn" id="btn-save-firebase">${Icons.get("check",{size:14})} Save Config</button>
-          <button class="btn btn-primary" id="btn-sync-now">${Icons.get("cloud-check",{size:15})} Push Collections Now</button>
-          <button class="btn btn-ghost" id="btn-pull-now">${Icons.get("download",{size:15})} Pull Collections</button>
-        </div>
-      </div>
-
       <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
           <div>
@@ -205,26 +179,46 @@ const Settings = (() => {
     document.getElementById("file-json").addEventListener("change", e => ImportExport.importFullBackupFile(e.target.files[0], () => App.rerenderCurrentView()));
     document.getElementById("file-csv").addEventListener("change", e => ImportExport.importInventoryFile(e.target.files[0], () => Utils.toast("Products imported.","success")));
 
-    document.getElementById("btn-save-firebase").onclick = () => {
-      const raw = document.getElementById("firebase-config").value.trim();
-      const s = DB.getSettings();
-      try{
-        s.firebaseConfig = raw ? JSON.parse(raw) : null;
-        s.autoSync = document.getElementById("s-autosync").checked;
-        DB.setSettings(s);
-        Utils.toast("Firebase config saved.", "success");
-        Sync.paintStatus();
-        Sync.startRealtimeListener();
-        renderDataTab();
-      }catch(e){ Utils.toast("That doesn't look like valid JSON.", "error"); }
-    };
-    document.getElementById("btn-sync-now").onclick = () => Sync.pushSnapshot();
-    document.getElementById("btn-pull-now").onclick = () => Sync.pullSnapshot();
-
+    // (2026-07-13) Animated multi-step progress modal for backup export; was immediate
     document.getElementById("btn-create-backup-now").onclick = async () => {
+      const modal = Modal.open({
+        title: `${Icons.get("database",{size:17})} Creating System Backup`,
+        body: `
+          <div style="padding:16px 8px;text-align:center;">
+            <div style="margin-bottom:12px;font-size:1.1rem;font-weight:700;" id="backup-status-text">Exporting Collections...</div>
+            <div style="background:var(--paper-dim);border-radius:999px;height:12px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px;">
+              <div id="backup-prog-bar" style="background:var(--brand);height:100%;width:20%;transition:width .4s ease;"></div>
+            </div>
+            <div class="text-xs text-faint mono" id="backup-sub-text">Capturing products, sales, fuel records, and logs…</div>
+          </div>`,
+        actions: []
+      });
+
+      const bar = modal.querySelector("#backup-prog-bar");
+      const statusEl = modal.querySelector("#backup-status-text");
+      const subEl = modal.querySelector("#backup-sub-text");
+
+      await new Promise(r => setTimeout(r, 450));
+      if(bar) bar.style.width = "55%";
+      if(statusEl) statusEl.textContent = "Compiling JSON/CSV...";
+      if(subEl) subEl.textContent = "Formatting schemas and calculating collection checksums…";
+
+      await new Promise(r => setTimeout(r, 500));
+      if(bar) bar.style.width = "85%";
+      if(statusEl) statusEl.textContent = "Finalizing Archive...";
+      if(subEl) subEl.textContent = "Writing snapshot to persistent local and cloud storage…";
+
       const rec = await Sync.createDailyBackup("manual");
-      Utils.toast(`Backup ${rec.id} created.`, "success");
-      renderDataTab();
+      await new Promise(r => setTimeout(r, 400));
+      if(bar){ bar.style.width = "100%"; bar.style.background = "var(--success)"; }
+      if(statusEl){ statusEl.textContent = "Backup Complete!"; statusEl.style.color = "var(--success-deep)"; }
+      if(subEl) subEl.textContent = `Saved ${rec.id} successfully.`;
+
+      setTimeout(() => {
+        Modal.close();
+        Utils.toast(`Backup ${rec.id} created successfully.`, "success");
+        renderDataTab();
+      }, 700);
     };
 
     // (2026-07-13) View detailed daily backup contents in modal. Prev: download only
@@ -363,6 +357,7 @@ const Settings = (() => {
     }
   }
 
+  // (2026-07-13) Make settings view scrollable with bottom padding; was overflow hidden
   function render(){
     if(!Auth.isAdmin()){
       const view = document.getElementById("view-root");
@@ -371,11 +366,13 @@ const Settings = (() => {
     }
     const view = document.getElementById("view-root");
     view.innerHTML = `
-      <div class="view-head"><div><h2>${Icons.get("settings",{size:22})} Settings</h2><div class="view-sub">Admin only</div></div></div>
-      <div class="category-chips">
-        ${[["business","store","Business"],["staff","users","Staff"],["fuel","fuel","Fuel Pumps"],["data","cloud","Data & Sync"]].map(([k,ic,l])=>`<div class="chip ${tab===k?"active":""}" data-tab="${k}">${Icons.get(ic,{size:13})}${l}</div>`).join("")}
-      </div>
-      <div id="view-tab-body" style="margin-top:14px;"></div>`;
+      <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;padding-bottom:5rem;-webkit-overflow-scrolling:touch;">
+        <div class="view-head"><div><h2>${Icons.get("settings",{size:22})} Settings</h2><div class="view-sub">Admin configuration & system backups</div></div></div>
+        <div class="category-chips">
+          ${[["business","store","Business"],["staff","users","Staff"],["fuel","fuel","Fuel Pumps"],["data","database","Data & Backups"]].map(([k,ic,l])=>`<div class="chip ${tab===k?"active":""}" data-tab="${k}">${Icons.get(ic,{size:13})}${l}</div>`).join("")}
+        </div>
+        <div id="view-tab-body" style="margin-top:14px;"></div>
+      </div>`;
     document.querySelectorAll("[data-tab]").forEach(c => c.onclick = () => { tab = c.dataset.tab; render(); });
     renderTabBody();
   }

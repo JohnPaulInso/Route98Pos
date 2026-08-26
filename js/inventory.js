@@ -204,38 +204,50 @@ const Inventory = (() => {
     renderTable();
   }
 
-  // (2026-07-13) Format stock adjust modal with large typography; was small text
+  // (2026-07-13) Negative input & live stock projection in adjust modal; was dir select
   function openStockAdjust(product){
     const hasDual = product.piecesPerPack > 1;
     const fullPacks = hasDual ? Math.floor(product.stock / product.piecesPerPack) : 0;
     const loose = hasDual ? product.stock % product.piecesPerPack : 0;
     const body = `
-      <div class="card card-tight" style="margin-bottom:16px;background:var(--paper-dim);border:1.5px solid var(--line);padding:12px 18px;border-radius:12px;">
-        <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Current Stock Level</div>
-        <div class="mono" style="font-size:1.55rem;font-weight:900;color:var(--brand-deep);">${product.stock} ${product.unit||"pc"}${hasDual ? ` <span class="text-sm text-faint font-normal">(${fullPacks} pk + ${loose} loose)</span>` : ""}</div>
+      <div class="card card-tight" style="margin-bottom:16px;background:var(--paper-dim);border:1.5px solid var(--line);padding:14px 18px;border-radius:12px;">
+        <div class="flex-between" style="align-items:center;">
+          <div>
+            <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Current Stock Level</div>
+            <div class="mono" style="font-size:1.55rem;font-weight:900;color:var(--brand-deep);">${product.stock} ${product.unit||"pc"}${hasDual ? ` <span class="text-sm text-faint font-normal">(${fullPacks} pk + ${loose} loose)</span>` : ""}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Projected Stock</div>
+            <div class="mono font-bold" id="adj-live-projection" style="font-size:1.45rem;color:var(--success-deep);">${product.stock} ${product.unit||"pc"}</div>
+          </div>
+        </div>
+        <div id="adj-diff-pill" class="text-xs text-faint mono" style="margin-top:6px;text-align:right;font-weight:700;">No change (±0)</div>
       </div>
-      <div class="field"><label>Direction</label><div id="adj-dir-wrap"></div></div>
+      <div class="field">
+        <label>Quantity Delta (positive to restock, negative for shrinkage / damage)</label>
+        <input class="input mono" id="adj-qty" type="number" step="1" placeholder="e.g. +10 or -2" style="font-size:1.5rem;font-weight:800;text-align:center;">
+      </div>
       ${hasDual ? `<div class="field"><label>Adjustment Unit</label><div id="adj-unit-wrap"></div></div>` : ""}
-      <div class="field"><label>Quantity</label><input class="input mono" id="adj-qty" type="number" min="0" step="1" placeholder="Quantity" style="font-size:1.35rem;font-weight:800;text-align:center;"></div>
-      <div class="field"><label>Reason</label><div id="adj-reason-wrap"></div></div>`;
+      <div class="field"><label>Reason / Note</label><div id="adj-reason-wrap"></div></div>`;
+
     const modal = Modal.open({
       title:`${Icons.get("package",{size:17})} Adjust Stock — ${Utils.escapeHtml(product.name)}`, body,
-      actions:[{label:"Cancel",cls:"btn-ghost"},{label:"Apply",cls:"btn-primary", onClick:()=>{
-        const dir = Number(UISelect.getValue("adj-dir"));
-        const qty = Number(document.getElementById("adj-qty").value)||0;
-        if(qty<=0){ Utils.toast("Enter a quantity.","warn"); return; }
-        const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
-        const totalDeltaPieces = dir * qty * (adjUnit === "pack" ? product.piecesPerPack : 1);
-        const reason = UISelect.getValue("adj-reason");
-        DB.adjustStock(product.id, totalDeltaPieces, reason);
-        Utils.toast("Stock updated.","success");
-        Modal.close(); renderTable();
-      }}]
+      actions:[
+        { label:"Cancel", cls:"btn-ghost" },
+        { label:"Apply Adjustment", cls:"btn-primary font-bold", onClick:()=>{
+          const rawQty = Number(document.getElementById("adj-qty").value)||0;
+          if(rawQty === 0){ Utils.toast("Enter a non-zero adjustment quantity.","warn"); return; }
+          const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
+          const mult = (adjUnit === "pack" ? product.piecesPerPack : 1);
+          const totalDeltaPieces = rawQty * mult;
+          const reason = UISelect.getValue("adj-reason");
+          DB.adjustStock(product.id, totalDeltaPieces, reason);
+          Utils.toast(`Stock adjusted by ${totalDeltaPieces > 0 ? "+" + totalDeltaPieces : totalDeltaPieces} pcs.`,"success");
+          Modal.close(); renderTable();
+        }}
+      ]
     });
-    modal.querySelector("#adj-dir-wrap").innerHTML = UISelect.render("adj-dir", [
-      { value:"1", label:"Add stock (restock)" }, { value:"-1", label:"Remove stock" }
-    ], "1");
-    UISelect.bind("adj-dir");
+
     if(hasDual){
       modal.querySelector("#adj-unit-wrap").innerHTML = UISelect.render("adj-unit", [
         { value:"piece", label:`Pieces (x1 pc)` },
@@ -244,8 +256,26 @@ const Inventory = (() => {
       UISelect.bind("adj-unit");
     }
     modal.querySelector("#adj-reason-wrap").innerHTML = UISelect.render("adj-reason",
-      ["Restock / Delivery","Damaged / Spoiled","Stock count correction","Return to supplier","Other"], "Restock / Delivery");
+      ["Restock / Delivery","Damaged / Spoiled / Shrinkage","Stock count correction","Return to supplier","Other"], "Restock / Delivery");
     UISelect.bind("adj-reason");
+
+    const qtyInput = modal.querySelector("#adj-qty");
+    const projEl = modal.querySelector("#adj-live-projection");
+    const diffEl = modal.querySelector("#adj-diff-pill");
+    const recalcLiveProjection = () => {
+      const raw = Number(qtyInput.value)||0;
+      const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
+      const mult = (adjUnit === "pack" ? product.piecesPerPack : 1);
+      const delta = raw * mult;
+      const projected = Math.max(0, product.stock + delta);
+      if(projEl) projEl.textContent = `${projected} ${product.unit||"pc"}`;
+      if(diffEl){
+        diffEl.textContent = `${product.stock} pcs ➔ ${projected} pcs (${delta >= 0 ? "+" + delta : delta} pcs)`;
+        diffEl.style.color = delta < 0 ? "var(--danger)" : delta > 0 ? "var(--success-deep)" : "var(--ink-faint)";
+      }
+    };
+    qtyInput.addEventListener("input", recalcLiveProjection);
+    qtyInput.focus();
   }
 
   // (2026-07-13) Clean photo modal without link card. Prev: cluttered link card
@@ -312,6 +342,293 @@ const Inventory = (() => {
     };
   }
 
+  // (2026-08-26) Admin-only physical count audit for recently sold items; catches theft
+  function openPhysicalCountAudit(){
+    const user = Auth.currentUser ? Auth.currentUser() : null;
+    if(!user || user.role !== "admin"){
+      Utils.toast("Physical Count Audit is admin-only. Please login as admin.", "warn");
+      return;
+    }
+
+    // Get items from recent transactions (last 50 sales)
+    const recentSales = DB.getSales().slice(0, 50);
+    const recentProductIds = new Set();
+    const productSaleCount = {};
+    
+    // Count how many times each product was sold
+    recentSales.forEach(sale => {
+      (sale.items || []).forEach(item => {
+        if(!item.isCustom && item.productId){
+          recentProductIds.add(item.productId);
+          productSaleCount[item.productId] = (productSaleCount[item.productId] || 0) + 1;
+        }
+      });
+    });
+
+    // Get products that were recently sold, sorted by sale frequency
+    const products = DB.getProducts();
+    const auditItems = Array.from(recentProductIds)
+      .map(id => products.find(p => p.id === id))
+      .filter(p => p && p.stock >= 0) // Include even zero stock to catch full theft
+      .sort((a, b) => (productSaleCount[b.id] || 0) - (productSaleCount[a.id] || 0)) // Most sold first
+      .slice(0, 25); // Top 25 recently sold items
+
+    if(auditItems.length === 0){
+      Utils.toast("No recent sales to audit. Complete some sales first.", "info");
+      return;
+    }
+
+    const verificationData = auditItems.map(p => ({
+      productId: p.id,
+      name: p.name,
+      systemStock: p.stock,
+      physicalCount: p.stock,
+      imageUrl: p.imageUrl,
+      category: p.category,
+      saleCount: productSaleCount[p.id] || 0
+    }));
+
+    const body = `
+      <div style="margin-bottom:18px;padding:14px;background:var(--paper-dim);border-radius:var(--r-lg);border:1.5px solid var(--brand);text-align:center;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:var(--brand-tint);color:var(--brand-deep);margin-bottom:10px;">
+          ${Icons.get("clipboard-check",{size:24})}
+        </div>
+        <h4 style="font-size:1.15rem;font-weight:800;margin-bottom:6px;color:var(--ink);">📌 Physical Count Audit - Recent Transactions</h4>
+        <p style="font-size:.92rem;color:var(--ink-soft);line-height:1.4;">Verify physical shelf counts for items from the last 50 sales. This helps catch theft immediately after transactions.</p>
+        <div style="margin-top:10px;padding:8px 14px;background:var(--warning-tint);border:1px solid var(--warning);border-radius:8px;display:inline-block;">
+          <strong style="color:var(--warning-deep);font-size:.88rem;">💡 Tip:</strong> 
+          <span style="color:var(--ink-soft);font-size:.85rem;margin-left:6px;">If you sold 1 soap but stock decreased by 4, someone stole 3!</span>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="max-height:520px;overflow-y:auto;margin-bottom:14px;">
+        <table class="stock-confirm-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Item</th>
+              <th style="text-align:center;width:15%;">Times Sold</th>
+              <th style="text-align:center;width:15%;">System Stock</th>
+              <th style="text-align:center;width:20%;">Physical Count</th>
+              <th style="text-align:center;width:10%;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="audit-verify-tbody">
+            ${verificationData.map((item, idx) => `
+              <tr data-idx="${idx}">
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="prod-thumb-sm" style="width:32px;height:32px;flex-shrink:0;">
+                      ${Utils.productThumb({imageUrl:item.imageUrl, category:item.category, name:item.name}, {iconSize:18})}
+                    </div>
+                    <strong style="font-size:.95rem;">${Utils.escapeHtml(item.name)}</strong>
+                  </div>
+                </td>
+                <td style="text-align:center;">
+                  <span class="badge badge-brand" style="font-family:var(--font-mono);font-weight:800;font-size:.9rem;padding:4px 10px;">${item.saleCount}x</span>
+                </td>
+                <td style="text-align:center;">
+                  <span class="mono" style="font-size:1.15rem;font-weight:800;color:var(--brand-deep);">${item.systemStock}</span>
+                </td>
+                <td style="text-align:center;">
+                  <input type="number" 
+                    class="physical-count-input" 
+                    data-idx="${idx}"
+                    value="${item.physicalCount}" 
+                    min="0" 
+                    step="1"
+                    style="width:90px;">
+                </td>
+                <td style="text-align:center;">
+                  <span class="discrepancy-indicator match" data-idx="${idx}">✓</span>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="audit-discrepancy-alert" style="display:none;padding:12px 16px;background:var(--danger-tint);border:1.5px solid var(--danger);border-radius:var(--r-md);margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${Icons.get("alert-triangle",{size:20,color:"var(--danger)"})}
+          <div style="flex:1;">
+            <strong style="color:var(--danger);font-size:.95rem;">⚠️ Stock Discrepancies Detected</strong>
+            <p style="font-size:.85rem;color:var(--ink-soft);margin-top:2px;">Physical counts don't match system. This could indicate theft, damage, or data entry errors.</p>
+          </div>
+        </div>
+      </div>`;
+
+    const modal = Modal.open({
+      title: `${Icons.get("clipboard-check",{size:17})} Audit Recently Sold Items`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost btn-lg" },
+        { 
+          label: `${Icons.get("alert-triangle",{size:15})} Log Theft/Discrepancies`, 
+          cls: "btn-outline btn-lg", 
+          id: "btn-audit-log-disc",
+          onClick: () => logAuditDiscrepancies(verificationData, modal) 
+        },
+        { 
+          label: `${Icons.get("check",{size:15})} Save & Update Stock`, 
+          cls: "btn-primary btn-lg", 
+          onClick: () => {
+            const inputs = modal.querySelectorAll(".physical-count-input");
+            let hasDiscrepancy = false;
+            let discrepancyCount = 0;
+            const products = DB.getProducts();
+            
+            inputs.forEach((input, idx) => {
+              const physicalCount = Number(input.value) || 0;
+              const item = verificationData[idx];
+              const diff = physicalCount - item.systemStock;
+              
+              if(diff !== 0){
+                hasDiscrepancy = true;
+                discrepancyCount++;
+                const product = products.find(p => p.id === item.productId);
+                if(product){
+                  product.stock = physicalCount;
+                  DB.adjustStock(product.id, diff, diff < 0 ? "Physical audit - possible theft/shrinkage" : "Physical audit - found extra stock", "");
+                }
+              }
+            });
+            
+            if(hasDiscrepancy){
+              DB.setProducts(products);
+              Utils.toast(`Audit complete: ${discrepancyCount} discrepancy(ies) corrected and logged.`, "success", 3000);
+            } else {
+              Utils.toast("✓ All counts matched perfectly - no theft detected!", "success", 2500);
+            }
+            
+            Modal.close();
+            renderTable();
+          }
+        }
+      ]
+    });
+
+    // Bind input change listeners
+    const inputs = modal.querySelectorAll(".physical-count-input");
+    const alert = modal.querySelector("#audit-discrepancy-alert");
+
+    inputs.forEach(input => {
+      input.addEventListener("input", () => {
+        const idx = Number(input.dataset.idx);
+        const physicalCount = Number(input.value) || 0;
+        const systemStock = verificationData[idx].systemStock;
+        const indicator = modal.querySelector(`.discrepancy-indicator[data-idx="${idx}"]`);
+        
+        if(physicalCount === systemStock){
+          indicator.textContent = "✓";
+          indicator.className = "discrepancy-indicator match";
+        } else {
+          const diff = physicalCount - systemStock;
+          indicator.textContent = diff > 0 ? `+${diff}` : diff;
+          indicator.className = "discrepancy-indicator mismatch";
+        }
+
+        const hasAnyDiscrepancy = Array.from(inputs).some(inp => {
+          const i = Number(inp.dataset.idx);
+          return (Number(inp.value) || 0) !== verificationData[i].systemStock;
+        });
+
+        if(alert) alert.style.display = hasAnyDiscrepancy ? "block" : "none";
+      });
+    });
+
+    if(inputs[0]) inputs[0].focus();
+  }
+
+  function logAuditDiscrepancies(verificationData, parentModal){
+    const discrepancies = verificationData.filter((item, idx) => {
+      const input = parentModal.querySelector(`.physical-count-input[data-idx="${idx}"]`);
+      const physicalCount = Number(input.value) || 0;
+      return physicalCount !== item.systemStock;
+    });
+
+    if(discrepancies.length === 0){
+      Utils.toast("No discrepancies found - all counts match!", "info");
+      return;
+    }
+
+    const body = `
+      <div style="margin-bottom:16px;">
+        <p class="text-sm text-faint" style="margin-bottom:12px;"><strong>${discrepancies.length}</strong> item(s) with count discrepancies detected during audit.</p>
+        ${discrepancies.map((item, idx) => {
+          const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+          const physicalCount = Number(input.value) || 0;
+          const diff = physicalCount - item.systemStock;
+          return `
+            <div class="audit-disc-card ${diff < 0 ? 'negative' : 'positive'}">
+              <div class="flex-between" style="margin-bottom:8px;">
+                <strong style="font-size:1.05rem;color:var(--ink);">${Utils.escapeHtml(item.name)}</strong>
+                <span class="badge ${diff < 0 ? 'badge-danger' : 'badge-warning'}" style="font-family:var(--font-mono);font-weight:800;font-size:1rem;padding:5px 12px;">${diff > 0 ? '+' : ''}${diff} pcs</span>
+              </div>
+              <div class="flex-between" style="font-size:.9rem;color:var(--ink-soft);margin-bottom:12px;padding:8px 12px;background:var(--paper-dim);border-radius:6px;">
+                <span>System: <strong class="mono" style="color:var(--ink);">${item.systemStock}</strong></span>
+                <span style="margin:0 8px;">→</span>
+                <span>Physical: <strong class="mono" style="color:var(--ink);">${physicalCount}</strong></span>
+              </div>
+              <div>
+                <label style="font-size:.85rem;font-weight:800;margin-bottom:6px;display:block;color:var(--ink);">Select Reason:</label>
+                <div id="audit-reason-wrap-${idx}"></div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>`;
+
+    const discModal = Modal.open({
+      title: `${Icons.get("alert-triangle",{size:17})} Log Audit Discrepancies`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost btn-lg" },
+        { 
+          label: "Save Audit Logs", 
+          cls: "btn-primary btn-lg", 
+          onClick: () => {
+            const products = DB.getProducts();
+            
+            discrepancies.forEach((item, idx) => {
+              const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+              const physicalCount = Number(input.value) || 0;
+              const diff = physicalCount - item.systemStock;
+              const reason = UISelect.getValue(`audit-disc-reason-${idx}`);
+              
+              const product = products.find(p => p.id === item.productId);
+              if(product){
+                product.stock = physicalCount;
+                DB.adjustStock(product.id, diff, reason, "");
+              }
+            });
+            
+            DB.setProducts(products);
+            Utils.toast(`Audit complete: ${discrepancies.length} discrepancy log(s) saved.`, "success");
+            Modal.close();
+            Modal.close();
+            renderTable();
+          }
+        }
+      ]
+    });
+
+    discrepancies.forEach((item, idx) => {
+      const wrapEl = discModal.querySelector(`#audit-reason-wrap-${idx}`);
+      const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+      const physicalCount = Number(input.value) || 0;
+      const diff = physicalCount - item.systemStock;
+      
+      const reasons = diff < 0 
+        ? ["Theft / Shoplifting", "Damaged / Spoiled / Shrinkage", "Employee Consumption", "Miscount / Data Entry Error", "Returned to Supplier", "Other"]
+        : ["Found Extra Stock", "Miscount / Data Entry Error", "Received but Not Logged", "Other"];
+      
+      wrapEl.innerHTML = UISelect.render(`audit-disc-reason-${idx}`, reasons, reasons[0]);
+      UISelect.bind(`audit-disc-reason-${idx}`);
+    });
+  }
+
   // (2026-07-13) Add 100/page pagination & category badges; was unpaginated text
   let selectMode = false;
   let selectedIds = new Set();
@@ -367,18 +684,22 @@ const Inventory = (() => {
     } else {
       act.innerHTML = `
         <button class="btn btn-ghost" id="btn-select-mode">${Icons.get("check",{size:15})} Select</button>
+        <button class="btn btn-outline" id="btn-physical-audit" style="border:1.5px solid var(--brand);color:var(--brand);font-weight:700;">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
         <button class="btn btn-ghost" id="btn-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
-        <button class="btn btn-ghost" id="btn-categories">${Icons.get("tag",{size:15})} Categories</button>
         <button class="btn btn-ghost" id="btn-export-inv">${Icons.get("download",{size:15})} Export</button>
         <button class="btn btn-ghost" id="btn-import-inv">${Icons.get("upload",{size:15})} Import</button>
         <button class="btn btn-primary" id="btn-add-product">${Icons.get("plus",{size:15})} Add Product</button>
       `;
       document.getElementById("btn-select-mode").onclick = () => toggleSelectMode(true);
+      document.getElementById("btn-physical-audit").onclick = openPhysicalCountAudit;
       document.getElementById("btn-restock-logs").onclick = openRestockLogModal;
-      document.getElementById("btn-add-product").onclick = () => openProductForm();
-      document.getElementById("btn-categories").onclick = manageCategories;
       document.getElementById("btn-export-inv").onclick = ImportExport.exportInventoryCSV;
       document.getElementById("btn-import-inv").onclick = () => document.getElementById("inv-import-file").click();
+      document.getElementById("btn-add-product").onclick = () => openProductForm();
+      
+      // Bind icon-only categories button
+      const catBtn = document.getElementById("btn-categories-icon");
+      if(catBtn) catBtn.onclick = manageCategories;
     }
   }
 
@@ -446,16 +767,31 @@ const Inventory = (() => {
                     </tr>
                   </thead>
                   <tbody>
-                    ${grp.logs.map(l => `
-                      <tr>
+                    ${grp.logs.map(l => {
+                      const qty = l.quantity_added || l.quantity || 0;
+                      const isNegative = qty < 0;
+                      const absQty = Math.abs(qty);
+                      const reason = l.reason || "";
+                      const isTheftDamage = isNegative && (reason.toLowerCase().includes("theft") || reason.toLowerCase().includes("damage") || reason.toLowerCase().includes("spoil"));
+                      
+                      return `
+                      <tr style="${isNegative ? 'background:var(--danger-tint);' : ''}">
                         <td class="text-sm text-faint" style="font-size:.92rem;">${new Date(l.timestamp||l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</td>
-                        <td><strong style="font-size:1.04rem;">${Utils.escapeHtml(l.product_name||l.productName)}</strong></td>
+                        <td>
+                          <strong style="font-size:1.04rem;">${Utils.escapeHtml(l.product_name||l.productName)}</strong>
+                          ${reason ? `<div class="text-xs text-faint" style="margin-top:2px;font-weight:600;">${Icons.get(isTheftDamage ? "alert-triangle" : "info", {size:12})} ${Utils.escapeHtml(reason)}</div>` : ""}
+                        </td>
                         <td class="text-sm text-faint" style="font-size:.95rem;">${Utils.escapeHtml(l.supplier_name||l.supplierName||"—")}</td>
-                        <td class="mono font-bold" style="font-size:1.12rem;color:var(--success-deep);text-align:center;">+${l.quantity_added||l.quantity}</td>
+                        <td class="mono font-bold" style="font-size:1.12rem;color:${isNegative ? 'var(--danger)' : 'var(--success-deep)'};text-align:center;">
+                          ${isNegative ? '−' : '+'}${absQty}
+                          ${isTheftDamage ? ` ${Icons.get("alert-circle",{size:14,color:"var(--danger)"})}` : ""}
+                        </td>
                         <td class="mono" style="font-size:1.02rem;text-align:right;">${Utils.money(l.unit_cost||l.unitCost||0)}</td>
-                        <td class="mono font-bold" style="font-size:1.12rem;color:var(--brand-deep);text-align:right;">${Utils.money(l.total_cost||0)}</td>
+                        <td class="mono font-bold" style="font-size:1.12rem;color:${isNegative ? 'var(--danger)' : 'var(--brand-deep)'};text-align:right;">
+                          ${isNegative ? '−' : ''}${Utils.money(Math.abs(l.total_cost||0))}
+                        </td>
                       </tr>
-                    `).join("")}
+                    `}).join("")}
                   </tbody>
                 </table>
               </div>
@@ -469,8 +805,8 @@ const Inventory = (() => {
         <div style="display:flex;gap:6px;" id="restock-period-pills">
           <button class="chip active" data-p="all">All Time</button>
           <button class="chip" data-p="today">Today</button>
-          <button class="chip" data-p="month">This Month</button>
-          <button class="chip" data-p="30d">Last 30 Days</button>
+          <button class="chip" data-p="this_month">This Month</button>
+          <button class="chip" data-p="30">Last 30 Days</button>
         </div>
         <button class="btn btn-primary" id="btn-manual-restock" style="font-size:1.05rem;padding:9px 18px;border-radius:10px;">${Icons.get("plus",{size:16})} Restock Item</button>
       </div>
@@ -489,7 +825,7 @@ const Inventory = (() => {
       c.onclick = () => {
         modal.querySelectorAll("#restock-period-pills .chip").forEach(x => x.classList.remove("active"));
         c.classList.add("active");
-        filter = c.dataset.p;
+        filter = c.dataset.p === "30" ? 30 : c.dataset.p;
         renderModalBody(modal);
       };
     });
@@ -847,7 +1183,7 @@ const Inventory = (() => {
 
     // (2026-07-13) Always render header action buttons in renderTable. Prev: select-only
     renderHeaderActions();
-    document.getElementById("inv-count").innerHTML = `${allItems.length} product${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Page ${currentPage} of ${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong>Potential Rev: <span style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</span></strong> · <strong>Profit: <span style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</span></strong> <span class="text-faint">(Cost: ${Utils.money(totalCostVal)})</span>`;
+    document.getElementById("inv-count").innerHTML = `${allItems.length} item${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Pg ${currentPage}/${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</strong> rev · <strong style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</strong> profit`;
     tbody.innerHTML = items.length ? items.map(p => {
       const pct = p.lowStockThreshold ? Math.min(100, Math.round((p.stock/(p.lowStockThreshold*3))*100)) : 100;
       const low = p.stock <= p.lowStockThreshold;
@@ -862,7 +1198,7 @@ const Inventory = (() => {
       const marginPct = (p.price || 0) > 0 ? (unitProfit / p.price) * 100 : 0;
       // (2026-07-13) Fix stock wrap, compact category & enlarge table numbers; was small
       return `
-      <tr class="${p.stock<=0 || low ? "low-stock":""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
+      <tr class="${p.stock<=0 ? "out-of-stock" : low ? "low-stock" : ""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
        ${selectMode ? `<td class="inv-select-col"><input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""}></td>` : ""}
         <!-- (2026-07-13) Click-to-copy name & modal image preview. Prev: static text -->
         <td style="min-width:180px;">
@@ -1004,26 +1340,45 @@ const Inventory = (() => {
 
   function render(){
     selectMode = false;
-    selectedIds.clear();
+    // (2026-07-13) Auto-reset inventory search term on navigation; was persistent
+    searchTerm = "";
     currentPage = 1;
     const view = document.getElementById("view-root");
+    // (2026-07-13) Category chips inside toolbar & sorted by stock valuation; was missing cats def
     const cats = DB.getCategories();
-    // (2026-07-13) Add category chips bar to Inventory view. Prev: dropdown only
+    const allProds = DB.getProducts();
+    const catValuationMap = {};
+    allProds.forEach(p => {
+      const cat = (p.category || "Misc").toUpperCase();
+      const val = (p.stock || 0) * (p.cost || 0);
+      catValuationMap[cat] = (catValuationMap[cat] || 0) + val;
+    });
+    const sortedCats = [...cats].sort((a, b) => {
+      const valA = catValuationMap[a.toUpperCase()] || 0;
+      const valB = catValuationMap[b.toUpperCase()] || 0;
+      return valB - valA;
+    });
+
     view.innerHTML = `
       <div class="view-head">
-        <div><h2>${Icons.get("package",{size:22})} Inventory</h2><div class="view-sub" id="inv-count"></div></div>
-        <div class="input-row" id="inv-actions" style="width:auto;"></div>
+        <div style="flex:1;min-width:0;">
+          <h2>${Icons.get("package",{size:22})} Inventory</h2>
+          <div class="view-sub" id="inv-count" style="font-size:.70rem;margin-top:3px;"></div>
+        </div>
+        <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
       </div>
-      <div class="category-chips" id="inv-cat-chips" style="margin-bottom:10px;"></div>
       <div class="inv-toolbar">
-        <div class="input-icon-wrap">
+        <div class="input-icon-wrap" style="position:relative;width:320px;">
           ${Icons.get("search",{size:15})}
           <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
+          <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:15})}</button>
         </div>
         <div id="inv-cat-filter-wrap"></div>
         <div id="inv-stock-filter-wrap"></div>
         <div id="inv-sort-wrap"></div>
+        <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
       </div>
+      <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-bottom:10px;"></div>
       <div class="table-wrap">
         <table class="data">
           <thead id="inv-thead"></thead>
@@ -1036,8 +1391,11 @@ const Inventory = (() => {
 
     const catChips = document.getElementById("inv-cat-chips");
     if(catChips){
-      const allCats = ["All", ...cats];
-      catChips.innerHTML = allCats.map(c => `<div class="chip ${c.toUpperCase()===(categoryFilter||"All").toUpperCase()?"active":""}" data-c="${Utils.escapeHtml(c)}">${Utils.escapeHtml(c)}</div>`).join("");
+      const allCats = ["All", ...sortedCats];
+      catChips.innerHTML = allCats.map(c => {
+        const val = c === "All" ? Object.values(catValuationMap).reduce((s,x)=>s+x,0) : (catValuationMap[c.toUpperCase()] || 0);
+        return `<div class="chip ${c.toUpperCase()===(categoryFilter||"All").toUpperCase()?"active":""}" data-c="${Utils.escapeHtml(c)}" title="Valuation: ${Utils.money(val)}">${Utils.escapeHtml(c)}</div>`;
+      }).join("");
       catChips.querySelectorAll(".chip").forEach(c => c.onclick = () => {
         categoryFilter = c.dataset.c;
         currentPage = 1;
@@ -1060,7 +1418,28 @@ const Inventory = (() => {
       }
     });
 
-    document.getElementById("inv-search").addEventListener("input", Utils.debounce((e)=>{ searchTerm=e.target.value; currentPage=1; renderTable(); },150));
+    const search = document.getElementById("inv-search");
+    const clearBtn = document.getElementById("btn-clear-inv-search");
+    const onSearchChange = (val) => {
+      searchTerm = val;
+      currentPage = 1;
+      if(clearBtn){
+        if(val.length > 0){
+          clearBtn.classList.add("visible");
+        } else {
+          clearBtn.classList.remove("visible");
+        }
+      }
+      renderTable();
+    };
+    search.addEventListener("input", Utils.debounce((e)=>{ onSearchChange(e.target.value); }, 120));
+    if(clearBtn){
+      clearBtn.onclick = () => {
+        search.value = "";
+        onSearchChange("");
+        search.focus();
+      };
+    }
 
     document.getElementById("inv-cat-filter-wrap").innerHTML = UISelect.render("inv-cat-filter", ["All", ...cats], categoryFilter || "All");
     UISelect.bind("inv-cat-filter", (v)=>{
@@ -1085,5 +1464,7 @@ const Inventory = (() => {
     renderTable();
   }
 
-  return { render, openProductForm };
+  function resetSearch(){ searchTerm = ""; }
+
+  return { render, openProductForm, resetSearch };
 })();

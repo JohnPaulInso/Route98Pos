@@ -1,6 +1,7 @@
 *,*::before,*::after{ box-sizing:border-box; }
 /* (2026-07-13) Scale root typography to balanced 13.5px; was 15px */
 html{ font-size:13.5px; height:100%; }
+/* (2026-07-13) Add mobile touch, safe-area & sticky column rules; was standard web styles */
 body{
   height:100%;
   margin:0;
@@ -12,12 +13,21 @@ body{
   color:var(--ink);
   -webkit-font-smoothing:antialiased;
   overscroll-behavior:none;
+  overscroll-behavior-y:contain;
   font-weight:500;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  padding-bottom:env(safe-area-inset-bottom);
 }
 h1,h2,h3,h4{ font-family:var(--font-display); margin:0; letter-spacing:-.01em; font-weight:700; }
 p{ margin:0; }
-button{ font-family:inherit; }
-input,select,textarea{ font-family:inherit; font-size:inherit; }
+button{ font-family:inherit; -webkit-tap-highlight-color:transparent; }
+button:active, .btn:active, .chip:active, .product-card:active{ filter:brightness(0.92); }
+input,select,textarea{ font-family:inherit; font-size:inherit; -webkit-tap-highlight-color:transparent; }
+input,textarea,[contenteditable="true"]{ -webkit-user-select:text; user-select:text; }
+table td{ -webkit-user-select:text; user-select:text; }
+table td button,table td .btn,table td input[type="checkbox"]{ -webkit-user-select:none; user-select:none; }
 /* (2026-07-13) Hide spin buttons on number inputs; was default spinners */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
@@ -250,6 +260,11 @@ table.data th{
   font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; z-index:1;
   border-bottom:1px solid var(--line); font-weight:700;
 }
+/* (2026-07-13) Sticky column 1 with solid background; was unpinned first column */
+table.data th:first-child{ position:sticky; left:0; z-index:11; background:var(--paper-dim); }
+table.data td:first-child{ position:sticky; left:0; z-index:10; background:var(--paper-raised); }
+table.data tr.low-stock td:first-child{ background:var(--danger-tint); }
+table.data tbody tr.inv-row-selected td:first-child{ background:var(--brand-tint); }
 table.data td{ padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
 /* (2026-07-13) Add text truncation and ellipsis rules; was plain table cells */
 table.data td strong{ max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; }
@@ -337,5 +352,59 @@ body.scroll-locked{ overflow:hidden; }
 .flex-between{ display:flex; align-items:center; justify-content:space-between; }
 .text-faint{ color:var(--ink-faint); }
 .text-sm{ font-size:var(--fs-sm); }
-.mono{ font-family:var(--font-mono); }
 .scanner-live{ position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:300; background:var(--ink); color:#8FB4FF; font-family:var(--font-mono); font-size:.78rem; font-weight:700; padding:8px 16px; border-radius:20px; box-shadow:var(--shadow-lg); animation:toast-in .12s ease; display:flex; align-items:center; gap:8px; }
+
+/* (2026-07-13) Google-style floating circular pull-to-refresh spinner; was native */
+.ptr-element{
+  position:fixed;
+  top:-60px;
+  left:50%;
+  transform:translateX(-50%);
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:var(--paper-raised, #ffffff);
+  box-shadow:0 3px 12px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  pointer-events:none;
+  transition:top 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.ptr-element.refreshing{
+  top:24px;
+}
+.ptr-spinner{
+  width:26px;
+  height:26px;
+  transform-origin:center center;
+}
+.ptr-spinner-circle{
+  stroke-dasharray:80;
+  stroke-dashoffset:60;
+  stroke-width:3.2;
+  stroke-linecap:round;
+  transform-origin:center center;
+  stroke:var(--brand, #4F46E5);
+}
+.ptr-element.refreshing .ptr-spinner{
+  animation:ptr-rotate 1.4s linear infinite;
+}
+.ptr-element.refreshing .ptr-spinner-circle{
+  animation:ptr-dash 1.4s ease-in-out infinite, ptr-colors 5.6s ease-in-out infinite;
+}
+@keyframes ptr-rotate{
+  100%{ transform:rotate(360deg); }
+}
+@keyframes ptr-dash{
+  0%{ stroke-dasharray:1, 200; stroke-dashoffset:0; }
+  50%{ stroke-dasharray:89, 200; stroke-dashoffset:-35px; }
+  100%{ stroke-dasharray:89, 200; stroke-dashoffset:-124px; }
+}
+@keyframes ptr-colors{
+  0%, 100%{ stroke:#4285F4; }
+  25%{ stroke:#EA4335; }
+  50%{ stroke:#FBBC05; }
+  75%{ stroke:#34A853; }
+}

@@ -29,14 +29,12 @@ const Utils = (() => {
   }
   function daysAgo(n){ return startOfDay(Date.now()) - n*86400000; }
 
+  // (2026-07-13) Hide default icon on image load; was visible behind image
   function productThumb(product, opts = {}){
-    // Real photo if the product has one (onerror gracefully reveals the icon behind it —
-    // handles broken links or being offline without ever showing a broken-image glyph).
     const iconName = DB.categoryIcon(product.category);
     const size = opts.iconSize || 28;
-    const tint = product.category ? "" : "";
     const img = product.imageUrl
-      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy" onerror="this.style.display='none'">`
+      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" onload="if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display='none'" onerror="this.style.display='none';if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display=''">`
       : "";
     return `${Icons.get(iconName, { size })}${img}`;
   }

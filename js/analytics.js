@@ -48,6 +48,25 @@ const Analytics = (() => {
         const lmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         return { start: lastMonthStart, end: lastMonthEnd, key: "last_month", label: "Last Month", subtitle: `Last Month · ${fmtMonth(lmDate)}` };
       }
+      // (2026-07-13) Add 10-timeframe filter ranges (3m, 6m, years); was 5 ranges
+      case "last_3m": {
+        const start = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0).getTime();
+        return { start, end: todayEnd, key: "last_3m", label: "Last 3 Months", subtitle: `Last 3 Months · ${fmtMonth(new Date(start))} – ${fmtMonth(now)}` };
+      }
+      case "last_6m": {
+        const start = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0).getTime();
+        return { start, end: todayEnd, key: "last_6m", label: "Last 6 Months", subtitle: `Last 6 Months · ${fmtMonth(new Date(start))} – ${fmtMonth(now)}` };
+      }
+      case "this_year": {
+        const start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0).getTime();
+        const end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999).getTime();
+        return { start, end, key: "this_year", label: "This Year", subtitle: `Year ${now.getFullYear()}` };
+      }
+      case "last_year": {
+        const start = new Date(now.getFullYear() - 1, 0, 1, 0, 0, 0, 0).getTime();
+        const end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999).getTime();
+        return { start, end, key: "last_year", label: "Last Year", subtitle: `Year ${now.getFullYear() - 1}` };
+      }
       case "all":
       default:
         return { start: 0, end: Date.now() + 86400000, key: "all", label: "All Time", subtitle: `All Time Records up to ${now.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}` };
@@ -367,18 +386,13 @@ const Analytics = (() => {
     };
   }
 
-  // (2026-07-13) Aggregate purchase expenses and restock logs; was none
+  // (2026-07-13) Aggregate purchase expenses and restock logs with range; was static
   function restockSummary(period = "all"){
     const logs = DB.getRestockLogs();
-    const startToday = Utils.startOfDay();
-    const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+    const r = getPeriodRange(period);
     const filtered = logs.filter(l => {
       const ts = l.timestamp || l.ts || 0;
-      if(period === "today") return ts >= startToday;
-      if(period === "month") return ts >= startMonth;
-      if(period === "7d") return ts >= Utils.daysAgo(6);
-      if(period === "30d") return ts >= Utils.daysAgo(29);
-      return true;
+      return ts >= r.start && ts <= r.end;
     });
     const totalCapitalSpent = filtered.reduce((sum, l) => sum + (l.total_cost || 0), 0);
     const totalUnitsPurchased = filtered.reduce((sum, l) => sum + (l.quantity_added || 0), 0);

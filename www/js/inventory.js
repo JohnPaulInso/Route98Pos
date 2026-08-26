@@ -204,38 +204,50 @@ const Inventory = (() => {
     renderTable();
   }
 
-  // (2026-07-13) Format stock adjust modal with large typography; was small text
+  // (2026-07-13) Negative input & live stock projection in adjust modal; was dir select
   function openStockAdjust(product){
     const hasDual = product.piecesPerPack > 1;
     const fullPacks = hasDual ? Math.floor(product.stock / product.piecesPerPack) : 0;
     const loose = hasDual ? product.stock % product.piecesPerPack : 0;
     const body = `
-      <div class="card card-tight" style="margin-bottom:16px;background:var(--paper-dim);border:1.5px solid var(--line);padding:12px 18px;border-radius:12px;">
-        <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Current Stock Level</div>
-        <div class="mono" style="font-size:1.55rem;font-weight:900;color:var(--brand-deep);">${product.stock} ${product.unit||"pc"}${hasDual ? ` <span class="text-sm text-faint font-normal">(${fullPacks} pk + ${loose} loose)</span>` : ""}</div>
+      <div class="card card-tight" style="margin-bottom:16px;background:var(--paper-dim);border:1.5px solid var(--line);padding:14px 18px;border-radius:12px;">
+        <div class="flex-between" style="align-items:center;">
+          <div>
+            <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Current Stock Level</div>
+            <div class="mono" style="font-size:1.55rem;font-weight:900;color:var(--brand-deep);">${product.stock} ${product.unit||"pc"}${hasDual ? ` <span class="text-sm text-faint font-normal">(${fullPacks} pk + ${loose} loose)</span>` : ""}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Projected Stock</div>
+            <div class="mono font-bold" id="adj-live-projection" style="font-size:1.45rem;color:var(--success-deep);">${product.stock} ${product.unit||"pc"}</div>
+          </div>
+        </div>
+        <div id="adj-diff-pill" class="text-xs text-faint mono" style="margin-top:6px;text-align:right;font-weight:700;">No change (±0)</div>
       </div>
-      <div class="field"><label>Direction</label><div id="adj-dir-wrap"></div></div>
+      <div class="field">
+        <label>Quantity Delta (positive to restock, negative for shrinkage / damage)</label>
+        <input class="input mono" id="adj-qty" type="number" step="1" placeholder="e.g. +10 or -2" style="font-size:1.5rem;font-weight:800;text-align:center;">
+      </div>
       ${hasDual ? `<div class="field"><label>Adjustment Unit</label><div id="adj-unit-wrap"></div></div>` : ""}
-      <div class="field"><label>Quantity</label><input class="input mono" id="adj-qty" type="number" min="0" step="1" placeholder="Quantity" style="font-size:1.35rem;font-weight:800;text-align:center;"></div>
-      <div class="field"><label>Reason</label><div id="adj-reason-wrap"></div></div>`;
+      <div class="field"><label>Reason / Note</label><div id="adj-reason-wrap"></div></div>`;
+
     const modal = Modal.open({
       title:`${Icons.get("package",{size:17})} Adjust Stock — ${Utils.escapeHtml(product.name)}`, body,
-      actions:[{label:"Cancel",cls:"btn-ghost"},{label:"Apply",cls:"btn-primary", onClick:()=>{
-        const dir = Number(UISelect.getValue("adj-dir"));
-        const qty = Number(document.getElementById("adj-qty").value)||0;
-        if(qty<=0){ Utils.toast("Enter a quantity.","warn"); return; }
-        const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
-        const totalDeltaPieces = dir * qty * (adjUnit === "pack" ? product.piecesPerPack : 1);
-        const reason = UISelect.getValue("adj-reason");
-        DB.adjustStock(product.id, totalDeltaPieces, reason);
-        Utils.toast("Stock updated.","success");
-        Modal.close(); renderTable();
-      }}]
+      actions:[
+        { label:"Cancel", cls:"btn-ghost" },
+        { label:"Apply Adjustment", cls:"btn-primary font-bold", onClick:()=>{
+          const rawQty = Number(document.getElementById("adj-qty").value)||0;
+          if(rawQty === 0){ Utils.toast("Enter a non-zero adjustment quantity.","warn"); return; }
+          const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
+          const mult = (adjUnit === "pack" ? product.piecesPerPack : 1);
+          const totalDeltaPieces = rawQty * mult;
+          const reason = UISelect.getValue("adj-reason");
+          DB.adjustStock(product.id, totalDeltaPieces, reason);
+          Utils.toast(`Stock adjusted by ${totalDeltaPieces > 0 ? "+" + totalDeltaPieces : totalDeltaPieces} pcs.`,"success");
+          Modal.close(); renderTable();
+        }}
+      ]
     });
-    modal.querySelector("#adj-dir-wrap").innerHTML = UISelect.render("adj-dir", [
-      { value:"1", label:"Add stock (restock)" }, { value:"-1", label:"Remove stock" }
-    ], "1");
-    UISelect.bind("adj-dir");
+
     if(hasDual){
       modal.querySelector("#adj-unit-wrap").innerHTML = UISelect.render("adj-unit", [
         { value:"piece", label:`Pieces (x1 pc)` },
@@ -244,8 +256,26 @@ const Inventory = (() => {
       UISelect.bind("adj-unit");
     }
     modal.querySelector("#adj-reason-wrap").innerHTML = UISelect.render("adj-reason",
-      ["Restock / Delivery","Damaged / Spoiled","Stock count correction","Return to supplier","Other"], "Restock / Delivery");
+      ["Restock / Delivery","Damaged / Spoiled / Shrinkage","Stock count correction","Return to supplier","Other"], "Restock / Delivery");
     UISelect.bind("adj-reason");
+
+    const qtyInput = modal.querySelector("#adj-qty");
+    const projEl = modal.querySelector("#adj-live-projection");
+    const diffEl = modal.querySelector("#adj-diff-pill");
+    const recalcLiveProjection = () => {
+      const raw = Number(qtyInput.value)||0;
+      const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
+      const mult = (adjUnit === "pack" ? product.piecesPerPack : 1);
+      const delta = raw * mult;
+      const projected = Math.max(0, product.stock + delta);
+      if(projEl) projEl.textContent = `${projected} ${product.unit||"pc"}`;
+      if(diffEl){
+        diffEl.textContent = `${product.stock} pcs ➔ ${projected} pcs (${delta >= 0 ? "+" + delta : delta} pcs)`;
+        diffEl.style.color = delta < 0 ? "var(--danger)" : delta > 0 ? "var(--success-deep)" : "var(--ink-faint)";
+      }
+    };
+    qtyInput.addEventListener("input", recalcLiveProjection);
+    qtyInput.focus();
   }
 
   // (2026-07-13) Clean photo modal without link card. Prev: cluttered link card
@@ -469,8 +499,8 @@ const Inventory = (() => {
         <div style="display:flex;gap:6px;" id="restock-period-pills">
           <button class="chip active" data-p="all">All Time</button>
           <button class="chip" data-p="today">Today</button>
-          <button class="chip" data-p="month">This Month</button>
-          <button class="chip" data-p="30d">Last 30 Days</button>
+          <button class="chip" data-p="this_month">This Month</button>
+          <button class="chip" data-p="30">Last 30 Days</button>
         </div>
         <button class="btn btn-primary" id="btn-manual-restock" style="font-size:1.05rem;padding:9px 18px;border-radius:10px;">${Icons.get("plus",{size:16})} Restock Item</button>
       </div>
@@ -489,7 +519,7 @@ const Inventory = (() => {
       c.onclick = () => {
         modal.querySelectorAll("#restock-period-pills .chip").forEach(x => x.classList.remove("active"));
         c.classList.add("active");
-        filter = c.dataset.p;
+        filter = c.dataset.p === "30" ? 30 : c.dataset.p;
         renderModalBody(modal);
       };
     });
@@ -1004,25 +1034,40 @@ const Inventory = (() => {
 
   function render(){
     selectMode = false;
-    selectedIds.clear();
+    // (2026-07-13) Auto-reset inventory search term on navigation; was persistent
+    searchTerm = "";
     currentPage = 1;
     const view = document.getElementById("view-root");
+    // (2026-07-13) Category chips inside toolbar & sorted by stock valuation; was missing cats def
     const cats = DB.getCategories();
-    // (2026-07-13) Add category chips bar to Inventory view. Prev: dropdown only
+    const allProds = DB.getProducts();
+    const catValuationMap = {};
+    allProds.forEach(p => {
+      const cat = (p.category || "Misc").toUpperCase();
+      const val = (p.stock || 0) * (p.cost || 0);
+      catValuationMap[cat] = (catValuationMap[cat] || 0) + val;
+    });
+    const sortedCats = [...cats].sort((a, b) => {
+      const valA = catValuationMap[a.toUpperCase()] || 0;
+      const valB = catValuationMap[b.toUpperCase()] || 0;
+      return valB - valA;
+    });
+
     view.innerHTML = `
       <div class="view-head">
         <div><h2>${Icons.get("package",{size:22})} Inventory</h2><div class="view-sub" id="inv-count"></div></div>
         <div class="input-row" id="inv-actions" style="width:auto;"></div>
       </div>
-      <div class="category-chips" id="inv-cat-chips" style="margin-bottom:10px;"></div>
       <div class="inv-toolbar">
-        <div class="input-icon-wrap">
+        <div class="input-icon-wrap" style="position:relative;flex:1.4;">
           ${Icons.get("search",{size:15})}
-          <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
+          <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…" style="padding-right:32px;border-radius:24px;">
+          <button type="button" id="btn-clear-inv-search" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-faint);cursor:pointer;display:none;padding:4px;line-height:1;" title="Clear search">${Icons.get("x",{size:14})}</button>
         </div>
         <div id="inv-cat-filter-wrap"></div>
         <div id="inv-stock-filter-wrap"></div>
         <div id="inv-sort-wrap"></div>
+        <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-top:4px;"></div>
       </div>
       <div class="table-wrap">
         <table class="data">
@@ -1036,8 +1081,11 @@ const Inventory = (() => {
 
     const catChips = document.getElementById("inv-cat-chips");
     if(catChips){
-      const allCats = ["All", ...cats];
-      catChips.innerHTML = allCats.map(c => `<div class="chip ${c.toUpperCase()===(categoryFilter||"All").toUpperCase()?"active":""}" data-c="${Utils.escapeHtml(c)}">${Utils.escapeHtml(c)}</div>`).join("");
+      const allCats = ["All", ...sortedCats];
+      catChips.innerHTML = allCats.map(c => {
+        const val = c === "All" ? Object.values(catValuationMap).reduce((s,x)=>s+x,0) : (catValuationMap[c.toUpperCase()] || 0);
+        return `<div class="chip ${c.toUpperCase()===(categoryFilter||"All").toUpperCase()?"active":""}" data-c="${Utils.escapeHtml(c)}" title="Valuation: ${Utils.money(val)}">${Utils.escapeHtml(c)}</div>`;
+      }).join("");
       catChips.querySelectorAll(".chip").forEach(c => c.onclick = () => {
         categoryFilter = c.dataset.c;
         currentPage = 1;
@@ -1060,7 +1108,22 @@ const Inventory = (() => {
       }
     });
 
-    document.getElementById("inv-search").addEventListener("input", Utils.debounce((e)=>{ searchTerm=e.target.value; currentPage=1; renderTable(); },150));
+    const search = document.getElementById("inv-search");
+    const clearBtn = document.getElementById("btn-clear-inv-search");
+    const onSearchChange = (val) => {
+      searchTerm = val;
+      currentPage = 1;
+      if(clearBtn) clearBtn.style.display = val.length > 0 ? "block" : "none";
+      renderTable();
+    };
+    search.addEventListener("input", Utils.debounce((e)=>{ onSearchChange(e.target.value); }, 120));
+    if(clearBtn){
+      clearBtn.onclick = () => {
+        search.value = "";
+        onSearchChange("");
+        search.focus();
+      };
+    }
 
     document.getElementById("inv-cat-filter-wrap").innerHTML = UISelect.render("inv-cat-filter", ["All", ...cats], categoryFilter || "All");
     UISelect.bind("inv-cat-filter", (v)=>{
@@ -1085,5 +1148,7 @@ const Inventory = (() => {
     renderTable();
   }
 
-  return { render, openProductForm };
+  function resetSearch(){ searchTerm = ""; }
+
+  return { render, openProductForm, resetSearch };
 })();

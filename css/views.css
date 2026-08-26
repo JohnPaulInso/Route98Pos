@@ -25,9 +25,10 @@
 /* (2026-07-13) Fix search borders and outline; was double focused border */
 .pos-search-row{ display:flex; gap:8px; margin-bottom:8px; flex-shrink:0; }
 .pos-search-row .input-icon-wrap{ flex:1; position:relative; }
-.pos-search-row .input-icon-wrap .ic-svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; }
+.pos-search-row .input-icon-wrap .ic-svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
 .pos-search-row .input-icon-wrap .input{
   padding-left:38px;
+  padding-right:38px;
   border-radius:24px;
   border:1.5px solid var(--line-strong);
   outline:none !important;
@@ -37,6 +38,18 @@
   outline:none !important;
   box-shadow:0 0 0 3px var(--brand-tint);
 }
+.pos-search-row .input-icon-wrap .clear-search-btn{ 
+  position:absolute; right:10px; top:50%; transform:translateY(-50%); 
+  background:var(--paper-dim); border:1px solid var(--line); color:var(--ink-soft); 
+  cursor:pointer; padding:0; border-radius:50%; width:28px; height:28px; 
+  display:none; align-items:center; justify-content:center; 
+  transition:all .15s ease; z-index:2; 
+}
+.pos-search-row .input-icon-wrap .clear-search-btn svg{ 
+  display:block; width:16px; height:16px; margin:0; 
+}
+.pos-search-row .input-icon-wrap .clear-search-btn:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); transform:translateY(-50%) scale(1.08); }
+.pos-search-row .input-icon-wrap .clear-search-btn.visible{ display:flex; }
 /* (2026-07-13) Style category chips uppercase & thin scrollbar; was plain text */
 .category-chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; flex-shrink:0; min-width:0; }
 .category-chips .chip{ text-transform:uppercase; letter-spacing:.02em; font-size:.66rem; font-weight:800; }
@@ -281,11 +294,81 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
 .date-range-bar{ display:flex; gap:8px; align-items:center; }
 
 /* ============ INVENTORY ============ */
-.inv-toolbar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-.inv-toolbar .input-icon-wrap{ position:relative; max-width:260px; flex:1; min-width:180px; }
-.inv-toolbar .input-icon-wrap .ic-svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; }
-.inv-toolbar .input-icon-wrap .input{ padding-left:36px; }
-.inv-toolbar .ui-select{ max-width:170px; }
+.inv-toolbar{ display:flex; gap:10px; margin-bottom:14px; align-items:center; flex-wrap:wrap; }
+.inv-toolbar .input-icon-wrap{ position:relative; flex-shrink:0; }
+.inv-toolbar .input-icon-wrap .ic-svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
+.inv-toolbar .input-icon-wrap .input{ padding-left:36px; padding-right:36px; }
+.inv-toolbar .input-icon-wrap .clear-search-btn{ 
+  position:absolute; right:10px; top:50%; transform:translateY(-50%); 
+  background:var(--paper-dim); border:1px solid var(--line); color:var(--ink-soft); 
+  cursor:pointer; padding:0; border-radius:50%; width:26px; height:26px; 
+  display:none; align-items:center; justify-content:center; 
+  transition:all .15s ease; z-index:2; 
+}
+.inv-toolbar .input-icon-wrap .clear-search-btn svg{ 
+  display:block; width:15px; height:15px; margin:0; 
+}
+.inv-toolbar .input-icon-wrap .clear-search-btn:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); }
+.inv-toolbar .input-icon-wrap .clear-search-btn.visible{ display:flex; }
+.inv-toolbar .ui-select{ min-width:150px; flex-shrink:0; }
+.inv-toolbar .btn-icon{ width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center; }
+
+/* (2026-08-26) Physical stock confirmation modal styles; was not present */
+.stock-confirm-table{ width:100%; border-collapse:collapse; margin:16px 0; }
+.stock-confirm-table th{ text-align:left; padding:10px 12px; background:var(--paper-dim); font-weight:800; text-transform:uppercase; font-size:.75rem; letter-spacing:.04em; border-bottom:2px solid var(--line-strong); }
+.stock-confirm-table td{ padding:10px 12px; border-bottom:1px solid var(--line); }
+.stock-confirm-table input.physical-count-input{ width:80px; text-align:center; font-family:var(--font-mono); font-weight:700; font-size:1.1rem; padding:6px 10px; border:1.5px solid var(--line-strong); border-radius:6px; background:var(--paper-raised); }
+.stock-confirm-table input.physical-count-input:focus{ border-color:var(--brand); outline:none; box-shadow:0 0 0 3px var(--brand-tint); }
+.stock-confirm-table .discrepancy-indicator{ font-weight:800; font-family:var(--font-mono); font-size:1.05rem; }
+.stock-confirm-table .discrepancy-indicator.match{ color:var(--success-deep); }
+.stock-confirm-table .discrepancy-indicator.mismatch{ color:var(--danger); }
+
+/* (2026-08-26) Improve dropdown readability in audit discrepancy cards */
+.audit-disc-card{ 
+  padding:12px 16px; margin-bottom:10px; 
+  background:var(--paper-raised) !important; 
+  border:1.5px solid var(--line-strong); 
+  border-radius:var(--r-md); 
+  box-shadow:var(--shadow-sm);
+  position:relative;
+  overflow:visible !important;
+}
+.audit-disc-card.negative{ border-color:var(--danger); background:var(--paper-raised) !important; }
+.audit-disc-card.positive{ border-color:var(--warning); background:var(--paper-raised) !important; }
+.audit-disc-card .ui-select{ width:100%; position:relative; z-index:100; }
+.audit-disc-card .ui-select-button{ 
+  width:100%; 
+  background:var(--paper) !important; 
+  border:1.5px solid var(--line-strong) !important; 
+  padding:10px 14px !important; 
+  font-size:.95rem !important;
+  font-weight:600 !important;
+  color:var(--ink) !important;
+}
+.audit-disc-card .ui-select-button:hover{ 
+  background:var(--paper-dim) !important; 
+  border-color:var(--brand) !important; 
+}
+.audit-disc-card .ui-select-dropdown{ 
+  background:var(--paper-raised) !important; 
+  border:1.5px solid var(--line-strong) !important; 
+  box-shadow:var(--shadow-lg) !important;
+  max-height:220px;
+  overflow-y:auto;
+  position:absolute !important;
+  z-index:9999 !important;
+}
+.audit-disc-card .ui-select-option{ 
+  padding:10px 14px !important; 
+  font-size:.95rem !important; 
+  font-weight:600 !important;
+  color:var(--ink) !important;
+  background:var(--paper-raised) !important;
+}
+.audit-disc-card .ui-select-option:hover{ 
+  background:var(--brand-tint) !important; 
+  color:var(--brand-deep) !important; 
+}
 .stock-bar{ width:70px; height:6px; background:var(--paper-dim); border-radius:6px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:6px; }
 .stock-bar > i{ display:block; height:100%; background:var(--success); }
 .stock-bar.low > i{ background:var(--danger); }
@@ -302,6 +385,22 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
 .inv-select-col{ width:38px; text-align:center; padding:9px 6px; }
 .inv-checkbox{ width:17px; height:17px; accent-color:var(--brand); cursor:pointer; vertical-align:middle; }
 table.data tbody tr.inv-row-selected td{ background:var(--brand-tint); }
+
+/* (2026-08-26) Only freeze first column, not headers; was both frozen */
+table.data td:first-child{ 
+  border-right:2px solid var(--line-strong) !important; 
+  position:sticky; 
+  left:0; 
+  background:var(--paper-raised); 
+  z-index:5;
+  box-shadow: 2px 0 0 0 var(--line-strong);
+}
+table.data th:first-child{
+  border-right:2px solid var(--line-strong) !important;
+}
+[data-theme="dark"] table.data td:first-child{ 
+  background:var(--paper-raised);
+}
 
 /* (2026-07-13) Add pagination bar styles; was unpaginated */
 .pagination-bar{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:12px; flex-wrap:wrap; font-size:var(--fs-sm); color:var(--ink-soft); }

@@ -48,6 +48,7 @@ const App = (() => {
     return DB.getProducts().filter(p => p.stock <= p.lowStockThreshold).length;
   }
 
+  // (2026-07-13) Auto-clear module search filters on navigation; was persistent
   function navigate(id){
     const view = VIEWS.find(v => v.id === id);
     if(!view) return;
@@ -56,6 +57,8 @@ const App = (() => {
     const s = DB.getSettings();
     if(s.lastView !== id){ s.lastView = id; DB.setSettings(s); }
     Scanner.clearContext();
+    POS.resetSearch?.();
+    Inventory.resetSearch?.();
     paintNav();
     view.mod.render();
   }
@@ -194,11 +197,99 @@ const App = (() => {
     navigate(currentView);
   }
 
+  // (2026-07-13) Google Material pull-to-refresh with rotating colored ring; was native
+  function initPullToRefresh(){
+    let startY = 0;
+    let pullDist = 0;
+    let isPulling = false;
+    let isRefreshing = false;
+    const threshold = 65;
+
+    let ptrEl = document.getElementById("ptr-root");
+    if(!ptrEl){
+      ptrEl = document.createElement("div");
+      ptrEl.id = "ptr-root";
+      ptrEl.className = "ptr-element";
+      ptrEl.innerHTML = `
+        <svg class="ptr-spinner" viewBox="0 0 50 50">
+          <circle class="ptr-spinner-circle" cx="25" cy="25" r="18" fill="none"></circle>
+        </svg>`;
+      document.body.appendChild(ptrEl);
+    }
+
+    const circle = ptrEl.querySelector(".ptr-spinner-circle");
+
+    function isAtTop(){
+      const scrollable = document.querySelector(".view-body, .table-wrap, #venue-scroll-wrapper, #report-body");
+      if(scrollable && scrollable.scrollTop > 0) return false;
+      return (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
+    }
+
+    window.addEventListener("touchstart", (e) => {
+      if(isRefreshing) return;
+      if(isAtTop() && e.touches.length === 1){
+        startY = e.touches[0].clientY;
+        isPulling = true;
+        pullDist = 0;
+      }
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+      if(!isPulling || isRefreshing) return;
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if(diff > 0 && isAtTop()){
+        pullDist = Math.min(105, diff * 0.42);
+        ptrEl.style.top = `${-60 + pullDist}px`;
+        const rotation = (pullDist / threshold) * 270;
+        ptrEl.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+        if(circle){
+          const progress = Math.min(1, pullDist / threshold);
+          circle.style.strokeDashoffset = `${80 - (progress * 55)}`;
+        }
+      } else {
+        isPulling = false;
+        ptrEl.style.top = "-60px";
+      }
+    }, { passive: true });
+
+    window.addEventListener("touchend", async () => {
+      if(!isPulling || isRefreshing) return;
+      isPulling = false;
+      if(pullDist >= threshold * 0.42){
+        isRefreshing = true;
+        ptrEl.classList.add("refreshing");
+        ptrEl.style.top = "20px";
+        ptrEl.style.transform = "translateX(-50%)";
+
+        try {
+          if(Sync && Sync.pullSnapshot){
+            await Sync.pullSnapshot();
+          }
+          rerenderCurrentView();
+          Utils.toast("Page data refreshed", "info", 1200);
+        } catch(e){
+          console.warn("Pull refresh error:", e);
+        }
+
+        setTimeout(() => {
+          ptrEl.classList.remove("refreshing");
+          ptrEl.style.top = "-60px";
+          isRefreshing = false;
+        }, 500);
+      } else {
+        ptrEl.style.top = "-60px";
+      }
+      pullDist = 0;
+    }, { passive: true });
+  }
+
   function init(){
     DB.init();
     Auth.restoreSession();
     Sync.init();
     Scanner.init();
+    initPullToRefresh();
     if(Auth.currentUser()) boot();
     else Auth.render();
   }
