@@ -327,9 +327,25 @@ const Inventory = (() => {
       const name = btn.dataset.delCat.toUpperCase();
       const inUse = DB.getProducts().some(p => (p.category || "").toUpperCase() === name);
       if(inUse){ Utils.toast("Can't remove — products still use this category.","warn"); return; }
-      DB.setCategories(DB.getCategories().filter(c => c.toUpperCase() !== name));
-      manageCategories();
-      renderTable();
+      Modal.confirm({
+        title: `Remove Category "${name}"?`,
+        message: `Are you sure you want to remove category "${name}"?`,
+        danger: true,
+        onConfirm: () => {
+          DB.setCategories(DB.getCategories().filter(c => c.toUpperCase() !== name));
+          manageCategories();
+          renderTable();
+          Utils.snackbarWithUndo(`Category "${name}" removed.`, () => {
+            const currentCats = DB.getCategories();
+            if(!currentCats.map(x=>x.toUpperCase()).includes(name)){
+              DB.setCategories([...currentCats, name]);
+              manageCategories();
+              renderTable();
+              Utils.toast(`Category "${name}" restored.`, "success");
+            }
+          });
+        }
+      });
     });
     modal.querySelector("#add-cat").onclick = () => {
       const val = modal.querySelector("#new-cat").value.trim().toUpperCase();
@@ -342,7 +358,7 @@ const Inventory = (() => {
     };
   }
 
-  // (2026-08-26) Admin-only physical count audit for recently sold items; catches theft
+  // (2026-07-13) Filterable physical audit with All-Time default & DB sync; was sales-only
   function openPhysicalCountAudit(){
     const user = Auth.currentUser ? Auth.currentUser() : null;
     if(!user || user.role !== "admin"){
@@ -350,121 +366,142 @@ const Inventory = (() => {
       return;
     }
 
-    // Get items from recent transactions (last 50 sales)
-    const recentSales = DB.getSales().slice(0, 50);
-    const recentProductIds = new Set();
-    const productSaleCount = {};
-    
-    // Count how many times each product was sold
-    recentSales.forEach(sale => {
-      (sale.items || []).forEach(item => {
-        if(!item.isCustom && item.productId){
-          recentProductIds.add(item.productId);
-          productSaleCount[item.productId] = (productSaleCount[item.productId] || 0) + 1;
-        }
+    let activeFilter = "all";
+    let searchQ = "";
+
+    function getAuditItems(filter, query = ""){
+      const allProducts = DB.getProducts();
+      let list = [...allProducts];
+      const recentSales = DB.getSales().slice(0, 50);
+      const productSaleCount = {};
+
+      recentSales.forEach(sale => {
+        (sale.items || []).forEach(item => {
+          if(!item.isCustom && item.productId){
+            productSaleCount[item.productId] = (productSaleCount[item.productId] || 0) + 1;
+          }
+        });
       });
-    });
 
-    // Get products that were recently sold, sorted by sale frequency
-    const products = DB.getProducts();
-    const auditItems = Array.from(recentProductIds)
-      .map(id => products.find(p => p.id === id))
-      .filter(p => p && p.stock >= 0) // Include even zero stock to catch full theft
-      .sort((a, b) => (productSaleCount[b.id] || 0) - (productSaleCount[a.id] || 0)) // Most sold first
-      .slice(0, 25); // Top 25 recently sold items
+      if(filter === "recent"){
+        const recentIds = new Set(Object.keys(productSaleCount));
+        list = list.filter(p => recentIds.has(p.id))
+          .sort((a, b) => (productSaleCount[b.id] || 0) - (productSaleCount[a.id] || 0));
+      } else if(filter === "low"){
+        list = list.filter(p => p.stock <= (p.lowStockThreshold || 5))
+          .sort((a, b) => a.stock - b.stock);
+      } else {
+        // "all" - default: newest items / most recent first
+        list.reverse();
+      }
 
-    if(auditItems.length === 0){
-      Utils.toast("No recent sales to audit. Complete some sales first.", "info");
-      return;
+      if(query.trim()){
+        const q = query.trim().toLowerCase();
+        list = list.filter(p => (p.name || "").toLowerCase().includes(q) || (p.barcode || "").toLowerCase().includes(q) || (p.category || "").toLowerCase().includes(q));
+      }
+
+      return list.map(p => ({
+        productId: p.id,
+        name: p.name,
+        systemStock: p.stock,
+        physicalCount: p.stock,
+        imageUrl: p.imageUrl,
+        category: p.category,
+        saleCount: productSaleCount[p.id] || 0
+      }));
     }
 
-    const verificationData = auditItems.map(p => ({
-      productId: p.id,
-      name: p.name,
-      systemStock: p.stock,
-      physicalCount: p.stock,
-      imageUrl: p.imageUrl,
-      category: p.category,
-      saleCount: productSaleCount[p.id] || 0
-    }));
+    let verificationData = getAuditItems(activeFilter, searchQ);
+
+    function renderAuditTableHtml(items){
+      if(!items.length){
+        return `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--ink-faint);">No products found for this filter.</td></tr>`;
+      }
+      return items.map((item, idx) => `
+        <tr data-idx="${idx}">
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="prod-thumb-sm" style="width:32px;height:32px;flex-shrink:0;">
+                ${Utils.productThumb({imageUrl:item.imageUrl, category:item.category, name:item.name}, {iconSize:18})}
+              </div>
+              <strong style="font-size:.95rem;">${Utils.escapeHtml(item.name)}</strong>
+            </div>
+          </td>
+          <td style="text-align:center;">
+            <span class="badge ${item.saleCount>0?'badge-brand':'badge-neutral'}" style="font-family:var(--font-mono);font-weight:800;font-size:.85rem;padding:3px 8px;">${item.saleCount}x</span>
+          </td>
+          <td style="text-align:center;">
+            <span class="mono" style="font-size:1.15rem;font-weight:800;color:var(--brand-deep);">${item.systemStock}</span>
+          </td>
+          <td style="text-align:center;">
+            <input type="number" 
+              class="physical-count-input" 
+              data-idx="${idx}"
+              value="${item.physicalCount}" 
+              min="0" 
+              step="1"
+              style="width:90px;text-align:center;font-weight:800;font-size:1rem;border-radius:8px;padding:6px;">
+          </td>
+          <td style="text-align:center;">
+            <span class="discrepancy-indicator match" data-idx="${idx}">✓</span>
+          </td>
+        </tr>
+      `).join("");
+    }
 
     const body = `
-      <div style="margin-bottom:18px;padding:14px;background:var(--paper-dim);border-radius:var(--r-lg);border:1.5px solid var(--brand);text-align:center;">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:var(--brand-tint);color:var(--brand-deep);margin-bottom:10px;">
-          ${Icons.get("clipboard-check",{size:24})}
+      <div style="margin-bottom:14px;padding:12px;background:var(--paper-dim);border-radius:var(--r-lg);border:1.5px solid var(--brand);text-align:center;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:var(--brand-tint);color:var(--brand-deep);margin-bottom:8px;">
+          ${Icons.get("clipboard-check",{size:22})}
         </div>
-        <h4 style="font-size:1.15rem;font-weight:800;margin-bottom:6px;color:var(--ink);">📌 Physical Count Audit - Recent Transactions</h4>
-        <p style="font-size:.92rem;color:var(--ink-soft);line-height:1.4;">Verify physical shelf counts for items from the last 50 sales. This helps catch theft immediately after transactions.</p>
-        <div style="margin-top:10px;padding:8px 14px;background:var(--warning-tint);border:1px solid var(--warning);border-radius:8px;display:inline-block;">
-          <strong style="color:var(--warning-deep);font-size:.88rem;">💡 Tip:</strong> 
-          <span style="color:var(--ink-soft);font-size:.85rem;margin-left:6px;">If you sold 1 soap but stock decreased by 4, someone stole 3!</span>
-        </div>
+        <h4 style="font-size:1.1rem;font-weight:800;margin-bottom:4px;color:var(--ink);">📌 Physical Count Audit</h4>
+        <p style="font-size:.88rem;color:var(--ink-soft);line-height:1.4;">Verify physical shelf counts against system inventory to detect theft or miscounts.</p>
       </div>
 
-      <div class="table-wrap" style="max-height:520px;overflow-y:auto;margin-bottom:14px;">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;">
+        <div style="display:flex;gap:6px;" id="audit-filter-pills">
+          <button type="button" class="chip active" data-filter="all">All Time (Newest First)</button>
+          <button type="button" class="chip" data-filter="recent">Recent Sales</button>
+          <button type="button" class="chip" data-filter="low">Low Stock</button>
+        </div>
+        <input type="text" id="audit-search-input" class="input" placeholder="Search product or barcode…" style="max-width:240px;padding:6px 12px;font-size:.86rem;">
+      </div>
+
+      <div class="table-wrap" style="max-height:480px;overflow-y:auto;margin-bottom:12px;">
         <table class="stock-confirm-table">
           <thead>
             <tr>
-              <th style="width:40%;">Item</th>
-              <th style="text-align:center;width:15%;">Times Sold</th>
-              <th style="text-align:center;width:15%;">System Stock</th>
-              <th style="text-align:center;width:20%;">Physical Count</th>
-              <th style="text-align:center;width:10%;">Status</th>
+              <th style="width:42%;">Item</th>
+              <th style="text-align:center;width:14%;">Sales</th>
+              <th style="text-align:center;width:14%;">System</th>
+              <th style="text-align:center;width:18%;">Physical Count</th>
+              <th style="text-align:center;width:12%;">Status</th>
             </tr>
           </thead>
           <tbody id="audit-verify-tbody">
-            ${verificationData.map((item, idx) => `
-              <tr data-idx="${idx}">
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="prod-thumb-sm" style="width:32px;height:32px;flex-shrink:0;">
-                      ${Utils.productThumb({imageUrl:item.imageUrl, category:item.category, name:item.name}, {iconSize:18})}
-                    </div>
-                    <strong style="font-size:.95rem;">${Utils.escapeHtml(item.name)}</strong>
-                  </div>
-                </td>
-                <td style="text-align:center;">
-                  <span class="badge badge-brand" style="font-family:var(--font-mono);font-weight:800;font-size:.9rem;padding:4px 10px;">${item.saleCount}x</span>
-                </td>
-                <td style="text-align:center;">
-                  <span class="mono" style="font-size:1.15rem;font-weight:800;color:var(--brand-deep);">${item.systemStock}</span>
-                </td>
-                <td style="text-align:center;">
-                  <input type="number" 
-                    class="physical-count-input" 
-                    data-idx="${idx}"
-                    value="${item.physicalCount}" 
-                    min="0" 
-                    step="1"
-                    style="width:90px;">
-                </td>
-                <td style="text-align:center;">
-                  <span class="discrepancy-indicator match" data-idx="${idx}">✓</span>
-                </td>
-              </tr>
-            `).join("")}
+            ${renderAuditTableHtml(verificationData)}
           </tbody>
         </table>
       </div>
 
-      <div id="audit-discrepancy-alert" style="display:none;padding:12px 16px;background:var(--danger-tint);border:1.5px solid var(--danger);border-radius:var(--r-md);margin-bottom:14px;">
+      <div id="audit-discrepancy-alert" style="display:none;padding:10px 14px;background:var(--danger-tint);border:1.5px solid var(--danger);border-radius:var(--r-md);margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          ${Icons.get("alert-triangle",{size:20,color:"var(--danger)"})}
+          ${Icons.get("alert-triangle",{size:18,color:"var(--danger)"})}
           <div style="flex:1;">
-            <strong style="color:var(--danger);font-size:.95rem;">⚠️ Stock Discrepancies Detected</strong>
-            <p style="font-size:.85rem;color:var(--ink-soft);margin-top:2px;">Physical counts don't match system. This could indicate theft, damage, or data entry errors.</p>
+            <strong style="color:var(--danger);font-size:.92rem;">Stock Discrepancies Detected</strong>
+            <p style="font-size:.82rem;color:var(--ink-soft);margin-top:2px;">Some physical counts don't match the system.</p>
           </div>
         </div>
       </div>`;
 
     const modal = Modal.open({
-      title: `${Icons.get("clipboard-check",{size:17})} Audit Recently Sold Items`,
+      title: `${Icons.get("clipboard-check",{size:17})} Physical Count Audit`,
       body,
       wide: true,
       actions: [
         { label: "Cancel", cls: "btn-ghost btn-lg" },
         { 
-          label: `${Icons.get("alert-triangle",{size:15})} Log Theft/Discrepancies`, 
+          label: `${Icons.get("alert-triangle",{size:15})} Log Discrepancies`, 
           cls: "btn-outline btn-lg", 
           id: "btn-audit-log-disc",
           onClick: () => logAuditDiscrepancies(verificationData, modal) 
@@ -477,10 +514,12 @@ const Inventory = (() => {
             let hasDiscrepancy = false;
             let discrepancyCount = 0;
             const products = DB.getProducts();
+            const discDetails = [];
             
             inputs.forEach((input, idx) => {
               const physicalCount = Number(input.value) || 0;
               const item = verificationData[idx];
+              if(!item) return;
               const diff = physicalCount - item.systemStock;
               
               if(diff !== 0){
@@ -489,16 +528,29 @@ const Inventory = (() => {
                 const product = products.find(p => p.id === item.productId);
                 if(product){
                   product.stock = physicalCount;
-                  DB.adjustStock(product.id, diff, diff < 0 ? "Physical audit - possible theft/shrinkage" : "Physical audit - found extra stock", "");
+                  DB.adjustStock(product.id, diff, diff < 0 ? "Physical audit - shrinkage" : "Physical audit - extra stock", "");
+                  discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff });
                 }
               }
             });
             
+            // Connect physical audit to database
+            DB.savePhysicalAudit({
+              id: Utils.uid("audit"),
+              auditor: user.name || "Admin",
+              timestamp: Date.now(),
+              dateStr: new Date().toLocaleString("en-PH"),
+              filter: activeFilter,
+              totalAudited: verificationData.length,
+              discrepancyCount,
+              discrepancies: discDetails
+            });
+
             if(hasDiscrepancy){
               DB.setProducts(products);
-              Utils.toast(`Audit complete: ${discrepancyCount} discrepancy(ies) corrected and logged.`, "success", 3000);
+              Utils.toast(`Audit complete: ${discrepancyCount} count(s) corrected and saved to database.`, "success", 3000);
             } else {
-              Utils.toast("✓ All counts matched perfectly - no theft detected!", "success", 2500);
+              Utils.toast("✓ All counts matched perfectly!", "success", 2500);
             }
             
             Modal.close();
@@ -508,42 +560,69 @@ const Inventory = (() => {
       ]
     });
 
-    // Bind input change listeners
-    const inputs = modal.querySelectorAll(".physical-count-input");
-    const alert = modal.querySelector("#audit-discrepancy-alert");
+    function bindTableEvents(){
+      const inputs = modal.querySelectorAll(".physical-count-input");
+      const alert = modal.querySelector("#audit-discrepancy-alert");
 
-    inputs.forEach(input => {
-      input.addEventListener("input", () => {
-        const idx = Number(input.dataset.idx);
-        const physicalCount = Number(input.value) || 0;
-        const systemStock = verificationData[idx].systemStock;
-        const indicator = modal.querySelector(`.discrepancy-indicator[data-idx="${idx}"]`);
-        
-        if(physicalCount === systemStock){
-          indicator.textContent = "✓";
-          indicator.className = "discrepancy-indicator match";
-        } else {
-          const diff = physicalCount - systemStock;
-          indicator.textContent = diff > 0 ? `+${diff}` : diff;
-          indicator.className = "discrepancy-indicator mismatch";
-        }
+      inputs.forEach(input => {
+        input.addEventListener("input", () => {
+          const idx = Number(input.dataset.idx);
+          const physicalCount = Number(input.value) || 0;
+          if(!verificationData[idx]) return;
+          const systemStock = verificationData[idx].systemStock;
+          const indicator = modal.querySelector(`.discrepancy-indicator[data-idx="${idx}"]`);
+          
+          if(physicalCount === systemStock){
+            if(indicator){ indicator.textContent = "✓"; indicator.className = "discrepancy-indicator match"; }
+          } else {
+            const diff = physicalCount - systemStock;
+            if(indicator){ indicator.textContent = diff > 0 ? `+${diff}` : diff; indicator.className = "discrepancy-indicator mismatch"; }
+          }
 
-        const hasAnyDiscrepancy = Array.from(inputs).some(inp => {
-          const i = Number(inp.dataset.idx);
-          return (Number(inp.value) || 0) !== verificationData[i].systemStock;
+          const hasAnyDiscrepancy = Array.from(inputs).some(inp => {
+            const i = Number(inp.dataset.idx);
+            return verificationData[i] && (Number(inp.value) || 0) !== verificationData[i].systemStock;
+          });
+
+          if(alert) alert.style.display = hasAnyDiscrepancy ? "block" : "none";
         });
-
-        if(alert) alert.style.display = hasAnyDiscrepancy ? "block" : "none";
       });
+    }
+
+    function refreshTableData(){
+      verificationData = getAuditItems(activeFilter, searchQ);
+      const tbody = modal.querySelector("#audit-verify-tbody");
+      if(tbody){
+        tbody.innerHTML = renderAuditTableHtml(verificationData);
+        bindTableEvents();
+      }
+    }
+
+    modal.querySelectorAll("#audit-filter-pills .chip").forEach(chip => {
+      chip.onclick = () => {
+        modal.querySelectorAll("#audit-filter-pills .chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        activeFilter = chip.dataset.filter;
+        refreshTableData();
+      };
     });
 
-    if(inputs[0]) inputs[0].focus();
+    const searchInp = modal.querySelector("#audit-search-input");
+    if(searchInp){
+      searchInp.addEventListener("input", Utils.debounce(() => {
+        searchQ = searchInp.value;
+        refreshTableData();
+      }, 180));
+    }
+
+    bindTableEvents();
+    if(modal.querySelector(".physical-count-input")) modal.querySelector(".physical-count-input").focus();
   }
 
   function logAuditDiscrepancies(verificationData, parentModal){
     const discrepancies = verificationData.filter((item, idx) => {
       const input = parentModal.querySelector(`.physical-count-input[data-idx="${idx}"]`);
-      const physicalCount = Number(input.value) || 0;
+      const physicalCount = Number(input?.value) || 0;
       return physicalCount !== item.systemStock;
     });
 
@@ -557,7 +636,7 @@ const Inventory = (() => {
         <p class="text-sm text-faint" style="margin-bottom:12px;"><strong>${discrepancies.length}</strong> item(s) with count discrepancies detected during audit.</p>
         ${discrepancies.map((item, idx) => {
           const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
-          const physicalCount = Number(input.value) || 0;
+          const physicalCount = Number(input?.value) || 0;
           const diff = physicalCount - item.systemStock;
           return `
             <div class="audit-disc-card ${diff < 0 ? 'negative' : 'positive'}">
@@ -590,22 +669,35 @@ const Inventory = (() => {
           cls: "btn-primary btn-lg", 
           onClick: () => {
             const products = DB.getProducts();
+            const user = Auth.currentUser ? Auth.currentUser() : { name:"Admin" };
+            const discDetails = [];
             
             discrepancies.forEach((item, idx) => {
               const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
-              const physicalCount = Number(input.value) || 0;
+              const physicalCount = Number(input?.value) || 0;
               const diff = physicalCount - item.systemStock;
-              const reason = UISelect.getValue(`audit-disc-reason-${idx}`);
+              const reason = UISelect.getValue(`audit-disc-reason-${idx}`) || "Discrepancy";
               
               const product = products.find(p => p.id === item.productId);
               if(product){
                 product.stock = physicalCount;
                 DB.adjustStock(product.id, diff, reason, "");
+                discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff, reason });
               }
             });
             
+            DB.savePhysicalAudit({
+              id: Utils.uid("audit"),
+              auditor: user.name || "Admin",
+              timestamp: Date.now(),
+              dateStr: new Date().toLocaleString("en-PH"),
+              totalAudited: discrepancies.length,
+              discrepancyCount: discrepancies.length,
+              discrepancies: discDetails
+            });
+
             DB.setProducts(products);
-            Utils.toast(`Audit complete: ${discrepancies.length} discrepancy log(s) saved.`, "success");
+            Utils.toast(`Audit complete: ${discrepancies.length} discrepancy log(s) saved to database.`, "success");
             Modal.close();
             Modal.close();
             renderTable();
@@ -617,7 +709,7 @@ const Inventory = (() => {
     discrepancies.forEach((item, idx) => {
       const wrapEl = discModal.querySelector(`#audit-reason-wrap-${idx}`);
       const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
-      const physicalCount = Number(input.value) || 0;
+      const physicalCount = Number(input?.value) || 0;
       const diff = physicalCount - item.systemStock;
       
       const reasons = diff < 0 

@@ -59,7 +59,7 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  // (2026-07-13) Master snapshot single-write with quota-exhausted guard; was loop spam
+  // (2026-07-13) Master snapshot single-write with silent status; was toast alerts
   async function pushSnapshot(){
     const meta = DB.getSyncMeta();
     if(meta.status === "quota") return; // Prevent spamming when quota exceeded
@@ -72,22 +72,19 @@ const Sync = (() => {
       await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), snap, { merge:false });
 
       DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-      Utils.toast("Database snapshot synced to Firestore ☁️", "success");
     }catch(err){
       console.error("Firestore sync failed", err);
       const isQuota = err?.code === "resource-exhausted" || String(err?.message||"").includes("resource-exhausted") || String(err?.message||"").includes("Quota exceeded");
       if(isQuota){
         DB.setSyncMeta({ ...DB.getSyncMeta(), status:"quota" });
-        Utils.toast("Firebase free daily write quota reached. Switched to Local-Only mode.", "warn", 4500);
       } else {
         DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
-        Utils.toast("Sync failed — check Firebase connection / rules", "error");
       }
     }
     paintStatus();
   }
 
-  // Pull all organized collections from Firestore
+  // (2026-08-26) Optimized Firestore pull with smart caching; reduces read quota usage
   async function pullSnapshot(){
     try{
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
@@ -96,11 +93,20 @@ const Sync = (() => {
       // Check master snapshot first
       const snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
       if(snapDoc.exists()){
-        DB.restoreSnapshot(snapDoc.data());
-        Utils.toast("Pulled latest data from Firestore ☁️", "success");
-        DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+        const remoteData = snapDoc.data();
+        const localMeta = DB.getSyncMeta();
+        const remoteTimestamp = remoteData.exportedAt || 0;
+        const localTimestamp = localMeta.lastSynced || 0;
+        
+        // Only restore if remote is newer than local
+        if(remoteTimestamp > localTimestamp){
+          DB.restoreSnapshot(remoteData);
+          DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+        } else {
+          DB.setSyncMeta({ ...localMeta, status:"idle" });
+        }
       } else {
-        // Fallback: Read individual collections
+        // Fallback: Read individual collections (only on first-time setup)
         const productsSnap = await mod.getDocs(mod.collection(database, "products"));
         if(!productsSnap.empty){
           const prods = [];
@@ -113,13 +119,11 @@ const Sync = (() => {
           salesSnap.forEach(d => sales.push(d.data()));
           if(sales.length) DB.setSales(sales);
         }
-        Utils.toast("Collections pulled from Firestore ☁️", "success");
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
     }catch(err){
       console.error("Firestore pull failed", err);
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
-      Utils.toast("Pull failed — check Firebase config / connection", "error");
     }
     paintStatus();
     App.rerenderCurrentView?.();
@@ -195,7 +199,7 @@ const Sync = (() => {
     debounceTimer = setTimeout(() => pushSnapshot(), 4000);
   }
 
-  // (2026-07-13) Firestore onSnapshot real-time sync across devices. Prev: none
+  // (2026-08-26) Smart real-time sync with local-first caching; reduces read operations
   let unsubSnapshot = null;
   async function startRealtimeListener(){
     try{
@@ -204,16 +208,33 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
+      let isFirstSnapshot = true;
+
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), (docSnap) => {
         if(docSnap.exists()){
+          // Skip first snapshot to avoid redundant read on initial connection
+          if(isFirstSnapshot){
+            isFirstSnapshot = false;
+            return;
+          }
+
           const remoteData = docSnap.data();
-          const localProducts = DB.getProducts();
-          const remoteProds = remoteData.products || [];
-          if(remoteProds.length > 0 && (localProducts.length === 0 || JSON.stringify(localProducts) !== JSON.stringify(remoteProds))){
-            DB.restoreSnapshot(remoteData);
-            DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-            paintStatus();
-            App.rerenderCurrentView?.();
+          const localMeta = DB.getSyncMeta();
+          const remoteTimestamp = remoteData.exportedAt || 0;
+          const localTimestamp = localMeta.lastSynced || 0;
+
+          // Only update if remote is genuinely newer
+          if(remoteTimestamp > localTimestamp + 2000){ // 2-second buffer to prevent sync loops
+            const localProducts = DB.getProducts();
+            const remoteProds = remoteData.products || [];
+            
+            // Compare product count as quick diff check
+            if(remoteProds.length !== localProducts.length || JSON.stringify(localProducts) !== JSON.stringify(remoteProds)){
+              DB.restoreSnapshot(remoteData);
+              DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+              paintStatus();
+              App.rerenderCurrentView?.();
+            }
           }
         }
       }, (err) => {
@@ -235,7 +256,6 @@ const Sync = (() => {
         await mod.setDoc(mod.doc(database, "sales", docId), txn, { merge:true });
       }
       DB.setOfflineQueue([]);
-      Utils.toast(`Synced ${queue.length} offline transactions to cloud ☁️`, "success");
     } catch(e) {
       console.warn("Could not sync offline queue:", e);
     }
@@ -256,9 +276,14 @@ const Sync = (() => {
     schedule1159Timer();
     startRealtimeListener();
 
-    // Auto-hydrate from Firestore on initial launch if local database has no products
-    if(DB.getProducts().length === 0){
+    // (2026-08-26) Only auto-pull on launch if local DB is empty; prevents redundant reads
+    const localProducts = DB.getProducts();
+    const localSales = DB.getSales();
+    if(localProducts.length === 0 && localSales.length === 0){
       setTimeout(() => pullSnapshot(), 600);
+    } else {
+      // Just verify connection, don't pull unless manually requested
+      console.log("Local data exists, skipping auto-pull. Use manual sync to refresh.");
     }
   }
 

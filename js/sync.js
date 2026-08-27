@@ -59,7 +59,7 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  // (2026-07-13) Master snapshot single-write with quota-exhausted guard; was loop spam
+  // (2026-07-13) Master snapshot single-write with silent status; was toast alerts
   async function pushSnapshot(){
     const meta = DB.getSyncMeta();
     if(meta.status === "quota") return; // Prevent spamming when quota exceeded
@@ -72,16 +72,13 @@ const Sync = (() => {
       await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), snap, { merge:false });
 
       DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-      Utils.toast("Database snapshot synced to Firestore ☁️", "success");
     }catch(err){
       console.error("Firestore sync failed", err);
       const isQuota = err?.code === "resource-exhausted" || String(err?.message||"").includes("resource-exhausted") || String(err?.message||"").includes("Quota exceeded");
       if(isQuota){
         DB.setSyncMeta({ ...DB.getSyncMeta(), status:"quota" });
-        Utils.toast("Firebase free daily write quota reached. Switched to Local-Only mode.", "warn", 4500);
       } else {
         DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
-        Utils.toast("Sync failed — check Firebase connection / rules", "error");
       }
     }
     paintStatus();
@@ -104,10 +101,8 @@ const Sync = (() => {
         // Only restore if remote is newer than local
         if(remoteTimestamp > localTimestamp){
           DB.restoreSnapshot(remoteData);
-          Utils.toast("Pulled latest data from Firestore ☁️", "success");
           DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
         } else {
-          Utils.toast("Local data is already up-to-date ✓", "info");
           DB.setSyncMeta({ ...localMeta, status:"idle" });
         }
       } else {
@@ -124,13 +119,11 @@ const Sync = (() => {
           salesSnap.forEach(d => sales.push(d.data()));
           if(sales.length) DB.setSales(sales);
         }
-        Utils.toast("Collections pulled from Firestore ☁️", "success");
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
     }catch(err){
       console.error("Firestore pull failed", err);
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
-      Utils.toast("Pull failed — check Firebase config / connection", "error");
     }
     paintStatus();
     App.rerenderCurrentView?.();
@@ -241,7 +234,6 @@ const Sync = (() => {
               DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
               paintStatus();
               App.rerenderCurrentView?.();
-              Utils.toast("Data updated from another device ☁️", "info", 2000);
             }
           }
         }
@@ -264,7 +256,6 @@ const Sync = (() => {
         await mod.setDoc(mod.doc(database, "sales", docId), txn, { merge:true });
       }
       DB.setOfflineQueue([]);
-      Utils.toast(`Synced ${queue.length} offline transactions to cloud ☁️`, "success");
     } catch(e) {
       console.warn("Could not sync offline queue:", e);
     }

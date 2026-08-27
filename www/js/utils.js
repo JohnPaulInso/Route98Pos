@@ -74,6 +74,39 @@ const Utils = (() => {
     setTimeout(()=>{ el.style.opacity="0"; el.style.transform="translateX(20px)"; el.style.transition="all .18s"; setTimeout(()=>el.remove(),200); }, ms);
   }
 
+  // (2026-07-13) Add snackbar with interactive Undo action; was toast only
+  function snackbarWithUndo(msg, onUndo, ms = 5000){
+    const stack = document.getElementById("toast-stack");
+    if(!stack) return;
+    const el = document.createElement("div");
+    el.className = "toast info";
+    el.style.display = "flex";
+    el.style.alignItems = "center";
+    el.style.justifyContent = "space-between";
+    el.style.gap = "12px";
+    el.innerHTML = `
+      <span style="display:flex;align-items:center;gap:6px;">${Icons.get("trash",{size:15})}<span>${escapeHtml(msg)}</span></span>
+      <button type="button" class="btn-undo-action" style="background:#2563EB;color:#fff;border:none;border-radius:6px;padding:3px 10px;font-size:.78rem;font-weight:700;cursor:pointer;">UNDO</button>
+    `;
+    let dismissed = false;
+    const undoBtn = el.querySelector(".btn-undo-action");
+    undoBtn.onclick = (e) => {
+      e.stopPropagation();
+      dismissed = true;
+      el.remove();
+      if(onUndo) onUndo();
+    };
+    stack.appendChild(el);
+    setTimeout(()=>{
+      if(!dismissed && el.parentNode){
+        el.style.opacity="0";
+        el.style.transform="translateX(20px)";
+        el.style.transition="all .18s";
+        setTimeout(()=>el.remove(), 200);
+      }
+    }, ms);
+  }
+
   function odometer(value, opts = {}){
     // renders a fuel-pump style digit counter; value can be number or preformatted string
     const digits = String(value);
@@ -236,5 +269,5 @@ const Utils = (() => {
     }
   };
 
-  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound };
+  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound };
 })();

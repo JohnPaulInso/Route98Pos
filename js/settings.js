@@ -163,12 +163,6 @@ const Settings = (() => {
           <input type="file" id="file-json" accept=".json" class="hidden">
           <input type="file" id="file-csv" accept=".csv,.json" class="hidden">
         </div>
-      </div>
-
-      <div class="card" style="margin-top:14px;border-color:var(--danger);">
-        <h3 style="margin-bottom:10px;color:var(--danger-deep);">${Icons.get("alert-triangle",{size:16})} Danger Zone</h3>
-        <p class="text-sm text-faint" style="margin-bottom:12px;">These actions cannot be undone. Download or create a backup before resetting.</p>
-        <button class="btn btn-danger" id="btn-wipe">Reset All Data</button>
       </div>`;
 
     document.getElementById("btn-export-json").onclick = ImportExport.exportFullBackup;
@@ -302,11 +296,6 @@ const Settings = (() => {
           }
         });
       };
-    });
-
-    document.getElementById("btn-wipe").onclick = () => Modal.confirm({
-      title:"Reset ALL data?", message:"Every product, sale, and setting will be permanently erased, leaving a blank slate. This can't be undone.", danger:true,
-      onConfirm: () => { DB.wipeAll(); Utils.toast("All data reset.", "success"); App.boot(); }
     });
   }
 

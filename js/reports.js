@@ -3,10 +3,10 @@
 // (admin-only) a detailed clickable Overview dashboard.
 // ============================================================
 const Reports = (() => {
-  // (2026-07-13) Add period filters (this/last week, month) in reports; was days
+  // (2026-07-13) Set All Time as default period filter in reports; was this_week
   let tab = "overview"; // overview | history | fuel
   let todayOnly = false;
-  let periodKey = "this_week";
+  let periodKey = "all";
   let categoryFilter = null;
   let overviewCharts = {};
 

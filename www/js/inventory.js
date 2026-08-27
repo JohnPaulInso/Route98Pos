@@ -327,9 +327,25 @@ const Inventory = (() => {
       const name = btn.dataset.delCat.toUpperCase();
       const inUse = DB.getProducts().some(p => (p.category || "").toUpperCase() === name);
       if(inUse){ Utils.toast("Can't remove — products still use this category.","warn"); return; }
-      DB.setCategories(DB.getCategories().filter(c => c.toUpperCase() !== name));
-      manageCategories();
-      renderTable();
+      Modal.confirm({
+        title: `Remove Category "${name}"?`,
+        message: `Are you sure you want to remove category "${name}"?`,
+        danger: true,
+        onConfirm: () => {
+          DB.setCategories(DB.getCategories().filter(c => c.toUpperCase() !== name));
+          manageCategories();
+          renderTable();
+          Utils.snackbarWithUndo(`Category "${name}" removed.`, () => {
+            const currentCats = DB.getCategories();
+            if(!currentCats.map(x=>x.toUpperCase()).includes(name)){
+              DB.setCategories([...currentCats, name]);
+              manageCategories();
+              renderTable();
+              Utils.toast(`Category "${name}" restored.`, "success");
+            }
+          });
+        }
+      });
     });
     modal.querySelector("#add-cat").onclick = () => {
       const val = modal.querySelector("#new-cat").value.trim().toUpperCase();
@@ -340,6 +356,369 @@ const Inventory = (() => {
       manageCategories();
       renderTable();
     };
+  }
+
+  // (2026-07-13) Filterable physical audit with All-Time default & DB sync; was sales-only
+  function openPhysicalCountAudit(){
+    const user = Auth.currentUser ? Auth.currentUser() : null;
+    if(!user || user.role !== "admin"){
+      Utils.toast("Physical Count Audit is admin-only. Please login as admin.", "warn");
+      return;
+    }
+
+    let activeFilter = "all";
+    let searchQ = "";
+
+    function getAuditItems(filter, query = ""){
+      const allProducts = DB.getProducts();
+      let list = [...allProducts];
+      const recentSales = DB.getSales().slice(0, 50);
+      const productSaleCount = {};
+
+      recentSales.forEach(sale => {
+        (sale.items || []).forEach(item => {
+          if(!item.isCustom && item.productId){
+            productSaleCount[item.productId] = (productSaleCount[item.productId] || 0) + 1;
+          }
+        });
+      });
+
+      if(filter === "recent"){
+        const recentIds = new Set(Object.keys(productSaleCount));
+        list = list.filter(p => recentIds.has(p.id))
+          .sort((a, b) => (productSaleCount[b.id] || 0) - (productSaleCount[a.id] || 0));
+      } else if(filter === "low"){
+        list = list.filter(p => p.stock <= (p.lowStockThreshold || 5))
+          .sort((a, b) => a.stock - b.stock);
+      } else {
+        // "all" - default: newest items / most recent first
+        list.reverse();
+      }
+
+      if(query.trim()){
+        const q = query.trim().toLowerCase();
+        list = list.filter(p => (p.name || "").toLowerCase().includes(q) || (p.barcode || "").toLowerCase().includes(q) || (p.category || "").toLowerCase().includes(q));
+      }
+
+      return list.map(p => ({
+        productId: p.id,
+        name: p.name,
+        systemStock: p.stock,
+        physicalCount: p.stock,
+        imageUrl: p.imageUrl,
+        category: p.category,
+        saleCount: productSaleCount[p.id] || 0
+      }));
+    }
+
+    let verificationData = getAuditItems(activeFilter, searchQ);
+
+    function renderAuditTableHtml(items){
+      if(!items.length){
+        return `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--ink-faint);">No products found for this filter.</td></tr>`;
+      }
+      return items.map((item, idx) => `
+        <tr data-idx="${idx}">
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="prod-thumb-sm" style="width:32px;height:32px;flex-shrink:0;">
+                ${Utils.productThumb({imageUrl:item.imageUrl, category:item.category, name:item.name}, {iconSize:18})}
+              </div>
+              <strong style="font-size:.95rem;">${Utils.escapeHtml(item.name)}</strong>
+            </div>
+          </td>
+          <td style="text-align:center;">
+            <span class="badge ${item.saleCount>0?'badge-brand':'badge-neutral'}" style="font-family:var(--font-mono);font-weight:800;font-size:.85rem;padding:3px 8px;">${item.saleCount}x</span>
+          </td>
+          <td style="text-align:center;">
+            <span class="mono" style="font-size:1.15rem;font-weight:800;color:var(--brand-deep);">${item.systemStock}</span>
+          </td>
+          <td style="text-align:center;">
+            <input type="number" 
+              class="physical-count-input" 
+              data-idx="${idx}"
+              value="${item.physicalCount}" 
+              min="0" 
+              step="1"
+              style="width:90px;text-align:center;font-weight:800;font-size:1rem;border-radius:8px;padding:6px;">
+          </td>
+          <td style="text-align:center;">
+            <span class="discrepancy-indicator match" data-idx="${idx}">✓</span>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    const body = `
+      <div style="margin-bottom:14px;padding:12px;background:var(--paper-dim);border-radius:var(--r-lg);border:1.5px solid var(--brand);text-align:center;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:var(--brand-tint);color:var(--brand-deep);margin-bottom:8px;">
+          ${Icons.get("clipboard-check",{size:22})}
+        </div>
+        <h4 style="font-size:1.1rem;font-weight:800;margin-bottom:4px;color:var(--ink);">📌 Physical Count Audit</h4>
+        <p style="font-size:.88rem;color:var(--ink-soft);line-height:1.4;">Verify physical shelf counts against system inventory to detect theft or miscounts.</p>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;">
+        <div style="display:flex;gap:6px;" id="audit-filter-pills">
+          <button type="button" class="chip active" data-filter="all">All Time (Newest First)</button>
+          <button type="button" class="chip" data-filter="recent">Recent Sales</button>
+          <button type="button" class="chip" data-filter="low">Low Stock</button>
+        </div>
+        <input type="text" id="audit-search-input" class="input" placeholder="Search product or barcode…" style="max-width:240px;padding:6px 12px;font-size:.86rem;">
+      </div>
+
+      <div class="table-wrap" style="max-height:480px;overflow-y:auto;margin-bottom:12px;">
+        <table class="stock-confirm-table">
+          <thead>
+            <tr>
+              <th style="width:42%;">Item</th>
+              <th style="text-align:center;width:14%;">Sales</th>
+              <th style="text-align:center;width:14%;">System</th>
+              <th style="text-align:center;width:18%;">Physical Count</th>
+              <th style="text-align:center;width:12%;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="audit-verify-tbody">
+            ${renderAuditTableHtml(verificationData)}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="audit-discrepancy-alert" style="display:none;padding:10px 14px;background:var(--danger-tint);border:1.5px solid var(--danger);border-radius:var(--r-md);margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${Icons.get("alert-triangle",{size:18,color:"var(--danger)"})}
+          <div style="flex:1;">
+            <strong style="color:var(--danger);font-size:.92rem;">Stock Discrepancies Detected</strong>
+            <p style="font-size:.82rem;color:var(--ink-soft);margin-top:2px;">Some physical counts don't match the system.</p>
+          </div>
+        </div>
+      </div>`;
+
+    const modal = Modal.open({
+      title: `${Icons.get("clipboard-check",{size:17})} Physical Count Audit`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost btn-lg" },
+        { 
+          label: `${Icons.get("alert-triangle",{size:15})} Log Discrepancies`, 
+          cls: "btn-outline btn-lg", 
+          id: "btn-audit-log-disc",
+          onClick: () => logAuditDiscrepancies(verificationData, modal) 
+        },
+        { 
+          label: `${Icons.get("check",{size:15})} Save & Update Stock`, 
+          cls: "btn-primary btn-lg", 
+          onClick: () => {
+            const inputs = modal.querySelectorAll(".physical-count-input");
+            let hasDiscrepancy = false;
+            let discrepancyCount = 0;
+            const products = DB.getProducts();
+            const discDetails = [];
+            
+            inputs.forEach((input, idx) => {
+              const physicalCount = Number(input.value) || 0;
+              const item = verificationData[idx];
+              if(!item) return;
+              const diff = physicalCount - item.systemStock;
+              
+              if(diff !== 0){
+                hasDiscrepancy = true;
+                discrepancyCount++;
+                const product = products.find(p => p.id === item.productId);
+                if(product){
+                  product.stock = physicalCount;
+                  DB.adjustStock(product.id, diff, diff < 0 ? "Physical audit - shrinkage" : "Physical audit - extra stock", "");
+                  discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff });
+                }
+              }
+            });
+            
+            // Connect physical audit to database
+            DB.savePhysicalAudit({
+              id: Utils.uid("audit"),
+              auditor: user.name || "Admin",
+              timestamp: Date.now(),
+              dateStr: new Date().toLocaleString("en-PH"),
+              filter: activeFilter,
+              totalAudited: verificationData.length,
+              discrepancyCount,
+              discrepancies: discDetails
+            });
+
+            if(hasDiscrepancy){
+              DB.setProducts(products);
+              Utils.toast(`Audit complete: ${discrepancyCount} count(s) corrected and saved to database.`, "success", 3000);
+            } else {
+              Utils.toast("✓ All counts matched perfectly!", "success", 2500);
+            }
+            
+            Modal.close();
+            renderTable();
+          }
+        }
+      ]
+    });
+
+    function bindTableEvents(){
+      const inputs = modal.querySelectorAll(".physical-count-input");
+      const alert = modal.querySelector("#audit-discrepancy-alert");
+
+      inputs.forEach(input => {
+        input.addEventListener("input", () => {
+          const idx = Number(input.dataset.idx);
+          const physicalCount = Number(input.value) || 0;
+          if(!verificationData[idx]) return;
+          const systemStock = verificationData[idx].systemStock;
+          const indicator = modal.querySelector(`.discrepancy-indicator[data-idx="${idx}"]`);
+          
+          if(physicalCount === systemStock){
+            if(indicator){ indicator.textContent = "✓"; indicator.className = "discrepancy-indicator match"; }
+          } else {
+            const diff = physicalCount - systemStock;
+            if(indicator){ indicator.textContent = diff > 0 ? `+${diff}` : diff; indicator.className = "discrepancy-indicator mismatch"; }
+          }
+
+          const hasAnyDiscrepancy = Array.from(inputs).some(inp => {
+            const i = Number(inp.dataset.idx);
+            return verificationData[i] && (Number(inp.value) || 0) !== verificationData[i].systemStock;
+          });
+
+          if(alert) alert.style.display = hasAnyDiscrepancy ? "block" : "none";
+        });
+      });
+    }
+
+    function refreshTableData(){
+      verificationData = getAuditItems(activeFilter, searchQ);
+      const tbody = modal.querySelector("#audit-verify-tbody");
+      if(tbody){
+        tbody.innerHTML = renderAuditTableHtml(verificationData);
+        bindTableEvents();
+      }
+    }
+
+    modal.querySelectorAll("#audit-filter-pills .chip").forEach(chip => {
+      chip.onclick = () => {
+        modal.querySelectorAll("#audit-filter-pills .chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        activeFilter = chip.dataset.filter;
+        refreshTableData();
+      };
+    });
+
+    const searchInp = modal.querySelector("#audit-search-input");
+    if(searchInp){
+      searchInp.addEventListener("input", Utils.debounce(() => {
+        searchQ = searchInp.value;
+        refreshTableData();
+      }, 180));
+    }
+
+    bindTableEvents();
+    if(modal.querySelector(".physical-count-input")) modal.querySelector(".physical-count-input").focus();
+  }
+
+  function logAuditDiscrepancies(verificationData, parentModal){
+    const discrepancies = verificationData.filter((item, idx) => {
+      const input = parentModal.querySelector(`.physical-count-input[data-idx="${idx}"]`);
+      const physicalCount = Number(input?.value) || 0;
+      return physicalCount !== item.systemStock;
+    });
+
+    if(discrepancies.length === 0){
+      Utils.toast("No discrepancies found - all counts match!", "info");
+      return;
+    }
+
+    const body = `
+      <div style="margin-bottom:16px;">
+        <p class="text-sm text-faint" style="margin-bottom:12px;"><strong>${discrepancies.length}</strong> item(s) with count discrepancies detected during audit.</p>
+        ${discrepancies.map((item, idx) => {
+          const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+          const physicalCount = Number(input?.value) || 0;
+          const diff = physicalCount - item.systemStock;
+          return `
+            <div class="audit-disc-card ${diff < 0 ? 'negative' : 'positive'}">
+              <div class="flex-between" style="margin-bottom:8px;">
+                <strong style="font-size:1.05rem;color:var(--ink);">${Utils.escapeHtml(item.name)}</strong>
+                <span class="badge ${diff < 0 ? 'badge-danger' : 'badge-warning'}" style="font-family:var(--font-mono);font-weight:800;font-size:1rem;padding:5px 12px;">${diff > 0 ? '+' : ''}${diff} pcs</span>
+              </div>
+              <div class="flex-between" style="font-size:.9rem;color:var(--ink-soft);margin-bottom:12px;padding:8px 12px;background:var(--paper-dim);border-radius:6px;">
+                <span>System: <strong class="mono" style="color:var(--ink);">${item.systemStock}</strong></span>
+                <span style="margin:0 8px;">→</span>
+                <span>Physical: <strong class="mono" style="color:var(--ink);">${physicalCount}</strong></span>
+              </div>
+              <div>
+                <label style="font-size:.85rem;font-weight:800;margin-bottom:6px;display:block;color:var(--ink);">Select Reason:</label>
+                <div id="audit-reason-wrap-${idx}"></div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>`;
+
+    const discModal = Modal.open({
+      title: `${Icons.get("alert-triangle",{size:17})} Log Audit Discrepancies`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost btn-lg" },
+        { 
+          label: "Save Audit Logs", 
+          cls: "btn-primary btn-lg", 
+          onClick: () => {
+            const products = DB.getProducts();
+            const user = Auth.currentUser ? Auth.currentUser() : { name:"Admin" };
+            const discDetails = [];
+            
+            discrepancies.forEach((item, idx) => {
+              const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+              const physicalCount = Number(input?.value) || 0;
+              const diff = physicalCount - item.systemStock;
+              const reason = UISelect.getValue(`audit-disc-reason-${idx}`) || "Discrepancy";
+              
+              const product = products.find(p => p.id === item.productId);
+              if(product){
+                product.stock = physicalCount;
+                DB.adjustStock(product.id, diff, reason, "");
+                discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff, reason });
+              }
+            });
+            
+            DB.savePhysicalAudit({
+              id: Utils.uid("audit"),
+              auditor: user.name || "Admin",
+              timestamp: Date.now(),
+              dateStr: new Date().toLocaleString("en-PH"),
+              totalAudited: discrepancies.length,
+              discrepancyCount: discrepancies.length,
+              discrepancies: discDetails
+            });
+
+            DB.setProducts(products);
+            Utils.toast(`Audit complete: ${discrepancies.length} discrepancy log(s) saved to database.`, "success");
+            Modal.close();
+            Modal.close();
+            renderTable();
+          }
+        }
+      ]
+    });
+
+    discrepancies.forEach((item, idx) => {
+      const wrapEl = discModal.querySelector(`#audit-reason-wrap-${idx}`);
+      const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+      const physicalCount = Number(input?.value) || 0;
+      const diff = physicalCount - item.systemStock;
+      
+      const reasons = diff < 0 
+        ? ["Theft / Shoplifting", "Damaged / Spoiled / Shrinkage", "Employee Consumption", "Miscount / Data Entry Error", "Returned to Supplier", "Other"]
+        : ["Found Extra Stock", "Miscount / Data Entry Error", "Received but Not Logged", "Other"];
+      
+      wrapEl.innerHTML = UISelect.render(`audit-disc-reason-${idx}`, reasons, reasons[0]);
+      UISelect.bind(`audit-disc-reason-${idx}`);
+    });
   }
 
   // (2026-07-13) Add 100/page pagination & category badges; was unpaginated text
@@ -397,18 +776,22 @@ const Inventory = (() => {
     } else {
       act.innerHTML = `
         <button class="btn btn-ghost" id="btn-select-mode">${Icons.get("check",{size:15})} Select</button>
+        <button class="btn btn-outline" id="btn-physical-audit" style="border:1.5px solid var(--brand);color:var(--brand);font-weight:700;">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
         <button class="btn btn-ghost" id="btn-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
-        <button class="btn btn-ghost" id="btn-categories">${Icons.get("tag",{size:15})} Categories</button>
         <button class="btn btn-ghost" id="btn-export-inv">${Icons.get("download",{size:15})} Export</button>
         <button class="btn btn-ghost" id="btn-import-inv">${Icons.get("upload",{size:15})} Import</button>
         <button class="btn btn-primary" id="btn-add-product">${Icons.get("plus",{size:15})} Add Product</button>
       `;
       document.getElementById("btn-select-mode").onclick = () => toggleSelectMode(true);
+      document.getElementById("btn-physical-audit").onclick = openPhysicalCountAudit;
       document.getElementById("btn-restock-logs").onclick = openRestockLogModal;
-      document.getElementById("btn-add-product").onclick = () => openProductForm();
-      document.getElementById("btn-categories").onclick = manageCategories;
       document.getElementById("btn-export-inv").onclick = ImportExport.exportInventoryCSV;
       document.getElementById("btn-import-inv").onclick = () => document.getElementById("inv-import-file").click();
+      document.getElementById("btn-add-product").onclick = () => openProductForm();
+      
+      // Bind icon-only categories button
+      const catBtn = document.getElementById("btn-categories-icon");
+      if(catBtn) catBtn.onclick = manageCategories;
     }
   }
 
@@ -476,16 +859,31 @@ const Inventory = (() => {
                     </tr>
                   </thead>
                   <tbody>
-                    ${grp.logs.map(l => `
-                      <tr>
+                    ${grp.logs.map(l => {
+                      const qty = l.quantity_added || l.quantity || 0;
+                      const isNegative = qty < 0;
+                      const absQty = Math.abs(qty);
+                      const reason = l.reason || "";
+                      const isTheftDamage = isNegative && (reason.toLowerCase().includes("theft") || reason.toLowerCase().includes("damage") || reason.toLowerCase().includes("spoil"));
+                      
+                      return `
+                      <tr style="${isNegative ? 'background:var(--danger-tint);' : ''}">
                         <td class="text-sm text-faint" style="font-size:.92rem;">${new Date(l.timestamp||l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</td>
-                        <td><strong style="font-size:1.04rem;">${Utils.escapeHtml(l.product_name||l.productName)}</strong></td>
+                        <td>
+                          <strong style="font-size:1.04rem;">${Utils.escapeHtml(l.product_name||l.productName)}</strong>
+                          ${reason ? `<div class="text-xs text-faint" style="margin-top:2px;font-weight:600;">${Icons.get(isTheftDamage ? "alert-triangle" : "info", {size:12})} ${Utils.escapeHtml(reason)}</div>` : ""}
+                        </td>
                         <td class="text-sm text-faint" style="font-size:.95rem;">${Utils.escapeHtml(l.supplier_name||l.supplierName||"—")}</td>
-                        <td class="mono font-bold" style="font-size:1.12rem;color:var(--success-deep);text-align:center;">+${l.quantity_added||l.quantity}</td>
+                        <td class="mono font-bold" style="font-size:1.12rem;color:${isNegative ? 'var(--danger)' : 'var(--success-deep)'};text-align:center;">
+                          ${isNegative ? '−' : '+'}${absQty}
+                          ${isTheftDamage ? ` ${Icons.get("alert-circle",{size:14,color:"var(--danger)"})}` : ""}
+                        </td>
                         <td class="mono" style="font-size:1.02rem;text-align:right;">${Utils.money(l.unit_cost||l.unitCost||0)}</td>
-                        <td class="mono font-bold" style="font-size:1.12rem;color:var(--brand-deep);text-align:right;">${Utils.money(l.total_cost||0)}</td>
+                        <td class="mono font-bold" style="font-size:1.12rem;color:${isNegative ? 'var(--danger)' : 'var(--brand-deep)'};text-align:right;">
+                          ${isNegative ? '−' : ''}${Utils.money(Math.abs(l.total_cost||0))}
+                        </td>
                       </tr>
-                    `).join("")}
+                    `}).join("")}
                   </tbody>
                 </table>
               </div>
@@ -877,7 +1275,7 @@ const Inventory = (() => {
 
     // (2026-07-13) Always render header action buttons in renderTable. Prev: select-only
     renderHeaderActions();
-    document.getElementById("inv-count").innerHTML = `${allItems.length} product${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Page ${currentPage} of ${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong>Potential Rev: <span style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</span></strong> · <strong>Profit: <span style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</span></strong> <span class="text-faint">(Cost: ${Utils.money(totalCostVal)})</span>`;
+    document.getElementById("inv-count").innerHTML = `${allItems.length} item${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Pg ${currentPage}/${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</strong> rev · <strong style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</strong> profit`;
     tbody.innerHTML = items.length ? items.map(p => {
       const pct = p.lowStockThreshold ? Math.min(100, Math.round((p.stock/(p.lowStockThreshold*3))*100)) : 100;
       const low = p.stock <= p.lowStockThreshold;
@@ -892,7 +1290,7 @@ const Inventory = (() => {
       const marginPct = (p.price || 0) > 0 ? (unitProfit / p.price) * 100 : 0;
       // (2026-07-13) Fix stock wrap, compact category & enlarge table numbers; was small
       return `
-      <tr class="${p.stock<=0 || low ? "low-stock":""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
+      <tr class="${p.stock<=0 ? "out-of-stock" : low ? "low-stock" : ""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
        ${selectMode ? `<td class="inv-select-col"><input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""}></td>` : ""}
         <!-- (2026-07-13) Click-to-copy name & modal image preview. Prev: static text -->
         <td style="min-width:180px;">
@@ -1055,20 +1453,24 @@ const Inventory = (() => {
 
     view.innerHTML = `
       <div class="view-head">
-        <div><h2>${Icons.get("package",{size:22})} Inventory</h2><div class="view-sub" id="inv-count"></div></div>
-        <div class="input-row" id="inv-actions" style="width:auto;"></div>
+        <div style="flex:1;min-width:0;">
+          <h2>${Icons.get("package",{size:22})} Inventory</h2>
+          <div class="view-sub" id="inv-count" style="font-size:.70rem;margin-top:3px;"></div>
+        </div>
+        <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
       </div>
       <div class="inv-toolbar">
-        <div class="input-icon-wrap" style="position:relative;flex:1.4;">
+        <div class="input-icon-wrap" style="position:relative;width:320px;">
           ${Icons.get("search",{size:15})}
-          <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…" style="padding-right:32px;border-radius:24px;">
-          <button type="button" id="btn-clear-inv-search" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-faint);cursor:pointer;display:none;padding:4px;line-height:1;" title="Clear search">${Icons.get("x",{size:14})}</button>
+          <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
+          <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:15})}</button>
         </div>
         <div id="inv-cat-filter-wrap"></div>
         <div id="inv-stock-filter-wrap"></div>
         <div id="inv-sort-wrap"></div>
-        <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-top:4px;"></div>
+        <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
       </div>
+      <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-bottom:10px;"></div>
       <div class="table-wrap">
         <table class="data">
           <thead id="inv-thead"></thead>
@@ -1113,7 +1515,13 @@ const Inventory = (() => {
     const onSearchChange = (val) => {
       searchTerm = val;
       currentPage = 1;
-      if(clearBtn) clearBtn.style.display = val.length > 0 ? "block" : "none";
+      if(clearBtn){
+        if(val.length > 0){
+          clearBtn.classList.add("visible");
+        } else {
+          clearBtn.classList.remove("visible");
+        }
+      }
       renderTable();
     };
     search.addEventListener("input", Utils.debounce((e)=>{ onSearchChange(e.target.value); }, 120));

@@ -59,16 +59,21 @@ const Scanner = (() => {
   }
 
   // ---------- single-shot camera scan (fills one field, then closes) ----------
+  // (2026-07-13) Request camera stream first for Android permission prompt; was failing early
   async function openCameraScan(onResult){
-    if(!("BarcodeDetector" in window)){
-      Utils.toast("Camera scanning isn't supported in this browser. Use your external scanner instead.", "warn");
-      return;
-    }
     let stream;
     try{
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        throw new Error("getUserMedia not supported");
+      }
       stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" } });
     }catch(err){
-      Utils.toast("Camera permission denied or unavailable.", "error");
+      Utils.toast("Camera permission denied or unavailable on this device.", "error");
+      return;
+    }
+    if(!("BarcodeDetector" in window)){
+      stream.getTracks().forEach(t => t.stop());
+      Utils.toast("BarcodeDetector not enabled in this browser. Use manual/scanner input.", "warn");
       return;
     }
     const detector = new BarcodeDetector({ formats:["qr_code","ean_13","ean_8","upc_a","upc_e","code_128","code_39"] });
@@ -103,16 +108,21 @@ const Scanner = (() => {
   // ---------- continuous camera scan (stays open, fires onHit for every new code) ----------
   // onHit(code) is called for every distinct detection (with a per-code cooldown so
   // holding the same barcode in frame doesn't add it 30 times a second).
+  // (2026-07-13) Request camera stream first for continuous scan prompt; was checking detector
   async function openContinuousScan({ onHit, onClose, title = "Scan items", subtitle = "Point at a barcode — it'll add automatically" }){
-    if(!("BarcodeDetector" in window)){
-      Utils.toast("Camera scanning isn't supported in this browser. Use your external scanner instead.", "warn");
-      return;
-    }
     let stream;
     try{
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        throw new Error("getUserMedia not supported");
+      }
       stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment" } });
     }catch(err){
-      Utils.toast("Camera permission denied or unavailable.", "error");
+      Utils.toast("Camera permission denied or unavailable on this device.", "error");
+      return;
+    }
+    if(!("BarcodeDetector" in window)){
+      stream.getTracks().forEach(t => t.stop());
+      Utils.toast("BarcodeDetector not enabled in this browser. Use manual/scanner input.", "warn");
       return;
     }
     const detector = new BarcodeDetector({ formats:["qr_code","ean_13","ean_8","upc_a","upc_e","code_128","code_39"] });

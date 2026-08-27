@@ -5,12 +5,12 @@
 // ============================================================
 const DB = (() => {
   const NS = "mm_"; // minimart namespace
-  // (2026-07-13) Add voidLogs & offlineQueue keys to storage mapping; was 19 items
+  // (2026-07-13) Add physicalAudits key to storage mapping; was 21 items
   const KEYS = {
     products: NS+"products", categories: NS+"categories", sales: NS+"sales",
     fuelSales: NS+"fuelSales", fuelConfig: NS+"fuelConfig", settings: NS+"settings",
     users: NS+"users", heldSales: NS+"heldSales", venueLeads: NS+"venueLeads",
-    stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", shift: NS+"shift", syncMeta: NS+"syncMeta",
+    stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", physicalAudits: NS+"physicalAudits", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
     voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue"
@@ -537,6 +537,15 @@ const DB = (() => {
     return setBackups(list);
   }
 
+  // (2026-07-13) Manage physical count audits & snapshots; was missing audits
+  function getPhysicalAudits(){ return read(KEYS.physicalAudits, []); }
+  function setPhysicalAudits(list){ return write(KEYS.physicalAudits, list); }
+  function savePhysicalAudit(audit){
+    const list = getPhysicalAudits();
+    list.unshift(audit);
+    return setPhysicalAudits(list.slice(0, 100));
+  }
+
   // ---------- full snapshot (for export + firestore sync) ----------
   function snapshot(){
     return {
@@ -544,7 +553,7 @@ const DB = (() => {
       fuelConfig:getFuelConfig(), fuelDeliveries:getFuelDeliveries(), settings:getSettings(), users:getUsers(),
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
-      stockLog:getStockLog(), restockLogs:getRestockLogs(), shift:getShift(),
+      stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(), shift:getShift(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -565,6 +574,7 @@ const DB = (() => {
     if(snap.expenses) setExpenses(snap.expenses);
     if(snap.stockLog) setStockLog(snap.stockLog);
     if(snap.restockLogs) setRestockLogs(snap.restockLogs);
+    if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
     if(snap.shift) setShift(snap.shift);
   }
   function wipeAll(){
@@ -584,6 +594,7 @@ const DB = (() => {
     getVenueLeads, setVenueLeads,
     getStockLog, setStockLog,
     getRestockLogs, setRestockLogs, addRestockLog, updateRestockLog, deleteRestockLog,
+    getPhysicalAudits, setPhysicalAudits, savePhysicalAudit,
     getVoidLogs, setVoidLogs, addVoidLog,
     getOfflineQueue, setOfflineQueue, queueOfflineTransaction,
     getExpenses, setExpenses, addExpense, deleteExpense,

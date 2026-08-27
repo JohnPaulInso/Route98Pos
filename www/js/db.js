@@ -5,12 +5,12 @@
 // ============================================================
 const DB = (() => {
   const NS = "mm_"; // minimart namespace
-  // (2026-07-13) Add voidLogs & offlineQueue keys to storage mapping; was 19 items
+  // (2026-07-13) Add physicalAudits key to storage mapping; was 21 items
   const KEYS = {
     products: NS+"products", categories: NS+"categories", sales: NS+"sales",
     fuelSales: NS+"fuelSales", fuelConfig: NS+"fuelConfig", settings: NS+"settings",
     users: NS+"users", heldSales: NS+"heldSales", venueLeads: NS+"venueLeads",
-    stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", shift: NS+"shift", syncMeta: NS+"syncMeta",
+    stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", physicalAudits: NS+"physicalAudits", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
     voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue"
@@ -494,19 +494,31 @@ const DB = (() => {
     const products = getProducts();
     const p = products.find(x => x.id === id);
     if(!p) return;
+    const oldStock = p.stock;
     p.stock = Math.max(0, Utils.round2(p.stock + delta));
     setProducts(products);
+    
+    // (2026-08-26) Log ALL stock changes including negatives to track theft/damage; was positive only
     const log = getStockLog();
     log.unshift({ id: Utils.uid("log"), productId:id, productName:p.name, delta, reason, ts: Date.now() });
     setStockLog(log.slice(0,500));
-    if(delta > 0 && reason === "Restock / Delivery"){
+    
+    // Enhanced restock logging with negative quantity support
+    if(delta !== 0){
+      const qty = Math.abs(delta);
+      const unitCost = p.cost || 0;
+      const totalCost = delta > 0 ? qty * unitCost : -(qty * unitCost);
+      
       addRestockLog({
         product_id: p.id,
         product_name: p.name,
-        quantity_added: delta,
-        unit_cost: p.cost || 0,
-        total_cost: delta * (p.cost || 0),
-        supplier_name: supplier || p.distributor || p.brand || "Direct Supplier",
+        quantity_added: delta, // Can be negative for theft/damage
+        unit_cost: unitCost,
+        total_cost: totalCost,
+        supplier_name: delta > 0 ? (supplier || p.distributor || p.brand || "Direct Supplier") : "N/A",
+        reason: reason,
+        oldStock: oldStock,
+        newStock: p.stock,
         timestamp: Date.now()
       });
     }
@@ -525,6 +537,15 @@ const DB = (() => {
     return setBackups(list);
   }
 
+  // (2026-07-13) Manage physical count audits & snapshots; was missing audits
+  function getPhysicalAudits(){ return read(KEYS.physicalAudits, []); }
+  function setPhysicalAudits(list){ return write(KEYS.physicalAudits, list); }
+  function savePhysicalAudit(audit){
+    const list = getPhysicalAudits();
+    list.unshift(audit);
+    return setPhysicalAudits(list.slice(0, 100));
+  }
+
   // ---------- full snapshot (for export + firestore sync) ----------
   function snapshot(){
     return {
@@ -532,7 +553,7 @@ const DB = (() => {
       fuelConfig:getFuelConfig(), fuelDeliveries:getFuelDeliveries(), settings:getSettings(), users:getUsers(),
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
-      stockLog:getStockLog(), restockLogs:getRestockLogs(), shift:getShift(),
+      stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(), shift:getShift(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -553,6 +574,7 @@ const DB = (() => {
     if(snap.expenses) setExpenses(snap.expenses);
     if(snap.stockLog) setStockLog(snap.stockLog);
     if(snap.restockLogs) setRestockLogs(snap.restockLogs);
+    if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
     if(snap.shift) setShift(snap.shift);
   }
   function wipeAll(){
@@ -572,6 +594,7 @@ const DB = (() => {
     getVenueLeads, setVenueLeads,
     getStockLog, setStockLog,
     getRestockLogs, setRestockLogs, addRestockLog, updateRestockLog, deleteRestockLog,
+    getPhysicalAudits, setPhysicalAudits, savePhysicalAudit,
     getVoidLogs, setVoidLogs, addVoidLog,
     getOfflineQueue, setOfflineQueue, queueOfflineTransaction,
     getExpenses, setExpenses, addExpense, deleteExpense,

@@ -82,7 +82,7 @@
 /* (2026-07-13) Contained image fit with uniform padding; was cropped cover */
 .product-card .thumb{
   width:100%; height:98px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  position:relative; overflow:hidden; background:#ffffff; border-bottom:1px solid var(--line);
+  position:relative; overflow:hidden; background:var(--paper-dim); border-bottom:1px solid var(--line);
 }
 [data-theme="dark"] .product-card .thumb{ background:var(--paper-dim); }
 .product-card .thumb img{
@@ -136,7 +136,7 @@
 /* (2026-07-13) Style floating product ghost and pop; was basic box */
 .flying-product-ghost{
   position:fixed; z-index:9999; pointer-events:none; border-radius:14px; overflow:hidden;
-  box-shadow:0 14px 34px rgba(47,66,216,0.45), 0 0 0 2.5px var(--brand); background:#ffffff;
+  box-shadow:0 14px 34px rgba(47,66,216,0.45), 0 0 0 2.5px var(--brand); background:var(--paper-raised);
   display:flex; align-items:center; justify-content:center;
   will-change:transform, opacity;
 }
@@ -207,39 +207,39 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
 /* (2026-07-13) SaaS redesign for gasoline view styles; was colorful */
 .pump-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:18px; }
 .pump-card{
-  border-radius:10px; padding:20px; cursor:pointer; border:1px solid #E5E7EB;
-  background:#FFFFFF; position:relative; overflow:hidden;
-  box-shadow:0 1px 3px rgba(0,0,0,0.03);
+  border-radius:10px; padding:20px; cursor:pointer; border:1px solid var(--line);
+  background:var(--paper-raised); position:relative; overflow:hidden;
+  box-shadow:var(--shadow-sm);
   transition:transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 .pump-card:active{ transform:scale(.99); }
-.pump-card.selected{ border-color:#4F46E5; box-shadow:0 4px 12px rgba(79,70,229,0.08); }
-.pump-card .pump-no{ font-family:var(--font-mono); font-size:.75rem; color:#6B7280; font-weight:600; display:flex; align-items:center; gap:6px; }
-.pump-card .pump-no .ic-svg{ color:#9CA3AF; }
-.pump-card .fuel-name{ font-weight:600; font-size:1.05rem; margin:4px 0 10px; color:#111827; }
-.pump-card .price-per-l{ font-family:var(--font-mono); font-weight:700; font-size:1rem; color:#111827; }
-.pump-card .tank-bar{ height:6px; background:#E5E7EB; border-radius:4px; margin-top:10px; overflow:hidden; }
+.pump-card.selected{ border-color:var(--brand); box-shadow:0 4px 12px rgba(79,70,229,0.18); }
+.pump-card .pump-no{ font-family:var(--font-mono); font-size:.75rem; color:var(--ink-faint); font-weight:600; display:flex; align-items:center; gap:6px; }
+.pump-card .pump-no .ic-svg{ color:var(--ink-faint); }
+.pump-card .fuel-name{ font-weight:600; font-size:1.05rem; margin:4px 0 10px; color:var(--ink); }
+.pump-card .price-per-l{ font-family:var(--font-mono); font-weight:700; font-size:1rem; color:var(--ink); }
+.pump-card .tank-bar{ height:6px; background:var(--line-strong); border-radius:4px; margin-top:10px; overflow:hidden; }
 .pump-card .tank-bar > i{ display:block; height:100%; border-radius:4px; }
-.pump-card .tank-lbl{ font-size:.72rem; color:#6B7280; margin-top:6px; font-weight:500; display:flex; align-items:center; gap:4px; }
+.pump-card .tank-lbl{ font-size:.72rem; color:var(--ink-soft); margin-top:6px; font-weight:500; display:flex; align-items:center; gap:4px; }
 
 /* (2026-07-13) 7px border-radius on gasoline buttons & pills; was pill/sharp */
 .fuel-sale-panel{ display:grid; grid-template-columns:1fr 340px; gap:16px; }
 .fuel-entry .big-input{ font-family:var(--font-mono); font-size:1.6rem; font-weight:700; text-align:center; padding:12px; }
 .fuel-mode-toggle{ display:flex; gap:6px; margin-bottom:10px; }
 .fuel-mode-toggle .chip{ flex:1; justify-content:center; text-align:center; border-radius:7px !important; }
-.fuel-preset-pill{ border-radius:7px !important; background:#F3F4F6; border:1px solid #E5E7EB; color:#374151; padding:6px 14px; font-size:.80rem; font-weight:600; cursor:pointer; transition:all .15s ease; }
-.fuel-preset-pill:hover, .fuel-preset-pill.active{ background:#4F46E5 !important; color:#FFFFFF !important; border-color:#4F46E5 !important; }
-.btn-tender-btn{ background:#FFFFFF; border:1px solid #E5E7EB; color:#374151; padding:10px 12px; border-radius:7px; font-weight:600; font-size:.86rem; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all .15s ease; }
-.btn-tender-btn:hover, .btn-tender-btn.active{ background:#4F46E5 !important; color:#FFFFFF !important; border-color:#4F46E5 !important; }
+.fuel-preset-pill{ border-radius:7px !important; background:var(--paper-dim); border:1px solid var(--line); color:var(--ink-soft); padding:6px 14px; font-size:.80rem; font-weight:600; cursor:pointer; transition:all .15s ease; }
+.fuel-preset-pill:hover, .fuel-preset-pill.active{ background:var(--brand) !important; color:#FFFFFF !important; border-color:var(--brand) !important; }
+.btn-tender-btn{ background:var(--paper-raised); border:1px solid var(--line); color:var(--ink-soft); padding:10px 12px; border-radius:7px; font-weight:600; font-size:.86rem; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all .15s ease; }
+.btn-tender-btn:hover, .btn-tender-btn.active{ background:var(--brand) !important; color:#FFFFFF !important; border-color:var(--brand) !important; }
 .btn-tender-btn:hover .ic-svg, .btn-tender-btn.active .ic-svg{ color:#FFFFFF !important; stroke:#FFFFFF !important; }
 .fuel-log-table tr{ transition:background-color .12s ease; }
-.fuel-log-table tr:hover td{ background-color:#F3F4F6 !important; }
+.fuel-log-table tr:hover td{ background-color:var(--paper-dim) !important; }
 .today-fuel-strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:18px; }
-.today-fuel-pill{ background:#FFFFFF; border:1px solid #E5E7EB; border-radius:10px; padding:20px 22px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:transform var(--transition), box-shadow var(--transition); }
-.today-fuel-pill.hero-pill{ background:#FFFFFF; border-color:#E5E7EB; }
-.today-fuel-pill .lbl{ font-size:.75rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
-.today-fuel-pill .val{ font-family:var(--font-mono); font-weight:700; font-size:1.65rem; color:#111827; line-height:1.15; }
-.today-fuel-pill.hero-pill .val{ color:#111827; font-size:1.65rem; font-weight:700; }
+.today-fuel-pill{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:20px 22px; box-shadow:var(--shadow-sm); transition:transform var(--transition), box-shadow var(--transition); }
+.today-fuel-pill.hero-pill{ background:var(--paper-raised); border-color:var(--line-strong); }
+.today-fuel-pill .lbl{ font-size:.75rem; color:var(--ink-faint); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.today-fuel-pill .val{ font-family:var(--font-mono); font-weight:700; font-size:1.65rem; color:var(--ink); line-height:1.15; }
+.today-fuel-pill.hero-pill .val{ color:var(--ink); font-size:1.65rem; font-weight:700; }
 
 /* (2026-07-13) Accessible senior-friendly dashboard styling; was small text */
 .dash-info-btn{
@@ -267,11 +267,11 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
   transition:all .15s ease; border:1.5px solid transparent;
 }
 .dash-snapshot-card{
-  background:#FFFFFF; border-radius:14px; padding:20px; transition:transform .2s ease, box-shadow .2s ease;
+  background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; transition:transform .2s ease, box-shadow .2s ease;
   cursor:pointer; display:flex; flex-direction:column; justify-content:space-between;
 }
 .dash-snapshot-card:hover{
-  transform:translateY(-3px); box-shadow:0 10px 20px -3px rgba(0,0,0,0.08);
+  transform:translateY(-3px); box-shadow:var(--shadow-md);
 }
 [data-theme="dark"] .dash-snapshot-card{ background:var(--paper-raised); }
 [data-theme="dark"] .dash-info-btn{ background:rgba(255,255,255,0.12); }
@@ -372,12 +372,12 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
 .stock-bar{ width:70px; height:6px; background:var(--paper-dim); border-radius:6px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:6px; }
 .stock-bar > i{ display:block; height:100%; background:var(--success); }
 .stock-bar.low > i{ background:var(--danger); }
-.prod-thumb-sm{ width:34px; height:34px; border-radius:8px; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; margin-right:9px; background:#ffffff; border:1px solid var(--line); position:relative; }
+.prod-thumb-sm{ width:34px; height:34px; border-radius:8px; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; margin-right:9px; background:var(--paper-dim); border:1px solid var(--line); position:relative; }
 [data-theme="dark"] .prod-thumb-sm{ background:var(--paper-dim); }
 .prod-thumb-sm img{ position:absolute; inset:2px; width:calc(100% - 4px); height:calc(100% - 4px); object-fit:contain; }
 .prod-thumb-sm .ic-svg{ color:var(--brand); }
 .brand-cell{ display:block; font-size:.68rem; color:var(--ink-faint); font-weight:600; margin-top:1px; }
-.image-preview{ width:88px; height:88px; border-radius:var(--r-md); overflow:hidden; background:#ffffff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; }
+.image-preview{ width:88px; height:88px; border-radius:var(--r-md); overflow:hidden; background:var(--paper-dim); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; }
 [data-theme="dark"] .image-preview{ background:var(--paper-dim); }
 .image-preview img{ position:absolute; inset:4px; width:calc(100% - 8px); height:calc(100% - 8px); object-fit:contain; }
 .image-preview .ic-svg{ color:var(--brand); }
@@ -565,16 +565,17 @@ table.data th:first-child{
 }
 
 .dash-snapshot-card{
-  background: #FFFFFF;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
   border-radius: 14px;
   padding: 20px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  box-shadow: var(--shadow-sm);
 }
 .dash-snapshot-card:hover{
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-md);
 }
 
 /* (2026-07-13) 6-column P&L strip & 4-column snapshot layouts; was overflowing */

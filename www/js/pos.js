@@ -419,6 +419,261 @@ const POS = (() => {
     setTimeout(() => window.print(), 150);
   }
 
+  // (2026-08-26) Physical stock confirmation modal after checkout; prevents theft
+  function openPhysicalStockConfirmation(sale, onComplete){
+    // Get high-velocity items from the sale
+    const itemsToVerify = sale.items.filter(item => !item.isCustom).slice(0, 8); // Top 8 items
+    if(itemsToVerify.length === 0){
+      onComplete();
+      return;
+    }
+
+    const products = DB.getProducts();
+    const verificationData = itemsToVerify.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      return {
+        productId: item.productId,
+        name: item.name,
+        systemStock: product ? product.stock : 0,
+        physicalCount: product ? product.stock : 0, // Default to system count
+        imageUrl: item.imageUrl,
+        category: item.category
+      };
+    });
+
+    const body = `
+      <div style="margin-bottom:18px;padding:14px;background:var(--paper-dim);border-radius:var(--r-lg);border:1.5px solid var(--brand);text-align:center;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:var(--brand-tint);color:var(--brand-deep);margin-bottom:10px;">
+          ${Icons.get("clipboard-check",{size:24})}
+        </div>
+        <h4 style="font-size:1.15rem;font-weight:800;margin-bottom:6px;color:var(--ink);">📌 Confirm Physical Stock</h4>
+        <p style="font-size:.92rem;color:var(--ink-soft);line-height:1.4;">You are closing this transaction. Please verify the physical shelf count for these items matches the system inventory.</p>
+      </div>
+
+      <div class="table-wrap" style="max-height:380px;overflow-y:auto;margin-bottom:14px;">
+        <table class="stock-confirm-table">
+          <thead>
+            <tr>
+              <th style="width:45%;">Item</th>
+              <th style="text-align:center;width:20%;">System Stock</th>
+              <th style="text-align:center;width:25%;">Physical Count</th>
+              <th style="text-align:center;width:10%;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="stock-verify-tbody">
+            ${verificationData.map((item, idx) => `
+              <tr data-idx="${idx}">
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="prod-thumb-sm" style="width:32px;height:32px;flex-shrink:0;">
+                      ${Utils.productThumb({imageUrl:item.imageUrl, category:item.category, name:item.name}, {iconSize:18})}
+                    </div>
+                    <strong style="font-size:.95rem;">${Utils.escapeHtml(item.name)}</strong>
+                  </div>
+                </td>
+                <td style="text-align:center;">
+                  <span class="mono" style="font-size:1.15rem;font-weight:800;color:var(--brand-deep);">${item.systemStock}</span>
+                </td>
+                <td style="text-align:center;">
+                  <input type="number" 
+                    class="physical-count-input" 
+                    data-idx="${idx}"
+                    value="${item.physicalCount}" 
+                    min="0" 
+                    step="1"
+                    style="width:90px;">
+                </td>
+                <td style="text-align:center;">
+                  <span class="discrepancy-indicator match" data-idx="${idx}">✓</span>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="discrepancy-alert" style="display:none;padding:12px 16px;background:var(--danger-tint);border:1.5px solid var(--danger);border-radius:var(--r-md);margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${Icons.get("alert-triangle",{size:20,color:"var(--danger)"})}
+          <div style="flex:1;">
+            <strong style="color:var(--danger);font-size:.95rem;">Discrepancies Detected</strong>
+            <p style="font-size:.85rem;color:var(--ink-soft);margin-top:2px;">Some physical counts don't match system inventory. Please log the reason below.</p>
+          </div>
+        </div>
+      </div>`;
+
+    const modal = Modal.open({
+      title: `${Icons.get("clipboard-check",{size:17})} Physical Stock Verification`,
+      body,
+      wide: true,
+      actions: [
+        { 
+          label: `${Icons.get("alert-triangle",{size:15})} Log Discrepancy`, 
+          cls: "btn-outline btn-lg", 
+          id: "btn-log-discrepancy",
+          onClick: () => openDiscrepancyLogger(verificationData, modal, sale, onComplete) 
+        },
+        { 
+          label: `${Icons.get("check",{size:15})} Confirm & Continue`, 
+          cls: "btn-primary btn-lg", 
+          onClick: () => {
+            // Update physical counts
+            const inputs = modal.querySelectorAll(".physical-count-input");
+            let hasDiscrepancy = false;
+            
+            inputs.forEach((input, idx) => {
+              const physicalCount = Number(input.value) || 0;
+              const item = verificationData[idx];
+              const diff = physicalCount - item.systemStock;
+              
+              if(diff !== 0){
+                hasDiscrepancy = true;
+                const product = products.find(p => p.id === item.productId);
+                if(product){
+                  product.stock = physicalCount;
+                  // Log as stock count correction
+                  DB.adjustStock(product.id, diff, "Physical stock count correction", "");
+                }
+              }
+            });
+            
+            if(hasDiscrepancy){
+              DB.setProducts(products);
+              Utils.toast("Physical stock counts updated in system.", "success");
+            }
+            
+            Modal.close();
+            onComplete();
+          }
+        }
+      ]
+    });
+
+    // Bind input change listeners
+    const inputs = modal.querySelectorAll(".physical-count-input");
+    const alert = modal.querySelector("#discrepancy-alert");
+    let hasAnyDiscrepancy = false;
+
+    inputs.forEach(input => {
+      input.addEventListener("input", () => {
+        const idx = Number(input.dataset.idx);
+        const physicalCount = Number(input.value) || 0;
+        const systemStock = verificationData[idx].systemStock;
+        const indicator = modal.querySelector(`.discrepancy-indicator[data-idx="${idx}"]`);
+        
+        if(physicalCount === systemStock){
+          indicator.textContent = "✓";
+          indicator.className = "discrepancy-indicator match";
+        } else {
+          const diff = physicalCount - systemStock;
+          indicator.textContent = diff > 0 ? `+${diff}` : diff;
+          indicator.className = "discrepancy-indicator mismatch";
+        }
+
+        // Check if any discrepancy exists
+        hasAnyDiscrepancy = Array.from(inputs).some(inp => {
+          const i = Number(inp.dataset.idx);
+          return (Number(inp.value) || 0) !== verificationData[i].systemStock;
+        });
+
+        if(alert) alert.style.display = hasAnyDiscrepancy ? "block" : "none";
+      });
+    });
+
+    // Focus first input
+    if(inputs[0]) inputs[0].focus();
+  }
+
+  // (2026-08-26) Discrepancy logger for theft/damage/waste tracking
+  function openDiscrepancyLogger(verificationData, parentModal, sale, onComplete){
+    const discrepancies = verificationData.filter((item, idx) => {
+      const input = parentModal.querySelector(`.physical-count-input[data-idx="${idx}"]`);
+      const physicalCount = Number(input.value) || 0;
+      return physicalCount !== item.systemStock;
+    });
+
+    if(discrepancies.length === 0){
+      Utils.toast("No discrepancies to log. All counts match!", "info");
+      return;
+    }
+
+    const body = `
+      <div style="margin-bottom:16px;">
+        <p class="text-sm text-faint" style="margin-bottom:12px;"><strong>${discrepancies.length}</strong> item(s) with count discrepancies detected.</p>
+        ${discrepancies.map((item, idx) => {
+          const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+          const physicalCount = Number(input.value) || 0;
+          const diff = physicalCount - item.systemStock;
+          return `
+            <div class="card" style="padding:12px 16px;margin-bottom:10px;background:var(--paper-dim);border:1.5px solid ${diff < 0 ? 'var(--danger)' : 'var(--warning)'};border-radius:var(--r-md);">
+              <div class="flex-between" style="margin-bottom:8px;">
+                <strong style="font-size:.95rem;">${Utils.escapeHtml(item.name)}</strong>
+                <span class="badge ${diff < 0 ? 'badge-danger' : 'badge-warning'}" style="font-family:var(--font-mono);font-weight:800;font-size:.95rem;">${diff > 0 ? '+' : ''}${diff} pcs</span>
+              </div>
+              <div class="flex-between" style="font-size:.85rem;color:var(--ink-soft);">
+                <span>System: <strong class="mono">${item.systemStock}</strong></span>
+                <span>Physical: <strong class="mono">${physicalCount}</strong></span>
+              </div>
+              <div style="margin-top:10px;">
+                <label style="font-size:.8rem;font-weight:700;margin-bottom:4px;display:block;">Reason for discrepancy:</label>
+                <div id="reason-wrap-${idx}"></div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>`;
+
+    const discModal = Modal.open({
+      title: `${Icons.get("alert-triangle",{size:17})} Log Stock Discrepancies`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost btn-lg" },
+        { 
+          label: "Save Discrepancy Logs", 
+          cls: "btn-primary btn-lg", 
+          onClick: () => {
+            const products = DB.getProducts();
+            
+            discrepancies.forEach((item, idx) => {
+              const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+              const physicalCount = Number(input.value) || 0;
+              const diff = physicalCount - item.systemStock;
+              const reason = UISelect.getValue(`disc-reason-${idx}`);
+              
+              const product = products.find(p => p.id === item.productId);
+              if(product){
+                product.stock = physicalCount;
+                DB.adjustStock(product.id, diff, reason, "");
+              }
+            });
+            
+            DB.setProducts(products);
+            Utils.toast(`${discrepancies.length} discrepancy log(s) saved.`, "success");
+            Modal.close(); // Close discrepancy modal
+            Modal.close(); // Close verification modal
+            onComplete();
+          }
+        }
+      ]
+    });
+
+    // Bind reason selectors
+    discrepancies.forEach((item, idx) => {
+      const wrapEl = discModal.querySelector(`#reason-wrap-${idx}`);
+      const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
+      const physicalCount = Number(input.value) || 0;
+      const diff = physicalCount - item.systemStock;
+      
+      const reasons = diff < 0 
+        ? ["Theft / Shoplifting", "Damaged / Spoiled / Shrinkage", "Employee Consumption", "Miscount / Data Entry Error", "Returned to Supplier", "Other"]
+        : ["Found Extra Stock", "Miscount / Data Entry Error", "Received but Not Logged", "Other"];
+      
+      wrapEl.innerHTML = UISelect.render(`disc-reason-${idx}`, reasons, reasons[0]);
+      UISelect.bind(`disc-reason-${idx}`);
+    });
+  }
+
   // (2026-07-13) Show payment confirmation modal instead of auto-print; was print
   function openSaleSuccessModal(sale){
     const cleanId = (sale.id || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(-8);
@@ -520,6 +775,10 @@ const POS = (() => {
     clearCart();
     Utils.Sound.cashChime();
     Utils.toast(`Sale complete — ${Utils.money(t.grand)}`, "success");
+    
+    // (2026-08-26) Physical stock verification - ADMIN ONLY, not after every sale
+    // Cashiers can continue serving customers without interruption
+    // Admin can trigger verification manually from Inventory view
     openSaleSuccessModal(sale);
   }
 
@@ -998,8 +1257,8 @@ const POS = (() => {
           <div class="pos-search-row">
             <div class="input-icon-wrap" style="position:relative;width:100%;">
               ${Icons.get("search",{size:15})}
-              <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan a barcode…" style="padding-right:32px;" autofocus>
-              <button type="button" id="btn-clear-pos-search" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--ink-faint);cursor:pointer;display:none;padding:4px;line-height:1;" title="Clear search">${Icons.get("x",{size:14})}</button>
+              <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan a barcode…" autofocus>
+              <button type="button" class="clear-search-btn" id="btn-clear-pos-search" title="Clear search">${Icons.get("x",{size:15})}</button>
             </div>
           </div>
           <div class="category-chips" id="cat-chips"></div>
@@ -1029,7 +1288,13 @@ const POS = (() => {
     const clearBtn = document.getElementById("btn-clear-pos-search");
     const onSearchChange = (val) => {
       searchTerm = val;
-      if(clearBtn) clearBtn.style.display = val.length > 0 ? "block" : "none";
+      if(clearBtn){
+        if(val.length > 0){
+          clearBtn.classList.add("visible");
+        } else {
+          clearBtn.classList.remove("visible");
+        }
+      }
       renderCatalog();
     };
     search.addEventListener("input", Utils.debounce((e)=>{ onSearchChange(e.target.value); }, 120));
