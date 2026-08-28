@@ -55,41 +55,62 @@ const Inventory = (() => {
     return items;
   }
 
+  // (2026-07-13) Auto-save draft inputs to localStorage on typing; was lost on reload
+  const DRAFT_KEY = "mm_add_product_draft";
+  function getProductDraft(){
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e){ return null; }
+  }
+  function clearProductDraft(){
+    try { localStorage.removeItem(DRAFT_KEY); } catch(e){}
+  }
+
   function openProductForm(product = null){
-    const cats = DB.getCategories();
+    const cats = DB.getCategories().filter(c => c !== "ALL");
     const isEdit = !!product;
+    const draft = !isEdit ? getProductDraft() : null;
+    const initial = product || draft;
     const brands = brandList(), distributors = distributorList();
     const body = `
       <div class="input-row" style="align-items:flex-start;">
-        <div class="image-preview" id="img-preview">${Utils.productThumb(product || { category: cats[0] }, { iconSize:30 })}</div>
+        <div class="image-preview" id="img-preview">${Utils.productThumb(initial || { category: cats[0] }, { iconSize:30 })}</div>
         <div style="flex:1;">
-          <div class="field"><label>Product name</label><input class="input" id="f-name" value="${product?Utils.escapeHtml(product.name):""}" placeholder="e.g. Instant Noodles"></div>
+          <div class="field"><label>Product name</label><input class="input" id="f-name" value="${initial?Utils.escapeHtml(initial.name||""):""}" placeholder="e.g. Instant Noodles"></div>
           <div class="field"><label>Image URL <span class="text-faint" style="text-transform:none;font-weight:500;">(paste a real photo link — optional)</span></label>
-            <input class="input" id="f-image" value="${product?.imageUrl?Utils.escapeHtml(product.imageUrl):""}" placeholder="https://…">
+            <input class="input" id="f-image" value="${initial?.imageUrl?Utils.escapeHtml(initial.imageUrl):""}" placeholder="https://…">
           </div>
         </div>
       </div>
       <div class="input-row">
-        <div class="field"><label>Brand</label><input class="input" id="f-brand" list="brand-list" value="${product?Utils.escapeHtml(product.brand||""):""}" placeholder="e.g. Lucky Me!"></div>
-        <div class="field"><label>Manufacturer / Distributor</label><input class="input" id="f-distributor" list="dist-list" value="${product?Utils.escapeHtml(product.distributor||""):""}" placeholder="e.g. Monde Nissin Corp."></div>
+        <div class="field"><label>Brand</label><input class="input" id="f-brand" list="brand-list" value="${initial?Utils.escapeHtml(initial.brand||""):""}" placeholder="e.g. Lucky Me!"></div>
+        <div class="field"><label>Manufacturer / Distributor</label><input class="input" id="f-distributor" list="dist-list" value="${initial?Utils.escapeHtml(initial.distributor||""):""}" placeholder="e.g. Monde Nissin Corp."></div>
       </div>
       <datalist id="brand-list">${brands.map(b=>`<option value="${Utils.escapeHtml(b)}">`).join("")}</datalist>
       <datalist id="dist-list">${distributors.map(d=>`<option value="${Utils.escapeHtml(d)}">`).join("")}</datalist>
       <div class="input-row">
         <div class="field"><label>Barcode / SKU</label>
           <div style="display:flex;gap:6px;">
-            <input class="input scan-target" id="f-barcode" value="${product?.barcode||""}" placeholder="Scan or type">
+            <input class="input scan-target" id="f-barcode" value="${initial?.barcode||""}" placeholder="Scan or type">
             <button type="button" class="btn btn-ghost btn-icon" id="f-scan-btn" title="Scan with camera">${Icons.get("camera",{size:16})}</button>
           </div>
         </div>
         <div class="field"><label>Category</label><div id="f-category-wrap"></div></div>
       </div>
       <div class="input-row">
-        <div class="field"><label>Cost price</label><input class="input" id="f-cost" type="number" step="0.01" value="${product?.cost??""}"></div>
-        <div class="field"><label>Selling price</label><input class="input" id="f-price" type="number" step="0.01" value="${product?.price??""}"></div>
+        <div class="field"><label>Cost price</label><input class="input" id="f-cost" type="number" step="0.01" value="${initial?.cost??""}"></div>
+        <div class="field">
+          <!-- (2026-07-13) Live profit badge on selling price; was plain label -->
+          <label style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Selling price</span>
+            <span id="f-profit-badge" class="badge badge-green" style="display:none;font-size:.70rem;padding:2px 6px;text-transform:none;font-weight:800;"></span>
+          </label>
+          <input class="input" id="f-price" type="number" step="0.01" value="${initial?.price??""}">
+        </div>
       </div>
       <div class="input-row">
-        <div class="field"><label>Stock quantity (total pieces)</label><input class="input" id="f-stock" type="number" step="1" value="${product?.stock??""}"></div>
+        <div class="field"><label>Stock quantity (total pieces)</label><input class="input" id="f-stock" type="number" step="1" value="${initial?.stock??""}"></div>
         <div class="field"><label>Unit</label><div id="f-unit-wrap"></div></div>
       </div>
       <!-- (2026-07-13) Add dual-unit pack & piece tracking in inventory; was piece only -->
@@ -100,34 +121,34 @@ const Inventory = (() => {
             <div class="text-xs text-faint">Sell by full pack and loose pieces from shared piece stock.</div>
           </div>
           <span class="switch">
-            <input type="checkbox" id="f-has-dual" ${product?.piecesPerPack > 1 ? "checked" : ""}>
+            <input type="checkbox" id="f-has-dual" ${(initial?.piecesPerPack > 1 || initial?.hasDual) ? "checked" : ""}>
             <span class="track"></span>
           </span>
         </label>
-        <div id="f-dual-fields" style="display:${product?.piecesPerPack > 1 ? "block" : "none"};margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-strong);">
+        <div id="f-dual-fields" style="display:${(initial?.piecesPerPack > 1 || initial?.hasDual) ? "block" : "none"};margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-strong);">
           <div class="input-row">
             <div class="field">
               <label>Pieces per Pack</label>
-              <input class="input" id="f-pack-size" type="number" min="2" step="1" value="${product?.piecesPerPack || 10}" placeholder="e.g. 10">
+              <input class="input" id="f-pack-size" type="number" min="2" step="1" value="${initial?.piecesPerPack || 10}" placeholder="e.g. 10">
             </div>
             <div class="field">
               <label>Pack Selling Price</label>
-              <input class="input" id="f-pack-price" type="number" min="0" step="0.01" value="${product?.packPrice ?? (product?.price ? product.price * 10 : "")}" placeholder="e.g. 90.00">
+              <input class="input" id="f-pack-price" type="number" min="0" step="0.01" value="${initial?.packPrice ?? (initial?.price ? initial.price * 10 : "")}" placeholder="e.g. 90.00">
             </div>
           </div>
           <div class="input-row" style="margin-top:8px;">
             <div class="field">
               <label>Pack Cost Price</label>
-              <input class="input" id="f-pack-cost" type="number" min="0" step="0.01" value="${product?.packCost ?? (product?.cost ? product.cost * 10 : "")}" placeholder="e.g. 70.00">
+              <input class="input" id="f-pack-cost" type="number" min="0" step="0.01" value="${initial?.packCost ?? (initial?.cost ? initial.cost * 10 : "")}" placeholder="e.g. 70.00">
             </div>
             <div class="field">
               <label>Pack Barcode <span class="text-faint">(optional)</span></label>
-              <input class="input" id="f-pack-barcode" value="${product?.packBarcode || ""}" placeholder="Outer pack barcode">
+              <input class="input" id="f-pack-barcode" value="${initial?.packBarcode || ""}" placeholder="Outer pack barcode">
             </div>
           </div>
         </div>
       </div>
-      <div class="field" style="margin-top:10px;"><label>Low stock alert threshold</label><input class="input" id="f-lowstock" type="number" step="1" value="${product?.lowStockThreshold??5}"></div>`;
+      <div class="field" style="margin-top:10px;"><label>Low stock alert threshold</label><input class="input" id="f-lowstock" type="number" step="1" value="${initial?.lowStockThreshold??5}"></div>`;
     const modal = Modal.open({
       title: isEdit ? `${Icons.get("edit",{size:17})} Edit Product` : `${Icons.get("plus",{size:17})} Add Product`,
       body, wide:true,
@@ -137,21 +158,83 @@ const Inventory = (() => {
       ]
     });
 
-    modal.querySelector("#f-category-wrap").innerHTML = UISelect.render("f-category", cats, product?.category || cats[0]);
-    UISelect.bind("f-category", () => updatePreview(modal));
-    modal.querySelector("#f-unit-wrap").innerHTML = UISelect.render("f-unit", ["pc","pack","kg","g","L","ml","box"], product?.unit || "pc");
-    UISelect.bind("f-unit");
+    modal.querySelector("#f-category-wrap").innerHTML = UISelect.render("f-category", cats, initial?.category || cats[0]);
+    UISelect.bind("f-category", () => { updatePreview(modal); if(!isEdit) saveDraft(); });
+    modal.querySelector("#f-unit-wrap").innerHTML = UISelect.render("f-unit", ["pc","pack","kg","g","L","ml","box"], initial?.unit || "pc");
+    UISelect.bind("f-unit", () => { if(!isEdit) saveDraft(); });
 
     const dualCheck = modal.querySelector("#f-has-dual");
     if(dualCheck){
       dualCheck.onchange = (e) => {
         modal.querySelector("#f-dual-fields").style.display = e.target.checked ? "block" : "none";
+        if(!isEdit) saveDraft();
       };
     }
 
-    modal.querySelector("#f-scan-btn").onclick = () => Scanner.openCameraScan((code)=>{ modal.querySelector("#f-barcode").value = code; });
+    modal.querySelector("#f-scan-btn").onclick = () => Scanner.openCameraScan((code)=>{ modal.querySelector("#f-barcode").value = code; if(!isEdit) saveDraft(); });
     modal.querySelector("#f-image").addEventListener("input", Utils.debounce(()=>updatePreview(modal), 250));
     modal.querySelector("#f-name").focus();
+
+    function saveDraft(){
+      if(isEdit) return;
+      try {
+        const d = {
+          name: modal.querySelector("#f-name")?.value || "",
+          imageUrl: modal.querySelector("#f-image")?.value || "",
+          brand: modal.querySelector("#f-brand")?.value || "",
+          distributor: modal.querySelector("#f-distributor")?.value || "",
+          barcode: modal.querySelector("#f-barcode")?.value || "",
+          category: UISelect.getValue("f-category") || cats[0],
+          cost: modal.querySelector("#f-cost")?.value || "",
+          price: modal.querySelector("#f-price")?.value || "",
+          stock: modal.querySelector("#f-stock")?.value || "",
+          unit: UISelect.getValue("f-unit") || "pc",
+          lowStockThreshold: modal.querySelector("#f-lowstock")?.value || 5,
+          hasDual: modal.querySelector("#f-has-dual")?.checked || false,
+          piecesPerPack: modal.querySelector("#f-pack-size")?.value || 10,
+          packPrice: modal.querySelector("#f-pack-price")?.value || "",
+          packCost: modal.querySelector("#f-pack-cost")?.value || "",
+          packBarcode: modal.querySelector("#f-pack-barcode")?.value || ""
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+      } catch(e){}
+    }
+
+    if(!isEdit){
+      modal.addEventListener("input", Utils.debounce(saveDraft, 150));
+      modal.addEventListener("change", saveDraft);
+    }
+
+    // (2026-07-13) Show live profit percentage on selling price in Add Product; was static
+    const costInput = modal.querySelector("#f-cost");
+    const priceInput = modal.querySelector("#f-price");
+    const profitBadge = modal.querySelector("#f-profit-badge");
+    const updateProfitBadge = () => {
+      if(!profitBadge) return;
+      const cost = parseFloat(costInput.value) || 0;
+      const price = parseFloat(priceInput.value) || 0;
+      if(price > 0 && cost > 0){
+        const profit = price - cost;
+        const profitPct = ((profit / cost) * 100);
+        profitBadge.style.display = "inline-flex";
+        if(profit >= 0){
+          profitBadge.className = "badge badge-green";
+          profitBadge.textContent = `+${profitPct.toFixed(1)}% profit (+${Utils.money(profit)})`;
+        } else {
+          profitBadge.className = "badge badge-rust";
+          profitBadge.textContent = `${profitPct.toFixed(1)}% loss (${Utils.money(profit)})`;
+        }
+      } else if(price > 0 && cost === 0){
+        profitBadge.style.display = "inline-flex";
+        profitBadge.className = "badge badge-green";
+        profitBadge.textContent = `100% profit (+${Utils.money(price)})`;
+      } else {
+        profitBadge.style.display = "none";
+      }
+    };
+    costInput.addEventListener("input", updateProfitBadge);
+    priceInput.addEventListener("input", updateProfitBadge);
+    updateProfitBadge();
 
     function updatePreview(m){
       const url = m.querySelector("#f-image").value.trim();
@@ -187,6 +270,7 @@ const Inventory = (() => {
     if(product) DB.updateProduct(product.id, payload);
     else {
       DB.addProduct(payload);
+      clearProductDraft();
       if(payload.stock > 0){
         DB.addRestockLog({
           product_id: payload.barcode || payload.name,

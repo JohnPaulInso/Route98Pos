@@ -109,7 +109,8 @@ const Settings = (() => {
       <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
           <div>
-            <h3 style="margin:0 0 2px;">${Icons.get("database",{size:16})} Daily Automated Backups (11:59 PM)</h3>
+            <!-- (2026-07-13) Flex row layout with left-aligned icon in headers; was block stack -->
+            <h3 style="margin:0 0 2px;display:flex;align-items:center;gap:8px;">${Icons.get("database",{size:16})}<span>Daily Automated Backups (11:59 PM)</span></h3>
             <p class="text-sm text-faint" style="margin:0;">Automated backup triggers daily at 11:59 PM. Next scheduled: <strong>${targetStr}</strong></p>
           </div>
           <button class="btn btn-sm btn-primary" id="btn-create-backup-now">${Icons.get("plus",{size:13})} Run Backup Now</button>
@@ -147,30 +148,38 @@ const Settings = (() => {
 
       <div class="grid-2">
         <div class="card">
-          <h3 style="margin-bottom:10px;">${Icons.get("download",{size:16})} Manual File Export</h3>
+          <h3 style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">${Icons.get("download",{size:16})}<span>Manual File Export</span></h3>
           <p class="text-sm text-faint" style="margin-bottom:12px;">Download standalone JSON backup file or CSV spreadsheets.</p>
           <button class="btn btn-block" id="btn-export-json" style="margin-bottom:8px;">Full Backup (.json)</button>
-          <div class="grid-2" style="gap:8px;">
+          <div class="grid-3" style="gap:6px;">
+            <!-- (2026-07-13) Add Store Sales CSV export in settings; was inventory/cats only -->
+            <button class="btn btn-block" id="btn-export-sales">Sales (.csv)</button>
             <button class="btn btn-block" id="btn-export-csv">Inventory (.csv)</button>
             <button class="btn btn-block" id="btn-export-cats">Categories (.csv)</button>
           </div>
         </div>
         <div class="card">
-          <h3 style="margin-bottom:10px;">${Icons.get("upload",{size:16})} File Import</h3>
+          <h3 style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">${Icons.get("upload",{size:16})}<span>File Import</span></h3>
           <p class="text-sm text-faint" style="margin-bottom:12px;">Restore a downloaded full backup file or import product catalog.</p>
           <button class="btn btn-block" id="btn-import-json" style="margin-bottom:8px;">Restore Full Backup File</button>
+          <!-- (2026-07-13) Add Store Sales CSV import in settings; was products only -->
+          <button class="btn btn-block" id="btn-import-sales" style="margin-bottom:8px;">Import Store Sales (CSV/JSON)</button>
           <button class="btn btn-block" id="btn-import-csv">Import Products (CSV/JSON)</button>
           <input type="file" id="file-json" accept=".json" class="hidden">
+          <input type="file" id="file-sales" accept=".csv,.json" class="hidden">
           <input type="file" id="file-csv" accept=".csv,.json" class="hidden">
         </div>
       </div>`;
 
     document.getElementById("btn-export-json").onclick = ImportExport.exportFullBackup;
+    document.getElementById("btn-export-sales").onclick = () => ImportExport.exportSalesCSV("all");
     document.getElementById("btn-export-csv").onclick = ImportExport.exportInventoryCSV;
     document.getElementById("btn-export-cats").onclick = ImportExport.exportCategoriesCSV;
     document.getElementById("btn-import-json").onclick = () => document.getElementById("file-json").click();
+    document.getElementById("btn-import-sales").onclick = () => document.getElementById("file-sales").click();
     document.getElementById("btn-import-csv").onclick = () => document.getElementById("file-csv").click();
     document.getElementById("file-json").addEventListener("change", e => ImportExport.importFullBackupFile(e.target.files[0], () => App.rerenderCurrentView()));
+    document.getElementById("file-sales").addEventListener("change", e => ImportExport.importSalesFile(e.target.files[0], () => App.rerenderCurrentView()));
     document.getElementById("file-csv").addEventListener("change", e => ImportExport.importInventoryFile(e.target.files[0], () => Utils.toast("Products imported.","success")));
 
     // (2026-07-13) Animated multi-step progress modal for backup export; was immediate
@@ -327,11 +336,25 @@ const Settings = (() => {
             <div><strong>Dark mode</strong><p class="text-sm text-faint">Easier on the eyes for night shifts.</p></div>
             <label class="switch"><input type="checkbox" id="s-theme" ${s.theme==="dark"?"checked":""}><span class="track"></span></label>
           </div>
+          <!-- (2026-07-13) Auto-print receipt setting for JK580H 58mm printer; was manual -->
+          <div class="switch-row" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;">
+            <div>
+              <strong>Auto-Print Receipt After Sale</strong>
+              <p class="text-sm text-faint">Direct thermal receipt output for JK580H 58mm printer.</p>
+            </div>
+            <label class="switch"><input type="checkbox" id="s-autoprint" ${s.autoPrintReceipt !== false ? "checked" : ""}><span class="track"></span></label>
+          </div>
         </div>`;
       document.getElementById("btn-save-business").onclick = saveBusinessInfo;
       document.getElementById("s-vat").onchange = (e)=>toggleVat(e.target.checked);
       document.getElementById("s-vat-rate")?.addEventListener("change", saveVatRate);
       document.getElementById("s-theme").onchange = (e)=>toggleTheme(e.target.checked);
+      document.getElementById("s-autoprint").onchange = (e) => {
+        const settings = DB.getSettings();
+        settings.autoPrintReceipt = e.target.checked;
+        DB.setSettings(settings);
+        Utils.toast(e.target.checked ? "Auto-print enabled for JK580H printer." : "Auto-print disabled.", "info");
+      };
     }
     else if(tab === "staff"){
       wrap.innerHTML = `<div class="card"><h3 style="margin-bottom:12px;">${Icons.get("users",{size:16})} Staff Accounts</h3><div id="staff-table"></div></div>`;

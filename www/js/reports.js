@@ -397,7 +397,9 @@ const Reports = (() => {
     });
   }
 
+  // (2026-07-13) Place All Time first before Today; was last in list
   const PERIOD_FILTERS = [
+    ["all", "All Time"],
     ["today", "Today"],
     ["this_week", "This Week"],
     ["last_week", "Last Week"],
@@ -406,8 +408,7 @@ const Reports = (() => {
     ["last_3m", "Last 3 Months"],
     ["last_6m", "Last 6 Months"],
     ["this_year", "This Year"],
-    ["last_year", "Last Year"],
-    ["all", "All Time"]
+    ["last_year", "Last Year"]
   ];
 
   function timeframeBarHtml(activeKey){
@@ -419,17 +420,34 @@ const Reports = (() => {
       </div>`;
   }
 
-  // ---------------- plain history tables ----------------
+  // (2026-07-13) Add transaction count # & Source column to Store Sales table. Prev: unindexed
   function historyTable(){
     const r = Analytics.getPeriodRange(periodKey);
     let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
     return `
-      ${timeframeBarHtml(periodKey)}
+      <div class="flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        ${timeframeBarHtml(periodKey)}
+        <div class="input-row" style="width:auto;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-outline" id="btn-export-sales-report" style="font-weight:700;">
+            ${Icons.get("download",{size:13})} Export Sales (.csv)
+          </button>
+          ${Auth.isAdmin() ? `
+            <label class="btn btn-sm btn-outline" style="cursor:pointer;margin:0;font-weight:700;">
+              ${Icons.get("upload",{size:13})} Import Sales (CSV/JSON)
+              <input type="file" id="file-sales-import" accept=".csv,.json" style="display:none;">
+            </label>
+          ` : ""}
+        </div>
+      </div>
       ${sales.length ? `
-        <div class="table-wrap"><table class="data"><thead><tr><th>Time</th><th>Txn ID</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
-        ${sales.map(s => `<tr>
+        <div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Time</th><th>Txn ID</th><th>Source</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
+        ${sales.map((s, idx) => {
+          const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
+          return `<tr>
+          <td class="text-faint mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${sales.length - idx}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
+          <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><button class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:var(--fs-xs);">${Icons.get("receipt",{size:12})} ${s.items.length} item(s)</button></td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
@@ -440,7 +458,8 @@ const Reports = (() => {
             <button class="btn btn-sm btn-ghost" data-reprint="${s.id}" style="margin-left:4px;">${Icons.get("printer",{size:13})}</button>
             ${Auth.isAdmin() ? `<button class="btn btn-sm btn-ghost" data-delete-sale="${s.id}" style="margin-left:4px;color:var(--danger);" title="Delete Sale">${Icons.get("trash",{size:13})}</button>` : ""}
           </td>
-        </tr>`).join("")}
+        </tr>`;
+        }).join("")}
         </tbody></table></div>` : `<div class="empty">${Icons.get("receipt",{size:34})}<h3>No sales in ${r.label}</h3></div>`
       }`;
   }
@@ -803,6 +822,27 @@ const Reports = (() => {
         e.stopPropagation();
         deleteFuelSaleRecord(b.dataset.deleteFuelSale);
       });
+      document.getElementById("btn-export-sales-report")?.addEventListener("click", () => {
+        ImportExport.exportSalesCSV(periodKey);
+      });
+      document.getElementById("file-sales-import")?.addEventListener("change", (e) => {
+        if(e.target.files?.[0]){
+          ImportExport.importSalesFile(e.target.files[0], () => {
+            render();
+          });
+          e.target.value = "";
+        }
+      });
+    }
+
+    // (2026-07-13) Native mouse wheel scroll for reports view-body. Prev: blocked by inner overflow
+    const viewBody = view.querySelector(".view-body");
+    if(viewBody){
+      view.addEventListener("wheel", (e) => {
+        if(e.deltaY !== 0){
+          viewBody.scrollTop += e.deltaY;
+        }
+      }, { passive: true });
     }
   }
 

@@ -211,4 +211,14 @@ const App = (() => {
   return { init, boot, navigate, rerenderCurrentView, paintTopbar };
 })();
 
+// (2026-07-13) Horizontal mouse wheel scroll for category-chips; was default vertical
+document.addEventListener("wheel", (e) => {
+  const chips = e.target.closest(".category-chips");
+  if(chips && e.deltaY !== 0){
+    e.preventDefault();
+    e.stopPropagation();
+    chips.scrollLeft += e.deltaY;
+  }
+}, { passive: false, capture: true });
+
 document.addEventListener("DOMContentLoaded", App.init);

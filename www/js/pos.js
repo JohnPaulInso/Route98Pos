@@ -194,9 +194,18 @@ const POS = (() => {
     }
   }
 
-  // (2026-07-13) Auto-add by barcode, clear search field & sound alert. Prev: no clear
+  // (2026-07-13) Deduplicate barcode scans to prevent double add. Prev: double-hit
+  let lastAddedBarcode = "";
+  let lastAddedTime = 0;
   function addByBarcode(code){
-    const clean = String(code).trim();
+    const clean = String(code || "").trim();
+    if(!clean) return;
+    const now = Date.now();
+    if(lastAddedBarcode === clean && (now - lastAddedTime) < 400){
+      return;
+    }
+    lastAddedBarcode = clean;
+    lastAddedTime = now;
     const search = document.getElementById("pos-search");
     if(search){
       search.value = "";
@@ -689,14 +698,19 @@ const POS = (() => {
     });
   }
 
-  // (2026-07-13) Show payment confirmation modal instead of auto-print; was print
+  // (2026-07-13) Auto-print JK580H receipt & show payment confirmation; was manual
   function openSaleSuccessModal(sale){
     const cleanId = (sale.id || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(-8);
     const txnId = `TXN-${cleanId || "00000000"}`;
     const isCash = sale.method === "Cash";
+    const settings = DB.getSettings();
+
+    // Auto-trigger JK580H direct thermal receipt print on sale completion
+    if(settings.autoPrintReceipt !== false){
+      printReceipt(sale);
+    }
 
     const body = `
-      // (2026-07-13) Show prominent Transaction ID row; was subtitle only
       <div style="text-align:center;padding:10px 0 16px;">
         <div style="width:68px;height:68px;border-radius:50%;background:var(--success-tint);color:var(--success-deep);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;box-shadow:0 4px 14px rgba(22,168,112,0.25);">
           ${Icons.get("check-circle",{size:38,strokeWidth:2.5})}
@@ -741,7 +755,7 @@ const POS = (() => {
       body,
       wide: true,
       actions: [
-        { label: "Print Receipt", cls: "btn-outline btn-lg", onClick: () => { printReceipt(sale); } },
+        { label: "Print Receipt (JK580H)", cls: "btn-outline btn-lg", onClick: () => { printReceipt(sale); } },
         { label: "Start Next Sale", cls: "btn-primary btn-lg", onClick: Modal.close }
       ]
     });
@@ -869,29 +883,54 @@ const POS = (() => {
     });
   }
 
-  // ---------- receipt ----------
+  // (2026-07-13) Format receipt with logo.png & clean rows for JK580H; was no logo
   function printReceipt(sale){
     const settings = DB.getSettings();
     const win = document.getElementById("receipt-print");
+    if(!win) return;
+    const cleanTxnId = (sale.id || "").replace(/^TXN-/, "");
     win.innerHTML = `
-      <div class="receipt">
-        <div class="center"><strong>${Utils.escapeHtml(settings.businessName)}</strong><br>${Utils.escapeHtml(settings.address)}</div>
+      <div class="receipt jk580h">
+        <div class="center" style="margin-bottom:6px;">
+          <!-- (2026-07-13) Clean direct logo.png embed for thermal receipt; was box filter -->
+          <img src="logo.png" alt="Route 98" style="width:28mm;max-width:105px;height:auto;display:block;margin:0 auto 4px;">
+          <div class="bold brand-title">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
+          ${settings.address ? `<div class="text-xs" style="color:#000;">${Utils.escapeHtml(settings.address)}</div>` : ""}
+          ${settings.tin ? `<div class="text-xs" style="color:#000;">TIN: ${Utils.escapeHtml(settings.tin)}</div>` : ""}
+        </div>
         <hr>
-        <div class="row"><span>${Utils.fmtDate(sale.ts)}</span><span>#${sale.id.slice(-6)}</span></div>
-        <div class="row"><span>Cashier</span><span>${Utils.escapeHtml(sale.cashier)}</span></div>
+        <div class="row"><span>Date:</span><span class="mono">${Utils.fmtDate(sale.ts)}</span></div>
+        <div class="row"><span>Txn ID:</span><span class="mono bold">#TXN-${cleanTxnId}</span></div>
+        <div class="row"><span>Cashier:</span><span>${Utils.escapeHtml(sale.cashier||"Admin")}</span></div>
         <hr>
-        ${sale.items.map(l => `<div class="row"><span>${l.qty}x ${Utils.escapeHtml(l.name)}</span><span>${Utils.money(l.price*l.qty)}</span></div>`).join("")}
+        <div class="row bold"><span>ITEM</span><span>TOTAL</span></div>
         <hr>
-        <div class="row"><span>Subtotal</span><span>${Utils.money(sale.subtotal)}</span></div>
-        ${sale.discountAmt ? `<div class="row"><span>Discount (${sale.discountType==="percent" ? sale.discountValue+"%" : "fixed"})</span><span>-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        ${settings.vatEnabled ? `<div class="row"><span>VAT incl. (${settings.vatRate}%)</span><span>${Utils.money(sale.vat)}</span></div>` : ""}
-        <div class="row" style="font-weight:700;"><span>TOTAL</span><span>${Utils.money(sale.total)}</span></div>
-        <div class="row"><span>${sale.method}</span><span>${Utils.money(sale.tendered)}</span></div>
-        ${sale.method==="Cash" ? `<div class="row"><span>Change</span><span>${Utils.money(sale.change)}</span></div>` : ""}
+        ${sale.items.map(l => `
+          <div class="item-line">
+            <div class="item-name">${Utils.escapeHtml(l.name)}</div>
+            <div class="row item-detail">
+              <span>${l.qty} x ${Utils.money(l.price)}</span>
+              <span class="bold">${Utils.money(l.price * l.qty)}</span>
+            </div>
+          </div>
+        `).join("")}
         <hr>
-        <div class="center">${Utils.escapeHtml(settings.receiptFooter)}</div>
+        <div class="row"><span>Subtotal:</span><span class="mono bold">${Utils.money(sale.subtotal)}</span></div>
+        ${sale.discountAmt ? `<div class="row"><span>Discount (${sale.discountType==="percent" ? sale.discountValue+"%" : "Fixed"}):</span><span class="mono">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
+        ${settings.vatEnabled ? `<div class="row text-xs"><span>VAT incl. (${settings.vatRate}%):</span><span class="mono">${Utils.money(sale.vat)}</span></div>` : ""}
+        <hr>
+        <div class="row bold text-lg"><span>TOTAL DUE:</span><span class="mono">${Utils.money(sale.total)}</span></div>
+        <div class="row"><span>Payment (${sale.method}):</span><span class="mono">${Utils.money(sale.tendered)}</span></div>
+        ${sale.method==="Cash" ? `<div class="row bold"><span>Change:</span><span class="mono">${Utils.money(sale.change || 0)}</span></div>` : ""}
+        ${sale.refCode ? `<div class="row text-xs"><span>Ref:</span><span class="mono">${Utils.escapeHtml(sale.refCode)}</span></div>` : ""}
+        <hr>
+        <!-- (2026-07-13) Clean receipt footer; was printer model tag -->
+        <div class="center footer-msg">${Utils.escapeHtml(settings.receiptFooter || "Thank you for shopping with us!")}</div>
+        <div style="height:10mm;"></div>
       </div>`;
-    setTimeout(()=> window.print(), 150);
+    setTimeout(() => {
+      window.print();
+    }, 120);
   }
 
   // ---------- rendering ----------
@@ -1046,11 +1085,12 @@ const POS = (() => {
 
     grid.innerHTML = customCardHtml + (items.length ? cardsHtml : `<div class="empty" style="grid-column:2/-1;">${Icons.get("search",{size:34})}<h3>No products found</h3><p>Try a different search or category.</p></div>`);
 
-    // (2026-07-13) Add kinetic touch scroll on product cards; was plain click
+    // (2026-07-13) Kinetic scroll only on touch; ignore mouse pointers. Prev: all pointers
     let isScrollDragging = false;
     let dragStartY = 0, dragStartScrollTop = 0, dragLastY = 0, dragLastTime = 0, dragVelocityY = 0;
     let momentumTimer = null;
     grid.onpointerdown = (e) => {
+      if(e.pointerType === "mouse") return;
       if(momentumTimer) cancelAnimationFrame(momentumTimer);
       isScrollDragging = false;
       dragStartY = e.clientY;
@@ -1060,6 +1100,7 @@ const POS = (() => {
       dragVelocityY = 0;
     };
     grid.onpointermove = (e) => {
+      if(e.pointerType === "mouse") return;
       const deltaY = e.clientY - dragStartY;
       if(!isScrollDragging && Math.abs(deltaY) > 6){
         isScrollDragging = true;
@@ -1073,7 +1114,8 @@ const POS = (() => {
         dragLastTime = now;
       }
     };
-    grid.onpointerup = () => {
+    grid.onpointerup = (e) => {
+      if(e.pointerType === "mouse") return;
       if(isScrollDragging){
         let v = dragVelocityY * 16;
         const step = () => {
@@ -1281,12 +1323,19 @@ const POS = (() => {
     }
   }
 
-  // (2026-07-13) Add custom priced product & item modal in POS; was catalog only
+  // (2026-07-13) Add barcode field to custom item modal; was name & price only
   function openCustomItemModal(){
     const body = `
       <div class="field">
         <label>Item Name / Description</label>
         <input class="input" id="custom-item-name" placeholder="e.g. Extra Packaging, Delivery, Custom Item" value="Custom Item">
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Barcode / SKU <span class="text-faint">(optional)</span></label>
+        <div style="display:flex;gap:6px;">
+          <input class="input scan-target" id="custom-item-barcode" placeholder="Scan or type barcode">
+          <button type="button" class="btn btn-ghost btn-icon" id="custom-item-scan-btn" title="Scan with camera">${Icons.get("camera",{size:16})}</button>
+        </div>
       </div>
       <div class="input-row" style="margin-top:10px;">
         <div class="field">
@@ -1306,6 +1355,7 @@ const POS = (() => {
         { label:"Cancel", cls:"btn-ghost" },
         { label:"Add to Sale", cls:"btn-primary", onClick: () => {
           const name = modal.querySelector("#custom-item-name").value.trim() || "Custom Item";
+          const barcode = modal.querySelector("#custom-item-barcode")?.value.trim() || "";
           const price = Number(modal.querySelector("#custom-item-price").value) || 0;
           const qty = Math.max(1, Number(modal.querySelector("#custom-item-qty").value) || 1);
           if(price < 0){ Utils.toast("Price cannot be negative.", "warn"); return; }
@@ -1313,6 +1363,7 @@ const POS = (() => {
           cart.push({
             productId: Utils.uid("cust"),
             name,
+            barcode,
             price: Utils.round2(price),
             qty,
             unitType: "piece",
@@ -1328,6 +1379,10 @@ const POS = (() => {
         }}
       ]
     });
+    const scanBtn = modal.querySelector("#custom-item-scan-btn");
+    if(scanBtn){
+      scanBtn.onclick = () => Scanner.openCameraScan((code)=>{ modal.querySelector("#custom-item-barcode").value = code; });
+    }
     setTimeout(() => {
       const priceInput = modal.querySelector("#custom-item-price");
       if(priceInput) priceInput.focus();
@@ -1374,15 +1429,17 @@ const POS = (() => {
     chips.innerHTML = categoryList().map(c => `<div class="chip ${c===activeCategory?"active":""}" data-c="${c}">${c}</div>`).join("");
     chips.querySelectorAll(".chip").forEach(c => c.onclick = () => { activeCategory = c.dataset.c; catalogPage = 1; renderCatalog(); chips.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c)); });
 
-    // (2026-07-13) Regular vertical mouse wheel scrolling on PC mode; was horizontal lock
+    // (2026-07-13) Native mouse wheel scroll for catalog grid; was capturing chips
     const catalogEl = document.querySelector(".pos-catalog");
     const gridEl = document.getElementById("product-grid");
     if(catalogEl && gridEl){
       catalogEl.addEventListener("wheel", (e) => {
-        if(e.deltaY !== 0 && !gridEl.contains(e.target)){
-          gridEl.scrollTop += e.deltaY;
+        if(e.target.closest(".category-chips")) return;
+        if(e.deltaY !== 0){
+          gridEl.scrollBy({ top: e.deltaY, behavior: "auto" });
+          e.preventDefault();
         }
-      }, { passive: true });
+      }, { passive: false });
     }
 
     // (2026-07-13) Auto-reset POS search term on navigation; was persistent
@@ -1390,20 +1447,8 @@ const POS = (() => {
     catalogPage = 1;
     const search = document.getElementById("pos-search");
     const clearBtn = document.getElementById("btn-clear-pos-search");
+    // (2026-07-13) Smooth manual search typing in POS; was premature barcode auto-add
     const onSearchChange = (val) => {
-      const clean = String(val || "").trim();
-      if(clean.length >= 3){
-        const matched = DB.findByBarcode(clean);
-        if(matched){
-          addByBarcode(clean);
-          search.value = "";
-          searchTerm = "";
-          catalogPage = 1;
-          if(clearBtn) clearBtn.classList.remove("visible");
-          renderCatalog();
-          return;
-        }
-      }
       searchTerm = val;
       catalogPage = 1;
       if(clearBtn){
@@ -1420,6 +1465,7 @@ const POS = (() => {
     search.addEventListener("keydown", (e) => {
       if(e.key === "Enter"){
         e.preventDefault();
+        e.stopPropagation();
         const clean = String(search.value || "").trim();
         if(clean){
           const matched = DB.findByBarcode(clean);

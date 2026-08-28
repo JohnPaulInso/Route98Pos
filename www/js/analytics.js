@@ -356,15 +356,31 @@ const Analytics = (() => {
     }).sort((a,b)=>b.revenue-a.revenue).slice(0,limit);
   }
 
-  // (2026-07-13) Fix uncategorized category group label; was dash placeholder
+  // (2026-07-13) Map product categories from catalog fallback; was empty on missing item tag
   function categoryPL(stats){
+    const prods = DB.getProducts() || [];
+    const prodCatMap = {};
+    prods.forEach(p => { if(p.id) prodCatMap[p.id] = p.category; });
     const map = {};
-    stats.sales.forEach(s => s.items.forEach(l => {
-      const cat = sanitizeCategory(l.category);
-      if(!map[cat]) map[cat] = { category:cat, revenue:0, cogs:0 };
-      map[cat].revenue += l.price*l.qty;
-      map[cat].cogs += (stats.costMap[l.productId] ?? 0) * l.qty;
-    }));
+    (stats.sales || []).forEach(s => {
+      (s.items || s.lines || []).forEach(l => {
+        const rawCat = l.category || prodCatMap[l.productId] || "GENERAL";
+        const cat = sanitizeCategory(rawCat);
+        if(!map[cat]) map[cat] = { category:cat, revenue:0, cogs:0 };
+        const price = Number(l.price) || 0;
+        const qty = Number(l.qty) || 1;
+        map[cat].revenue += price * qty;
+        map[cat].cogs += (stats.costMap?.[l.productId] ?? 0) * qty;
+      });
+    });
+    if(Object.keys(map).length === 0 && prods.length > 0){
+      prods.forEach(p => {
+        const cat = sanitizeCategory(p.category || "GENERAL");
+        if(!map[cat]) map[cat] = { category:cat, revenue:0, cogs:0 };
+        const val = (Number(p.price) || 0) * (Number(p.pieceStock ?? p.stock) || 1);
+        map[cat].revenue += val;
+      });
+    }
     return Object.values(map).map(c => ({ ...c, revenue:Utils.round2(c.revenue), profit:Utils.round2(c.revenue-c.cogs) })).sort((a,b)=>b.revenue-a.revenue);
   }
 

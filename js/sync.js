@@ -89,7 +89,7 @@ const Sync = (() => {
     paintStatus();
   }
 
-  // (2026-07-13) Auto-pull Firestore cloud snapshot into empty local client. Prev: skipped
+  // (2026-07-13) Auto-pull Firestore cloud snapshot & backups into client; was partial
   async function pullSnapshot(force = false){
     try{
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
@@ -128,6 +128,52 @@ const Sync = (() => {
           if(sales.length) DB.setSales(sales);
         }
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+      }
+
+      // Also pull individual cloud backups collection and merge
+      try {
+        const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
+        if(!backupsSnap.empty){
+          const cloudBackups = [];
+          backupsSnap.forEach(d => cloudBackups.push(d.data()));
+          if(cloudBackups.length){
+            const existing = DB.getBackups();
+            const existingIds = new Set(existing.map(x => x.id));
+            const merged = [...existing];
+            cloudBackups.forEach(b => {
+              if(!existingIds.has(b.id)){
+                merged.push(b);
+              }
+            });
+            merged.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+            DB.setBackups(merged.slice(0, 50));
+          }
+        }
+      } catch(e) {
+        console.warn("Could not pull backups collection:", e);
+      }
+
+      // Also pull individual cloud voidLogs collection and merge
+      try {
+        const voidSnap = await mod.getDocs(mod.collection(database, "voidLogs"));
+        if(!voidSnap.empty){
+          const cloudVoids = [];
+          voidSnap.forEach(d => cloudVoids.push(d.data()));
+          if(cloudVoids.length){
+            const existing = DB.getVoidLogs();
+            const existingIds = new Set(existing.map(x => x.id));
+            const merged = [...existing];
+            cloudVoids.forEach(v => {
+              if(!existingIds.has(v.id)){
+                merged.push(v);
+              }
+            });
+            merged.sort((a,b) => (b.ts || 0) - (a.ts || 0));
+            DB.setVoidLogs(merged.slice(0, 100));
+          }
+        }
+      } catch(e) {
+        console.warn("Could not pull voidLogs collection:", e);
       }
     }catch(err){
       console.error("Firestore pull failed", err);

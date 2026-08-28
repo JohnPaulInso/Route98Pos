@@ -988,6 +988,8 @@ const Dashboard = (() => {
 
     // Build Scoped Charts
     destroyCharts();
+    // (2026-07-13) Define isDark in scoped charts & fix category doughnut render; was undefined
+    const isDark = document.documentElement.dataset.theme === "dark";
     const trendEl = document.getElementById("chart-scoped-trend");
     const breakEl = document.getElementById("chart-scoped-breakdown");
     const emptyTrendEl = document.getElementById("empty-scoped-trend");
@@ -1046,27 +1048,30 @@ const Dashboard = (() => {
     if(breakEl && typeof Chart !== "undefined"){
       if(scopeKey === "minimart"){
         const catPL = Analytics.categoryPL(stats);
-        const hasCat = catPL.length > 0 && catPL.some(c => c.revenue > 0);
+        const hasCat = catPL.length > 0;
         if(!hasCat){
           if(emptyBreakEl) emptyBreakEl.style.display = "flex";
           breakEl.style.display = "none";
         } else {
           if(emptyBreakEl) emptyBreakEl.style.display = "none";
           breakEl.style.display = "block";
+          const catColors = ["#2563EB", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#06B6D4", "#F97316", "#6366F1", "#14B8A6", "#E11D48", "#84CC16", "#A855F7"];
           charts.scopedBreak = new Chart(breakEl, {
             type: "doughnut",
             data: {
               labels: catPL.map(c => c.category),
               datasets: [{
                 data: catPL.map(c => c.revenue),
-                backgroundColor: ["#2563EB", "#3B82F6", "#60A5FA", "#93C5FD", "#BFDBFE", "#DBEAFE"]
+                backgroundColor: catPL.map((_, i) => catColors[i % catColors.length]),
+                borderWidth: 2,
+                borderColor: isDark ? "#1E293B" : "#FFFFFF"
               }]
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { position: "bottom", labels: { font: { weight: "600" } } },
+                legend: { position: "bottom", labels: { font: { weight: "600", size: 11 }, padding: 10, boxWidth: 10 } },
                 tooltip: {
                   callbacks: {
                     label: (ctx) => ` ${ctx.label}: ${Utils.money(ctx.parsed)}`
@@ -1205,44 +1210,45 @@ const Dashboard = (() => {
 
     view.innerHTML = `
       <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
+        <!-- (2026-07-13) Compact header font size & padding for executive dashboard; was large -->
         <!-- Sticky Header Bar: Business Groups & Time Periods -->
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;flex-shrink:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;flex-shrink:0;">
           <div>
-            <h2 style="font-size:1.60rem;font-weight:850;color:#0F172A;display:flex;align-items:center;gap:8px;margin:0 0 3px;">
-              <span style="color:#312E81;">${Icons.get("bar-chart",{size:26})}</span> Executive Dashboard
+            <h2 style="font-size:1.15rem;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:6px;margin:0 0 2px;">
+              <span style="color:#312E81;">${Icons.get("bar-chart",{size:18})}</span> Executive Dashboard
             </h2>
-            <div style="font-size:.90rem;color:#475569;font-weight:600;">
+            <div style="font-size:.74rem;color:#475569;font-weight:600;">
               Consolidated financial oversight & performance for Route 98 commercial group
             </div>
           </div>
 
-          <!-- Sticky Period Filter Chips with 44px minimum tap targets -->
-          <div style="display:flex;align-items:center;gap:6px;background:#F1F5F9;padding:4px;border-radius:12px;border:1px solid #CBD5E1;" id="dash-period-chips">
-            <button class="dash-tap-btn chip ${periodKey==='today'?'active':''}" data-p="today" style="margin:0;padding:8px 16px;">Today</button>
-            <button class="dash-tap-btn chip ${periodKey==='this_week'?'active':''}" data-p="this_week" style="margin:0;padding:8px 16px;">This Week</button>
-            <button class="dash-tap-btn chip ${periodKey==='last_week'?'active':''}" data-p="last_week" style="margin:0;padding:8px 16px;">Last Week</button>
-            <button class="dash-tap-btn chip ${periodKey==='this_month'?'active':''}" data-p="this_month" style="margin:0;padding:8px 16px;">This Month</button>
-            <button class="dash-tap-btn chip ${periodKey==='last_month'?'active':''}" data-p="last_month" style="margin:0;padding:8px 16px;">Last Month</button>
-            <button class="dash-tap-btn chip ${periodKey==='all'?'active':''}" data-p="all" style="margin:0;padding:8px 16px;">All Time</button>
+          <!-- (2026-07-13) Uniform compact pill chips for dashboard; was boxed buttons -->
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;" id="dash-period-chips">
+            <button class="chip ${periodKey==='all'?'active':''}" data-p="all" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">All Time</button>
+            <button class="chip ${periodKey==='today'?'active':''}" data-p="today" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">Today</button>
+            <button class="chip ${periodKey==='this_week'?'active':''}" data-p="this_week" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">This Week</button>
+            <button class="chip ${periodKey==='last_week'?'active':''}" data-p="last_week" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">Last Week</button>
+            <button class="chip ${periodKey==='this_month'?'active':''}" data-p="this_month" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">This Month</button>
+            <button class="chip ${periodKey==='last_month'?'active':''}" data-p="last_month" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">Last Month</button>
           </div>
         </div>
 
         <!-- Scope Switcher Tabs (All Businesses vs Specific Business Units) -->
-        <div style="display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:2px;flex-shrink:0;" id="dash-scope-tabs">
-          <button class="dash-tap-btn chip font-bold ${scopeKey==='all'?'active':''}" data-scope="all" style="margin:0;padding:10px 18px;border-radius:10px;background:${scopeKey==='all'?'#312E81':'#FFFFFF'};color:${scopeKey==='all'?'#FFFFFF':'#334155'};border:1.5px solid ${scopeKey==='all'?'#312E81':'#CBD5E1'};display:inline-flex;align-items:center;gap:8px;">
-            ${Icons.get("bar-chart",{size:16})} All Businesses (Executive)
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;flex-shrink:0;" id="dash-scope-tabs">
+          <button class="chip ${scopeKey==='all'?'active':''}" data-scope="all" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+            ${Icons.get("bar-chart",{size:13})} ALL BUSINESSES
           </button>
-          <button class="dash-tap-btn chip font-bold ${scopeKey==='minimart'?'active':''}" data-scope="minimart" style="margin:0;padding:10px 18px;border-radius:10px;background:${scopeKey==='minimart'?'#2563EB':'#FFFFFF'};color:${scopeKey==='minimart'?'#FFFFFF':'#2563EB'};border:1.5px solid ${scopeKey==='minimart'?'#2563EB':'#BFDBFE'};display:inline-flex;align-items:center;gap:8px;">
-            ${Icons.get("store",{size:16})} Minimart Store
+          <button class="chip ${scopeKey==='minimart'?'active':''}" data-scope="minimart" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+            ${Icons.get("store",{size:13})} MINIMART STORE
           </button>
-          <button class="dash-tap-btn chip font-bold ${scopeKey==='gasoline'?'active':''}" data-scope="gasoline" style="margin:0;padding:10px 18px;border-radius:10px;background:${scopeKey==='gasoline'?'#D97706':'#FFFFFF'};color:${scopeKey==='gasoline'?'#FFFFFF':'#D97706'};border:1.5px solid ${scopeKey==='gasoline'?'#D97706':'#FDE68A'};display:inline-flex;align-items:center;gap:8px;">
-            ${Icons.get("fuel",{size:16})} Gasoline Station
+          <button class="chip ${scopeKey==='gasoline'?'active':''}" data-scope="gasoline" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+            ${Icons.get("fuel",{size:13})} GASOLINE STATION
           </button>
-          <button class="dash-tap-btn chip font-bold ${scopeKey==='venue'?'active':''}" data-scope="venue" style="margin:0;padding:10px 18px;border-radius:10px;background:${scopeKey==='venue'?'#7C3AED':'#FFFFFF'};color:${scopeKey==='venue'?'#FFFFFF':'#7C3AED'};border:1.5px solid ${scopeKey==='venue'?'#7C3AED':'#DDD6FE'};display:inline-flex;align-items:center;gap:8px;">
-            ${Icons.get("party",{size:16})} Event Venue
+          <button class="chip ${scopeKey==='venue'?'active':''}" data-scope="venue" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+            ${Icons.get("party",{size:13})} EVENT VENUE
           </button>
-          <button class="dash-tap-btn chip font-bold ${scopeKey==='restaurant'?'active':''}" data-scope="restaurant" style="margin:0;padding:10px 18px;border-radius:10px;background:${scopeKey==='restaurant'?'#059669':'#FFFFFF'};color:${scopeKey==='restaurant'?'#FFFFFF':'#059669'};border:1.5px solid ${scopeKey==='restaurant'?'#059669':'#A7F3D0'};display:inline-flex;align-items:center;gap:8px;">
-            ${Icons.get("utensils",{size:16})} Restaurant
+          <button class="chip ${scopeKey==='restaurant'?'active':''}" data-scope="restaurant" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+            ${Icons.get("utensils",{size:13})} RESTAURANT
           </button>
         </div>
 

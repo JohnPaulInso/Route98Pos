@@ -23,7 +23,7 @@ const Scanner = (() => {
     setTimeout(()=> el.remove(), 1400);
   }
 
-  // (2026-07-13) Auto-route typing to POS search and replace on barcode scan; was plain buffer
+  // (2026-07-13) Fix manual search typing & clean scanner input. Prev: wiped text
   function handleGlobalKeydown(e){
     const now = Date.now();
     const gap = now - lastKeyTime;
@@ -34,17 +34,16 @@ const Scanner = (() => {
     const isOtherField = ["INPUT","TEXTAREA","SELECT"].includes(activeEl?.tagName) &&
                          !activeEl.classList.contains("scan-target");
 
-    if(modalOpen || (isOtherField && gap > FAST_KEY_THRESHOLD)){
+    if(modalOpen || isOtherField){
       return;
     }
 
     const scanInput = document.getElementById("pos-search") || document.querySelector(".scan-target");
 
     if(e.key === "Enter"){
-      if(buffer.length >= 3){
-        const code = buffer.trim();
-        buffer = "";
-        isFastScanning = false;
+      const code = buffer.length >= 3 ? buffer.trim() : (scanInput ? scanInput.value.trim() : "");
+      buffer = "";
+      if(code.length >= 3){
         if(scanInput){
           scanInput.value = "";
           if(typeof Pos !== "undefined" && Pos.resetSearch) Pos.resetSearch();
@@ -59,28 +58,14 @@ const Scanner = (() => {
     }
 
     if(e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey){
-      if(gap < FAST_KEY_THRESHOLD){
-        if(!isFastScanning){
-          isFastScanning = true;
-          buffer = "";
-          if(scanInput) scanInput.value = "";
-        }
-        clearTimeout(scanResetTimer);
-        scanResetTimer = setTimeout(() => { isFastScanning = false; buffer = ""; }, 300);
-        buffer += e.key;
-        if(scanInput){
-          scanInput.value = buffer;
-          e.preventDefault();
-        }
-      } else {
-        isFastScanning = false;
+      if(gap > FAST_KEY_THRESHOLD + 40){
         buffer = e.key;
-        if(scanInput && activeEl !== scanInput){
-          scanInput.focus();
-          scanInput.value += e.key;
-          scanInput.dispatchEvent(new Event("input", { bubbles: true }));
-          e.preventDefault();
-        }
+      } else {
+        buffer += e.key;
+      }
+
+      if(scanInput && activeEl !== scanInput){
+        scanInput.focus();
       }
     }
   }

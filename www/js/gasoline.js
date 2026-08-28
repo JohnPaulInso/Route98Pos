@@ -392,9 +392,15 @@ const Gas = (() => {
                 </div>
 
                 <!-- Cost & SRP Guidance Bar -->
+                <!-- (2026-07-13) Editable tanker cost input & save button; was static label -->
                 <div style="display:flex;align-items:center;justify-content:space-between;font-size:.76rem;border-top:1px dashed #E5E7EB;padding-top:8px;flex-wrap:wrap;gap:6px;">
-                  <div style="color:#6B7280;font-weight:500;">
-                    Tanker Cost: <strong style="color:#374151;font-weight:600;font-family:var(--font-mono);">${Utils.money(tankerCost)}/L</strong>
+                  <div style="color:#6B7280;font-weight:500;display:flex;align-items:center;gap:4px;">
+                    <span>Tanker Cost: ₱</span>
+                    <input class="input font-bold live-tanker-cost-input" data-fuel-key="${pump.fuelType}" type="number" step="0.05" min="0" value="${(tankerCost||65).toFixed(2)}" style="width:68px;font-size:.80rem;font-weight:700;padding:2px 4px;border-radius:5px;border:1px solid #D1D5DB;color:#111827;background:#FFFFFF;text-align:center;" title="Change tanker wholesale cost">
+                    <span>/L</span>
+                    <button class="btn btn-xs btn-save-tanker-cost" data-fuel-key="${pump.fuelType}" style="padding:3px 7px;font-size:.70rem;border-radius:5px;background:#4F46E5;color:#FFFFFF;border:none;cursor:pointer;line-height:1;" title="Save tanker cost">
+                      ${Icons.get("check",{size:11})}
+                    </button>
                   </div>
                   <div style="background:#EEF2FF;border:1px solid #C7D2FE;color:#4338CA;padding:3px 8px;border-radius:7px;font-size:.74rem;display:inline-flex;align-items:center;gap:6px;">
                     <span class="mono" style="font-weight:600;">SRP: ₱${suggestedSRP.toFixed(2)}/L</span>
@@ -516,6 +522,55 @@ const Gas = (() => {
             f.price = newPrice;
             DB.setFuelConfig(cfgNow);
             Utils.toast(`Updated ${f.name} to ₱${newPrice.toFixed(2)}/L`, "success");
+            renderSalePanel();
+            renderTodayStrip();
+          }
+        }
+      };
+    });
+
+    // (2026-07-13) Bind tanker wholesale cost updates; was static
+    grid.querySelectorAll(".live-tanker-cost-input").forEach(inp => {
+      const saveCost = () => {
+        const fuelKey = inp.dataset.fuelKey;
+        const newCost = Number(inp.value) || 0;
+        if(newCost <= 0) return;
+        const cfgNow = DB.getFuelConfig();
+        const f = cfgNow.fuels[fuelKey];
+        if(f && newCost !== f.cost){
+          f.cost = newCost;
+          DB.setFuelConfig(cfgNow);
+          Utils.toast(`Updated ${f.name} tanker cost to ₱${newCost.toFixed(2)}/L`, "success");
+          renderPumps();
+          renderSalePanel();
+          renderTodayStrip();
+        }
+      };
+      inp.addEventListener("change", saveCost);
+      inp.addEventListener("keydown", (e) => {
+        if(e.key === "Enter"){
+          e.preventDefault();
+          saveCost();
+          inp.blur();
+        }
+      });
+    });
+
+    grid.querySelectorAll(".btn-save-tanker-cost").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const fuelKey = btn.dataset.fuelKey;
+        const inp = grid.querySelector(`.live-tanker-cost-input[data-fuel-key="${fuelKey}"]`);
+        if(inp){
+          const newCost = Number(inp.value) || 0;
+          if(newCost <= 0) return;
+          const cfgNow = DB.getFuelConfig();
+          const f = cfgNow.fuels[fuelKey];
+          if(f){
+            f.cost = newCost;
+            DB.setFuelConfig(cfgNow);
+            Utils.toast(`Updated ${f.name} tanker cost to ₱${newCost.toFixed(2)}/L`, "success");
+            renderPumps();
             renderSalePanel();
             renderTodayStrip();
           }

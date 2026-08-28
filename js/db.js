@@ -67,7 +67,7 @@ const DB = (() => {
     { id:"u_cashier", name:"Cashier", role:"cashier", pin:"1111" }
   ];
 
-  // (2026-07-13) Set 65.00 tanker cost for all fuel types; was varied costs
+  // (2026-07-13) Set Regular (Gas) fuel name & changeable tanker cost; was Gasoline
   const DEFAULT_FUEL_CONFIG = {
     pumps: [
       { id:"pump1", label:"Pump 1", fuelType:"gasoline" },
@@ -75,7 +75,7 @@ const DB = (() => {
       { id:"pump3", label:"Pump 3", fuelType:"premium" }
     ],
     fuels: {
-      gasoline: { name:"Gasoline (RON91/95)", price:71.50, cost:65.00, tank:7200, capacity:10000, lowLevel:2000, color:"#10B981", cls:"fuel-gasoline", priceLog:[] },
+      gasoline: { name:"Regular (Gas)", price:71.50, cost:65.00, tank:7200, capacity:10000, lowLevel:2000, color:"#10B981", cls:"fuel-gasoline", priceLog:[] },
       diesel:   { name:"Diesel (Auto Diesel)", price:64.50, cost:65.00, tank:8100, capacity:10000, lowLevel:2000, color:"#F59E0B", cls:"fuel-diesel", priceLog:[] },
       premium:  { name:"Premium (RON97)",     price:76.50, cost:65.00, tank:6400, capacity:10000, lowLevel:2000, color:"#EF4444", cls:"fuel-premium", priceLog:[] }
     }
@@ -197,7 +197,7 @@ const DB = (() => {
   const setSales       = (v) => write(KEYS.sales, v);
   const getFuelSales   = () => read(KEYS.fuelSales, []);
   const setFuelSales   = (v) => write(KEYS.fuelSales, v);
-  // (2026-07-13) Set 65.00 tanker cost in getFuelConfig; was dynamic/varied
+  // (2026-07-13) Support custom tanker cost & Regular (Gas) name; was forced 65.00
   function getFuelConfig(){
     let cfg = read(KEYS.fuelConfig, DEFAULT_FUEL_CONFIG);
     if(!cfg || !cfg.fuels || !cfg.fuels.premium || !cfg.pumps || cfg.pumps.length < 3){
@@ -217,8 +217,12 @@ const DB = (() => {
         cfg.pumps[2].fuelType = "premium";
         needsFix = true;
       }
+      if(cfg.fuels.gasoline && (cfg.fuels.gasoline.name.includes("RON91") || cfg.fuels.gasoline.name === "Gasoline")){
+        cfg.fuels.gasoline.name = "Regular (Gas)";
+        needsFix = true;
+      }
       Object.keys(cfg.fuels).forEach(k => {
-        if(cfg.fuels[k].cost !== 65.00){
+        if(cfg.fuels[k].cost === undefined || isNaN(cfg.fuels[k].cost)){
           cfg.fuels[k].cost = 65.00;
           needsFix = true;
         }
@@ -547,13 +551,15 @@ const DB = (() => {
   }
 
   // ---------- full snapshot (for export + firestore sync) ----------
+  // (2026-07-13) Include voidLogs and backups in snapshot & restore; was omitted
   function snapshot(){
     return {
       products:getProducts(), categories:getCategories(), sales:getSales(), fuelSales:getFuelSales(),
       fuelConfig:getFuelConfig(), fuelDeliveries:getFuelDeliveries(), settings:getSettings(), users:getUsers(),
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
-      stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(), shift:getShift(),
+      stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
+      backups:getBackups(), voidLogs:getVoidLogs(), shift:getShift(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -575,6 +581,8 @@ const DB = (() => {
     if(snap.stockLog) setStockLog(snap.stockLog);
     if(snap.restockLogs) setRestockLogs(snap.restockLogs);
     if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
+    if(snap.backups) setBackups(snap.backups);
+    if(snap.voidLogs) setVoidLogs(snap.voidLogs);
     if(snap.shift) setShift(snap.shift);
   }
   function wipeAll(){

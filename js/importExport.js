@@ -207,5 +207,182 @@ const ImportExport = (() => {
     }
   }
 
-  return { exportCategoriesCSV, exportInventoryCSV, exportFullBackup, importInventoryFile, importFullBackupFile };
+  // (2026-07-13) Export store sales report CSV for period or all. Prev: none
+  function exportSalesCSV(periodKey = "all"){
+    let sales = DB.getSales();
+    if(periodKey && periodKey !== "all" && typeof Analytics !== "undefined"){
+      const r = Analytics.getPeriodRange(periodKey);
+      sales = sales.filter(s => s.ts >= r.start && s.ts <= r.end);
+    }
+    const rows = [];
+    sales.forEach(s => {
+      const d = new Date(s.ts || Date.now());
+      const dateStr = d.toISOString().slice(0, 10);
+      const timeStr = d.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const items = Array.isArray(s.items) && s.items.length ? s.items : [{ name: "Custom Sale", qty: 1, price: s.total || 0, category: "MISC" }];
+      items.forEach((item, idx) => {
+        const qty = Number(item.qty || 1);
+        const price = Number(item.price || 0);
+        const itemTotal = Utils.round2(qty * price);
+        rows.push({
+          date: dateStr,
+          time: timeStr,
+          receipt_no: s.id || `TXN-${idx+1}`,
+          item_name: item.name || "Item",
+          category: item.category || "MISC",
+          quantity: qty,
+          unit_price: price,
+          item_total: itemTotal,
+          subtotal: idx === 0 ? Number(s.subtotal || s.total || itemTotal) : "",
+          discount: idx === 0 ? Number(s.discountAmt || 0) : "",
+          vat: idx === 0 ? Number(s.vat || 0) : "",
+          total_due: idx === 0 ? Number(s.total || itemTotal) : "",
+          payment_method: s.method || "Cash",
+          cashier: s.cashier || "Cashier",
+          reference_no: s.refCode || ""
+        });
+      });
+    });
+    const headers = ["date","time","receipt_no","item_name","category","quantity","unit_price","item_total","subtotal","discount","vat","total_due","payment_method","cashier","reference_no"];
+    const csv = Utils.toCSV(rows, headers);
+    Utils.downloadFile(`store_sales_${new Date().toISOString().slice(0,10)}.csv`, csv, "text/csv");
+    Utils.toast(`Exported ${sales.length} sales (${rows.length} items).`, "success");
+  }
+
+  // Helper date/time parser
+  function parseDateToTimestamp(dateStr, timeStr){
+    if(!dateStr) return Date.now();
+    let str = String(dateStr).trim();
+    if(timeStr) str += " " + String(timeStr).trim();
+    const num = Number(str);
+    if(!isNaN(num) && num > 1000000000) {
+      return num < 10000000000 ? num * 1000 : num;
+    }
+    let ts = Date.parse(str);
+    if(!isNaN(ts)) return ts;
+    const parts = str.match(/^(\d{1,4})[/\-.](\d{1,2})[/\-.](\d{1,4})(.*)$/);
+    if(parts){
+      let p1 = parseInt(parts[1], 10), p2 = parseInt(parts[2], 10), p3 = parseInt(parts[3], 10);
+      let rest = (parts[4] || "").trim();
+      let year, month, day;
+      if(p1 > 1000){ year = p1; month = p2 - 1; day = p3; }
+      else if(p3 > 1000){
+        if(p1 > 12){ day = p1; month = p2 - 1; year = p3; }
+        else { month = p1 - 1; day = p2; year = p3; }
+      }
+      let hours = 12, mins = 0, secs = 0;
+      if(rest){
+        const tm = rest.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)?/i);
+        if(tm){
+          hours = parseInt(tm[1], 10); mins = parseInt(tm[2], 10); secs = tm[3] ? parseInt(tm[3], 10) : 0;
+          const ampm = (tm[4] || "").toLowerCase();
+          if(ampm === "pm" && hours < 12) hours += 12;
+          if(ampm === "am" && hours === 12) hours = 0;
+        }
+      }
+      const d = new Date(year, month, day, hours, mins, secs);
+      if(!isNaN(d.getTime())) return d.getTime();
+    }
+    return Date.now();
+  }
+
+  // (2026-07-13) Import historical store sales from CSV or JSON. Prev: none
+  async function importSalesFile(file, onDone){
+    if(!file) return;
+    try {
+      const text = await Utils.readFile(file);
+      let rawSales = [];
+      if(file.name.endsWith(".json")){
+        const parsed = JSON.parse(text);
+        rawSales = Array.isArray(parsed) ? parsed : (parsed.sales || []);
+      } else {
+        const rows = Utils.fromCSV(text);
+        if(!rows.length){ Utils.toast("No rows found in file.", "warn"); return; }
+        const grouped = new Map();
+        let fallbackCounter = 1;
+        rows.forEach(r => {
+          const keys = Object.keys(r);
+          const findVal = (terms) => {
+            const k = keys.find(key => terms.some(t => key.toLowerCase().trim() === t || key.toLowerCase().includes(t)));
+            return k ? r[k] : "";
+          };
+          const receiptId = String(findVal(["receipt_no","receipt no","receipt","txn id","txnid","transaction id","order #","order id","invoice","id"]) || "").trim() || `OLD-TXN-${fallbackCounter}`;
+          const dateVal = findVal(["date","txn date","transaction date","timestamp","created at","time stamp"]);
+          const timeVal = findVal(["time","hour"]);
+          const ts = parseDateToTimestamp(dateVal, timeVal);
+          const itemName = (findVal(["item_name","item name","product name","product","item","description","name"]) || "Imported Item").trim();
+          const category = (findVal(["category","cat","department"]) || "MISC").trim().toUpperCase();
+          const qty = Math.max(1, Number(findVal(["quantity","qty","units","count"])) || 1);
+          const price = Number(findVal(["unit_price","unit price","price","gross price","rate"])) || 0;
+          const subtotalVal = Number(findVal(["subtotal","sub total"])) || 0;
+          const discountVal = Number(findVal(["discount","discount amt","discount applied"])) || 0;
+          const vatVal = Number(findVal(["vat","tax","vat incl"])) || 0;
+          const totalVal = Number(findVal(["total_due","total amount","total due","total","grand total","net total","amount"])) || (qty * price);
+          const method = String(findVal(["payment_method","payment method","payment type","payment","method"]) || "Cash").trim();
+          const cashier = String(findVal(["cashier","user","staff","employee","cashier name"]) || "Cashier").trim();
+          const refCode = String(findVal(["reference_no","reference no","ref no","reference","ref code"]) || "").trim();
+
+          const itemObj = {
+            productId: Utils.uid("prod"),
+            name: itemName,
+            category: category || "MISC",
+            price: price || (qty > 0 ? Utils.round2(totalVal / qty) : 0),
+            qty,
+            unitType: "piece",
+            unit: "pc",
+            piecesPerPack: 1,
+            imageUrl: ""
+          };
+
+          if(!grouped.has(receiptId)){
+            grouped.set(receiptId, {
+              id: receiptId.startsWith("TXN-") ? receiptId : (receiptId.startsWith("OLD-") ? receiptId : `TXN-${receiptId}`),
+              ts,
+              items: [itemObj],
+              subtotal: subtotalVal || totalVal,
+              discountType: "percent",
+              discountValue: 0,
+              discountAmt: discountVal,
+              vat: vatVal,
+              total: totalVal,
+              method: method || "Cash",
+              refCode,
+              tendered: totalVal,
+              change: 0,
+              cashier: cashier || "Cashier"
+            });
+            if(!findVal(["receipt_no","receipt no","receipt","txn id","txnid","transaction id"])) fallbackCounter++;
+          } else {
+            const entry = grouped.get(receiptId);
+            entry.items.push(itemObj);
+            if(totalVal > entry.total) entry.total = totalVal;
+            else entry.total += (qty * itemObj.price);
+            entry.subtotal = entry.total;
+          }
+        });
+        rawSales = Array.from(grouped.values());
+      }
+      if(!rawSales.length){ Utils.toast("No sales found.", "warn"); return; }
+      const existing = DB.getSales();
+      const existingIds = new Set(existing.map(s => String(s.id).toLowerCase()));
+      let addedCount = 0;
+      rawSales.forEach(sale => {
+        const idLower = String(sale.id).toLowerCase();
+        if(!existingIds.has(idLower)){
+          existing.push(sale);
+          existingIds.add(idLower);
+          addedCount++;
+        }
+      });
+      existing.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      DB.setSales(existing);
+      Utils.toast(`Imported ${addedCount} sales transaction(s).`, "success");
+      onDone?.();
+    } catch(err){
+      console.error(err);
+      Utils.toast("Sales import failed. Check file format.", "error");
+    }
+  }
+
+  return { exportCategoriesCSV, exportInventoryCSV, exportSalesCSV, exportFullBackup, importInventoryFile, importSalesFile, importFullBackupFile };
 })();
