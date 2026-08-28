@@ -19,8 +19,8 @@
 .pin-pad button:active{ background:var(--paper-dim); }
 .login-hint{ text-align:center; margin-top:14px; color:var(--ink-faint); font-size:var(--fs-xs); font-weight:600; }
 
-/* ============ POS ============ */
-.pos-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 350px; gap:14px; flex:1; min-height:0; min-width:0; height:100%; }
+/* (2026-07-13) Fix POS scroll by removing height:100%; was height:100% */
+.pos-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 350px; gap:14px; flex:1; min-height:0; min-width:0; }
 .pos-catalog{ display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; }
 /* (2026-07-13) Fix search borders and outline; was double focused border */
 .pos-search-row{ display:flex; gap:8px; margin-bottom:8px; flex-shrink:0; }
@@ -56,7 +56,7 @@
 .category-chips::-webkit-scrollbar{ height:3px; }
 .category-chips::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:3px; }
 .category-chips::-webkit-scrollbar-track{ background:transparent; }
-/* (2026-07-13) Add product-grid top margin & polish custom card; was plain */
+/* (2026-07-13) Fix touch scroll & set white image bg; was janky & dim bg */
 .product-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
@@ -64,6 +64,9 @@
   gap:10px;
   margin-top:8px;
   overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain !important;
+  touch-action:pan-y !important;
   padding-right:4px;
   flex:1;
   min-height:0;
@@ -71,24 +74,35 @@
   align-content:start;
 }
 
+/* (2026-07-13) Fix card touch scrolling; was overflow:hidden */
 .product-card{
-  background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden;
+  background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-md);
   cursor:pointer; text-align:left; display:flex; flex-direction:column;
   position:relative; width:100%; min-width:0; padding:0; margin:0;
   color:inherit; font-family:var(--font-body);
-  transition:transform var(--transition), box-shadow var(--transition);
+  transition:box-shadow var(--transition);
+  touch-action:pan-y !important;
+  -webkit-user-select:none; user-select:none;
+  -webkit-touch-callout:none;
 }
-.product-card:active{ transform:scale(.97); }
-/* (2026-07-13) Contained image fit with uniform padding; was cropped cover */
+.product-card *{ pointer-events:none; -webkit-user-drag:none !important; user-select:none; touch-action:pan-y !important; }
+@media (hover: hover) and (pointer: fine){
+  .product-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .product-card:active{ transform:scale(.98); }
+}
 .product-card .thumb{
   width:100%; height:98px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
   position:relative; overflow:hidden; background:var(--paper-dim); border-bottom:1px solid var(--line);
+  touch-action:pan-y;
 }
+.product-card .thumb:has(img), .product-card.has-img .thumb{ background:#ffffff !important; }
 [data-theme="dark"] .product-card .thumb{ background:var(--paper-dim); }
+[data-theme="dark"] .product-card .thumb:has(img), [data-theme="dark"] .product-card.has-img .thumb{ background:#ffffff !important; }
 .product-card .thumb img{
   position:absolute; inset:6px; width:calc(100% - 12px); height:calc(100% - 12px);
   object-fit:contain; object-position:center;
   transition:transform var(--transition);
+  touch-action:pan-y;
 }
 .product-card:hover .thumb img{ transform:scale(1.05); }
 .product-card .thumb .ic-svg{ color:var(--fuel-c, var(--brand)); opacity:.35; }
@@ -453,7 +467,8 @@ table.data th:first-child{
   .pos-cart{ position:sticky; bottom:calc(var(--bottomnav-h) + 8px); max-height:46vh; }
   .fuel-sale-panel{ grid-template-columns:1fr; }
   .grid-2{ grid-template-columns:1fr; }
-  .view{ padding:14px; padding-bottom:calc(var(--bottomnav-h) + 16px); }
+  /* (2026-07-13) Enable view scroll on mobile; was overflow:hidden */
+  .view{ padding:14px; padding-bottom:calc(var(--bottomnav-h) + 16px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
 }
 @media (max-width: 520px){
   .grid-4, .grid-3{ grid-template-columns:repeat(2,1fr); }

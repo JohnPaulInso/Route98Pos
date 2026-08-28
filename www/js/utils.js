@@ -29,12 +29,12 @@ const Utils = (() => {
   }
   function daysAgo(n){ return startOfDay(Date.now()) - n*86400000; }
 
-  // (2026-07-13) Hide default icon on image load; was visible behind image
+  // (2026-07-13) Disable native image drag for smooth scroll; was draggable
   function productThumb(product, opts = {}){
     const iconName = DB.categoryIcon(product.category);
     const size = opts.iconSize || 28;
     const img = product.imageUrl
-      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" onload="if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display='none'" onerror="this.style.display='none';if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display=''">`
+      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" onload="if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display='none'" onerror="this.style.display='none';if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display=''">`
       : "";
     return `${Icons.get(iconName, { size })}${img}`;
   }

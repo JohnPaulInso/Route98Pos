@@ -59,14 +59,19 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  // (2026-07-13) Master snapshot single-write with silent status; was toast alerts
-  async function pushSnapshot(){
+  // (2026-07-13) Guard empty local push and auto-pull cloud state. Prev: empty wipe
+  async function pushSnapshot(force = false){
     const meta = DB.getSyncMeta();
     if(meta.status === "quota") return; // Prevent spamming when quota exceeded
+    const snap = DB.snapshot();
+    const localProducts = snap.products || [];
+    const localSales = snap.sales || [];
+    if(!force && localProducts.length === 0 && localSales.length === 0){
+      return;
+    }
     try{
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
-      const snap = DB.snapshot();
 
       // Master snapshot document write (1 atomic document write)
       await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), snap, { merge:false });
@@ -84,8 +89,8 @@ const Sync = (() => {
     paintStatus();
   }
 
-  // (2026-08-26) Optimized Firestore pull with smart caching; reduces read quota usage
-  async function pullSnapshot(){
+  // (2026-07-13) Auto-pull Firestore cloud snapshot into empty local client. Prev: skipped
+  async function pullSnapshot(force = false){
     try{
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
@@ -97,9 +102,12 @@ const Sync = (() => {
         const localMeta = DB.getSyncMeta();
         const remoteTimestamp = remoteData.exportedAt || 0;
         const localTimestamp = localMeta.lastSynced || 0;
+        const localProducts = DB.getProducts();
+        const localSales = DB.getSales();
+        const isLocalEmpty = localProducts.length === 0 && localSales.length === 0;
         
-        // Only restore if remote is newer than local
-        if(remoteTimestamp > localTimestamp){
+        // Restore if forced, local is empty, or remote is newer
+        if(force || isLocalEmpty || remoteTimestamp > localTimestamp){
           DB.restoreSnapshot(remoteData);
           DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
         } else {
@@ -199,7 +207,7 @@ const Sync = (() => {
     debounceTimer = setTimeout(() => pushSnapshot(), 4000);
   }
 
-  // (2026-08-26) Smart real-time sync with local-first caching; reduces read operations
+  // (2026-07-13) Sync realtime snapshot immediately to new clients. Prev: skipped 1st
   let unsubSnapshot = null;
   async function startRealtimeListener(){
     try{
@@ -208,28 +216,19 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      let isFirstSnapshot = true;
-
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), (docSnap) => {
         if(docSnap.exists()){
-          // Skip first snapshot to avoid redundant read on initial connection
-          if(isFirstSnapshot){
-            isFirstSnapshot = false;
-            return;
-          }
-
           const remoteData = docSnap.data();
           const localMeta = DB.getSyncMeta();
           const remoteTimestamp = remoteData.exportedAt || 0;
           const localTimestamp = localMeta.lastSynced || 0;
+          const localProducts = DB.getProducts();
+          const isLocalEmpty = localProducts.length === 0 && DB.getSales().length === 0;
 
-          // Only update if remote is genuinely newer
-          if(remoteTimestamp > localTimestamp + 2000){ // 2-second buffer to prevent sync loops
-            const localProducts = DB.getProducts();
+          // Only update if local is empty or remote is genuinely newer
+          if(isLocalEmpty || remoteTimestamp > localTimestamp + 2000){
             const remoteProds = remoteData.products || [];
-            
-            // Compare product count as quick diff check
-            if(remoteProds.length !== localProducts.length || JSON.stringify(localProducts) !== JSON.stringify(remoteProds)){
+            if(isLocalEmpty || remoteProds.length !== localProducts.length || JSON.stringify(localProducts) !== JSON.stringify(remoteProds)){
               DB.restoreSnapshot(remoteData);
               DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
               paintStatus();
@@ -269,20 +268,24 @@ const Sync = (() => {
     window.addEventListener("online", () => {
       paintStatus();
       syncOfflineQueue();
-      pushSnapshot();
+      const localProducts = DB.getProducts();
+      if(localProducts.length > 0 || DB.getSales().length > 0){
+        pushSnapshot();
+      } else {
+        pullSnapshot();
+      }
     });
     window.addEventListener("offline", paintStatus);
     paintStatus();
     schedule1159Timer();
     startRealtimeListener();
 
-    // (2026-08-26) Only auto-pull on launch if local DB is empty; prevents redundant reads
+    // Auto-pull on launch if local DB is empty to populate from cloud
     const localProducts = DB.getProducts();
     const localSales = DB.getSales();
     if(localProducts.length === 0 && localSales.length === 0){
       setTimeout(() => pullSnapshot(), 600);
     } else {
-      // Just verify connection, don't pull unless manually requested
       console.log("Local data exists, skipping auto-pull. Use manual sync to refresh.");
     }
   }
