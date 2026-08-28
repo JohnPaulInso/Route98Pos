@@ -4,6 +4,9 @@
 const POS = (() => {
   // (2026-07-13) Auto-sync active held sale & persistent cart; was static cart
   const savedCartState = DB.getSavedCart ? DB.getSavedCart() : { cart: [], discount: { type:"percent", value:0 } };
+  // (2026-07-13) Paginate POS catalog & instant touch response; prev: unpaginated
+  let catalogPage = 1;
+  const CATALOG_PAGE_SIZE = 24;
   let cart = Array.isArray(savedCartState.cart) ? savedCartState.cart : [];
   let searchTerm = "";
   let activeCategory = "ALL";
@@ -837,26 +840,19 @@ const POS = (() => {
   }
 
   // ---------- continuous camera scan mode ----------
+  // (2026-07-13) Open continuous camera scan directly; prev: Modal.confirm prompt
   function openScanMode(){
-    Modal.confirm({
-      title: `${Icons.get("camera",{size:18})} Camera Barcode Scanner`,
-      message: "Allow Route 98 POS to start the camera stream for hardware barcode scanning?",
-      confirmLabel: "Allow & Start",
-      cancelLabel: "Cancel",
-      onConfirm: () => {
-        Scanner.openContinuousScan({
-          title: "Scan items into cart",
-          onHit: (code) => {
-            const product = DB.findByBarcode(code);
-            if(!product) return { ok:false, label:"Unknown code" };
-            const ok = addToCart(product);
-            return { ok, label: ok ? product.name : `${product.name} (max reached)` };
-          },
-          onClose: (count) => {
-            if(count > 0) Utils.toast(`${count} item(s) scanned — review your cart below.`, "success");
-            renderCart();
-          }
-        });
+    Scanner.openContinuousScan({
+      title: "Scan items into cart",
+      onHit: (code) => {
+        const product = DB.findByBarcode(code);
+        if(!product) return { ok:false, label:"Unknown code" };
+        const ok = addToCart(product);
+        return { ok, label: ok ? product.name : `${product.name} (max reached)` };
+      },
+      onClose: (count) => {
+        if(count > 0) Utils.toast(`${count} item(s) scanned — review your cart below.`, "success");
+        renderCart();
       }
     });
   }
@@ -980,13 +976,20 @@ const POS = (() => {
     }
   }
 
-  // (2026-07-13) Pin custom card at top-left & allow cart price edit; was static
+  // (2026-07-13) Paginate catalog (24/pg) with delegated clicks; prev: all items
   function renderCatalog(){
     const grid = document.getElementById("product-grid");
     if(!grid) return;
-    const items = filteredProducts();
-    const customCardHtml = `
-      <button class="product-card custom-item-card" id="btn-grid-custom-item">
+    const allFiltered = filteredProducts();
+    const totalPages = Math.max(1, Math.ceil(allFiltered.length / CATALOG_PAGE_SIZE));
+    if(catalogPage > totalPages) catalogPage = totalPages;
+    if(catalogPage < 1) catalogPage = 1;
+
+    const startIndex = (catalogPage - 1) * CATALOG_PAGE_SIZE;
+    const items = allFiltered.slice(startIndex, startIndex + CATALOG_PAGE_SIZE);
+
+    const customCardHtml = catalogPage === 1 ? `
+      <button class="product-card custom-item-card" id="btn-grid-custom-item" type="button">
         <div class="thumb" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
           <div class="custom-card-icon">
             ${Icons.get("plus",{size:22,strokeWidth:2.3})}
@@ -997,7 +1000,7 @@ const POS = (() => {
           <span class="name" style="color:var(--ink);font-weight:700;min-height:auto;">Open Price</span>
           <div class="price" style="font-size:.74rem;color:var(--brand-deep);font-weight:700;margin-top:2px;">₱ Tap to Set</div>
         </div>
-      </button>`;
+      </button>` : "";
 
     const cardsHtml = items.map(p => {
       const hasDual = p.piecesPerPack > 1;
@@ -1008,7 +1011,7 @@ const POS = (() => {
         ? `${fullPacks}pk + ${loose}pc`
         : `${p.stock}`;
       return `
-      <button class="product-card ${p.stock<=0?"oos":""}" data-id="${p.id}">
+      <button class="product-card ${p.stock<=0?"oos":""}" data-id="${p.id}" type="button">
         <div class="thumb">
           ${Utils.productThumb(p, { iconSize:30 })}
           <span class="stock-tag badge ${p.stock<=0?"badge-rust": p.stock<=p.lowStockThreshold ? "badge-amber":"badge-green"}">${stockBadgeText}</span>
@@ -1028,21 +1031,59 @@ const POS = (() => {
 
     grid.innerHTML = customCardHtml + (items.length ? cardsHtml : `<div class="empty" style="grid-column:2/-1;">${Icons.get("search",{size:34})}<h3>No products found</h3><p>Try a different search or category.</p></div>`);
 
-    const customBtn = document.getElementById("btn-grid-custom-item");
-    if(customBtn) customBtn.onclick = openCustomItemModal;
-
-    grid.querySelectorAll(".product-card[data-id]").forEach(btn => btn.onclick = () => {
-      const p = DB.getProducts().find(x=>x.id===btn.dataset.id);
+    // Delegated click handler for immediate touch response without listener lag
+    grid.onclick = (e) => {
+      const customBtn = e.target.closest("#btn-grid-custom-item");
+      if(customBtn){
+        openCustomItemModal();
+        return;
+      }
+      const card = e.target.closest(".product-card[data-id]");
+      if(!card || card.classList.contains("oos")) return;
+      const pid = card.dataset.id;
+      const p = DB.getProducts().find(x => x.id === pid);
       if(!p) return;
       if(p.piecesPerPack > 1){
-        promptDualUnitSale(p, btn);
+        promptDualUnitSale(p, card);
       } else {
         if(addToCart(p, 1, "piece")){
-          animateFlyToCart(btn, p);
-          Utils.toast(`Added ${p.name}`, "success", 1200);
+          animateFlyToCart(card, p);
+          Utils.toast(`Added ${p.name}`, "success", 1000);
         }
       }
-    });
+    };
+
+    const pag = document.getElementById("pos-pagination");
+    if(pag){
+      if(allFiltered.length > CATALOG_PAGE_SIZE){
+        const startItem = startIndex + 1;
+        const endItem = Math.min(allFiltered.length, startIndex + CATALOG_PAGE_SIZE);
+        let pageBtnsHtml = "";
+        for(let i = 1; i <= totalPages; i++){
+          if(i === 1 || i === totalPages || (i >= catalogPage - 1 && i <= catalogPage + 1)){
+            pageBtnsHtml += `<button class="btn-page ${i===catalogPage?"active":""}" data-pos-page="${i}">${i}</button>`;
+          } else if(i === catalogPage - 2 || i === catalogPage + 2){
+            pageBtnsHtml += `<span style="padding:0 4px;color:var(--ink-faint);">…</span>`;
+          }
+        }
+        pag.style.display = "flex";
+        pag.innerHTML = `
+          <div style="font-size:.78rem;color:var(--ink-faint);">Showing <strong>${startItem}–${endItem}</strong> of <strong>${allFiltered.length}</strong> items</div>
+          <div class="pagination-controls">
+            <button class="btn-page" id="pos-prev-page" ${catalogPage<=1?"disabled":""} title="Previous">${Icons.get("chevron-left",{size:13})}</button>
+            ${pageBtnsHtml}
+            <button class="btn-page" id="pos-next-page" ${catalogPage>=totalPages?"disabled":""} title="Next"><span style="display:inline-flex;transform:rotate(180deg);">${Icons.get("chevron-left",{size:13})}</span></button>
+          </div>`;
+        pag.querySelector("#pos-prev-page")?.addEventListener("click", () => { if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; } });
+        pag.querySelector("#pos-next-page")?.addEventListener("click", () => { if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; } });
+        pag.querySelectorAll("[data-pos-page]").forEach(btn => {
+          btn.onclick = () => { catalogPage = Number(btn.dataset.posPage); renderCatalog(); grid.scrollTop = 0; };
+        });
+      } else {
+        pag.style.display = "none";
+        pag.innerHTML = "";
+      }
+    }
   }
 
   function promptDualUnitSale(product, fromBtn){
@@ -1263,6 +1304,7 @@ const POS = (() => {
           </div>
           <div class="category-chips" id="cat-chips"></div>
           <div class="product-grid" id="product-grid"></div>
+          <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:6px;padding:6px 2px;flex-shrink:0;"></div>
         </div>
         <div class="pos-cart">
           <div class="cart-head"><h3>${Icons.get("cart",{size:17})} Current Sale</h3><span class="badge badge-neutral" id="cart-count">0 items</span></div>
@@ -1273,7 +1315,7 @@ const POS = (() => {
 
     const chips = document.getElementById("cat-chips");
     chips.innerHTML = categoryList().map(c => `<div class="chip ${c===activeCategory?"active":""}" data-c="${c}">${c}</div>`).join("");
-    chips.querySelectorAll(".chip").forEach(c => c.onclick = () => { activeCategory = c.dataset.c; renderCatalog(); chips.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c)); });
+    chips.querySelectorAll(".chip").forEach(c => c.onclick = () => { activeCategory = c.dataset.c; catalogPage = 1; renderCatalog(); chips.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c)); });
     // (2026-07-13) Enable mouse wheel scroll on category chips; was vertical only
     chips.addEventListener("wheel", (e) => {
       if(e.deltaY !== 0){
@@ -1284,10 +1326,12 @@ const POS = (() => {
 
     // (2026-07-13) Auto-reset POS search term on navigation; was persistent
     searchTerm = "";
+    catalogPage = 1;
     const search = document.getElementById("pos-search");
     const clearBtn = document.getElementById("btn-clear-pos-search");
     const onSearchChange = (val) => {
       searchTerm = val;
+      catalogPage = 1;
       if(clearBtn){
         if(val.length > 0){
           clearBtn.classList.add("visible");

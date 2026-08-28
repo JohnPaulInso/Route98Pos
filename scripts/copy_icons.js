@@ -10,42 +10,11 @@ if (!fs.existsSync(logoSrc)) {
   process.exit(1);
 }
 
-const mipmapFolders = [
-  'mipmap-hdpi',
-  'mipmap-mdpi',
-  'mipmap-xhdpi',
-  'mipmap-xxhdpi',
-  'mipmap-xxxhdpi'
-];
-
-mipmapFolders.forEach(folder => {
-  const targetDir = path.join(resDir, folder);
-  if (fs.existsSync(targetDir)) {
-    fs.copyFileSync(logoSrc, path.join(targetDir, 'ic_launcher.png'));
-    fs.copyFileSync(logoSrc, path.join(targetDir, 'ic_launcher_round.png'));
-    fs.copyFileSync(logoSrc, path.join(targetDir, 'ic_launcher_foreground.png'));
-  }
-});
-
-const drawableFolders = [
-  'drawable',
-  'drawable-land-hdpi',
-  'drawable-land-mdpi',
-  'drawable-land-xhdpi',
-  'drawable-land-xxhdpi',
-  'drawable-land-xxxhdpi',
-  'drawable-port-hdpi',
-  'drawable-port-mdpi',
-  'drawable-port-xhdpi',
-  'drawable-port-xxhdpi',
-  'drawable-port-xxxhdpi'
-];
-
-drawableFolders.forEach(folder => {
-  const targetDir = path.join(resDir, folder);
-  if (fs.existsSync(targetDir)) {
-    fs.copyFileSync(logoSrc, path.join(targetDir, 'splash.png'));
-  }
-});
-
-console.log('Route 98 app launcher icons and splash screens successfully updated.');
+// (2026-07-13) Generate padded white-bg launcher icons; prev: raw file copy
+try {
+  const { execSync } = require('child_process');
+  const psScript = path.join(__dirname, 'process_icons.ps1');
+  execSync(`powershell -ExecutionPolicy Bypass -File "${psScript}"`, { stdio: 'inherit' });
+} catch(err) {
+  console.warn('Icon processing fallback:', err.message);
+}

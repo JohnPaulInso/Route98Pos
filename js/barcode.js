@@ -145,19 +145,39 @@ const Scanner = (() => {
     const video = overlay.querySelector("#scan-video");
     video.srcObject = stream;
 
+    // (2026-07-13) Bind Android/browser back button to close scan mode; prev: exited app
+    history.pushState({ scannerOpen: true }, "");
     let stopped = false, raf, count = 0;
     const lastByCode = {};
     const COOLDOWN_MS = 1400;
 
-    function stop(){
+    let capBackListener = null;
+    const handlePopState = () => {
+      if(!stopped) stop(false);
+    };
+    window.addEventListener("popstate", handlePopState);
+
+    if(window.Capacitor?.Plugins?.App){
+      window.Capacitor.Plugins.App.addListener('backButton', () => {
+        if(!stopped) stop(true);
+      }).then(handle => { capBackListener = handle; }).catch(()=>{});
+    }
+
+    function stop(popHistory = true){
+      if(stopped) return;
       stopped = true;
+      window.removeEventListener("popstate", handlePopState);
+      if(capBackListener && capBackListener.remove) capBackListener.remove();
       cancelAnimationFrame(raf);
       stream.getTracks().forEach(t => t.stop());
       overlay.remove();
       document.body.classList.remove("scroll-locked");
+      if(popHistory && history.state?.scannerOpen){
+        history.back();
+      }
       onClose?.(count);
     }
-    overlay.querySelector("#scan-close-btn").onclick = stop;
+    overlay.querySelector("#scan-close-btn").onclick = () => stop(true);
 
     function pushRecent(label, ok){
       const list = overlay.querySelector("#scan-recent-list");

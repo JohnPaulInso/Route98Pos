@@ -1,10 +1,11 @@
-*,*::before,*::after{ box-sizing:border-box; touch-action:manipulation; }
+/* (2026-07-13) Lock overscroll stretching across all elements; prev: html/body only */
+*,*::before,*::after{ box-sizing:border-box; touch-action:manipulation; overscroll-behavior:none !important; overscroll-behavior-y:none !important; }
 /* (2026-07-13) Scale root typography to balanced 13.5px; was 15px */
 html{
   font-size:13.5px;
   height:100%;
-  overscroll-behavior:none;
-  overscroll-behavior-y:none;
+  overscroll-behavior:none !important;
+  overscroll-behavior-y:none !important;
   -webkit-text-size-adjust:100%;
 }
 /* (2026-07-13) Disable overscroll stretching & enable 0ms touch response; was contain */
