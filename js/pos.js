@@ -194,14 +194,26 @@ const POS = (() => {
     }
   }
 
+  // (2026-07-13) Auto-add by barcode, clear search field & sound alert. Prev: no clear
   function addByBarcode(code){
     const clean = String(code).trim();
+    const search = document.getElementById("pos-search");
+    if(search){
+      search.value = "";
+      searchTerm = "";
+    }
     const product = DB.findByBarcode(clean);
-    if(!product){ Utils.toast(`No product found for barcode ${code}.`, "error"); return; }
+    if(!product){
+      Utils.Sound.error();
+      Utils.toast(`No product found for barcode ${code}.`, "error");
+      renderCatalog();
+      return;
+    }
     const isPack = product.packBarcode && product.packBarcode === clean;
     if(addToCart(product, 1, isPack ? "pack" : "piece")){
       Utils.toast(`Added ${product.name}${isPack ? " (Pack)" : ""}`, "success", 1200);
     }
+    renderCatalog();
   }
 
   function changeQty(cartIndex, delta){
@@ -1361,13 +1373,17 @@ const POS = (() => {
     const chips = document.getElementById("cat-chips");
     chips.innerHTML = categoryList().map(c => `<div class="chip ${c===activeCategory?"active":""}" data-c="${c}">${c}</div>`).join("");
     chips.querySelectorAll(".chip").forEach(c => c.onclick = () => { activeCategory = c.dataset.c; catalogPage = 1; renderCatalog(); chips.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c)); });
-    // (2026-07-13) Enable mouse wheel scroll on category chips; was vertical only
-    chips.addEventListener("wheel", (e) => {
-      if(e.deltaY !== 0){
-        e.preventDefault();
-        chips.scrollLeft += e.deltaY;
-      }
-    }, { passive: false });
+
+    // (2026-07-13) Regular vertical mouse wheel scrolling on PC mode; was horizontal lock
+    const catalogEl = document.querySelector(".pos-catalog");
+    const gridEl = document.getElementById("product-grid");
+    if(catalogEl && gridEl){
+      catalogEl.addEventListener("wheel", (e) => {
+        if(e.deltaY !== 0 && !gridEl.contains(e.target)){
+          gridEl.scrollTop += e.deltaY;
+        }
+      }, { passive: true });
+    }
 
     // (2026-07-13) Auto-reset POS search term on navigation; was persistent
     searchTerm = "";
@@ -1375,6 +1391,19 @@ const POS = (() => {
     const search = document.getElementById("pos-search");
     const clearBtn = document.getElementById("btn-clear-pos-search");
     const onSearchChange = (val) => {
+      const clean = String(val || "").trim();
+      if(clean.length >= 3){
+        const matched = DB.findByBarcode(clean);
+        if(matched){
+          addByBarcode(clean);
+          search.value = "";
+          searchTerm = "";
+          catalogPage = 1;
+          if(clearBtn) clearBtn.classList.remove("visible");
+          renderCatalog();
+          return;
+        }
+      }
       searchTerm = val;
       catalogPage = 1;
       if(clearBtn){
@@ -1386,7 +1415,37 @@ const POS = (() => {
       }
       renderCatalog();
     };
+
     search.addEventListener("input", Utils.debounce((e)=>{ onSearchChange(e.target.value); }, 120));
+    search.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        const clean = String(search.value || "").trim();
+        if(clean){
+          const matched = DB.findByBarcode(clean);
+          if(matched){
+            addByBarcode(clean);
+          } else {
+            const allProducts = DB.getProducts();
+            const filtered = allProducts.filter(p => (p.name||"").toLowerCase().includes(clean.toLowerCase()) || (p.brand||"").toLowerCase().includes(clean.toLowerCase()) || (p.barcode||"") === clean);
+            if(filtered.length >= 1){
+              if(filtered[0].piecesPerPack > 1){
+                promptDualUnitSale(filtered[0]);
+              } else {
+                addToCart(filtered[0], 1, "piece");
+                Utils.toast(`Added ${filtered[0].name}`, "success", 1000);
+              }
+            } else {
+              Utils.Sound.error();
+              Utils.toast(`No product found for "${clean}"`, "error");
+            }
+          }
+          search.value = "";
+          onSearchChange("");
+        }
+      }
+    });
+
     if(clearBtn){
       clearBtn.onclick = () => {
         search.value = "";

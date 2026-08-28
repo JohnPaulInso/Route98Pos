@@ -8,7 +8,9 @@ const Scanner = (() => {
   let buffer = "";
   let lastKeyTime = 0;
   let listener = null; // active context callback: (code) => void
-  const FAST_KEY_THRESHOLD = 40; // ms between keystrokes = scanner speed, not human typing
+  const FAST_KEY_THRESHOLD = 50; // ms between keystrokes = scanner speed, not human typing
+  let isFastScanning = false;
+  let scanResetTimer = null;
 
   function setContext(fn){ listener = fn; }
   function clearContext(){ listener = null; }
@@ -21,35 +23,64 @@ const Scanner = (() => {
     setTimeout(()=> el.remove(), 1400);
   }
 
+  // (2026-07-13) Auto-route typing to POS search and replace on barcode scan; was plain buffer
   function handleGlobalKeydown(e){
-    // Ignore when typing in a normal text field that isn't the dedicated scan target,
-    // UNLESS the keystroke cadence looks like a hardware scanner (very fast).
     const now = Date.now();
     const gap = now - lastKeyTime;
     lastKeyTime = now;
 
-    const isTypingField = ["INPUT","TEXTAREA"].includes(document.activeElement?.tagName) &&
-                            !document.activeElement.classList.contains("scan-target");
+    const modalOpen = !!document.querySelector(".modal-backdrop, .modal, .modal-wrap");
+    const activeEl = document.activeElement;
+    const isOtherField = ["INPUT","TEXTAREA","SELECT"].includes(activeEl?.tagName) &&
+                         !activeEl.classList.contains("scan-target");
+
+    if(modalOpen || (isOtherField && gap > FAST_KEY_THRESHOLD)){
+      return;
+    }
+
+    const scanInput = document.getElementById("pos-search") || document.querySelector(".scan-target");
 
     if(e.key === "Enter"){
       if(buffer.length >= 3){
-        const code = buffer;
+        const code = buffer.trim();
         buffer = "";
-        if(isTypingField) return; // let normal Enter behave normally in forms
+        isFastScanning = false;
+        if(scanInput){
+          scanInput.value = "";
+          if(typeof Pos !== "undefined" && Pos.resetSearch) Pos.resetSearch();
+        }
         e.preventDefault();
         flashBanner(code);
         if(listener) listener(code);
-        else Utils.toast(`Scanned ${code} — open POS or Inventory to use it.`, "info");
+        else Utils.toast(`Scanned ${code}`, "info");
+        return;
       }
       return;
     }
 
-    if(e.key.length === 1){
-      if(gap > FAST_KEY_THRESHOLD + 60 && !isTypingField){
-        buffer = ""; // reset — this looks like a fresh human keypress, not scanner burst
-      }
-      if(!isTypingField || gap < FAST_KEY_THRESHOLD){
+    if(e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey){
+      if(gap < FAST_KEY_THRESHOLD){
+        if(!isFastScanning){
+          isFastScanning = true;
+          buffer = "";
+          if(scanInput) scanInput.value = "";
+        }
+        clearTimeout(scanResetTimer);
+        scanResetTimer = setTimeout(() => { isFastScanning = false; buffer = ""; }, 300);
         buffer += e.key;
+        if(scanInput){
+          scanInput.value = buffer;
+          e.preventDefault();
+        }
+      } else {
+        isFastScanning = false;
+        buffer = e.key;
+        if(scanInput && activeEl !== scanInput){
+          scanInput.focus();
+          scanInput.value += e.key;
+          scanInput.dispatchEvent(new Event("input", { bubbles: true }));
+          e.preventDefault();
+        }
       }
     }
   }

@@ -23,7 +23,8 @@ const App = (() => {
     {
       group: "OPERATIONS",
       views: [
-        { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin","cashier"], color:"#4B5563" },
+        // (2026-07-13) Restrict inventory access to admin only. Prev: admin,cashier
+        { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin"], color:"#4B5563" },
         { id:"expenses", label:"Expenses (OPEX)", ic:"dollar-sign", mod:Expenses, roles:["admin"], color:"#DC2626" },
         { id:"reports", label:"Reports", ic:"clipboard", mod:Reports, roles:["admin","cashier"], color:"#4B5563" }
       ]
