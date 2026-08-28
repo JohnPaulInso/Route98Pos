@@ -4,9 +4,9 @@
 const POS = (() => {
   // (2026-07-13) Auto-sync active held sale & persistent cart; was static cart
   const savedCartState = DB.getSavedCart ? DB.getSavedCart() : { cart: [], discount: { type:"percent", value:0 } };
-  // (2026-07-13) Paginate POS catalog & instant touch response; prev: unpaginated
+  // (2026-07-13) Limit POS catalog to 50 per page; was 24 items
   let catalogPage = 1;
-  const CATALOG_PAGE_SIZE = 24;
+  const CATALOG_PAGE_SIZE = 50;
   let cart = Array.isArray(savedCartState.cart) ? savedCartState.cart : [];
   let searchTerm = "";
   let activeCategory = "ALL";
@@ -988,8 +988,9 @@ const POS = (() => {
     const startIndex = (catalogPage - 1) * CATALOG_PAGE_SIZE;
     const items = allFiltered.slice(startIndex, startIndex + CATALOG_PAGE_SIZE);
 
+    // (2026-07-13) Render cards without tabindex for smooth scroll; was button
     const customCardHtml = catalogPage === 1 ? `
-      <button class="product-card custom-item-card" id="btn-grid-custom-item" type="button">
+      <div class="product-card custom-item-card" id="btn-grid-custom-item" role="button">
         <div class="thumb" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
           <div class="custom-card-icon">
             ${Icons.get("plus",{size:22,strokeWidth:2.3})}
@@ -1000,7 +1001,7 @@ const POS = (() => {
           <span class="name" style="color:var(--ink);font-weight:700;min-height:auto;">Open Price</span>
           <div class="price" style="font-size:.74rem;color:var(--brand-deep);font-weight:700;margin-top:2px;">₱ Tap to Set</div>
         </div>
-      </button>` : "";
+      </div>` : "";
 
     const cardsHtml = items.map(p => {
       const hasDual = p.piecesPerPack > 1;
@@ -1010,8 +1011,10 @@ const POS = (() => {
       const stockBadgeText = hasDual
         ? `${fullPacks}pk + ${loose}pc`
         : `${p.stock}`;
+      // (2026-07-13) Tag cards with has-img for white background; was plain
+      const hasImg = !!(p.imageUrl && p.imageUrl.trim());
       return `
-      <button class="product-card ${p.stock<=0?"oos":""}" data-id="${p.id}" type="button">
+      <div class="product-card ${p.stock<=0?"oos":""} ${hasImg?"has-img":""}" data-id="${p.id}" role="button">
         <div class="thumb">
           ${Utils.productThumb(p, { iconSize:30 })}
           <span class="stock-tag badge ${p.stock<=0?"badge-rust": p.stock<=p.lowStockThreshold ? "badge-amber":"badge-green"}">${stockBadgeText}</span>
@@ -1026,13 +1029,55 @@ const POS = (() => {
             }
           </div>
         </div>
-      </button>`;
+      </div>`;
     }).join("");
 
     grid.innerHTML = customCardHtml + (items.length ? cardsHtml : `<div class="empty" style="grid-column:2/-1;">${Icons.get("search",{size:34})}<h3>No products found</h3><p>Try a different search or category.</p></div>`);
 
-    // Delegated click handler for immediate touch response without listener lag
+    // (2026-07-13) Add kinetic touch scroll on product cards; was plain click
+    let isScrollDragging = false;
+    let dragStartY = 0, dragStartScrollTop = 0, dragLastY = 0, dragLastTime = 0, dragVelocityY = 0;
+    let momentumTimer = null;
+    grid.onpointerdown = (e) => {
+      if(momentumTimer) cancelAnimationFrame(momentumTimer);
+      isScrollDragging = false;
+      dragStartY = e.clientY;
+      dragStartScrollTop = grid.scrollTop;
+      dragLastY = e.clientY;
+      dragLastTime = performance.now();
+      dragVelocityY = 0;
+    };
+    grid.onpointermove = (e) => {
+      const deltaY = e.clientY - dragStartY;
+      if(!isScrollDragging && Math.abs(deltaY) > 6){
+        isScrollDragging = true;
+      }
+      if(isScrollDragging){
+        grid.scrollTop = dragStartScrollTop - deltaY;
+        const now = performance.now();
+        const dt = Math.max(1, now - dragLastTime);
+        dragVelocityY = (dragLastY - e.clientY) / dt;
+        dragLastY = e.clientY;
+        dragLastTime = now;
+      }
+    };
+    grid.onpointerup = () => {
+      if(isScrollDragging){
+        let v = dragVelocityY * 16;
+        const step = () => {
+          if(Math.abs(v) > 0.5){
+            grid.scrollTop += v;
+            v *= 0.92;
+            momentumTimer = requestAnimationFrame(step);
+          }
+        };
+        if(Math.abs(v) > 1) momentumTimer = requestAnimationFrame(step);
+        setTimeout(() => { isScrollDragging = false; }, 80);
+      }
+    };
+    grid.onpointercancel = () => { isScrollDragging = false; };
     grid.onclick = (e) => {
+      if(isScrollDragging) return;
       const customBtn = e.target.closest("#btn-grid-custom-item");
       if(customBtn){
         openCustomItemModal();

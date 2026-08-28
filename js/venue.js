@@ -555,11 +555,17 @@ const Venue = (() => {
       });
     }
 
+    // (2026-07-13) Hold long-press then drag for venue booking; was click only
+    let longPressTimer = null;
+    let touchStartX = 0, touchStartY = 0;
+    let hasMovedDuringDrag = false;
+
     scrollWrap.querySelectorAll(".venue-cell-slot").forEach(cell => {
       cell.addEventListener("mousedown", (e) => {
         if(e.button !== 0) return;
         if(cell.dataset.past === "true") return;
         isDragging = true;
+        hasMovedDuringDrag = false;
         dragDate = cell.dataset.date;
         dragStartH = parseInt(cell.dataset.hour.split(":")[0], 10);
         dragEndH = dragStartH;
@@ -570,12 +576,31 @@ const Venue = (() => {
       cell.addEventListener("mouseenter", () => {
         if(!isDragging) return;
         if(cell.dataset.date !== dragDate) return;
+        hasMovedDuringDrag = true;
         dragEndH = parseInt(cell.dataset.hour.split(":")[0], 10);
         updateHighlight();
       });
 
+      cell.addEventListener("touchstart", (e) => {
+        if(cell.dataset.past === "true" || e.touches.length > 1) return;
+        if(longPressTimer) clearTimeout(longPressTimer);
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        hasMovedDuringDrag = false;
+        longPressTimer = setTimeout(() => {
+          isDragging = true;
+          dragDate = cell.dataset.date;
+          dragStartH = parseInt(cell.dataset.hour.split(":")[0], 10);
+          dragEndH = dragStartH;
+          dragArea = cell.dataset.area || "";
+          if(navigator.vibrate) navigator.vibrate(25);
+          updateHighlight();
+        }, 220);
+      }, { passive: true });
+
       cell.addEventListener("click", () => {
-        if(cell.dataset.past === "true") return;
+        if(cell.dataset.past === "true" || hasMovedDuringDrag) return;
         const date = cell.dataset.date;
         const h = parseInt(cell.dataset.hour.split(":")[0], 10);
         const startVal = `${String(h).padStart(2,"0")}:00`;
@@ -585,9 +610,10 @@ const Venue = (() => {
     });
 
     const handleMouseUp = () => {
+      if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
       if(isDragging){
         isDragging = false;
-        if(dragDate && dragStartH !== null){
+        if(dragDate && dragStartH !== null && hasMovedDuringDrag){
           const minH = Math.min(dragStartH, dragEndH !== null ? dragEndH : dragStartH);
           const maxH = Math.max(dragStartH, dragEndH !== null ? dragEndH : dragStartH);
           const startVal = `${String(minH).padStart(2,"0")}:00`;
@@ -602,8 +628,34 @@ const Venue = (() => {
       }
     };
 
+    const handleTouchMove = (e) => {
+      if(!isDragging){
+        if(longPressTimer){
+          const touch = e.touches[0];
+          if(Math.abs(touch.clientX - touchStartX) > 8 || Math.abs(touch.clientY - touchStartY) > 8){
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }
+        return;
+      }
+      e.preventDefault();
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      const slot = target ? target.closest(".venue-cell-slot") : null;
+      if(slot && slot.dataset.date === dragDate){
+        hasMovedDuringDrag = true;
+        dragEndH = parseInt(slot.dataset.hour.split(":")[0], 10);
+        updateHighlight();
+      }
+    };
+
     window.removeEventListener("mouseup", handleMouseUp);
     window.addEventListener("mouseup", handleMouseUp);
+    window.removeEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.removeEventListener("touchend", handleMouseUp);
+    window.addEventListener("touchend", handleMouseUp, { passive: false });
   }
 
   // ============ 7-DAY CALENDAR TAPE CHART (ZOHO / HOTEL STYLE) ============
