@@ -1372,9 +1372,9 @@ const Inventory = (() => {
       const unitProfit = (p.price || 0) - (p.cost || 0);
       const potentialProfit = Math.max(0, (p.stock || 0) * unitProfit);
       const marginPct = (p.price || 0) > 0 ? (unitProfit / p.price) * 100 : 0;
-      // (2026-07-13) Fix stock wrap, compact category & enlarge table numbers; was small
+      // (2026-07-13) Add data-prod-row & cursor for row long-press; was select only
       return `
-      <tr class="${p.stock<=0 ? "out-of-stock" : low ? "low-stock" : ""} ${isSelected ? "inv-row-selected" : ""}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : ""}>
+      <tr class="${p.stock<=0 ? "out-of-stock" : low ? "low-stock" : ""} ${isSelected ? "inv-row-selected" : ""}" data-prod-row="${p.id}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : `style="cursor:pointer;"`}>
        ${selectMode ? `<td class="inv-select-col"><input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""}></td>` : ""}
         <!-- (2026-07-13) Click-to-copy name & modal image preview. Prev: static text -->
         <td style="min-width:180px;">
@@ -1472,6 +1472,38 @@ const Inventory = (() => {
         const p = DB.getProducts().find(x => x.id === el.dataset.previewImg);
         if(p) openImagePreviewModal(p);
       };
+    });
+
+    // (2026-07-13) Long-press table row opens edit modal directly; was click only
+    tbody.querySelectorAll("[data-prod-row]").forEach(row => {
+      let timer = null;
+      let startX = 0, startY = 0;
+      let isLongPress = false;
+      row.addEventListener("pointerdown", (e) => {
+        if(e.target.closest("button, input, [data-preview-img], [data-copy-name]")) return;
+        startX = e.clientX;
+        startY = e.clientY;
+        isLongPress = false;
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          isLongPress = true;
+          if(navigator.vibrate) navigator.vibrate(50);
+          const p = DB.getProducts().find(x => x.id === row.dataset.prodRow);
+          if(p) openProductForm(p);
+        }, 500);
+      });
+      row.addEventListener("pointermove", (e) => {
+        if(Math.hypot(e.clientX - startX, e.clientY - startY) > 10) clearTimeout(timer);
+      });
+      row.addEventListener("pointerup", () => clearTimeout(timer));
+      row.addEventListener("pointercancel", () => clearTimeout(timer));
+      row.addEventListener("click", (e) => {
+        if(isLongPress){
+          e.preventDefault();
+          e.stopPropagation();
+          isLongPress = false;
+        }
+      }, true);
     });
 
     tbody.querySelectorAll("[data-edit]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductForm(DB.getProducts().find(p=>p.id===b.dataset.edit)); });

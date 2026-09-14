@@ -120,23 +120,10 @@ const POS = (() => {
     };
   }
 
-  // (2026-07-13) Support dual-unit pack/piece tracking in POS; was single unit
+  // (2026-07-13) Allow negative stock add to cart; was out-of-stock toast
   function addToCart(product, qty = 1, unitType = "piece"){
-    if(product.stock <= 0){ Utils.toast(`${product.name} is out of stock.`, "warn"); return false; }
     const piecesPerPack = product.piecesPerPack > 1 ? product.piecesPerPack : 1;
-    const inCartPieces = cart.filter(l => l.productId === product.id)
-      .reduce((sum, l) => sum + (l.unitType === "pack" ? l.qty * piecesPerPack : l.qty), 0);
-
     if(unitType === "pack"){
-      const packsAvailable = Math.floor((product.stock - inCartPieces) / piecesPerPack);
-      if(packsAvailable < qty){
-        if(Math.floor(product.stock / piecesPerPack) < 1){
-          Utils.toast(`Cannot sell full pack: only ${product.stock % piecesPerPack} loose piece(s) remaining (need ${piecesPerPack} pcs/pack).`, "warn", 3500);
-        } else {
-          Utils.toast(`Only ${packsAvailable} full pack(s) available in stock.`, "warn", 3000);
-        }
-        return false;
-      }
       pushState();
       const line = cart.find(l => l.productId === product.id && l.unitType === "pack");
       const packPrice = product.packPrice || (product.price * piecesPerPack);
@@ -162,12 +149,6 @@ const POS = (() => {
       Utils.Sound.beep();
       return true;
     } else {
-      const piecesAvailable = product.stock - inCartPieces;
-      if(piecesAvailable < qty){
-        Utils.Sound.error();
-        Utils.toast(`Only ${piecesAvailable} piece(s) available in stock.`, "warn", 3000);
-        return false;
-      }
       pushState();
       const line = cart.find(l => l.productId === product.id && l.unitType === "piece");
       if(line){
@@ -245,21 +226,7 @@ const POS = (() => {
     }
     const product = DB.getProducts().find(p => p.id === line.productId);
     if(!product) return;
-    if(delta > 0){
-      const otherPieces = cart.filter((l, i) => l.productId === line.productId && i !== cartIndex)
-        .reduce((sum, l) => sum + (l.unitType === "pack" ? l.qty * piecesPerPack : l.qty), 0);
-      const neededPieces = line.unitType === "pack" ? nextQty * piecesPerPack : nextQty;
-      if(otherPieces + neededPieces > product.stock){
-        Utils.Sound.error();
-        if(line.unitType === "pack"){
-          const availPacks = Math.floor((product.stock - otherPieces) / piecesPerPack);
-          Utils.toast(`Cannot add full pack: only ${availPacks} pack(s) available.`, "warn");
-        } else {
-          Utils.toast(`Only ${product.stock - otherPieces} piece(s) available.`, "warn");
-        }
-        return;
-      }
-    }
+    // (2026-07-13) Allow cart qty increase beyond stock count; was capped at stock
     pushState();
     line.qty = nextQty;
     Utils.Sound.click();
@@ -780,7 +747,8 @@ const POS = (() => {
       const p = products.find(x => x.id === line.productId);
       if(p){
         const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? line.qty * p.piecesPerPack : line.qty;
-        p.stock = Math.max(0, Utils.round2(p.stock - pieces));
+        // (2026-07-13) Record negative stock on sale; was Math.max(0, remaining)
+        p.stock = Utils.round2(p.stock - pieces);
       }
     });
     DB.setProducts(products);
@@ -1054,21 +1022,25 @@ const POS = (() => {
         </div>
       </div>` : "";
 
+    // (2026-07-13) Show negative stock badge in catalog; was non-negative stock
     const cardsHtml = items.map(p => {
       const hasDual = p.piecesPerPack > 1;
-      const fullPacks = hasDual ? Math.floor(p.stock / p.piecesPerPack) : 0;
-      const loose = hasDual ? p.stock % p.piecesPerPack : 0;
+      const inCartPieces = cart.filter(l => l.productId === p.id)
+        .reduce((sum, l) => sum + (l.unitType === "pack" ? l.qty * (p.piecesPerPack > 1 ? p.piecesPerPack : 1) : l.qty), 0);
+      const effectiveStock = p.stock - inCartPieces;
+      const fullPacks = hasDual ? Math.floor(effectiveStock / p.piecesPerPack) : 0;
+      const loose = hasDual ? effectiveStock % p.piecesPerPack : 0;
       const packPrice = p.packPrice || (p.price * (p.piecesPerPack || 1));
       const stockBadgeText = hasDual
-        ? `${fullPacks}pk + ${loose}pc`
-        : `${p.stock}`;
+        ? (effectiveStock < 0 ? `${effectiveStock} pc` : `${fullPacks}pk + ${loose}pc`)
+        : `${effectiveStock}`;
       // (2026-07-13) Tag cards with has-img for white background; was plain
       const hasImg = !!(p.imageUrl && p.imageUrl.trim());
       return `
-      <div class="product-card ${p.stock<=0?"oos":""} ${hasImg?"has-img":""}" data-id="${p.id}" role="button">
+      <div class="product-card ${effectiveStock<=0?"oos":""} ${hasImg?"has-img":""}" data-id="${p.id}" role="button">
         <div class="thumb">
           ${Utils.productThumb(p, { iconSize:30 })}
-          <span class="stock-tag badge ${p.stock<=0?"badge-rust": p.stock<=p.lowStockThreshold ? "badge-amber":"badge-green"}">${stockBadgeText}</span>
+          <span class="stock-tag badge ${effectiveStock<=0?"badge-rust": effectiveStock<=p.lowStockThreshold ? "badge-amber":"badge-green"}">${stockBadgeText}</span>
         </div>
         <div class="info">
           ${p.brand ? `<span class="brand-lbl">${Utils.escapeHtml(p.brand)}</span>` : ""}
@@ -1138,7 +1110,8 @@ const POS = (() => {
         return;
       }
       const card = e.target.closest(".product-card[data-id]");
-      if(!card || card.classList.contains("oos")) return;
+      // (2026-07-13) Allow clicking zero/negative stock cards; was blocked on oos
+      if(!card) return;
       const pid = card.dataset.id;
       const p = DB.getProducts().find(x => x.id === pid);
       if(!p) return;
@@ -1192,13 +1165,14 @@ const POS = (() => {
     const loose = product.stock % piecesPerPack;
     const body = `
       <p class="text-sm text-faint" style="margin-bottom:12px;">Available: <strong>${fullPacks} full pack(s)</strong> (${piecesPerPack} pcs/pk) · <strong>${loose} loose piece(s)</strong> (Total: ${product.stock} pcs)</p>
+      <!-- (2026-07-13) Enable pack and piece at zero stock; was disabled -->
       <div class="grid-2" style="gap:10px;">
-        <button type="button" class="btn btn-outline" id="btn-buy-pack" style="padding:16px 10px;flex-direction:column;gap:4px;height:auto;" ${fullPacks<1?"disabled":""}>
+        <button type="button" class="btn btn-outline" id="btn-buy-pack" style="padding:16px 10px;flex-direction:column;gap:4px;height:auto;">
           <strong style="font-size:1.05rem;">Sell Full Pack</strong>
           <span class="mono" style="color:var(--brand-deep);font-weight:700;">${Utils.money(packPrice)}</span>
           <span class="text-xs text-faint">${piecesPerPack} pcs/pack</span>
         </button>
-        <button type="button" class="btn btn-outline" id="btn-buy-piece" style="padding:16px 10px;flex-direction:column;gap:4px;height:auto;" ${product.stock<1?"disabled":""}>
+        <button type="button" class="btn btn-outline" id="btn-buy-piece" style="padding:16px 10px;flex-direction:column;gap:4px;height:auto;">
           <strong style="font-size:1.05rem;">Sell Loose Piece</strong>
           <span class="mono" style="color:var(--brand-deep);font-weight:700;">${Utils.money(product.price)}</span>
           <span class="text-xs text-faint">Individual pc</span>
@@ -1273,6 +1247,14 @@ const POS = (() => {
       });
     }
     const t = totals();
+    // (2026-07-13) Update mobile cart total and item count; was static 0 items
+    const mobileTotal = document.querySelector(".mobile-cart-total");
+    if(mobileTotal) mobileTotal.textContent = Utils.money(t.grand);
+    const countEl = document.getElementById("cart-count");
+    if(countEl){
+      const totalQty = cart.reduce((sum, l) => sum + (l.qty || 0), 0);
+      countEl.textContent = `${totalQty} item${totalQty === 1 ? "" : "s"}`;
+    }
     const foot = document.getElementById("cart-foot");
     // (2026-07-13) Improve cart footer design & cleanup; was unstyled rows
     if(foot){
@@ -1321,6 +1303,36 @@ const POS = (() => {
       document.getElementById("btn-clear").onclick = () => Modal.confirm({ title:"Clear cart?", message:"This removes all items from the current sale.", onConfirm: clearCart });
       document.getElementById("btn-checkout").onclick = openCheckout;
     }
+    updateCatalogStockBadges();
+  }
+
+  // (2026-07-13) Update catalog badges to show negative stock; was static stock
+  function updateCatalogStockBadges(){
+    const grid = document.getElementById("product-grid");
+    if(!grid) return;
+    grid.querySelectorAll(".product-card[data-id]").forEach(card => {
+      const pid = card.dataset.id;
+      const p = DB.getProducts().find(x => x.id === pid);
+      if(!p) return;
+      const hasDual = p.piecesPerPack > 1;
+      const inCartPieces = cart.filter(l => l.productId === p.id)
+        .reduce((sum, l) => sum + (l.unitType === "pack" ? l.qty * (p.piecesPerPack > 1 ? p.piecesPerPack : 1) : l.qty), 0);
+      const effectiveStock = p.stock - inCartPieces;
+      const badge = card.querySelector(".stock-tag");
+      if(badge){
+        badge.className = `stock-tag badge ${effectiveStock <= 0 ? "badge-rust" : effectiveStock <= p.lowStockThreshold ? "badge-amber" : "badge-green"}`;
+        if(hasDual){
+          badge.textContent = effectiveStock < 0 ? `${effectiveStock} pc` : `${Math.floor(effectiveStock / p.piecesPerPack)}pk + ${effectiveStock % p.piecesPerPack}pc`;
+        } else {
+          badge.textContent = `${effectiveStock}`;
+        }
+      }
+      if(effectiveStock <= 0){
+        card.classList.add("oos");
+      } else {
+        card.classList.remove("oos");
+      }
+    });
   }
 
   // (2026-07-13) Add barcode field to custom item modal; was name & price only
@@ -1419,7 +1431,15 @@ const POS = (() => {
           <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:6px;padding:6px 2px;flex-shrink:0;"></div>
         </div>
         <div class="pos-cart">
-          <div class="cart-head"><h3>${Icons.get("cart",{size:17})} Current Sale</h3><span class="badge badge-neutral" id="cart-count">0 items</span></div>
+          <!-- (2026-07-13) Mobile cart drawer header toggle; was static head -->
+          <div class="cart-head">
+            <h3>${Icons.get("cart",{size:17})} Current Sale</h3>
+            <div class="cart-head-meta" style="display:flex;align-items:center;gap:6px;">
+              <span class="mobile-cart-total mono" style="font-size:.84rem;font-weight:800;color:var(--brand-deep);display:none;">₱0.00</span>
+              <span class="badge badge-neutral" id="cart-count">0 items</span>
+              <button type="button" class="mobile-cart-toggle-btn" id="btn-mobile-cart-toggle" aria-label="Toggle cart" style="display:none;">${Icons.get("chevron-down",{size:14})}</button>
+            </div>
+          </div>
           <div class="cart-items" id="cart-items"></div>
           <div class="cart-foot" id="cart-foot"></div>
         </div>
@@ -1508,6 +1528,16 @@ const POS = (() => {
     renderCatalog();
     renderCart();
     renderHeldButton();
+
+    // (2026-07-13) Support mobile cart drawer toggle; was static layout only
+    const cartHead = document.querySelector(".pos-cart .cart-head");
+    if(cartHead){
+      cartHead.onclick = () => {
+        if(window.innerWidth <= 600 || (window.innerWidth <= 860 && window.innerHeight > window.innerWidth)){
+          document.querySelector(".pos-cart")?.classList.toggle("mobile-open");
+        }
+      };
+    }
   }
 
   function resetSearch(){ searchTerm = ""; }
