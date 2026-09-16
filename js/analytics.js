@@ -161,16 +161,25 @@ const Analytics = (() => {
     const margin = netRevenue > 0 ? (grossProfit/netRevenue)*100 : 0;
     const totalPurchases = restockSummary("all").totalCapitalSpent;
 
+    // (2026-07-13) Attach trend, top sellers and category data; was omitted
+    const trend = computeTrendData(rangeParam);
+    const top = topSellers({ sales, costMap });
+    const categoryBreakdown = categoryPL({ sales, costMap });
+
     return {
       periodRange: r, sales, fuelSales, bookings, restBookings, costMap,
       storeTotal, fuelTotal, venueRevenue, restRevenue,
       storeGrossProfit, fuelGrossProfit, venueGrossProfit, restGrossProfit,
+      storeNetRevenue, fuelRevenue,
       storeCOGS, fuelCOGS, venueCOGS, restCOGS,
       storeTxCount, fuelTxCount, venueTxCount, restTxCount,
       fuelLiters, venuePaid, venueBalance, restGuestCount,
       lowStock, outOfStock, inventoryValue, potentialRevenue, totalPurchases, txCount,
       totalOperatingExpenses, opExpenses, fuelExpenses,
-      pl: { netRevenue, totalCOGS, grossProfit, shrinkage, netProfit, margin, storeGrossProfit, fuelGrossProfit, venueGrossProfit, restGrossProfit, storeNetRevenue, fuelRevenue, venueRevenue, restRevenue, storeCOGS, fuelCOGS, venueCOGS, restCOGS }
+      pl: { netRevenue, totalCOGS, grossProfit, shrinkage, netProfit, margin, storeGrossProfit, fuelGrossProfit, venueGrossProfit, restGrossProfit, storeNetRevenue, fuelRevenue, venueRevenue, restRevenue, storeCOGS, fuelCOGS, venueCOGS, restCOGS },
+      trend,
+      topSellers: top,
+      categoryBreakdown
     };
   }
 
@@ -287,6 +296,65 @@ const Analytics = (() => {
         fuelLitersData.push(Utils.round2(fLit));
         profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
       }
+    } else if(pKey === "last_3m" || pKey === "last_6m"){
+      // (2026-07-13) Multi-month trend buckets for 3m & 6m; was 14 rolling days
+      const now = new Date();
+      const monthsBack = pKey === "last_3m" ? 3 : 6;
+      for(let i = monthsBack - 1; i >= 0; i--){
+        const mDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const dStart = new Date(mDate.getFullYear(), mDate.getMonth(), 1, 0, 0, 0, 0).getTime();
+        const dEnd = new Date(mDate.getFullYear(), mDate.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+        dayStarts.push(dStart);
+        labels.push(mDate.toLocaleDateString("en-PH", { month: "short", year: "2-digit" }));
+
+        const sSum = allSales.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.total,0);
+        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.amount,0);
+        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
+        const vSum = bookings.filter(b => {
+          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          return bTs >= dStart && bTs <= dEnd;
+        }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
+        const rSum = restBookings.filter(b => {
+          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          return bTs >= dStart && bTs <= dEnd;
+        }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+
+        storeData.push(Utils.round2(sSum));
+        fuelData.push(Utils.round2(fSum));
+        venueData.push(Utils.round2(vSum));
+        restData.push(Utils.round2(rSum));
+        fuelLitersData.push(Utils.round2(fLit));
+        profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
+      }
+    } else if(pKey === "this_year" || pKey === "last_year"){
+      // (2026-07-13) 12-month calendar buckets for yearly trends; was 14 rolling days
+      const now = new Date();
+      const yr = pKey === "this_year" ? now.getFullYear() : now.getFullYear() - 1;
+      for(let m = 0; m < 12; m++){
+        const dStart = new Date(yr, m, 1, 0, 0, 0, 0).getTime();
+        const dEnd = new Date(yr, m + 1, 0, 23, 59, 59, 999).getTime();
+        dayStarts.push(dStart);
+        labels.push(new Date(yr, m, 1).toLocaleDateString("en-PH", { month: "short" }));
+
+        const sSum = allSales.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.total,0);
+        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.amount,0);
+        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
+        const vSum = bookings.filter(b => {
+          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          return bTs >= dStart && bTs <= dEnd;
+        }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
+        const rSum = restBookings.filter(b => {
+          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          return bTs >= dStart && bTs <= dEnd;
+        }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+
+        storeData.push(Utils.round2(sSum));
+        fuelData.push(Utils.round2(fSum));
+        venueData.push(Utils.round2(vSum));
+        restData.push(Utils.round2(rSum));
+        fuelLitersData.push(Utils.round2(fLit));
+        profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
+      }
     } else {
       // All Time or custom days
       const daysCount = 14;
@@ -322,6 +390,9 @@ const Analytics = (() => {
 
     return {
       labels,
+      store: storeData,
+      fuel: fuelData,
+      timestamps: dayStarts,
       storeData,
       fuelData,
       venueData,
@@ -339,21 +410,30 @@ const Analytics = (() => {
     return computeTrendData(rangeDays);
   }
 
-  // (2026-07-13) Fix uncategorized product labeling; was dash placeholder
+  // (2026-07-13) Group top sellers by item name with cost lookup; was productId
   function topSellers(stats, limit = 100){
+    const prods = DB.getProducts() || [];
+    const prodCostByName = {};
+    prods.forEach(p => { if(p.name) prodCostByName[p.name.trim().toLowerCase()] = p.cost; });
     const map = {};
-    stats.sales.forEach(s => s.items.forEach(l => {
-      const cat = sanitizeCategory(l.category);
-      if(!map[l.productId]) map[l.productId] = { productId:l.productId, name:l.name, category:cat, units:0, revenue:0 };
-      map[l.productId].units += l.qty;
-      map[l.productId].revenue += l.price*l.qty;
-    }));
+    (stats.sales || []).forEach(s => {
+      (s.items || s.lines || []).forEach(l => {
+        const cat = sanitizeCategory(l.category);
+        const name = (l.name || "Item").trim();
+        const key = name.toLowerCase() || l.productId || "item";
+        if(!map[key]) map[key] = { productId: l.productId || key, name: name || "Item", category: cat, units: 0, revenue: 0 };
+        const qty = Number(l.qty) || 1;
+        const price = Number(l.price) || 0;
+        map[key].units += qty;
+        map[key].revenue += price * qty;
+      });
+    });
     return Object.values(map).map(row => {
-      const cost = stats.costMap[row.productId] ?? 0;
+      const cost = stats.costMap[row.productId] ?? prodCostByName[row.name.toLowerCase()] ?? 0;
       const cogs = cost * row.units;
       const profit = row.revenue - cogs;
-      return { ...row, revenue:Utils.round2(row.revenue), profit:Utils.round2(profit), margin: row.revenue>0 ? (profit/row.revenue)*100 : 0 };
-    }).sort((a,b)=>b.revenue-a.revenue).slice(0,limit);
+      return { ...row, revenue: Utils.round2(row.revenue), profit: Utils.round2(profit), margin: row.revenue > 0 ? (profit / row.revenue) * 100 : 0 };
+    }).sort((a,b) => b.revenue - a.revenue).slice(0, limit);
   }
 
   // (2026-07-13) Map product categories from catalog fallback; was empty on missing item tag

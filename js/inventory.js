@@ -1548,6 +1548,8 @@ const Inventory = (() => {
 
   function render(){
     selectMode = false;
+    // (2026-09-16) Deduplicate stored products on render; was never cleaned up
+    DB.deduplicateProducts();
     // (2026-07-13) Auto-reset inventory search term on navigation; was persistent
     searchTerm = "";
     currentPage = 1;

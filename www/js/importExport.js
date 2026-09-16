@@ -7,7 +7,8 @@
 //      you can bring your real catalog in directly.
 // ============================================================
 const ImportExport = (() => {
-  const CSV_HEADERS = ["name","brand","distributor","barcode","category","cost","price","stock","unit","lowStockThreshold","imageUrl"];
+  // (2026-09-16) Add id to headers for round-trip dedup; was name-only first col
+  const CSV_HEADERS = ["id","name","brand","distributor","barcode","category","cost","price","stock","unit","lowStockThreshold","imageUrl"];
 
   // (2026-07-13) Add exportCategoriesCSV; was inventory and full backup only
   function exportCategoriesCSV(){
@@ -124,31 +125,85 @@ const ImportExport = (() => {
       if(barcode) payload.barcode = barcode;
       if(imageUrl) payload.imageUrl = imageUrl;
 
-      let match = barcode ? existing.find(p => p.barcode === barcode) : null;
+      // (2026-09-16) Match by id→barcode→name to prevent reimport dups; was barcode-only
+      const BARCODE_SENTINELS = new Set(["", "—", "-", "0", "n/a"]);
+      const normB = (barcode||"").toLowerCase().trim();
+      let match = (r.id) ? existing.find(p => p.id === r.id) : null;
+      if(!match && barcode && !BARCODE_SENTINELS.has(normB)) match = existing.find(p => p.barcode === barcode);
       if(!match) match = existing.find(p => p.name && p.name.trim().toLowerCase() === name.toLowerCase());
 
       if(match){ Object.assign(match, payload); updated++; }
-      else { existing.push({ id: Utils.uid("prod"), createdAt: Date.now(), barcode:"", brand:"", distributor:"", imageUrl:"", ...payload }); added++; }
+      else { existing.push({ id: r.id || Utils.uid("prod"), createdAt: Date.now(), barcode:"", brand:"", distributor:"", imageUrl:"", ...payload }); added++; }
     });
 
     return { added, updated, skipped, untracked, withImages, corruptedBarcodes };
   }
 
+  // (2026-09-17) Normalize any column-name variant to canonical keys; was exact-match only
+  function normalizeRow(r){
+    const ALT = {
+      name:             ["name","item name","item_name","product name","product_name","item","description","title"],
+      brand:            ["brand","brand name","brand_name","manufacturer"],
+      distributor:      ["distributor","supplier","vendor","distributor name"],
+      barcode:          ["barcode","barcode number","sku","upc","gtin","code"],
+      category:         ["category","cat","department","type","group"],
+      cost:             ["cost","cost price","cost_price","purchase price","buy price","cogs"],
+      price:            ["price","selling price","sell price","sale price","retail price"],
+      stock:            ["stock","quantity","qty","inventory","on hand","stock qty"],
+      unit:             ["unit","unit type","uom","unit of measure"],
+      lowStockThreshold:["lowstockthreshold","low stock threshold","low stock","reorder level","min stock"],
+      imageUrl:         ["imageurl","image url","image_url","image link","image_link","imagelink","img url","img_url","photo url","photo_url","photo","image","picture","pic url","thumbnail"],
+      id:               ["id","product id","product_id","item id","item_id"]
+    };
+    const keys = Object.keys(r);
+    const n = {};
+    for(const [canon, alts] of Object.entries(ALT)){
+      const found = keys.find(k => alts.includes(k.toLowerCase().trim()));
+      n[canon] = found !== undefined ? r[found] : r[canon];
+    }
+    return n;
+  }
+
   function importGenericRows(rows, existing, cats){
     let added = 0, updated = 0;
-    rows.forEach(r => {
+    const BARCODE_SENTINELS = new Set(["", "—", "-", "0", "n/a"]);
+    const seenIds  = new Set(existing.map(p => p.id));
+    const seenNames = new Set(existing.map(p => (p.name||"").trim().toLowerCase()));
+    rows.forEach(raw => {
+      // (2026-09-17) Normalize row keys before access; was exact camelCase required
+      const r = normalizeRow(raw);
       if(!r.name) return;
+      const normName = r.name.trim().toLowerCase();
+      const rawBarcode = (r.barcode||"").trim();
+      const normB = rawBarcode.toLowerCase();
       const cat = (r.category || "MISC").trim().toUpperCase();
       cats.add(cat);
+      const imgUrl = (r.imageUrl||"").trim();
       const payload = {
-        name: r.name, brand: r.brand||"", distributor: r.distributor||"", barcode: r.barcode||"", category: cat,
+        name: r.name.trim(), brand: r.brand||"", distributor: r.distributor||"",
+        barcode: BARCODE_SENTINELS.has(normB) ? "" : rawBarcode,
+        category: cat,
         cost: Number(r.cost)||0, price: Number(r.price)||0, stock: Number(r.stock)||0,
-        unit: r.unit||"pc", lowStockThreshold: Number(r.lowStockThreshold)||5, imageUrl: r.imageUrl||""
+        unit: r.unit||"pc", lowStockThreshold: Number(r.lowStockThreshold)||5, imageUrl: imgUrl
       };
-      let match = r.barcode ? existing.find(p => p.barcode === r.barcode) : null;
-      if(!match) match = existing.find(p => p.name && p.name.trim().toLowerCase() === r.name.trim().toLowerCase());
-      if(match){ Object.assign(match, payload); updated++; }
-      else { existing.push({ id: Utils.uid("prod"), createdAt: Date.now(), ...payload }); added++; }
+      // Match by id → barcode → name
+      let match = (r.id && seenIds.has(r.id)) ? existing.find(p => p.id === r.id) : null;
+      if(!match && rawBarcode && !BARCODE_SENTINELS.has(normB)) match = existing.find(p => p.barcode === rawBarcode);
+      if(!match) match = existing.find(p => (p.name||"").trim().toLowerCase() === normName);
+      if(match){
+        // (2026-09-17) Only overwrite imageUrl if new value is non-empty; was always overwriting
+        if(!imgUrl) delete payload.imageUrl;
+        Object.assign(match, payload);
+        updated++;
+      } else if(!seenNames.has(normName)) {
+        const newId = r.id || Utils.uid("prod");
+        existing.push({ id: newId, createdAt: Date.now(), ...payload });
+        seenIds.add(newId);
+        seenNames.add(normName);
+        added++;
+      } else {
+        updated++; // name already in batch — treat as duplicate update
+      }
     });
     return { added, updated, skipped:0, untracked:0 };
   }

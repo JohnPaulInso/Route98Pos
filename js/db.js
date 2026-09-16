@@ -5,11 +5,12 @@
 // ============================================================
 const DB = (() => {
   const NS = "mm_"; // minimart namespace
-  // (2026-07-13) Add physicalAudits key to storage mapping; was 21 items
+  // (2026-07-13) Add cashiers key and defaults; was hardcoded in checkout
+  const DEFAULT_CASHIERS = ["Rosella", "Niño"];
   const KEYS = {
     products: NS+"products", categories: NS+"categories", sales: NS+"sales",
     fuelSales: NS+"fuelSales", fuelConfig: NS+"fuelConfig", settings: NS+"settings",
-    users: NS+"users", heldSales: NS+"heldSales", venueLeads: NS+"venueLeads",
+    users: NS+"users", cashiers: NS+"cashiers", heldSales: NS+"heldSales", venueLeads: NS+"venueLeads",
     stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", physicalAudits: NS+"physicalAudits", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
@@ -126,6 +127,7 @@ const DB = (() => {
     if(read(KEYS.heldSales) === null) write(KEYS.heldSales, []);
     if(read(KEYS.venueLeads) === null) write(KEYS.venueLeads, []);
     if(read(KEYS.stockLog) === null) write(KEYS.stockLog, []);
+    if(read(KEYS.cashiers) === null) write(KEYS.cashiers, DEFAULT_CASHIERS);
     if(read(KEYS.shift) === null) write(KEYS.shift, { openedAt: Date.now(), openingCash: 0 });
     if(read(KEYS.syncMeta) === null) write(KEYS.syncMeta, { lastSynced:null, status:"idle" });
     // merge in any NEW default settings keys added in later app versions without clobbering user edits
@@ -188,9 +190,55 @@ const DB = (() => {
     }
   }
 
+  // (2026-07-13) Auto-deduplicate products by id, barcode & name; was raw push
+  function dedupeProductList(list){
+    if(!Array.isArray(list) || list.length <= 1) return list || [];
+    const map = new Map();
+    const barcodeMap = new Map();
+
+    list.forEach(p => {
+      if(!p || !p.name) return;
+      const cleanName = String(p.name).trim().toLowerCase();
+      const rawCode = String(p.barcode || "").trim();
+      const cleanCode = (rawCode === "—" || rawCode === "-" || rawCode === "N/A" || rawCode === "0") ? "" : rawCode;
+
+      let existing = null;
+      if(p.id && map.has(`id:${p.id}`)) existing = map.get(`id:${p.id}`);
+      if(!existing && cleanCode && barcodeMap.has(cleanCode)) existing = barcodeMap.get(cleanCode);
+      if(!existing && cleanName && map.has(`name:${cleanName}`)) existing = map.get(`name:${cleanName}`);
+
+      if(existing){
+        if(!existing.barcode && cleanCode) existing.barcode = cleanCode;
+        if(!existing.imageUrl && p.imageUrl) existing.imageUrl = p.imageUrl;
+        if(p.stock !== undefined && !isNaN(Number(p.stock))){
+          existing.stock = Math.max(Number(existing.stock) || 0, Number(p.stock) || 0);
+        }
+        if(p.price && (!existing.price || Number(p.price) > 0)) existing.price = Number(p.price);
+        if(p.cost && (!existing.cost || Number(p.cost) > 0)) existing.cost = Number(p.cost);
+        if(p.brand && !existing.brand) existing.brand = p.brand;
+        if(p.distributor && !existing.distributor) existing.distributor = p.distributor;
+      } else {
+        const item = { ...p, barcode: cleanCode };
+        if(p.id) map.set(`id:${p.id}`, item);
+        if(cleanCode) barcodeMap.set(cleanCode, item);
+        if(cleanName) map.set(`name:${cleanName}`, item);
+      }
+    });
+
+    return Array.from(new Set(Array.from(map.values())));
+  }
+
   // ---------- generic getters/setters ----------
   const getProducts   = () => read(KEYS.products, []);
-  const setProducts   = (v) => write(KEYS.products, v);
+  const setProducts   = (v) => write(KEYS.products, dedupeProductList(v));
+  function deduplicateProducts(){
+    const current = getProducts();
+    const deduped = dedupeProductList(current);
+    if(deduped.length !== current.length){
+      write(KEYS.products, deduped);
+    }
+    return deduped;
+  }
   const dedupeCats = (list) => {
     const set = new Set();
     (list || []).forEach(c => {
@@ -245,6 +293,12 @@ const DB = (() => {
   const setSettings    = (v) => write(KEYS.settings, v);
   const getUsers       = () => read(KEYS.users, DEFAULT_USERS);
   const setUsers       = (v) => write(KEYS.users, v);
+  // (2026-07-13) Cashier list persistence for checkout; was hardcoded values
+  const getCashiers    = () => {
+    const list = read(KEYS.cashiers, DEFAULT_CASHIERS);
+    return Array.isArray(list) && list.length ? list : DEFAULT_CASHIERS;
+  };
+  const setCashiers    = (v) => write(KEYS.cashiers, Array.isArray(v) && v.length ? v : DEFAULT_CASHIERS);
   const getHeldSales   = () => read(KEYS.heldSales, []);
   const setHeldSales   = (v) => write(KEYS.heldSales, v);
   const getVenueLeads  = () => read(KEYS.venueLeads, []);
@@ -339,7 +393,8 @@ const DB = (() => {
       ts: Date.now()
     };
     logs.unshift(item);
-    setVoidLogs(logs.slice(0, 500));
+    // (2026-07-13) Retain all void logs in database; was limited to 500 records
+    setVoidLogs(logs);
     return item;
   }
   const getOfflineQueue = () => read(KEYS.offlineQueue, []);
@@ -543,7 +598,8 @@ const DB = (() => {
   function saveBackup(rec){
     const list = getBackups().filter(x => x.id !== rec.id);
     list.unshift(rec);
-    return setBackups(list.slice(0, 50));
+    // (2026-07-13) Retain all database backups; was limited to 50 records
+    return setBackups(list);
   }
   function deleteBackup(id){
     const list = getBackups().filter(x => x.id !== id);
@@ -568,7 +624,7 @@ const DB = (() => {
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
       stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
-      backups:getBackups(), voidLogs:getVoidLogs(), shift:getShift(),
+      backups:getBackups(), voidLogs:getVoidLogs(), shift:getShift(), cashiers:getCashiers(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -582,6 +638,7 @@ const DB = (() => {
     if(snap.fuelDeliveries) setFuelDeliveries(snap.fuelDeliveries);
     if(snap.settings) setSettings({ ...DEFAULT_SETTINGS, ...snap.settings });
     if(snap.users) setUsers(snap.users);
+    if(snap.cashiers) setCashiers(snap.cashiers);
     if(snap.heldSales) setHeldSales(snap.heldSales);
     if(snap.venueLeads) setVenueLeads(snap.venueLeads);
     if(snap.bookings) setBookings(snap.bookings);
@@ -601,12 +658,13 @@ const DB = (() => {
 
   return {
     KEYS, init, categoryIcon, getNextTransactionId,
-    getProducts, setProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
+    getProducts, setProducts, deduplicateProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
     getCategories, setCategories,
     getSales, setSales, getFuelSales, setFuelSales,
     getFuelConfig, setFuelConfig,
     getSettings, setSettings,
     getUsers, setUsers,
+    getCashiers, setCashiers,
     getHeldSales, setHeldSales,
     getVenueLeads, setVenueLeads,
     getStockLog, setStockLog,

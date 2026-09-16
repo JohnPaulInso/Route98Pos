@@ -130,7 +130,62 @@ const Sync = (() => {
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
 
-      // Also pull individual cloud backups collection and merge
+      // (2026-07-13) Pull all cloud backups, voids & collections; was limited slices
+      try {
+        const prodSnap = await mod.getDocs(mod.collection(database, "products"));
+        if(!prodSnap.empty){
+          const cloudProds = [];
+          prodSnap.forEach(d => cloudProds.push(d.data()));
+          if(cloudProds.length){
+            const curProds = DB.getProducts();
+            const curIds = new Set(curProds.map(p => p.id));
+            const curBarcodes = new Set(curProds.map(p => (p.barcode || "").trim()).filter(b => b && b !== "—" && b !== "-" && b !== "0"));
+            const curNames = new Set(curProds.map(p => (p.name || "").trim().toLowerCase()).filter(Boolean));
+            let addedP = false;
+            // (2026-07-13) Match cloud products by id, valid barcode, and name; was empty-barcode bypass
+            cloudProds.forEach(p => {
+              const cleanCode = (p.barcode || "").trim();
+              const hasCode = cleanCode && cleanCode !== "—" && cleanCode !== "-" && cleanCode !== "0";
+              const normName = (p.name || "").trim().toLowerCase();
+              const exists = curIds.has(p.id) || (hasCode && curBarcodes.has(cleanCode)) || (normName && curNames.has(normName));
+              if(!exists){
+                curProds.push(p);
+                curIds.add(p.id);
+                if(hasCode) curBarcodes.add(cleanCode);
+                if(normName) curNames.add(normName);
+                addedP = true;
+              }
+            });
+            if(addedP) DB.setProducts(curProds);
+          }
+        }
+      } catch(e) { console.warn("Could not pull products collection:", e); }
+
+      try {
+        const salesSnap = await mod.getDocs(mod.collection(database, "sales"));
+        if(!salesSnap.empty){
+          const cloudSales = [];
+          salesSnap.forEach(d => cloudSales.push(d.data()));
+          if(cloudSales.length){
+            const curSales = DB.getSales();
+            const curSaleIds = new Set(curSales.map(s => String(s.id).toLowerCase()));
+            let addedS = false;
+            cloudSales.forEach(s => {
+              if(!curSaleIds.has(String(s.id).toLowerCase())){
+                curSales.push(s);
+                curSaleIds.add(String(s.id).toLowerCase());
+                addedS = true;
+              }
+            });
+            if(addedS){
+              curSales.sort((a,b) => (b.ts || 0) - (a.ts || 0));
+              DB.setSales(curSales);
+            }
+          }
+        }
+      } catch(e) { console.warn("Could not pull sales collection:", e); }
+
+      // Also pull individual cloud backups collection and merge without limits
       try {
         const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
         if(!backupsSnap.empty){
@@ -146,14 +201,14 @@ const Sync = (() => {
               }
             });
             merged.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-            DB.setBackups(merged.slice(0, 50));
+            DB.setBackups(merged);
           }
         }
       } catch(e) {
         console.warn("Could not pull backups collection:", e);
       }
 
-      // Also pull individual cloud voidLogs collection and merge
+      // Also pull individual cloud voidLogs collection and merge without limits
       try {
         const voidSnap = await mod.getDocs(mod.collection(database, "voidLogs"));
         if(!voidSnap.empty){
@@ -169,7 +224,7 @@ const Sync = (() => {
               }
             });
             merged.sort((a,b) => (b.ts || 0) - (a.ts || 0));
-            DB.setVoidLogs(merged.slice(0, 100));
+            DB.setVoidLogs(merged);
           }
         }
       } catch(e) {
@@ -244,6 +299,23 @@ const Sync = (() => {
       await createDailyBackup("automatic_1159");
       schedule1159Timer();
     }, Math.max(1000, msUntilTarget));
+  }
+
+  // (2026-07-13) Auto-run daily backup on launch or missed days; was 11:59pm only
+  async function checkDailyBackup(){
+    try {
+      const backups = DB.getBackups();
+      const todayStr = new Date().toLocaleDateString("en-CA");
+      const hasToday = backups.some(b => {
+        const d = new Date(b.createdAt || 0).toLocaleDateString("en-CA");
+        return d === todayStr;
+      });
+      if(!hasToday){
+        await createDailyBackup("automatic_daily");
+      }
+    } catch(e) {
+      console.warn("Daily backup check failed:", e);
+    }
   }
 
   function scheduleAutoSync(){
@@ -324,6 +396,8 @@ const Sync = (() => {
     window.addEventListener("offline", paintStatus);
     paintStatus();
     schedule1159Timer();
+    checkDailyBackup();
+    setInterval(checkDailyBackup, 30 * 60 * 1000);
     startRealtimeListener();
 
     // Auto-pull on launch if local DB is empty to populate from cloud
@@ -338,6 +412,6 @@ const Sync = (() => {
 
   return {
     init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue,
-    createDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
+    createDailyBackup, checkDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();

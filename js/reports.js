@@ -86,6 +86,10 @@ const Reports = (() => {
       onConfirm: () => {
         const actual = document.querySelector("#actual-cash")?.value;
         DB.setShift({ openedAt: Date.now(), openingCash: Number(actual)||0, closedAt: Date.now() });
+        // (2026-07-13) Auto-create daily backup on shift close; was unbacked
+        if(typeof Sync !== "undefined" && Sync.createDailyBackup){
+          Sync.createDailyBackup("automatic_daily");
+        }
         Modal.close();
         Utils.toast("Shift archived and reset successfully.", "success");
         render();
@@ -411,6 +415,7 @@ const Reports = (() => {
     ["last_year", "Last Year"]
   ];
 
+  // (2026-07-13) Timeframe chips bar with period selector; was plain list
   function timeframeBarHtml(activeKey){
     return `
       <div class="date-range-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
@@ -418,6 +423,217 @@ const Reports = (() => {
           <button class="chip ${activeKey === k ? "active" : ""}" data-period="${k}" style="padding:5px 12px;font-size:var(--fs-xs);font-weight:700;cursor:pointer;">${lbl}</button>
         `).join("")}
       </div>`;
+  }
+
+  // (2026-07-13) Sales by item table matching Loyverse report; was missing
+  function salesByItemTable(){
+    const r = Analytics.getPeriodRange(periodKey);
+    const stats = Analytics.computeStats(periodKey);
+    const items = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
+    const totalRev = items.reduce((s,x)=>s+x.revenue,0);
+    const totalUnits = items.reduce((s,x)=>s+x.units,0);
+    const totalProfit = items.reduce((s,x)=>s+x.profit,0);
+    return `
+      ${timeframeBarHtml(periodKey)}
+      <div class="grid-3" style="margin-bottom:14px;gap:10px;">
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Total Units Sold</div>
+          <div class="mono font-bold" style="font-size:1.25rem;">${totalUnits} pcs</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Total Net Sales</div>
+          <div class="mono font-bold" style="font-size:1.25rem;color:var(--brand-deep);">${Utils.money(totalRev)}</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Total Gross Profit</div>
+          <div class="mono font-bold" style="font-size:1.25rem;color:var(--success-deep);">${Utils.money(totalProfit)}</div>
+        </div>
+      </div>
+      ${items.length ? `
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>#</th><th>Item</th><th>Category</th><th>Units Sold</th><th>Net Sales</th><th>Cost</th><th>Gross Profit</th><th>Margin</th></tr></thead>
+          <tbody>
+            ${items.map((it, idx) => {
+              const cogs = it.revenue - it.profit;
+              return `<tr class="clickable-row" data-top-prod="${Utils.escapeHtml(it.productId || it.name)}">
+                <td class="text-faint">${idx + 1}</td>
+                <td><strong>${Utils.escapeHtml(it.name)}</strong></td>
+                <td><span class="badge badge-brand">${Utils.escapeHtml(it.category)}</span></td>
+                <td class="mono font-bold">${it.units}</td>
+                <td class="mono font-bold">${Utils.money(it.revenue)}</td>
+                <td class="mono">${Utils.money(cogs)}</td>
+                <td class="mono font-bold" style="color:var(--success-deep);">${Utils.money(it.profit)}</td>
+                <td class="mono">${it.margin.toFixed(1)}%</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table></div>
+      ` : `<div class="empty">${Icons.get("package",{size:34})}<h3>No item sales in ${r.label}</h3></div>`}`;
+  }
+
+  // (2026-07-13) Sales by category table matching Loyverse report; was missing
+  function salesByCategoryTable(){
+    const r = Analytics.getPeriodRange(periodKey);
+    const stats = Analytics.computeStats(periodKey);
+    const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
+    const totalRev = cats.reduce((s,x)=>s+x.revenue,0);
+    const totalProfit = cats.reduce((s,x)=>s+x.profit,0);
+    return `
+      ${timeframeBarHtml(periodKey)}
+      <div class="grid-3" style="margin-bottom:14px;gap:10px;">
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Categories Active</div>
+          <div class="mono font-bold" style="font-size:1.25rem;">${cats.length}</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Category Revenue</div>
+          <div class="mono font-bold" style="font-size:1.25rem;color:var(--brand-deep);">${Utils.money(totalRev)}</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Category Profit</div>
+          <div class="mono font-bold" style="font-size:1.25rem;color:var(--success-deep);">${Utils.money(totalProfit)}</div>
+        </div>
+      </div>
+      ${cats.length ? `
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>#</th><th>Category</th><th>Net Sales</th><th>Cost</th><th>Gross Profit</th><th>Margin</th><th>Share</th></tr></thead>
+          <tbody>
+            ${cats.map((c, idx) => {
+              const cogs = c.cogs ?? (c.revenue - c.profit);
+              const margin = c.revenue > 0 ? ((c.profit / c.revenue) * 100) : 0;
+              const share = totalRev > 0 ? ((c.revenue / totalRev) * 100) : 0;
+              return `<tr>
+                <td class="text-faint">${idx + 1}</td>
+                <td><span class="badge badge-brand" style="font-size:0.85rem;padding:4px 10px;">${Utils.escapeHtml(c.category)}</span></td>
+                <td class="mono font-bold">${Utils.money(c.revenue)}</td>
+                <td class="mono">${Utils.money(cogs)}</td>
+                <td class="mono font-bold" style="color:var(--success-deep);">${Utils.money(c.profit)}</td>
+                <td class="mono">${margin.toFixed(1)}%</td>
+                <td class="mono font-bold">${share.toFixed(1)}%</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table></div>
+      ` : `<div class="empty">${Icons.get("tag",{size:34})}<h3>No category data in ${r.label}</h3></div>`}`;
+  }
+
+  // (2026-07-13) Sales by employee table matching Loyverse report; was missing
+  function salesByEmployeeTable(){
+    const r = Analytics.getPeriodRange(periodKey);
+    const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const empMap = {};
+
+    sales.forEach(s => {
+      const emp = s.cashier || "Admin";
+      if(!empMap[emp]) empMap[emp] = { name: emp, receipts: 0, storeSales: 0, fuelSales: 0, total: 0 };
+      empMap[emp].receipts++;
+      empMap[emp].storeSales += s.total;
+      empMap[emp].total += s.total;
+    });
+
+    fuelSales.forEach(s => {
+      const emp = s.cashier || s.attendant || "Gas Attendant";
+      if(!empMap[emp]) empMap[emp] = { name: emp, receipts: 0, storeSales: 0, fuelSales: 0, total: 0 };
+      empMap[emp].receipts++;
+      empMap[emp].fuelSales += s.amount;
+      empMap[emp].total += s.amount;
+    });
+
+    const list = Object.values(empMap).sort((a,b)=>b.total-a.total);
+    const grandTotal = list.reduce((s,x)=>s+x.total,0);
+    const totalReceipts = list.reduce((s,x)=>s+x.receipts,0);
+
+    return `
+      ${timeframeBarHtml(periodKey)}
+      <div class="grid-3" style="margin-bottom:14px;gap:10px;">
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Active Employees</div>
+          <div class="mono font-bold" style="font-size:1.25rem;">${list.length} staff</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Total Receipts</div>
+          <div class="mono font-bold" style="font-size:1.25rem;">${totalReceipts}</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Total Processed</div>
+          <div class="mono font-bold" style="font-size:1.25rem;color:var(--brand-deep);">${Utils.money(grandTotal)}</div>
+        </div>
+      </div>
+      ${list.length ? `
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>#</th><th>Employee</th><th>Receipts</th><th>Store Sales</th><th>Fuel Sales</th><th>Total Sales</th><th>Avg Ticket</th><th>Share</th></tr></thead>
+          <tbody>
+            ${list.map((e, idx) => {
+              const avg = e.receipts > 0 ? (e.total / e.receipts) : 0;
+              const share = grandTotal > 0 ? ((e.total / grandTotal) * 100) : 0;
+              return `<tr>
+                <td class="text-faint">${idx + 1}</td>
+                <td><strong>${Utils.escapeHtml(e.name)}</strong></td>
+                <td class="mono font-bold">${e.receipts}</td>
+                <td class="mono">${Utils.money(e.storeSales)}</td>
+                <td class="mono">${Utils.money(e.fuelSales)}</td>
+                <td class="mono font-bold" style="color:var(--brand-deep);">${Utils.money(e.total)}</td>
+                <td class="mono">${Utils.money(avg)}</td>
+                <td class="mono font-bold">${share.toFixed(1)}%</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table></div>
+      ` : `<div class="empty">${Icons.get("user",{size:34})}<h3>No employee sales in ${r.label}</h3></div>`}`;
+  }
+
+  // (2026-07-13) Sales by payment type table matching Loyverse report; was missing
+  function salesByPaymentTable(){
+    const r = Analytics.getPeriodRange(periodKey);
+    const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const payMap = {};
+
+    [...sales, ...fuelSales].forEach(s => {
+      const m = s.method || "Cash";
+      if(!payMap[m]) payMap[m] = { method: m, count: 0, amount: 0 };
+      payMap[m].count++;
+      payMap[m].amount += (s.total ?? s.amount ?? 0);
+    });
+
+    const list = Object.values(payMap).sort((a,b)=>b.amount-a.amount);
+    const totalAmt = list.reduce((s,x)=>s+x.amount,0);
+    const totalCount = list.reduce((s,x)=>s+x.count,0);
+
+    return `
+      ${timeframeBarHtml(periodKey)}
+      <div class="grid-3" style="margin-bottom:14px;gap:10px;">
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Payment Types</div>
+          <div class="mono font-bold" style="font-size:1.25rem;">${list.length}</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Transactions Count</div>
+          <div class="mono font-bold" style="font-size:1.25rem;">${totalCount}</div>
+        </div>
+        <div class="card card-tight" style="padding:10px 14px;border:1px solid var(--line);background:var(--paper-dim);">
+          <div class="text-faint text-xs" style="font-weight:700;text-transform:uppercase;">Total Collected</div>
+          <div class="mono font-bold" style="font-size:1.25rem;color:var(--brand-deep);">${Utils.money(totalAmt)}</div>
+        </div>
+      </div>
+      ${list.length ? `
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>#</th><th>Payment Type</th><th>Transactions</th><th>Total Collected</th><th>Share</th></tr></thead>
+          <tbody>
+            ${list.map((p, idx) => {
+              const share = totalAmt > 0 ? ((p.amount / totalAmt) * 100) : 0;
+              return `<tr>
+                <td class="text-faint">${idx + 1}</td>
+                <td><span class="badge badge-brand" style="font-size:0.85rem;padding:4px 10px;">${Utils.escapeHtml(p.method)}</span></td>
+                <td class="mono font-bold">${p.count}</td>
+                <td class="mono font-bold" style="color:var(--brand-deep);">${Utils.money(p.amount)}</td>
+                <td class="mono font-bold">${share.toFixed(1)}%</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table></div>
+      ` : `<div class="empty">${Icons.get("credit-card",{size:34})}<h3>No payment records in ${r.label}</h3></div>`}`;
   }
 
   // (2026-07-13) Add transaction count # & Source column to Store Sales table. Prev: unindexed
@@ -530,17 +746,24 @@ const Reports = (() => {
       </table></div>`;
   }
 
-  function voidLogsCard(){
+  // (2026-07-13) Compact void card in overview, full height in audit; was fixed full
+  function voidLogsCard(isDedicated = false){
     const logs = DB.getVoidLogs ? DB.getVoidLogs() : [];
+    const cardStyle = isDedicated
+      ? "margin-top:16px;display:flex;flex-direction:column;min-height:calc(100vh - 220px);margin-bottom:20px;"
+      : "margin-top:16px;margin-bottom:20px;";
+    const tableStyle = isDedicated
+      ? "flex:1;overflow-y:auto;max-height:none;min-height:0;"
+      : "max-height:240px;overflow-y:auto;";
     return `
-      <div class="card" style="margin-top:16px;">
-        <div class="flex-between" style="margin-bottom:10px;">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--danger-deep);">
+      <div class="card" style="${cardStyle}">
+        <div class="flex-between" style="margin-bottom:10px;flex-shrink:0;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--danger-deep);margin:0;">
             ${Icons.get("alert-triangle",{size:18})} Voided & Altered Items Audit Log (${logs.length})
           </h3>
         </div>
         ${logs.length ? `
-          <div class="table-wrap" style="max-height:240px;overflow-y:auto;">
+          <div class="table-wrap" style="${tableStyle}">
             <table class="data">
               <thead><tr><th>Time</th><th>Txn ID</th><th>Items Altered</th><th>Price Diff</th><th>Admin</th><th>Reason</th></tr></thead>
               <tbody>
@@ -584,9 +807,16 @@ const Reports = (() => {
     Modal.open({ title:`${Icons.get("calendar",{size:17})} ${label}`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
   }
 
+  // (2026-07-13) Match product drilldown by name and id fallback; was id only
   function openProductDrilldown(row, stats){
     const lines = [];
-    stats.sales.forEach(s => s.items.forEach(l => { if(l.productId === row.productId) lines.push({ ts:s.ts, qty:l.qty, amount:l.price*l.qty, method:s.method }); }));
+    (stats.sales || []).forEach(s => (s.items || s.lines || []).forEach(l => {
+      const match = (l.productId && row.productId && l.productId === row.productId) ||
+                    ((l.name || "").trim().toLowerCase() === (row.name || "").trim().toLowerCase());
+      if(match){
+        lines.push({ ts: s.ts, qty: Number(l.qty)||1, amount: (Number(l.price)||0) * (Number(l.qty)||1), method: s.method || "Cash" });
+      }
+    }));
     lines.sort((a,b)=>b.ts-a.ts);
     const body = `
       <div class="grid-3" style="margin-bottom:14px;">
@@ -619,16 +849,67 @@ const Reports = (() => {
       </div>`).join("");
   }
 
+  // (2026-07-13) Store sales summary card modeled after Loyverse; was missing
+  function renderStoreSalesCard(stats){
+    const el = document.getElementById("ov-store-sales");
+    if(!el) return;
+    const storeSales = stats.sales || [];
+    const discounts = storeSales.reduce((s,x) => s + (Number(x.discount) || 0), 0);
+    const grossSales = stats.storeTotal + discounts;
+    const refunds = 0;
+    const netSales = stats.storeNetRevenue || stats.storeTotal;
+    const grossProfit = stats.storeGrossProfit || 0;
+    const txCount = stats.storeTxCount || 0;
+    const avgSale = txCount > 0 ? (netSales / txCount) : 0;
+    const margin = netSales > 0 ? (grossProfit / netSales) * 100 : 0;
+
+    el.innerHTML = `
+      <div class="card" style="margin-bottom:16px;padding:16px 18px;">
+        <div class="flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin:0;">
+            ${Icons.get("cart",{size:18})} Store Sales Summary
+          </h3>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge badge-brand" style="font-size:0.75rem;padding:3px 8px;">${txCount} receipts</span>
+            <span class="text-sm text-faint">Avg Ticket: <strong class="mono" style="color:var(--ink);">${Utils.money(avgSale)}</strong></span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;">
+          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Gross Sales</div>
+            <div class="mono font-bold" style="font-size:1.15rem;color:var(--ink);">${Utils.money(grossSales)}</div>
+          </div>
+          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Refunds</div>
+            <div class="mono font-bold" style="font-size:1.15rem;color:var(--ink-soft);">${Utils.money(refunds)}</div>
+          </div>
+          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Discounts</div>
+            <div class="mono font-bold" style="font-size:1.15rem;color:var(--ink-soft);">${Utils.money(discounts)}</div>
+          </div>
+          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Net Sales</div>
+            <div class="mono font-bold" style="font-size:1.15rem;color:var(--brand-deep);">${Utils.money(netSales)}</div>
+          </div>
+          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Gross Profit</div>
+            <div class="mono font-bold" style="font-size:1.15rem;color:var(--success-deep);">${Utils.money(grossProfit)} <span style="font-size:0.72rem;font-weight:600;color:var(--ink-faint);">(${margin.toFixed(1)}%)</span></div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // (2026-07-13) Render top sellers with item name fallback; was missing items
   function renderTopSellersTable(stats){
     const el = document.getElementById("ov-top-table");
     if(!el) return;
-    const top = stats.topSellers;
+    const top = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats);
     el.innerHTML = top.length ? `
       <div class="table-wrap"><table class="data">
         <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
         <tbody>
           ${top.slice(0, 15).map((r, i) => `
-            <tr class="clickable-row" data-top-prod="${r.productId}">
+            <tr class="clickable-row" data-top-prod="${Utils.escapeHtml(r.productId || r.name)}">
               <td class="text-faint">${i+1}</td>
               <td><strong>${Utils.escapeHtml(r.name)}</strong></td>
               <td><span class="badge badge-brand">${Utils.escapeHtml(r.category)}</span></td>
@@ -640,24 +921,29 @@ const Reports = (() => {
       </table></div>` : `<div class="empty">${Icons.get("package",{size:28})}<h3>No sales in this period</h3></div>`;
     el.querySelectorAll("[data-top-prod]").forEach(row => {
       row.onclick = () => {
-        const item = top.find(x => x.productId === row.dataset.topProd);
+        const item = top.find(x => (x.productId && x.productId === row.dataset.topProd) || x.name === row.dataset.topProd);
         if(item) openProductDrilldown(item, stats);
       };
     });
   }
 
+  // (2026-07-13) Guard trend and category charts with safe fallbacks; was crashing
   function buildOverviewCharts(stats){
     destroyOverviewCharts();
     const trendCtx = document.getElementById("ov-chart-trend")?.getContext("2d");
     if(trendCtx && typeof Chart !== "undefined"){
-      const trendData = stats.trend;
+      const trendData = stats.trend || Analytics.computeTrendData(periodKey);
+      const store = trendData.store || trendData.storeData || [];
+      const fuel = trendData.fuel || trendData.fuelData || [];
+      const labels = trendData.labels || [];
+      const timestamps = trendData.timestamps || trendData.dayStarts || [];
       overviewCharts.trend = new Chart(trendCtx, {
         type: "line",
         data: {
-          labels: trendData.labels,
+          labels: labels,
           datasets: [
-            { label: "Store", data: trendData.store, borderColor: "#4F46E5", backgroundColor: "rgba(79,70,229,0.1)", fill: true, tension: 0.3 },
-            { label: "Fuel", data: trendData.fuel, borderColor: "#10B981", backgroundColor: "rgba(16,185,129,0.1)", fill: true, tension: 0.3 }
+            { label: "Store", data: store, borderColor: "#4F46E5", backgroundColor: "rgba(79,70,229,0.1)", fill: true, tension: 0.3 },
+            { label: "Fuel", data: fuel, borderColor: "#10B981", backgroundColor: "rgba(16,185,129,0.1)", fill: true, tension: 0.3 }
           ]
         },
         options: {
@@ -668,7 +954,7 @@ const Reports = (() => {
           onClick: (e, elements) => {
             if(elements.length > 0){
               const idx = elements[0].index;
-              const dayStart = trendData.timestamps ? trendData.timestamps[idx] : null;
+              const dayStart = timestamps[idx];
               if(dayStart) openDayDrilldown(dayStart);
             }
           }
@@ -678,7 +964,7 @@ const Reports = (() => {
 
     const catCtx = document.getElementById("ov-chart-category")?.getContext("2d");
     if(catCtx && typeof Chart !== "undefined"){
-      const cats = stats.categoryBreakdown || [];
+      const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
       overviewCharts.category = new Chart(catCtx, {
         type: "bar",
         data: {
@@ -701,7 +987,7 @@ const Reports = (() => {
     const wrap = document.getElementById("report-body");
     const r = Analytics.getPeriodRange(periodKey);
     wrap.innerHTML = `
-      <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+      <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px;align-items:center;">
         <div>
           <span class="text-md font-bold" style="color:var(--ink);">${r.subtitle}</span>
           <div class="text-sm text-faint">Click any chart point or category bar to drill in.</div>
@@ -711,9 +997,15 @@ const Reports = (() => {
       <div class="pl-summary" id="ov-pl"></div>
       <div class="chart-grid">
         <div class="chart-card">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
-            ${Icons.get("trending-up",{size:18})} Revenue Trend — Store vs Fuel
-          </h3>
+          <!-- (2026-07-13) Place period dropdown in revenue trend header; was outer banner -->
+          <div class="flex-between" style="margin-bottom:10px;align-items:center;flex-wrap:wrap;gap:8px;">
+            <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin:0;">
+              ${Icons.get("trending-up",{size:18})} Revenue Trend — Store vs Fuel
+            </h3>
+            <select class="input" id="trend-period-select" style="height:32px;padding:2px 10px;font-size:var(--fs-xs);font-weight:700;border-radius:var(--r-md);background:var(--paper-raised);border:1px solid var(--line);color:var(--ink);cursor:pointer;width:auto;">
+              ${PERIOD_FILTERS.map(([k, lbl]) => `<option value="${k}" ${periodKey === k ? "selected" : ""}>${lbl}</option>`).join("")}
+            </select>
+          </div>
           <div style="position:relative;height:240px;width:100%;"><canvas id="ov-chart-trend"></canvas></div>
         </div>
         <div class="chart-card">
@@ -723,15 +1015,29 @@ const Reports = (() => {
           <div style="position:relative;height:240px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
         </div>
       </div>
+      <div id="ov-store-sales"></div>
       <div class="card">
         <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">${Icons.get("package",{size:18})} Top Selling Items</h3>
         <div id="ov-top-table"></div>
       </div>
-      ${voidLogsCard()}`;
+      ${voidLogsCard(false)}`;
+
+    const trendSel = document.getElementById("trend-period-select");
+    if(trendSel){
+      trendSel.onchange = (e) => {
+        periodKey = e.target.value;
+        const pSel = document.getElementById("report-period-select");
+        if(pSel) pSel.value = periodKey;
+        refreshOverview();
+      };
+    }
 
     wrap.querySelectorAll("[data-period]").forEach(chip => {
       chip.onclick = () => {
         periodKey = chip.dataset.period;
+        const pSel = document.getElementById("report-period-select");
+        if(pSel) pSel.value = periodKey;
+        if(trendSel) trendSel.value = periodKey;
         refreshOverview();
       };
     });
@@ -742,8 +1048,13 @@ const Reports = (() => {
   function refreshOverview(){
     const stats = Analytics.computeStats(periodKey);
     renderOverviewStats(stats);
+    renderStoreSalesCard(stats);
     buildOverviewCharts(stats);
     renderTopSellersTable(stats);
+    const pSel = document.getElementById("report-period-select");
+    const trendSel = document.getElementById("trend-period-select");
+    if(pSel) pSel.value = periodKey;
+    if(trendSel) trendSel.value = periodKey;
     document.querySelectorAll("[data-period]").forEach(c => c.classList.toggle("active", c.dataset.period === periodKey));
   }
 
@@ -751,23 +1062,30 @@ const Reports = (() => {
   function render(){
     const view = document.getElementById("view-root");
     const admin = Auth.isAdmin();
-    if(!admin && tab === "overview") tab = "history";
-    // (2026-07-13) Make reports view scrollable with view-body container; was fixed height
+    if(!admin && tab !== "history" && tab !== "fuel") tab = "history";
+    // (2026-07-13) Add period dropdown and Loyverse admin report tabs; was 5 tabs
     view.innerHTML = `
-      <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;padding-bottom:6rem;-webkit-overflow-scrolling:touch;">
+      <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
         <div class="view-head">
           <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2><div class="view-sub">Sales history, analytics, shift reconciliation & void audit</div></div>
-          <div class="input-row" style="width:auto;">
+          <div class="input-row" style="width:auto;gap:8px;align-items:center;">
+            <select class="input" id="report-period-select" style="height:36px;padding:0 12px;font-size:var(--fs-sm);font-weight:700;border-radius:var(--r-md);background:var(--paper-raised);border:1px solid var(--line);color:var(--ink);cursor:pointer;">
+              ${PERIOD_FILTERS.map(([k, lbl]) => `<option value="${k}" ${periodKey === k ? "selected" : ""}>${lbl}</option>`).join("")}
+            </select>
             <button class="btn btn-ghost" id="btn-xreport">${Icons.get("clipboard",{size:15})} X Report</button>
             <button class="btn btn-danger" id="btn-zreport">${Icons.get("lock",{size:15})} Z Report</button>
           </div>
         </div>
-        <div class="category-chips" style="margin-bottom:14px;">
-          ${admin ? `<div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Overview</div>` : ""}
-          <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("cart",{size:13})}Store Sales</div>
+        <div class="category-chips" style="margin-bottom:14px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
+          ${admin ? `<div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>` : ""}
+          ${admin ? `<div class="chip ${tab==="by_item"?"active":""}" data-t="by_item">${Icons.get("package",{size:13})}Sales by item</div>` : ""}
+          ${admin ? `<div class="chip ${tab==="by_category"?"active":""}" data-t="by_category">${Icons.get("tag",{size:13})}Sales by category</div>` : ""}
+          ${admin ? `<div class="chip ${tab==="by_employee"?"active":""}" data-t="by_employee">${Icons.get("user",{size:13})}Sales by employee</div>` : ""}
+          ${admin ? `<div class="chip ${tab==="by_payment"?"active":""}" data-t="by_payment">${Icons.get("credit-card",{size:13})}Sales by payment type</div>` : ""}
+          <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("receipt",{size:13})}Receipts</div>
           <div class="chip ${tab==="fuel"?"active":""}" data-t="fuel">${Icons.get("fuel",{size:13})}Fuel Sales</div>
           <div class="chip ${tab==="purchases"?"active":""}" data-t="purchases">${Icons.get("truck",{size:13})}Purchases & Restock</div>
-          ${admin ? `<div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void & Deletions Audit</div>` : ""}
+          ${admin ? `<div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>` : ""}
         </div>
         <div id="report-body"></div>
       </div>`;
@@ -775,9 +1093,37 @@ const Reports = (() => {
     document.getElementById("btn-zreport").onclick = openZReport;
     document.querySelectorAll("[data-t]").forEach(c=>c.onclick=()=>{ tab=c.dataset.t; render(); });
 
+    const pSel = document.getElementById("report-period-select");
+    if(pSel){
+      pSel.onchange = (e) => {
+        periodKey = e.target.value;
+        render();
+      };
+    }
+
     if(tab === "overview") renderOverview();
-    else if(tab === "voids"){
-      document.getElementById("report-body").innerHTML = voidLogsCard();
+    else if(tab === "by_item"){
+      document.getElementById("report-body").innerHTML = salesByItemTable();
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+      document.querySelectorAll("[data-top-prod]").forEach(row => {
+        row.onclick = () => {
+          const stats = Analytics.computeStats(periodKey);
+          const top = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
+          const item = top.find(x => (x.productId && x.productId === row.dataset.topProd) || x.name === row.dataset.topProd);
+          if(item) openProductDrilldown(item, stats);
+        };
+      });
+    } else if(tab === "by_category"){
+      document.getElementById("report-body").innerHTML = salesByCategoryTable();
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+    } else if(tab === "by_employee"){
+      document.getElementById("report-body").innerHTML = salesByEmployeeTable();
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+    } else if(tab === "by_payment"){
+      document.getElementById("report-body").innerHTML = salesByPaymentTable();
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+    } else if(tab === "voids"){
+      document.getElementById("report-body").innerHTML = voidLogsCard(true);
     } else if(tab === "purchases"){
       document.getElementById("report-body").innerHTML = purchasesTable();
       document.querySelectorAll("[data-period]").forEach(chip => {
@@ -835,15 +1181,6 @@ const Reports = (() => {
       });
     }
 
-    // (2026-07-13) Native mouse wheel scroll for reports view-body. Prev: blocked by inner overflow
-    const viewBody = view.querySelector(".view-body");
-    if(viewBody){
-      view.addEventListener("wheel", (e) => {
-        if(e.deltaY !== 0){
-          viewBody.scrollTop += e.deltaY;
-        }
-      }, { passive: true });
-    }
   }
 
   return { render };

@@ -34,10 +34,12 @@ const Utils = (() => {
   function productThumb(product, opts = {}){
     const iconName = DB.categoryIcon(product.category);
     const size = opts.iconSize || 28;
+    // (2026-09-17) Wrap icon in span so it can be hidden immediately when imageUrl exists; was onload-deferred
+    const iconSpan = `<span class="ic-svg-wrap" style="${product.imageUrl ? "display:none" : ""}">${Icons.get(iconName, { size })}</span>`;
     const img = product.imageUrl
-      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;" onload="if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display='none'" onerror="this.style.display='none';if(this.previousElementSibling&&this.previousElementSibling.classList.contains('ic-svg'))this.previousElementSibling.style.display=''">`
+      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.style.display='none';var w=this.previousElementSibling;if(w&&w.classList.contains('ic-svg-wrap'))w.style.display=''">`
       : "";
-    return `${Icons.get(iconName, { size })}${img}`;
+    return `${iconSpan}${img}`;
   }
 
   // (2026-07-13) Offline clipboard copy with fallback textarea. Prev: none

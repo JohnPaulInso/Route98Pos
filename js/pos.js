@@ -270,17 +270,17 @@ const POS = (() => {
     if(!cart.length){ Utils.toast("Cart is empty.", "warn"); return; }
     // (2026-07-13) Compute totals t in openCheckout; was ReferenceError on t
     const t = totals();
-    const savedCashier = localStorage.getItem("pos_cashier") || "Rosella";
+    const cashiers = DB.getCashiers();
+    const savedCashier = localStorage.getItem("pos_cashier") || cashiers[0] || "Rosella";
     const body = `
-      <!-- (2026-07-13) Add Rosella/Niño cashier dropdown; was static user -->
+      <!-- (2026-07-13) Dynamic cashier dropdown from DB; was hardcoded 2 names -->
       <div class="due-amount-card" style="margin-bottom:14px;">
         <div class="flex-between" style="align-items:center;margin-bottom:4px;">
           <div class="lbl">Amount Due</div>
           <div style="display:flex;align-items:center;gap:6px;">
             <label for="checkout-cashier-select" style="font-size:0.75rem;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.04em;">Cashier</label>
             <select id="checkout-cashier-select" class="input input-sm" style="padding:2px 8px;font-size:0.84rem;font-weight:700;border-radius:6px;width:auto;cursor:pointer;background:var(--paper-card);color:var(--ink);">
-              <option value="Rosella" ${savedCashier==="Rosella"?"selected":""}>Rosella</option>
-              <option value="Niño" ${savedCashier==="Niño"?"selected":""}>Niño</option>
+              ${cashiers.map(c => `<option value="${Utils.escapeHtml(c)}" ${savedCashier===c?"selected":""}>${Utils.escapeHtml(c)}</option>`).join("")}
             </select>
           </div>
         </div>
@@ -783,8 +783,8 @@ const POS = (() => {
       id: txnId, ts: Date.now(), items: cart.map(l=>({...l})),
       subtotal:t.subtotal, discountType:discount.type, discountValue:discount.value, discountAmt:t.discountAmt, vat:t.vat, total:t.grand,
       method, refCode, tendered, change: Utils.round2(tendered - t.grand),
-      // (2026-07-13) Record selected cashier; was Auth.currentUser
-      cashier: modal.querySelector("#checkout-cashier-select")?.value || localStorage.getItem("pos_cashier") || "Rosella"
+      // (2026-07-13) Record cashier with dynamic DB fallback; was hardcoded default
+      cashier: modal.querySelector("#checkout-cashier-select")?.value || localStorage.getItem("pos_cashier") || (DB.getCashiers()[0] || "Rosella")
     };
     const sales = DB.getSales(); sales.unshift(sale); DB.setSales(sales);
     if(activeHeldId){

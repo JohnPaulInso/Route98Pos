@@ -62,6 +62,51 @@ const Settings = (() => {
     });
   }
 
+  // (2026-07-13) Manage POS cashiers roster in settings; was hardcoded 2 names
+  function renderCashiersList(){
+    const wrap = document.getElementById("cashiers-list");
+    if(!wrap) return;
+    const cashiers = DB.getCashiers();
+    wrap.innerHTML = `
+      <div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Cashier Name</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
+        ${cashiers.map((c, i) => `<tr>
+          <td class="text-faint">${i + 1}</td>
+          <td><strong>${Utils.escapeHtml(c)}</strong></td>
+          <td style="text-align:right;">
+            ${cashiers.length > 1 ? `<button class="btn btn-sm btn-ghost" data-rm-cashier="${Utils.escapeHtml(c)}" style="color:var(--danger);">${Icons.get("trash",{size:13})} Remove</button>` : `<span class="text-xs text-faint">Required</span>`}
+          </td>
+        </tr>`).join("")}
+      </tbody></table></div>
+      <div class="input-row" style="margin-top:10px;">
+        <input class="input" id="new-cashier-input" placeholder="Enter cashier name (e.g. Maria)">
+        <button class="btn btn-primary" id="btn-add-cashier">${Icons.get("plus",{size:13})} Add Cashier</button>
+      </div>`;
+    wrap.querySelectorAll("[data-rm-cashier]").forEach(b => b.onclick = () => {
+      const name = b.dataset.rmCashier;
+      const cur = DB.getCashiers().filter(x => x !== name);
+      DB.setCashiers(cur);
+      Utils.toast(`Removed cashier "${name}".`, "info");
+      renderCashiersList();
+    });
+    const addBtn = wrap.querySelector("#btn-add-cashier");
+    const input = wrap.querySelector("#new-cashier-input");
+    const doAdd = () => {
+      const name = (input.value || "").trim();
+      if(!name){ Utils.toast("Enter a cashier name.", "warn"); return; }
+      const cur = DB.getCashiers();
+      if(cur.some(x => x.toLowerCase() === name.toLowerCase())){
+        Utils.toast(`Cashier "${name}" already exists.`, "warn");
+        return;
+      }
+      cur.push(name);
+      DB.setCashiers(cur);
+      Utils.toast(`Added cashier "${name}".`, "success");
+      renderCashiersList();
+    };
+    addBtn.onclick = doAdd;
+    input.addEventListener("keydown", (e) => { if(e.key === "Enter"){ e.preventDefault(); doAdd(); } });
+  }
+
   function renderPumpConfig(){
     const wrap = document.getElementById("pump-config-table");
     const cfg = DB.getFuelConfig();
@@ -98,10 +143,17 @@ const Settings = (() => {
     };
   }
 
-  // (2026-07-13) 11:59 PM daily backups & file export UI; was Firestore multi-doc card
+  // (2026-07-13) Render all backups and fetch cloud records; was sliced to 15
   function renderDataTab(){
     const wrap = document.getElementById("view-tab-body");
     const backups = DB.getBackups();
+    if(backups.length === 0 && typeof Sync !== "undefined" && Sync.pullSnapshot && !renderDataTab._fetching){
+      renderDataTab._fetching = true;
+      Sync.pullSnapshot(true).then(() => {
+        renderDataTab._fetching = false;
+        if(tab === "data") renderDataTab();
+      }).catch(() => { renderDataTab._fetching = false; });
+    }
     const target1159 = Sync.getNext1159Target();
     const targetStr = target1159.toLocaleDateString("en-PH", { month:"short", day:"numeric" }) + " at 11:59 PM";
 
@@ -116,7 +168,7 @@ const Settings = (() => {
           <button class="btn btn-sm btn-primary" id="btn-create-backup-now">${Icons.get("plus",{size:13})} Run Backup Now</button>
         </div>
         ${backups.length ? `
-          <div class="table-wrap" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <div class="table-wrap" style="max-height:480px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);">
             <table class="data">
               <thead>
                 <tr>
@@ -127,10 +179,10 @@ const Settings = (() => {
                 </tr>
               </thead>
               <tbody>
-                ${backups.slice(0, 15).map(b => `
+                ${backups.map(b => `
                   <tr>
                     <td><strong>${Utils.escapeHtml(b.dateStr || new Date(b.createdAt).toLocaleString())}</strong></td>
-                    <td><span class="badge ${b.exportType==="automatic_1159"?"badge-info":"badge-amber"}">${b.exportType==="automatic_1159"?"11:59 PM Auto":"Manual"}</span></td>
+                    <td><span class="badge ${String(b.exportType).includes("auto")?"badge-info":"badge-amber"}">${String(b.exportType).includes("auto")?"Daily Auto":"Manual"}</span></td>
                     <td class="text-xs text-faint">${b.summary ? `${b.summary.products||0} Prods · ${b.summary.sales||0} Sales · ${b.summary.expenses||0} OPEX` : "Full Snapshot"}</td>
                     <td style="text-align:right;white-space:nowrap;">
                       <button class="btn btn-xs btn-ghost" data-view-backup="${b.id}">${Icons.get("eye",{size:12})} View</button>
@@ -239,7 +291,7 @@ const Settings = (() => {
             </div>
             <div class="card" style="padding:10px 14px;background:var(--paper-dim);">
               <div class="text-xs text-faint">Export Mode</div>
-              <strong>${item.exportType==="automatic_1159"?"Daily 11:59 PM Auto":"Manual Export"}</strong>
+              <strong>${String(item.exportType).includes("auto")?"Daily Auto Backup":"Manual Export"}</strong>
             </div>
           </div>
           <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
@@ -357,8 +409,12 @@ const Settings = (() => {
       };
     }
     else if(tab === "staff"){
-      wrap.innerHTML = `<div class="card"><h3 style="margin-bottom:12px;">${Icons.get("users",{size:16})} Staff Accounts</h3><div id="staff-table"></div></div>`;
+      wrap.innerHTML = `
+        <div class="card"><h3 style="margin-bottom:12px;">${Icons.get("users",{size:16})} Staff Accounts</h3><div id="staff-table"></div></div>
+        <div class="card" style="margin-top:14px;"><h3 style="margin-bottom:6px;">${Icons.get("receipt",{size:16})} POS Cashiers</h3><p class="text-sm text-faint" style="margin-top:0;margin-bottom:12px;">Cashiers selectable during checkout register sales.</p><div id="cashiers-list"></div></div>
+      `;
       renderStaffTable();
+      renderCashiersList();
     }
     else if(tab === "fuel"){
       wrap.innerHTML = `<div class="card"><h3 style="margin-bottom:12px;">${Icons.get("fuel",{size:16})} Pump Configuration</h3><div id="pump-config-table"></div></div>`;
