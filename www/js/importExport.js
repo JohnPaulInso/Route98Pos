@@ -312,12 +312,22 @@ const ImportExport = (() => {
           const ts = parseDateToTimestamp(dateVal, timeVal);
           const itemName = (findVal(["item_name","item name","product name","product","item","description","name"]) || "Imported Item").trim();
           const category = (findVal(["category","cat","department"]) || "MISC").trim().toUpperCase();
-          const qty = Math.max(1, Number(findVal(["quantity","qty","units","count"])) || 1);
-          const price = Number(findVal(["unit_price","unit price","price","gross price","rate"])) || 0;
-          const subtotalVal = Number(findVal(["subtotal","sub total"])) || 0;
-          const discountVal = Number(findVal(["discount","discount amt","discount applied"])) || 0;
-          const vatVal = Number(findVal(["vat","tax","vat incl"])) || 0;
-          const totalVal = Number(findVal(["total_due","total amount","total due","total","grand total","net total","amount"])) || (qty * price);
+          // (2026-07-13) Parse currency symbols and filter cancelled sales; was raw Number
+          const typeVal = String(findVal(["type","transaction type","txn type","status"]) || "").toLowerCase();
+          if(typeVal.includes("cancelled") || typeVal.includes("canceled")) return;
+          const parseMoney = (raw) => {
+            if(typeof raw === "number") return isNaN(raw) ? 0 : raw;
+            if(!raw) return 0;
+            const cleaned = String(raw).replace(/[^0-9.-]+/g, "");
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? 0 : num;
+          };
+          const qty = Math.max(1, parseMoney(findVal(["quantity","qty","units","count"])) || 1);
+          const price = parseMoney(findVal(["unit_price","unit price","price","gross price","rate"]));
+          const subtotalVal = parseMoney(findVal(["subtotal","sub total"]));
+          const discountVal = parseMoney(findVal(["discount","discount amt","discount applied"]));
+          const vatVal = parseMoney(findVal(["vat","tax","vat incl"]));
+          const totalVal = parseMoney(findVal(["total_due","total amount","total due","total","grand total","net total","amount"])) || (qty * price);
           const method = String(findVal(["payment_method","payment method","payment type","payment","method"]) || "Cash").trim();
           const cashier = String(findVal(["cashier","user","staff","employee","cashier name"]) || "Cashier").trim();
           const refCode = String(findVal(["reference_no","reference no","ref no","reference","ref code"]) || "").trim();
