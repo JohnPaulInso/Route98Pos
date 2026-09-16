@@ -43,7 +43,8 @@ const DB = (() => {
   const DEFAULT_SETTINGS = {
     businessName: "Route 98",
     address: "Cabangcalan, Dakit, Bogo City, Cebu",
-    tin: "",
+    // (2026-07-13) Set default Route 98 TIN; was empty
+    tin: "811-387-946-00000",
     receiptFooter: "Salamat sa inyong pagbisita sa Route 98! Come again",
     currencySymbol: "₱",
     vatEnabled: true,
@@ -137,6 +138,10 @@ const DB = (() => {
     }
     if(!updatedSettings.address || updatedSettings.address === "Cebu City, Philippines"){
       updatedSettings.address = "Cabangcalan, Dakit, Bogo City, Cebu";
+    }
+    // (2026-07-13) Migrate TIN to Route 98 TIN; was empty
+    if(!updatedSettings.tin){
+      updatedSettings.tin = "811-387-946-00000";
     }
     write(KEYS.settings, updatedSettings);
     // backfill fuel cost/priceLog fields for stores upgrading from an older version

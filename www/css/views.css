@@ -456,7 +456,8 @@ table.data th:first-child{
   background: #fff;
   margin: 0 auto;
 }
-.receipt img{ display: block; margin: 0 auto; width: 16mm; max-width: 60px; height: auto; }
+/* (2026-07-13) Increase receipt logo to 24mm; was 16mm */
+.receipt img{ display: block; margin: 0 auto; width: 24mm; max-width: 92px; height: auto; }
 .receipt .center{ text-align: center; }
 .receipt .bold{ font-weight: 800; }
 .receipt .text-xs{ font-size: 8.5px; }
@@ -468,10 +469,15 @@ table.data th:first-child{
 .receipt .item-name{ font-weight: 600; word-break: break-word; font-size: 9.5px; }
 .receipt .item-detail{ font-size: 8.5px; color: #222; }
 .receipt .row{ display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
-.receipt .num{ font-variant-numeric: tabular-nums; font-family: 'Consolas', monospace; font-size: 9.5px; }
+/* (2026-07-13) Increase price font size on receipt right side; was 9.5px */
+.receipt .num{ font-variant-numeric: tabular-nums; font-family: 'Consolas', monospace; font-size: 11.5px; font-weight: 700; }
+.receipt .text-lg .num{ font-size: 13.5px; font-weight: 900; }
 .receipt hr.receipt-dash{ border: none; border-top: 1px dashed #555; margin: 2.5px 0; }
 .receipt hr.receipt-solid{ border: none; border-top: 1px solid #000; margin: 2px 0; }
 .receipt .footer-msg{ font-size: 8.5px; font-weight: 800; text-transform: uppercase; padding-bottom: 0; margin-bottom: 0; }
+/* (2026-07-13) Straight cut line & 22mm cutter feed margin; was crooked & 3mm */
+/* Receipt tear cut line */
+.receipt .receipt-cut-line{ margin-top: 10px; border: none; border-top: 1px dashed #000; width: 100%; display: block; }
 
 /* (2026-07-13) Auto-fit paper height & hide screen DOM; was 210mm tall sheet */
 @media print{

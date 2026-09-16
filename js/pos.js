@@ -268,10 +268,22 @@ const POS = (() => {
   // (2026-07-13) Prioritize checkout typography and change display; was plain
   function openCheckout(){
     if(!cart.length){ Utils.toast("Cart is empty.", "warn"); return; }
+    // (2026-07-13) Compute totals t in openCheckout; was ReferenceError on t
     const t = totals();
+    const savedCashier = localStorage.getItem("pos_cashier") || "Rosella";
     const body = `
+      <!-- (2026-07-13) Add Rosella/Niño cashier dropdown; was static user -->
       <div class="due-amount-card" style="margin-bottom:14px;">
-        <div class="lbl">Amount Due</div>
+        <div class="flex-between" style="align-items:center;margin-bottom:4px;">
+          <div class="lbl">Amount Due</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label for="checkout-cashier-select" style="font-size:0.75rem;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.04em;">Cashier</label>
+            <select id="checkout-cashier-select" class="input input-sm" style="padding:2px 8px;font-size:0.84rem;font-weight:700;border-radius:6px;width:auto;cursor:pointer;background:var(--paper-card);color:var(--ink);">
+              <option value="Rosella" ${savedCashier==="Rosella"?"selected":""}>Rosella</option>
+              <option value="Niño" ${savedCashier==="Niño"?"selected":""}>Niño</option>
+            </select>
+          </div>
+        </div>
         <div class="val">${Utils.money(t.grand)}</div>
       </div>
       <div class="pos-payment-methods" id="pay-methods">
@@ -351,6 +363,13 @@ const POS = (() => {
       cashInput.value = t.grand.toFixed(2);
       updateChange();
     });
+    // (2026-07-13) Set cash from preset buttons on click; was missing click handler
+    modal.querySelector("#cash-presets")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".cash-preset-btn");
+      if(!btn) return;
+      cashInput.value = Number(btn.dataset.v).toFixed(2);
+      updateChange();
+    });
     // (2026-07-13) Bind Enter key on cash input to confirm payment; was button-only
     cashInput.addEventListener("keydown", (e) => {
       if(e.key === "Enter"){
@@ -363,6 +382,10 @@ const POS = (() => {
         e.preventDefault();
         finalizeSale(modal);
       }
+    });
+    // (2026-07-13) Persist selected cashier for next sales; was no selection
+    modal.querySelector("#checkout-cashier-select")?.addEventListener("change", (e) => {
+      localStorage.setItem("pos_cashier", e.target.value);
     });
     cashInput.focus();
   }
@@ -760,7 +783,8 @@ const POS = (() => {
       id: txnId, ts: Date.now(), items: cart.map(l=>({...l})),
       subtotal:t.subtotal, discountType:discount.type, discountValue:discount.value, discountAmt:t.discountAmt, vat:t.vat, total:t.grand,
       method, refCode, tendered, change: Utils.round2(tendered - t.grand),
-      cashier: Auth.currentUser()?.name || "Unknown"
+      // (2026-07-13) Record selected cashier; was Auth.currentUser
+      cashier: modal.querySelector("#checkout-cashier-select")?.value || localStorage.getItem("pos_cashier") || "Rosella"
     };
     const sales = DB.getSales(); sales.unshift(sale); DB.setSales(sales);
     if(activeHeldId){
@@ -861,12 +885,14 @@ const POS = (() => {
     win.innerHTML = `
       <div class="receipt jk580h">
         <div class="center" style="margin-bottom:3px;">
-          <img src="logo.png" alt="Route 98" style="width:16mm;max-width:60px;height:auto;display:block;margin:0 auto 2px;">
+          <!-- (2026-07-13) Enlarge receipt logo to 24mm; was 16mm -->
+          <img src="logo.png" alt="Route 98" style="width:24mm;max-width:92px;height:auto;display:block;margin:0 auto 2px;">
           <div class="bold brand-title">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
           <div class="text-xs store-address">${Utils.escapeHtml(settings.address && settings.address !== "Cebu City, Philippines" ? settings.address : "Cabangcalan, Dakit, Bogo City, Cebu")}</div>
-          ${settings.tin ? `<div class="text-xs">TIN: ${Utils.escapeHtml(settings.tin)}</div>` : ""}
+          <!-- (2026-07-13) Add VAT REG TIN on top; was dynamic TIN -->
+          <div class="text-xs">VAT REG TIN: ${Utils.escapeHtml(settings.tin || "811-387-946-00000")}</div>
           <div class="bold text-xs" style="margin-top:2px;letter-spacing:0.02em;">THANKS FOR SHOPPING</div>
-          <div class="bold text-xs">${Utils.escapeHtml(settings.businessName || "ROUTE 98")}</div>
+          
         </div>
         <hr class="receipt-dash">
         <div class="center bold text-xs receipt-sale-hdr">--== SALE TRANSACTION ==--</div>
@@ -887,6 +913,8 @@ const POS = (() => {
         </div>
         <div class="row" style="margin-top:2px;"><span>SUBTOTAL</span><span class="bold num">${Utils.money(sale.subtotal)}</span></div>
         ${sale.discountAmt ? `<div class="row"><span>DISCOUNT</span><span class="num">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
+        <!-- (2026-07-13) Re-include VAT row on receipt; was omitted -->
+        ${settings.vatEnabled ? `<div class="row"><span>VAT (${settings.vatRate}%)</span><span class="num">${Utils.money(sale.vat)}</span></div>` : ""}
         <hr class="receipt-solid">
         <div class="row bold text-lg" style="margin:1px 0;"><span>TOTAL</span><span class="num">${Utils.money(sale.total)}</span></div>
         <hr class="receipt-solid">
@@ -897,7 +925,8 @@ const POS = (() => {
         <hr class="receipt-dash">
         <div class="row text-xs"><span>TXN ID:</span><span class="num">#TXN-${cleanTxnId}</span></div>
         <div class="row text-xs"><span>DATE:</span><span>${Utils.fmtDate(sale.ts)}</span></div>
-        <!-- (2026-07-13) Omit Cashier row from receipt; was Cashier row -->
+        <!-- (2026-07-13) Show active cashier (Rosella/Niño); was omitted -->
+        ${sale.cashier ? `<div class="row text-xs"><span>CASHIER:</span><span>${Utils.escapeHtml(sale.cashier)}</span></div>` : ""}
         <hr class="receipt-dash">
         <div class="center" style="margin:3px 0 1px;">
           <svg width="140" height="28" viewBox="0 0 140 28" style="display:block;margin:0 auto;max-width:100%;">
@@ -909,18 +938,10 @@ const POS = (() => {
           <div class="text-xs num" style="letter-spacing:0.12em;font-size:8px;">${cleanTxnId ? cleanTxnId.padEnd(14, '0') : "13485572675148"}</div>
         </div>
         <div class="center bold text-xs footer-msg">${settings.receiptFooter ? Utils.escapeHtml(settings.receiptFooter).toUpperCase() : "THANKS FOR SHOPPING HERE<br>WE WILL SEE YOU SOON"}</div>
+        <!-- (2026-07-13) Straight cut line & 22mm cutter feed; was cut at total -->
+        <div class="receipt-cut-line"></div>
+        <div style="height:22mm;"></div>
       </div>`;
-    // (2026-07-13) Set exact receipt mm height in @page; was 210mm paper default
-    const receiptEl = win.querySelector(".receipt");
-    const hPx = receiptEl ? receiptEl.getBoundingClientRect().height : win.offsetHeight;
-    const heightMm = Math.max(45, Math.ceil((hPx || 300) * 0.264583) + 2);
-    let pageStyle = document.getElementById("receipt-page-style");
-    if(!pageStyle){
-      pageStyle = document.createElement("style");
-      pageStyle.id = "receipt-page-style";
-      document.head.appendChild(pageStyle);
-    }
-    pageStyle.textContent = `@page{size:58mm ${heightMm}mm !important;margin:0mm !important;}`;
     setTimeout(() => {
       window.print();
     }, 120);
