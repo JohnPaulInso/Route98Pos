@@ -39,10 +39,10 @@ const DB = (() => {
   // ---------- defaults ----------
   const DEFAULT_CATEGORIES = ["Misc"];
 
-  // (2026-07-13) Set default Route 98 Firebase config & autoSync. Prev: null
+  // (2026-07-13) Update default address to Bogo City; was Cebu City
   const DEFAULT_SETTINGS = {
     businessName: "Route 98",
-    address: "Cebu City, Philippines",
+    address: "Cabangcalan, Dakit, Bogo City, Cebu",
     tin: "",
     receiptFooter: "Salamat sa inyong pagbisita sa Route 98! Come again",
     currencySymbol: "₱",
@@ -130,9 +130,13 @@ const DB = (() => {
     // merge in any NEW default settings keys added in later app versions without clobbering user edits
     const s = read(KEYS.settings);
     const updatedSettings = { ...DEFAULT_SETTINGS, ...s };
+    // (2026-07-13) Migrate address to Bogo City; was Cebu City, Philippines
     if(updatedSettings.businessName === "The Good Minimart" || !updatedSettings.businessName){
       updatedSettings.businessName = "Route 98";
       updatedSettings.receiptFooter = "Salamat sa inyong pagbisita sa Route 98! Come again";
+    }
+    if(!updatedSettings.address || updatedSettings.address === "Cebu City, Philippines"){
+      updatedSettings.address = "Cabangcalan, Dakit, Bogo City, Cebu";
     }
     write(KEYS.settings, updatedSettings);
     // backfill fuel cost/priceLog fields for stores upgrading from an older version

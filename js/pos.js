@@ -381,7 +381,8 @@ const POS = (() => {
       <div class="receipt">
         <div class="center">
           <strong>${Utils.escapeHtml(settings.businessName || "Route 98")}</strong><br>
-          ${Utils.escapeHtml(settings.address || "Cebu City, Philippines")}<br>
+          <!-- (2026-07-13) Fallback address to Bogo City; was Cebu City -->
+          ${Utils.escapeHtml(settings.address || "Cabangcalan, Dakit, Bogo City, Cebu")}<br>
           ${settings.tin ? `TIN: ${Utils.escapeHtml(settings.tin)}<br>` : ""}
         </div>
         <hr>
@@ -398,7 +399,7 @@ const POS = (() => {
         <hr>
         <div class="row"><span>Subtotal</span><span>${Utils.money(sale.subtotal ?? sale.total)}</span></div>
         ${sale.discountAmt ? `<div class="row"><span>Discount</span><span>-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        ${settings.vatEnabled && sale.vat ? `<div class="row"><span>VAT (${settings.vatRate}%)</span><span>${Utils.money(sale.vat)}</span></div>` : ""}
+        <!-- (2026-07-13) Omit VAT line from receipt; was VAT row -->
         <div class="row" style="font-weight:700;font-size:1.1em;"><span>TOTAL</span><span>${Utils.money(sale.total)}</span></div>
         ${sale.method === "Cash" && sale.tendered !== undefined ? `
           <div class="row"><span>Cash Tendered</span><span>${Utils.money(sale.tendered)}</span></div>
@@ -851,7 +852,7 @@ const POS = (() => {
     });
   }
 
-  // (2026-07-13) Format receipt with logo.png & clean rows for JK580H; was no logo
+  // (2026-07-13) 7-11 layout with barcode & tight bounds; was generic receipt
   function printReceipt(sale){
     const settings = DB.getSettings();
     const win = document.getElementById("receipt-print");
@@ -859,43 +860,67 @@ const POS = (() => {
     const cleanTxnId = (sale.id || "").replace(/^TXN-/, "");
     win.innerHTML = `
       <div class="receipt jk580h">
-        <div class="center" style="margin-bottom:6px;">
-          <!-- (2026-07-13) Clean direct logo.png embed for thermal receipt; was box filter -->
-          <img src="logo.png" alt="Route 98" style="width:28mm;max-width:105px;height:auto;display:block;margin:0 auto 4px;">
+        <div class="center" style="margin-bottom:3px;">
+          <img src="logo.png" alt="Route 98" style="width:16mm;max-width:60px;height:auto;display:block;margin:0 auto 2px;">
           <div class="bold brand-title">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
-          ${settings.address ? `<div class="text-xs" style="color:#000;">${Utils.escapeHtml(settings.address)}</div>` : ""}
-          ${settings.tin ? `<div class="text-xs" style="color:#000;">TIN: ${Utils.escapeHtml(settings.tin)}</div>` : ""}
+          <div class="text-xs store-address">${Utils.escapeHtml(settings.address && settings.address !== "Cebu City, Philippines" ? settings.address : "Cabangcalan, Dakit, Bogo City, Cebu")}</div>
+          ${settings.tin ? `<div class="text-xs">TIN: ${Utils.escapeHtml(settings.tin)}</div>` : ""}
+          <div class="bold text-xs" style="margin-top:2px;letter-spacing:0.02em;">THANKS FOR SHOPPING</div>
+          <div class="bold text-xs">${Utils.escapeHtml(settings.businessName || "ROUTE 98")}</div>
         </div>
-        <hr>
-        <div class="row"><span>Date:</span><span class="mono">${Utils.fmtDate(sale.ts)}</span></div>
-        <div class="row"><span>Txn ID:</span><span class="mono bold">#TXN-${cleanTxnId}</span></div>
-        <div class="row"><span>Cashier:</span><span>${Utils.escapeHtml(sale.cashier||"Admin")}</span></div>
-        <hr>
-        <div class="row bold"><span>ITEM</span><span>TOTAL</span></div>
-        <hr>
-        ${sale.items.map(l => `
-          <div class="item-line">
-            <div class="item-name">${Utils.escapeHtml(l.name)}</div>
-            <div class="row item-detail">
-              <span>${l.qty} x ${Utils.money(l.price)}</span>
-              <span class="bold">${Utils.money(l.price * l.qty)}</span>
+        <hr class="receipt-dash">
+        <div class="center bold text-xs receipt-sale-hdr">--== SALE TRANSACTION ==--</div>
+        <div class="receipt-items">
+          ${sale.items.map(l => `
+            <div class="item-line">
+              <div class="row">
+                <span class="item-name">${Utils.escapeHtml(l.name)}</span>
+                <span class="bold num">${Utils.money(l.price * l.qty)}</span>
+              </div>
+              ${l.qty > 1 ? `
+                <div class="row item-detail">
+                  <span>&nbsp;&nbsp;${l.qty} @ ${Utils.money(l.price)}</span>
+                </div>
+              ` : ""}
             </div>
-          </div>
-        `).join("")}
-        <hr>
-        <div class="row"><span>Subtotal:</span><span class="mono bold">${Utils.money(sale.subtotal)}</span></div>
-        ${sale.discountAmt ? `<div class="row"><span>Discount (${sale.discountType==="percent" ? sale.discountValue+"%" : "Fixed"}):</span><span class="mono">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        ${settings.vatEnabled ? `<div class="row text-xs"><span>VAT incl. (${settings.vatRate}%):</span><span class="mono">${Utils.money(sale.vat)}</span></div>` : ""}
-        <hr>
-        <div class="row bold text-lg"><span>TOTAL DUE:</span><span class="mono">${Utils.money(sale.total)}</span></div>
-        <div class="row"><span>Payment (${sale.method}):</span><span class="mono">${Utils.money(sale.tendered)}</span></div>
-        ${sale.method==="Cash" ? `<div class="row bold"><span>Change:</span><span class="mono">${Utils.money(sale.change || 0)}</span></div>` : ""}
-        ${sale.refCode ? `<div class="row text-xs"><span>Ref:</span><span class="mono">${Utils.escapeHtml(sale.refCode)}</span></div>` : ""}
-        <hr>
-        <!-- (2026-07-13) Clean receipt footer; was printer model tag -->
-        <div class="center footer-msg">${Utils.escapeHtml(settings.receiptFooter || "Thank you for shopping with us!")}</div>
-        <div style="height:10mm;"></div>
+          `).join("")}
+        </div>
+        <div class="row" style="margin-top:2px;"><span>SUBTOTAL</span><span class="bold num">${Utils.money(sale.subtotal)}</span></div>
+        ${sale.discountAmt ? `<div class="row"><span>DISCOUNT</span><span class="num">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
+        <hr class="receipt-solid">
+        <div class="row bold text-lg" style="margin:1px 0;"><span>TOTAL</span><span class="num">${Utils.money(sale.total)}</span></div>
+        <hr class="receipt-solid">
+        <div class="row"><span>PAYMENT</span><span>${sale.method.toUpperCase()}</span></div>
+        <div class="row"><span>AMOUNT</span><span class="num">${Utils.money(sale.tendered)}</span></div>
+        ${sale.method==="Cash" ? `<div class="row"><span>CHANGE</span><span class="num">${Utils.money(sale.change || 0)}</span></div>` : ""}
+        ${sale.refCode ? `<div class="row text-xs"><span>REF:</span><span>${Utils.escapeHtml(sale.refCode)}</span></div>` : ""}
+        <hr class="receipt-dash">
+        <div class="row text-xs"><span>TXN ID:</span><span class="num">#TXN-${cleanTxnId}</span></div>
+        <div class="row text-xs"><span>DATE:</span><span>${Utils.fmtDate(sale.ts)}</span></div>
+        <!-- (2026-07-13) Omit Cashier row from receipt; was Cashier row -->
+        <hr class="receipt-dash">
+        <div class="center" style="margin:3px 0 1px;">
+          <svg width="140" height="28" viewBox="0 0 140 28" style="display:block;margin:0 auto;max-width:100%;">
+            <rect x="0" y="0" width="140" height="28" fill="#fff"/>
+            <g fill="#000">
+              <rect x="8" y="0" width="2" height="28"/><rect x="12" y="0" width="1" height="28"/><rect x="15" y="0" width="3" height="28"/><rect x="20" y="0" width="1" height="28"/><rect x="23" y="0" width="2" height="28"/><rect x="27" y="0" width="3" height="28"/><rect x="32" y="0" width="1" height="28"/><rect x="35" y="0" width="4" height="28"/><rect x="41" y="0" width="2" height="28"/><rect x="45" y="0" width="1" height="28"/><rect x="48" y="0" width="3" height="28"/><rect x="53" y="0" width="2" height="28"/><rect x="57" y="0" width="4" height="28"/><rect x="63" y="0" width="1" height="28"/><rect x="66" y="0" width="2" height="28"/><rect x="70" y="0" width="3" height="28"/><rect x="75" y="0" width="1" height="28"/><rect x="78" y="0" width="3" height="28"/><rect x="83" y="0" width="2" height="28"/><rect x="87" y="0" width="4" height="28"/><rect x="93" y="0" width="1" height="28"/><rect x="96" y="0" width="3" height="28"/><rect x="101" y="0" width="2" height="28"/><rect x="105" y="0" width="1" height="28"/><rect x="108" y="0" width="4" height="28"/><rect x="114" y="0" width="2" height="28"/><rect x="118" y="0" width="3" height="28"/><rect x="123" y="0" width="1" height="28"/><rect x="126" y="0" width="3" height="28"/><rect x="131" y="0" width="2" height="28"/>
+            </g>
+          </svg>
+          <div class="text-xs num" style="letter-spacing:0.12em;font-size:8px;">${cleanTxnId ? cleanTxnId.padEnd(14, '0') : "13485572675148"}</div>
+        </div>
+        <div class="center bold text-xs footer-msg">${settings.receiptFooter ? Utils.escapeHtml(settings.receiptFooter).toUpperCase() : "THANKS FOR SHOPPING HERE<br>WE WILL SEE YOU SOON"}</div>
       </div>`;
+    // (2026-07-13) Set exact receipt mm height in @page; was 210mm paper default
+    const receiptEl = win.querySelector(".receipt");
+    const hPx = receiptEl ? receiptEl.getBoundingClientRect().height : win.offsetHeight;
+    const heightMm = Math.max(45, Math.ceil((hPx || 300) * 0.264583) + 2);
+    let pageStyle = document.getElementById("receipt-page-style");
+    if(!pageStyle){
+      pageStyle = document.createElement("style");
+      pageStyle.id = "receipt-page-style";
+      document.head.appendChild(pageStyle);
+    }
+    pageStyle.textContent = `@page{size:58mm ${heightMm}mm !important;margin:0mm !important;}`;
     setTimeout(() => {
       window.print();
     }, 120);
