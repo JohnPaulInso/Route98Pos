@@ -614,6 +614,8 @@ table.data th:first-child{
 @media (max-width: 860px){
   .sidebar{ display:none; }
   .bottom-nav{ display:block; }
+  /* (2026-07-13) Show mobile menu toggle button; was hidden */
+  .mobile-menu-btn{ display:inline-flex !important; }
   .fuel-sale-panel{ grid-template-columns:1fr; }
   .grid-2{ grid-template-columns:1fr; }
   .view{ padding:12px; padding-bottom:calc(var(--bottomnav-h) + 12px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -898,6 +900,57 @@ table.data th:first-child{
   .dash-snapshots-grid{
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+}
+
+/* (2026-07-13) Responsive fuel KPIs and header; was hardcoded 4-col inline */
+.today-fuel-kpis{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+@media (max-width: 1080px){
+  .today-fuel-kpis{
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+@media (max-width: 580px){
+  .today-fuel-kpis{
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.gas-view-head{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.gas-head-title{
+  min-width: 240px;
+  flex: 1 1 260px;
+}
+.gas-head-actions{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 768px){
+  .gas-view-head{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .gas-head-actions{
+    width: 100% !important;
+    justify-content: flex-start;
+  }
+  .gas-head-actions .btn{
+    flex: 1 1 auto;
   }
 }
 

@@ -254,9 +254,9 @@ const Gas = (() => {
     const periodOpEx = (DB.getExpenses ? DB.getExpenses() : []).filter(e => (e.ts >= r.start && e.ts <= r.end)).reduce((s,x) => s + (x.amount||0), 0);
     const totalExpenses = deliveryExpense + periodOpEx;
 
-    // (2026-07-13) Net profit visual priority & SaaS KPI strip; was equal weight
+    // (2026-07-13) Responsive fuel KPI grid; was inline repeat(4, 1fr)
     wrap.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;width:100%;">
+      <div class="today-fuel-kpis">
         <!-- 1. Revenue Card -->
         <div style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -1472,14 +1472,15 @@ const Gas = (() => {
     const view = document.getElementById("view-root");
     view.innerHTML = `
       <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
-        <div class="view-head" style="margin-bottom:12px;flex-shrink:0;">
-          <div>
+        <!-- (2026-07-13) Responsive gas header classes; was fixed row flex -->
+        <div class="view-head gas-view-head" style="margin-bottom:12px;flex-shrink:0;">
+          <div class="gas-head-title">
             <h2 style="font-size:1.35rem;font-weight:700;color:#111827;display:flex;align-items:center;gap:8px;margin:0 0 2px;">
               <span style="color:#9CA3AF;">${Icons.get("fuel",{size:20})}</span> Gasoline Station Management
             </h2>
             <div class="view-sub" style="font-size:.80rem;color:#6B7280;font-weight:400;">3 Pumps · 3x 10,000L ECC Tanks (30k L) · 4,000L Bulk Tanker Intake</div>
           </div>
-          <div class="input-row" style="width:auto;gap:8px;">
+          <div class="input-row gas-head-actions" style="width:auto;gap:8px;">
             <button class="btn btn-outline" id="btn-export-fuel" style="background:#FFFFFF;border:1px solid #E5E7EB;color:#374151;border-radius:7px;font-weight:500;">
               ${Icons.get("download",{size:14})} Export Sales
             </button>

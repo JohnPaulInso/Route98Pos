@@ -104,6 +104,44 @@ const App = (() => {
     }
   }
 
+  // (2026-07-13) Full mobile navigation modal grid; was inaccessible modules
+  function openMobileNav(){
+    const role = Auth.currentUser()?.role || "cashier";
+    const body = `
+      <div class="mobile-nav-sheet">
+        ${NAV_SECTIONS.map(sec => {
+          const visible = sec.views.filter(v => v.roles.includes(role));
+          if(!visible.length) return "";
+          return `
+            <div style="margin-bottom:14px;">
+              <div style="font-size:.68rem;font-weight:800;letter-spacing:.06em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:6px;">${sec.group}</div>
+              <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:8px;">
+                ${visible.map(v => `
+                  <button class="mobile-nav-tile ${v.id===currentView?'active':''}" data-mob-nav="${v.id}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1.5px solid ${v.id===currentView?'var(--brand)':'var(--line)'};background:${v.id===currentView?'var(--brand-tint)':'var(--paper-raised)'};color:${v.id===currentView?'var(--brand-deep)':'var(--ink)'};cursor:pointer;font-family:var(--font-body);text-align:left;">
+                    <span style="color:${v.color||'inherit'};display:flex;align-items:center;">${Icons.get(v.ic,{size:20})}</span>
+                    <div style="min-width:0;flex:1;">
+                      <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.label}</div>
+                      ${v.id==="inventory"?`<span class="badge badge-rust text-xs" style="font-size:.60rem;padding:1px 4px;margin-top:2px;">${lowStockCount()} low stock</span>`:""}
+                    </div>
+                  </button>
+                `).join("")}
+              </div>
+            </div>`;
+        }).join("")}
+      </div>`;
+    const m = Modal.open({
+      title: `${Icons.get("grid",{size:18})} All Modules & Navigation`,
+      body,
+      actions: [{ label:"Close", cls:"btn-ghost" }]
+    });
+    m.querySelectorAll("[data-mob-nav]").forEach(btn => {
+      btn.onclick = () => {
+        Modal.close();
+        navigate(btn.dataset.mobNav);
+      };
+    });
+  }
+
   // (2026-07-13) Define views in shell for bottom nav; was missing views var
   function shell(){
     const role = Auth.currentUser()?.role || "cashier";
@@ -140,6 +178,8 @@ const App = (() => {
 
         <div class="main-col">
           <header class="topbar">
+            <!-- (2026-07-13) Add mobile menu button in topbar; was desktop title only -->
+            <button class="icon-btn mobile-menu-btn" id="btn-topbar-menu" title="Navigation Menu" style="display:none;margin-right:6px;flex-shrink:0;">${Icons.get("menu",{size:18})}</button>
             <h1 id="topbar-title-view">${VIEWS.find(v=>v.id===currentView)?.label || ""}</h1>
             <span class="topbar-spacer"></span>
             <span class="topbar-clock" id="topbar-clock"></span>
@@ -160,13 +200,20 @@ const App = (() => {
               <span class="ic" style="position:relative;">${Icons.get(v.ic,{size:20})}${v.id==="inventory"?`<span id="inv-badge-dot-bn" style="display:none;position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--danger);"></span>`:""}</span>
               ${v.label.split(" ")[0]}
             </button>`).join("")}
+          <!-- (2026-07-13) Add More button in mobile bottom nav; was 5 fixed tabs -->
+          <button class="bn-btn" id="btn-bn-more">
+            <span class="ic">${Icons.get("grid",{size:20})}</span>
+            More
+          </button>
         </div>
       </nav>
 
       <div id="toast-stack"></div>
       <div id="receipt-print" class="hidden"></div>`;
 
-    document.querySelectorAll(".nav-btn, .bn-btn").forEach(b => b.onclick = () => navigate(b.dataset.nav));
+    document.querySelectorAll(".nav-btn, .bn-btn[data-nav]").forEach(b => b.onclick = () => navigate(b.dataset.nav));
+    document.getElementById("btn-topbar-menu")?.addEventListener("click", openMobileNav);
+    document.getElementById("btn-bn-more")?.addEventListener("click", openMobileNav);
     document.getElementById("user-chip").onclick = () => {
       Modal.confirm({ title:"Log out?", message:`Sign out ${Auth.currentUser()?.name}?`, onConfirm: () => Auth.logout() });
     };

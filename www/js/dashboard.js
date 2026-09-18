@@ -118,22 +118,24 @@ const Dashboard = (() => {
     wrap.innerHTML = `
       <div class="dash-pl-grid">
         ${cards.map(c => `
-          <div style="background:${c.hero ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#FFFFFF'};color:${c.hero ? '#FFFFFF' : '#0F172A'};border:1.5px solid ${c.hero ? '#312E81' : c.highlight ? (isProfitable ? '#A7F3D0' : '#FECACA') : '#E2E8F0'};border-top:${c.highlight ? `4px solid ${c.color}` : ''};border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;position:relative;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <div style="font-size:.70rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:${c.hero ? '#C7D2FE' : '#64748B'};display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                ${Icons.get(c.icon,{size:14})} ${c.title}
+          <div style="background:${c.hero ? 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)' : '#FFFFFF'};color:${c.hero ? '#FFFFFF' : '#0F172A'};border:1.5px solid ${c.hero ? '#312E81' : c.highlight ? (isProfitable ? '#A7F3D0' : '#FECACA') : '#E2E8F0'};border-top:${c.highlight ? `4px solid ${c.color}` : ''};border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;position:relative;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:6px;">
+              <!-- (2026-07-13) Responsive card title wrap; was truncated nowrap -->
+              <div style="font-size:.70rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:${c.hero ? '#C7D2FE' : '#64748B'};display:flex;align-items:flex-start;gap:5px;line-height:1.3;flex:1;min-width:0;">
+                <span style="flex-shrink:0;margin-top:1px;">${Icons.get(c.icon,{size:14})}</span>
+                <span>${c.title}</span>
               </div>
-              <button class="dash-info-btn" aria-label="Explanation" tabindex="0" style="width:22px;height:22px;font-size:.80rem;">
+              <button class="dash-info-btn" aria-label="Explanation" tabindex="0" style="width:20px;height:20px;font-size:.75rem;flex-shrink:0;">
                 ⓘ
                 <span class="dash-tooltip">${c.tip}</span>
               </button>
             </div>
 
-            <div class="mono" style="font-size:1.32rem;font-weight:850;line-height:1.15;margin:4px 0;color:${c.hero ? '#FFFFFF' : c.color || '#0F172A'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <div class="mono" style="font-size:clamp(1.15rem, 3.8vw, 1.35rem);font-weight:850;line-height:1.15;margin:4px 0;color:${c.hero ? '#FFFFFF' : c.color || '#0F172A'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               ${c.val}
             </div>
 
-            <div style="font-size:.72rem;font-weight:600;color:${c.hero ? '#E0E7FF' : '#64748B'};display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <div style="font-size:.72rem;font-weight:600;color:${c.hero ? '#E0E7FF' : '#64748B'};display:flex;align-items:center;gap:4px;line-height:1.25;">
               ${c.sub}
             </div>
           </div>
