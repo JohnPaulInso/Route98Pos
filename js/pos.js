@@ -696,10 +696,8 @@ const POS = (() => {
     const isCash = sale.method === "Cash";
     const settings = DB.getSettings();
 
-    // Auto-trigger JK580H direct thermal receipt print on sale completion
-    if(settings.autoPrintReceipt !== false){
-      printReceipt(sale);
-    }
+    // (2026-07-13) Auto-print receipt after every transaction; was optional toggle
+    printReceipt(sale);
 
     const body = `
       <div style="text-align:center;padding:10px 0 16px;">
@@ -879,8 +877,14 @@ const POS = (() => {
   // (2026-07-13) 7-11 layout with barcode & tight bounds; was generic receipt
   function printReceipt(sale){
     const settings = DB.getSettings();
-    const win = document.getElementById("receipt-print");
-    if(!win) return;
+    // (2026-07-13) Ensure receipt print container exists; was silent return
+    let win = document.getElementById("receipt-print");
+    if(!win){
+      win = document.createElement("div");
+      win.id = "receipt-print";
+      win.className = "hidden";
+      document.body.appendChild(win);
+    }
     const cleanTxnId = (sale.id || "").replace(/^TXN-/, "");
     win.innerHTML = `
       <div class="receipt jk580h">
@@ -1150,9 +1154,29 @@ const POS = (() => {
     grid.onpointercancel = () => { isScrollDragging = false; };
     grid.onclick = (e) => {
       if(isScrollDragging) return;
+      // (2026-07-13) Add custom item on grid click; was calling undefined modal
       const customBtn = e.target.closest("#btn-grid-custom-item");
       if(customBtn){
-        openCustomItemModal();
+        pushState();
+        cart.unshift({
+          productId: Utils.uid("cust"),
+          name: "Custom Item",
+          barcode: "",
+          price: 1,
+          qty: 1,
+          unitType: "piece",
+          unit: "pc",
+          piecesPerPack: 1,
+          isCustom: true,
+          imageUrl: "",
+          category: "Custom"
+        });
+        renderCart();
+        const firstCustomName = document.querySelector("#cart-items .custom-cart-name-input");
+        if(firstCustomName){
+          firstCustomName.focus();
+          firstCustomName.select();
+        }
         return;
       }
       const card = e.target.closest(".product-card[data-id]");
@@ -1250,17 +1274,57 @@ const POS = (() => {
     const el = document.getElementById("cart-items");
     const settings = DB.getSettings();
     if(el){
-      el.innerHTML = cart.length ? cart.map((l, idx) => `
-        <div class="cart-line" data-prod-id="${l.productId}">
-          <div class="thumb-sm">${l.isCustom ? `<span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:18})}</span>` : Utils.productThumb({ ...l, category:l.category }, { iconSize:15 })}</div>
-          <div class="info">
-            <div class="n">${Utils.escapeHtml(l.name)} ${l.unitType==="pack" ? `<span class="badge badge-brand text-xs" style="font-size:.62rem;padding:1px 5px;margin-left:2px;">PACK (${l.piecesPerPack})</span>` : l.isCustom ? `<span class="badge badge-neutral text-xs" style="font-size:.60rem;padding:1px 4px;margin-left:2px;">Custom</span>` : ""}</div>
-            <div class="p" style="display:flex;align-items:center;gap:3px;">
-              ${l.isCustom
-                ? `<span style="font-size:.70rem;color:var(--ink-faint);">₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" title="Edit custom price"><span style="font-size:.68rem;color:var(--ink-faint);">/ ${l.unit}</span>`
-                : `${Utils.money(l.price)} / ${l.unit}`
-              }
+      // Ensure custom item is always sitting on top in the cart list
+      const customIndices = [];
+      const regularIndices = [];
+      cart.forEach((l, idx) => {
+        if(l.isCustom) customIndices.push(idx);
+        else regularIndices.push(idx);
+      });
+      const hasCustom = customIndices.length > 0;
+      const sortedIndices = [...customIndices, ...regularIndices];
+
+      // (2026-07-13) Sticky custom button on top; was hidden when custom added
+      const dottedBtnHtml = `
+        <div class="cart-line custom-item-slot-dotted" id="btn-add-custom-dotted" style="position:sticky;top:0;z-index:5;border:1.5px dashed var(--brand);border-radius:var(--r-md);margin:2px 0 6px;padding:6px 8px;cursor:pointer;background:color-mix(in srgb, var(--brand-tint) 40%, var(--paper-raised));display:flex;align-items:center;gap:8px;">
+          <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
+          <div class="info" style="flex:1;min-width:0;">
+            <div class="n" style="color:var(--brand);font-weight:700;font-size:.82rem;">+ Custom Item</div>
+            <div class="p" style="color:var(--ink-faint);font-size:.70rem;">Tap to add open price item</div>
+          </div>
+          <span class="badge badge-brand text-xs" style="font-size:.65rem;padding:2px 7px;flex-shrink:0;">+ Add</span>
+        </div>`;
+
+      const linesHtml = sortedIndices.map(idx => {
+        const l = cart[idx];
+        if(l.isCustom){
+          return `
+          <div class="cart-line" data-prod-id="${l.productId}">
+            <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
+            <div class="info" style="flex:1;min-width:0;">
+              <!-- (2026-07-13) Remove custom chip & widen name spacing; was squeezed -->
+              <div class="n custom-cart-n-wrap" style="display:flex;align-items:center;">
+                <input type="text" class="custom-cart-name-input" data-name-idx="${idx}" value="${Utils.escapeHtml(l.name)}" placeholder="Custom Item" title="Click to rename">
+              </div>
+              <div class="p" style="display:flex;align-items:center;gap:3px;margin-top:3px;">
+                <span>₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" style="width:52px;height:20px;padding:0 4px;font-size:.74rem;font-family:var(--font-mono);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;background:var(--paper-raised);color:var(--brand-deep);text-align:right;" title="Edit custom price"><span>/ ${l.unit||"pc"}</span>
+              </div>
             </div>
+            <div class="qty-stepper">
+              <button data-dec="${idx}">${Icons.get("minus",{size:12})}</button>
+              <span class="q">${l.qty}</span>
+              <button data-inc="${idx}">${Icons.get("plus",{size:12})}</button>
+            </div>
+            <div class="lt">${Utils.money(l.price*l.qty)}</div>
+            <button class="icon-btn btn-sm" data-rm="${idx}" style="width:26px;height:26px;">${Icons.get("x",{size:13})}</button>
+          </div>`;
+        }
+        return `
+        <div class="cart-line" data-prod-id="${l.productId}">
+          <div class="thumb-sm">${Utils.productThumb({ ...l, category:l.category }, { iconSize:15 })}</div>
+          <div class="info">
+            <div class="n">${Utils.escapeHtml(l.name)} ${l.unitType==="pack" ? `<span class="badge badge-brand text-xs" style="font-size:.62rem;padding:1px 5px;margin-left:2px;">PACK (${l.piecesPerPack})</span>` : ""}</div>
+            <div class="p">${Utils.money(l.price)} / ${l.unit}</div>
           </div>
           <div class="qty-stepper">
             <button data-dec="${idx}">${Icons.get("minus",{size:12})}</button>
@@ -1269,7 +1333,15 @@ const POS = (() => {
           </div>
           <div class="lt">${Utils.money(l.price*l.qty)}</div>
           <button class="icon-btn btn-sm" data-rm="${idx}" style="width:26px;height:26px;">${Icons.get("x",{size:13})}</button>
-        </div>`).join("") : `<div class="empty">${Icons.get("cart",{size:34})}<h3>Cart is empty</h3><p>Tap a product or scan a barcode.</p></div>`;
+        </div>`;
+      }).join("");
+
+      const regularCount = regularIndices.length;
+      if(regularCount === 0 && !hasCustom){
+        el.innerHTML = `${dottedBtnHtml}<div class="empty">${Icons.get("cart",{size:34})}<h3>Cart is empty</h3><p>Tap a product or scan a barcode.</p></div>`;
+      } else {
+        el.innerHTML = `${dottedBtnHtml}${linesHtml}`;
+      }
 
       if(scrollToBottom){
         requestAnimationFrame(() => {
@@ -1279,6 +1351,49 @@ const POS = (() => {
       el.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>changeQty(Number(b.dataset.inc),1));
       el.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>changeQty(Number(b.dataset.dec),-1));
       el.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>removeLine(Number(b.dataset.rm)));
+      const dottedBtn = el.querySelector("#btn-add-custom-dotted");
+      if(dottedBtn){
+        dottedBtn.onclick = () => {
+          pushState();
+          cart.unshift({
+            productId: Utils.uid("cust"),
+            name: "Custom Item",
+            barcode: "",
+            price: 1,
+            qty: 1,
+            unitType: "piece",
+            unit: "pc",
+            piecesPerPack: 1,
+            isCustom: true,
+            imageUrl: "",
+            category: "Custom"
+          });
+          renderCart();
+          const firstCustomName = el.querySelector(".custom-cart-name-input");
+          if(firstCustomName){
+            firstCustomName.focus();
+            firstCustomName.select();
+          }
+        };
+      }
+      // (2026-07-13) Bind custom item name change & blur; was non-editable name
+      el.querySelectorAll(".custom-cart-name-input").forEach(inp => {
+        const saveName = (e) => {
+          const idx = Number(e.target.dataset.nameIdx);
+          const val = e.target.value.trim() || "Custom Item";
+          if(cart[idx] && cart[idx].name !== val){
+            pushState();
+            cart[idx].name = val;
+            renderCart();
+          }
+        };
+        inp.addEventListener("change", saveName);
+        inp.addEventListener("blur", saveName);
+        inp.addEventListener("keydown", (e) => {
+          if(e.key === "Enter") e.target.blur();
+        });
+        inp.addEventListener("click", (e) => e.stopPropagation());
+      });
       el.querySelectorAll(".custom-cart-price-input").forEach(inp => {
         inp.addEventListener("change", (e) => {
           const idx = Number(e.target.dataset.priceIdx);
@@ -1457,12 +1572,12 @@ const POS = (() => {
           <div class="view-sub" id="pos-view-sub">${Auth.currentUser()?.name} · ${Utils.fmtDate(Date.now())}</div>
         </div>
         <div class="input-row" style="width:auto;">
-          <button class="btn btn-outline" id="btn-custom-item">${Icons.get("plus-circle",{size:15})} Custom Item</button>
+          <!-- (2026-07-13) Remove header custom button; was outline button in bar -->
           <button class="btn btn-primary" id="btn-scan-mode">${Icons.get("scan",{size:15})} Scan Mode</button>
           <button class="btn btn-ghost" id="btn-held">${Icons.get("pause-circle",{size:15})} Held (<span id="held-count">0</span>)</button>
         </div>
       </div>
-      <div class="pos-layout">
+      <div class="pos-layout" id="pos-layout">
         <div class="pos-catalog">
           <!-- (2026-07-13) Dynamic clear button in POS search bar; was plain input -->
           <div class="pos-search-row">
@@ -1476,7 +1591,9 @@ const POS = (() => {
           <div class="product-grid" id="product-grid"></div>
           <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:6px;padding:6px 2px;flex-shrink:0;"></div>
         </div>
-        <div class="pos-cart">
+        <!-- (2026-07-13) Add pos-resizer divider line; was 2-column grid -->
+        <div class="pos-resizer" id="pos-resizer" title="Drag left/right to resize Current Sale"></div>
+        <div class="pos-cart" id="pos-cart">
           <!-- (2026-07-13) Mobile cart drawer header toggle; was static head -->
           <div class="cart-head">
             <h3>${Icons.get("cart",{size:17})} Current Sale</h3>
@@ -1566,7 +1683,8 @@ const POS = (() => {
       };
     }
 
-    document.getElementById("btn-custom-item").onclick = openCustomItemModal;
+    const customBtn = document.getElementById("btn-custom-item");
+    if(customBtn) customBtn.onclick = openCustomItemModal;
     document.getElementById("btn-held").onclick = openHeldSales;
     document.getElementById("btn-scan-mode").onclick = openScanMode;
 
@@ -1583,6 +1701,62 @@ const POS = (() => {
           document.querySelector(".pos-cart")?.classList.toggle("mobile-open");
         }
       };
+    }
+
+    // (2026-07-13) Draggable cart resizer updating --pos-cart-w; was inline width
+    const resizer = document.getElementById("pos-resizer");
+    const posLayout = document.getElementById("pos-layout");
+    const posCart = document.getElementById("pos-cart");
+    if(resizer && posLayout && posCart){
+      const savedW = localStorage.getItem("pos_cart_width");
+      if(savedW){
+        const w = Number(savedW);
+        if(w >= 260 && w <= 550){
+          posLayout.style.setProperty("--pos-cart-w", `${w}px`);
+        }
+      }
+      let isDragging = false;
+      let startX = 0;
+      let startWidth = 0;
+
+      const onPointerDown = (e) => {
+        if(window.innerWidth <= 600) return;
+        isDragging = true;
+        startX = e.clientX;
+        startWidth = posCart.getBoundingClientRect().width;
+        resizer.classList.add("is-dragging");
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+        window.addEventListener("pointercancel", onPointerUp);
+      };
+
+      const onPointerMove = (e) => {
+        if(!isDragging) return;
+        const layoutRect = posLayout.getBoundingClientRect();
+        const delta = startX - e.clientX;
+        const proposedWidth = startWidth + delta;
+        const minCartW = 260;
+        const maxCartW = Math.min(550, layoutRect.width - 320);
+        const clampedW = Math.max(minCartW, Math.min(maxCartW, proposedWidth));
+        posLayout.style.setProperty("--pos-cart-w", `${clampedW}px`);
+      };
+
+      const onPointerUp = () => {
+        if(!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove("is-dragging");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+        window.removeEventListener("pointercancel", onPointerUp);
+        const finalW = posCart.getBoundingClientRect().width;
+        localStorage.setItem("pos_cart_width", Math.round(finalW));
+      };
+
+      resizer.addEventListener("pointerdown", onPointerDown);
     }
   }
 

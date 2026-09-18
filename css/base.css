@@ -1,5 +1,5 @@
-/* (2026-07-13) Lock overscroll stretching across all elements; prev: html/body only */
-*,*::before,*::after{ box-sizing:border-box; touch-action:manipulation; overscroll-behavior:none !important; overscroll-behavior-y:none !important; }
+/* (2026-07-13) Allow scroll chaining on elements; was global overscroll none */
+*,*::before,*::after{ box-sizing:border-box; touch-action:manipulation; }
 /* (2026-07-13) Scale root typography to balanced 13.5px; was 15px */
 html{
   font-size:13.5px;
@@ -273,8 +273,8 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
 .odometer.sm .digit{ font-size:1rem; }
 .odometer.lg .digit{ font-size:2.1rem; }
 
-/* (2026-07-13) Set horizontal overflow only on table-wrap; was overflow:auto */
-.table-wrap{ overflow-x:auto; overflow-y:visible; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--paper-raised); }
+/* (2026-07-13) Set horizontal overflow and auto overscroll; was overflow:auto */
+.table-wrap{ overflow-x:auto; overflow-y:visible; overscroll-behavior:auto; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--paper-raised); }
 table.data{ width:100%; border-collapse:collapse; font-size:var(--fs-sm); }
 table.data th{
   text-align:left; padding:10px 12px; background:var(--paper-dim); color:var(--ink-soft);

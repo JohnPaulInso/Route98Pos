@@ -161,7 +161,7 @@ const Analytics = (() => {
     const margin = netRevenue > 0 ? (grossProfit/netRevenue)*100 : 0;
     const totalPurchases = restockSummary("all").totalCapitalSpent;
 
-    // (2026-07-13) Include trend, topSellers & categories in stats; was omitted
+    // (2026-07-13) Attach trend, top sellers and category data; was omitted
     const trend = computeTrendData(rangeParam);
     const top = topSellers({ sales, costMap });
     const categoryBreakdown = categoryPL({ sales, costMap });

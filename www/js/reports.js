@@ -371,6 +371,17 @@ const Reports = (() => {
           reason: "Complete Transaction Deletion/Void",
           admin: Auth.currentUser()?.name || "Admin"
         });
+        // (2026-07-13) Restore item stock on sale deletion; was deleted without restore
+        const products = DB.getProducts();
+        (sale.items || []).forEach(line => {
+          if(line.isCustom) return;
+          const p = products.find(x => x.id === line.productId);
+          if(p){
+            const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? (line.qty * p.piecesPerPack) : line.qty;
+            p.stock = Utils.round2(p.stock + pieces);
+          }
+        });
+        DB.setProducts(products);
         DB.setSales(DB.getSales().filter(x => x.id !== saleId));
         Utils.toast("Sale record deleted & logged to Void Audit.", "success");
         render();
@@ -746,15 +757,11 @@ const Reports = (() => {
       </table></div>`;
   }
 
-  // (2026-07-13) Compact void card in overview, full height in audit; was fixed full
+  // (2026-07-13) Set table overflow visible; was nested overflow-y:auto
   function voidLogsCard(isDedicated = false){
     const logs = DB.getVoidLogs ? DB.getVoidLogs() : [];
-    const cardStyle = isDedicated
-      ? "margin-top:16px;display:flex;flex-direction:column;min-height:calc(100vh - 220px);margin-bottom:20px;"
-      : "margin-top:16px;margin-bottom:20px;";
-    const tableStyle = isDedicated
-      ? "flex:1;overflow-y:auto;max-height:none;min-height:0;"
-      : "max-height:240px;overflow-y:auto;";
+    const cardStyle = "margin-top:16px;margin-bottom:20px;";
+    const tableStyle = "overflow-x:auto;overflow-y:visible;";
     return `
       <div class="card" style="${cardStyle}">
         <div class="flex-between" style="margin-bottom:10px;flex-shrink:0;">
@@ -1063,9 +1070,9 @@ const Reports = (() => {
     const view = document.getElementById("view-root");
     const admin = Auth.isAdmin();
     if(!admin && tab !== "history" && tab !== "fuel") tab = "history";
-    // (2026-07-13) Add period dropdown and Loyverse admin report tabs; was 5 tabs
+    // (2026-07-13) Allow scroll chaining on view body; was overscroll:contain
     view.innerHTML = `
-      <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">
+      <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:auto;">
         <div class="view-head">
           <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2><div class="view-sub">Sales history, analytics, shift reconciliation & void audit</div></div>
           <div class="input-row" style="width:auto;gap:8px;align-items:center;">
@@ -1078,11 +1085,12 @@ const Reports = (() => {
         </div>
         <div class="category-chips" style="margin-bottom:14px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
           ${admin ? `<div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>` : ""}
+          <!-- (2026-07-13) Move Receipts chip 2nd after Sales summary; was 6th chip -->
+          <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("receipt",{size:13})}Receipts</div>
           ${admin ? `<div class="chip ${tab==="by_item"?"active":""}" data-t="by_item">${Icons.get("package",{size:13})}Sales by item</div>` : ""}
           ${admin ? `<div class="chip ${tab==="by_category"?"active":""}" data-t="by_category">${Icons.get("tag",{size:13})}Sales by category</div>` : ""}
           ${admin ? `<div class="chip ${tab==="by_employee"?"active":""}" data-t="by_employee">${Icons.get("user",{size:13})}Sales by employee</div>` : ""}
           ${admin ? `<div class="chip ${tab==="by_payment"?"active":""}" data-t="by_payment">${Icons.get("credit-card",{size:13})}Sales by payment type</div>` : ""}
-          <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("receipt",{size:13})}Receipts</div>
           <div class="chip ${tab==="fuel"?"active":""}" data-t="fuel">${Icons.get("fuel",{size:13})}Fuel Sales</div>
           <div class="chip ${tab==="purchases"?"active":""}" data-t="purchases">${Icons.get("truck",{size:13})}Purchases & Restock</div>
           ${admin ? `<div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>` : ""}

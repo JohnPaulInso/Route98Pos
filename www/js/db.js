@@ -61,6 +61,8 @@ const DB = (() => {
       appId: "1:177232035309:web:87fa8430b141e7afb97be4"
     },
     autoSync: true,
+    // (2026-07-13) Default autoPrintReceipt to true; was unset in defaults
+    autoPrintReceipt: true,
     lastView: "pos"
   };
 

@@ -154,6 +154,7 @@ const Inventory = (() => {
       body, wide:true,
       actions: [
         { label:"Cancel", cls:"btn-ghost" },
+        ...(isEdit ? [{ label:"Delete", cls:"btn-danger", onClick: () => { Modal.close(); deleteProduct(product); } }] : []),
         { label: isEdit ? "Save Changes" : "Add Product", cls:"btn-primary", onClick: () => saveProduct(product, modal) }
       ]
     });
@@ -830,6 +831,21 @@ const Inventory = (() => {
         Utils.toast(`${count} product${count===1?"":"s"} deleted.`, "success");
         selectedIds.clear();
         toggleSelectMode(false);
+      }
+    });
+  }
+
+  // (2026-07-13) Implement single product deletion; was undefined function
+  function deleteProduct(product){
+    if(!product) return;
+    Modal.confirm({
+      title: "Delete Product?",
+      message: `Delete "${product.name}"? This will permanently remove the product from inventory.`,
+      danger: true,
+      onConfirm: () => {
+        DB.deleteProduct(product.id);
+        Utils.toast(`"${product.name}" deleted.`, "success");
+        renderTable();
       }
     });
   }

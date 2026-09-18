@@ -19,9 +19,12 @@
 .pin-pad button:active{ background:var(--paper-dim); }
 .login-hint{ text-align:center; margin-top:14px; color:var(--ink-faint); font-size:var(--fs-xs); font-weight:600; }
 
-/* (2026-07-13) Fix POS scroll by removing height:100%; was height:100% */
-.pos-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 350px; gap:14px; flex:1; min-height:0; min-width:0; }
+/* (2026-07-13) 3-column layout with draggable resizer; was 2-column grid */
+.pos-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 10px var(--pos-cart-w, 350px); gap:6px; flex:1; min-height:0; min-width:0; }
 .pos-catalog{ display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; }
+.pos-resizer{ width:10px; cursor:col-resize; display:flex; align-items:center; justify-content:center; user-select:none; touch-action:none; z-index:10; }
+.pos-resizer::after{ content:""; width:3px; height:50px; background:var(--line-strong); border-radius:3px; transition:all var(--transition); }
+.pos-resizer:hover::after, .pos-resizer.is-dragging::after{ background:var(--brand); width:4px; height:70px; }
 /* (2026-07-13) Fix search borders and outline; was double focused border */
 .pos-search-row{ display:flex; gap:8px; margin-bottom:8px; flex-shrink:0; }
 .pos-search-row .input-icon-wrap{ flex:1; position:relative; }
@@ -74,9 +77,10 @@
   align-content:start;
 }
 
-/* (2026-07-13) Fix card touch scrolling; was overflow:hidden */
+/* (2026-07-13) Round card top corners and clip thumb; was unrounded thumb */
 .product-card{
   background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-md);
+  overflow:hidden;
   cursor:pointer; text-align:left; display:flex; flex-direction:column;
   position:relative; width:100%; min-width:0; padding:0; margin:0;
   color:inherit; font-family:var(--font-body);
@@ -93,6 +97,7 @@
 .product-card .thumb{
   width:100%; height:98px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
   position:relative; overflow:hidden; background:var(--paper-dim); border-bottom:1px solid var(--line);
+  border-top-left-radius:calc(var(--r-md) - 1px); border-top-right-radius:calc(var(--r-md) - 1px);
   touch-action:pan-y;
 }
 .product-card .thumb:has(img), .product-card.has-img .thumb{ background:#ffffff !important; }
@@ -146,7 +151,69 @@
 .custom-item-card:hover .custom-card-icon{
   transform:scale(1.06);
 }
+/* (2026-07-13) Style dotted custom button and cart card; was cramped row */
+.btn-dotted-custom-item{
+  width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 14px; margin:8px 0 4px; border:1.5px dashed var(--brand);
+  border-radius:var(--r-md); background:color-mix(in srgb, var(--brand-tint) 55%, var(--paper-raised));
+  color:var(--brand); font-size:.84rem; font-weight:700; cursor:pointer;
+  transition:all var(--transition);
+}
+.btn-dotted-custom-item:hover{
+  background:var(--brand-tint); border-color:var(--brand-deep); color:var(--brand-deep);
+}
+.cart-line.is-custom-line{
+  display:flex; flex-direction:column; align-items:stretch; gap:8px;
+  padding:10px 12px; margin:6px 0; background:var(--paper-dim);
+  border:1px solid var(--line-strong); border-radius:var(--r-md);
+}
+.custom-card-header{
+  display:flex; align-items:center; justify-content:space-between; gap:6px;
+}
+.custom-card-title-group{
+  display:flex; align-items:center; gap:7px; min-width:0;
+}
+.custom-card-thumb{
+  width:26px !important; height:26px !important; border-radius:6px; flex-shrink:0;
+}
+.custom-card-name{
+  font-size:.86rem; font-weight:700; color:var(--ink); white-space:nowrap;
+}
+.custom-card-header-actions{
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+}
+.custom-card-total{
+  width:auto !important; font-size:.92rem !important; color:var(--brand-deep) !important;
+}
+.custom-card-del{
+  width:24px !important; height:24px !important; border-radius:5px;
+}
+.custom-card-body{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; padding-top:2px;
+}
+.custom-card-price-row{
+  display:flex; align-items:center; gap:4px; background:var(--paper-raised);
+  border:1px solid var(--line-strong); border-radius:6px; padding:3px 8px;
+}
+.custom-card-curr{
+  font-family:var(--font-mono); font-weight:700; font-size:.80rem; color:var(--brand-deep);
+}
+.custom-card-price-row .custom-cart-price-input{
+  width:68px; border:none; background:transparent; font-size:.84rem;
+  font-family:var(--font-mono); font-weight:700; color:var(--ink); padding:0; text-align:left; outline:none;
+}
+.custom-card-unit{
+  font-size:.72rem; color:var(--ink-faint); font-weight:600;
+}
+.custom-card-stepper{
+  background:var(--paper-raised);
+}
 .custom-cart-price-input{ width:58px; text-align:right; border:1px solid var(--line-strong); border-radius:4px; background:var(--paper-raised); color:var(--brand-deep); padding:2px 4px; font-size:.72rem; font-family:var(--font-mono); font-weight:700; }
+/* (2026-07-13) Remove custom chip & improve spacing; was squeezed 105px */
+.custom-cart-n-wrap{ overflow:visible !important; width:100%; margin-bottom:2px; }
+.custom-cart-name-input{ font-family:inherit; font-size:.82rem; font-weight:700; color:var(--ink); background:transparent; border:1px solid transparent; border-radius:4px; padding:2px 6px; margin:0; width:100%; max-width:135px; height:22px; line-height:1.2; outline:none; cursor:text; box-sizing:border-box; transition:border-color var(--transition), background var(--transition), box-shadow var(--transition); }
+.custom-cart-name-input:hover{ border-color:var(--line-strong); background:var(--paper-dim); }
+.custom-cart-name-input:focus{ border-color:var(--brand); background:var(--paper-raised); box-shadow:0 0 0 2px var(--brand-tint); }
 
 /* (2026-07-13) Style floating product ghost and pop; was basic box */
 .flying-product-ghost{
@@ -163,7 +230,8 @@
 }
 .cart-row-highlight{ animation:cart-row-pop .38s ease; }
 
-.pos-cart{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-lg); display:flex; flex-direction:column; min-height:0; min-width:0; height:100%; overflow:hidden; }
+/* (2026-07-13) pos-cart fills column 3 of pos-layout; was fixed width */
+.pos-cart{ width:100%; min-width:0; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-lg); display:flex; flex-direction:column; min-height:0; height:100%; overflow:hidden; }
 .cart-head{ padding:10px 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .cart-head h3{ display:flex; align-items:center; gap:8px; font-size:.92rem; }
 .cart-head h3 .ic-svg{ color:var(--brand); }
@@ -502,7 +570,8 @@ table.data th:first-child{
     padding: 0 !important;
   }
   #app > *:not(#receipt-print){ display: none !important; }
-  header, nav, aside, main, .view, .topbar, .sidebar, .bottom-nav, #toast-stack, #modal-root{ display: none !important; }
+  /* (2026-07-13) Hide modal backdrop on receipt print; was unhidden backdrop */
+  header, nav, aside, main, .view, .topbar, .sidebar, .bottom-nav, #toast-stack, #modal-root, .modal-backdrop, .modal{ display: none !important; }
   body *{ visibility: hidden !important; }
   #receipt-print, #receipt-print *{ visibility: visible !important; }
   #receipt-print{
@@ -550,12 +619,12 @@ table.data th:first-child{
   .view{ padding:12px; padding-bottom:calc(var(--bottomnav-h) + 12px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
   #view-pos.view{ overflow:hidden; padding:8px 12px; padding-bottom:calc(var(--bottomnav-h) + 4px); height:100%; }
 }
-/* (2026-07-13) Responsive 2-column POS & mobile cart drawer; was 1col sticky */
+/* (2026-07-13) 3-column grid with resizer in desktop/tablet; was 2-column */
 @media (min-width: 601px), (orientation: landscape) and (min-width: 480px){
   .pos-layout{
     display:grid !important;
-    grid-template-columns:minmax(0, 1fr) clamp(260px, 34vw, 340px) !important;
-    gap:10px !important;
+    grid-template-columns:minmax(0, 1fr) 10px var(--pos-cart-w, 350px) !important;
+    gap:6px !important;
     height:100% !important;
     overflow:hidden !important;
   }
@@ -616,7 +685,8 @@ table.data th:first-child{
   .product-card .name{ font-size:.70rem; min-height:2.2em; }
   .product-card .price{ font-size:.76rem; }
 
-  /* Mobile Portrait Collapsible Cart */
+  /* (2026-07-13) Hide resizer line on mobile; was desktop-only element */
+  .pos-resizer{ display:none !important; }
   .pos-layout{
     display:flex !important;
     flex-direction:column !important;
