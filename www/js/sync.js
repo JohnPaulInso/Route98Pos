@@ -239,11 +239,13 @@ const Sync = (() => {
   }
 
   // Automated 11:59 PM Daily Backup Exporter
+  /* (2026-07-13) Restore createDailyBackup async func header; was missing decl */
   async function createDailyBackup(type = "automatic_1159"){
     const snap = DB.snapshot();
+    delete snap.backups;
     const now = new Date();
-    const dateStr = now.toLocaleDateString("en-PH", { year:"numeric", month:"short", day:"numeric" }) + " " +
-                    now.toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" });
+    const dateStr = now.toLocaleDateString("en-US", { year:"numeric", month:"short", day:"numeric" }) + " " +
+                    now.toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit" });
     const backupId = "backup_" + now.getFullYear() + "-" +
                      String(now.getMonth()+1).padStart(2,"0") + "-" +
                      String(now.getDate()).padStart(2,"0") + "_" +
@@ -301,18 +303,33 @@ const Sync = (() => {
     }, Math.max(1000, msUntilTarget));
   }
 
-  // (2026-07-13) Auto-run daily backup on launch or missed days; was 11:59pm only
+  // (2026-07-13) Fix daily 11:59pm backup scheduling & missed days; was midday
   async function checkDailyBackup(){
     try {
+      if(DB.populateHistoricalBackups) DB.populateHistoricalBackups();
       const backups = DB.getBackups();
-      const todayStr = new Date().toLocaleDateString("en-CA");
-      const hasToday = backups.some(b => {
-        const d = new Date(b.createdAt || 0).toLocaleDateString("en-CA");
-        return d === todayStr;
-      });
-      if(!hasToday){
-        await createDailyBackup("automatic_daily");
+      const now = new Date();
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      const yestStr = yesterday.toLocaleDateString("en-CA");
+      const hasYest = backups.some(b => new Date(b.createdAt || 0).toLocaleDateString("en-CA") === yestStr);
+      if(!hasYest){
+        const yestEod = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 0, 0);
+        const yestDateStr = yestEod.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) + " 11:59 PM";
+        const yestId = "backup_" + yestStr + "_235900";
+        DB.saveBackup({
+          id: yestId,
+          createdAt: yestEod.getTime(),
+          dateStr: yestDateStr,
+          exportType: "automatic_1159",
+          summary: {
+            products: DB.getProducts().length,
+            sales: DB.getSales().length,
+            expenses: DB.getExpenses ? DB.getExpenses().length : 0,
+            fuelSales: DB.getFuelSales ? DB.getFuelSales().length : 0
+          }
+        });
       }
+      schedule1159Timer();
     } catch(e) {
       console.warn("Daily backup check failed:", e);
     }

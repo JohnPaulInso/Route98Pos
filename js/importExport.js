@@ -428,20 +428,32 @@ const ImportExport = (() => {
         rawSales = Array.from(grouped.values());
       }
       if(!rawSales.length){ Utils.toast("No sales found.", "warn"); return; }
+      // (2026-07-13) Deduplicate & merge sales by date, amount & order; was ID only
       const existing = DB.getSales();
-      const existingIds = new Set(existing.map(s => String(s.id).toLowerCase()));
+      const makeOrderSig = (items) => (items||[]).map(it => `${it.qty||1}x${(it.name||'').trim().toLowerCase()}`).sort().join("|");
+      const salesMap = new Map();
+      existing.forEach(s => {
+        const key = `${s.ts || 0}_${(s.total || 0).toFixed(2)}_${makeOrderSig(s.items)}`;
+        salesMap.set(key, s);
+      });
       let addedCount = 0;
+      let mergedCount = 0;
       rawSales.forEach(sale => {
-        const idLower = String(sale.id).toLowerCase();
-        if(!existingIds.has(idLower)){
-          existing.push(sale);
-          existingIds.add(idLower);
+        const key = `${sale.ts || 0}_${(sale.total || 0).toFixed(2)}_${makeOrderSig(sale.items)}`;
+        if(salesMap.has(key)){
+          const ex = salesMap.get(key);
+          if(sale.items && sale.items.length) ex.items = sale.items;
+          ex.method = sale.method || ex.method;
+          ex.cashier = sale.cashier || ex.cashier;
+          mergedCount++;
+        } else {
+          salesMap.set(key, sale);
           addedCount++;
         }
       });
-      existing.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-      DB.setSales(existing);
-      Utils.toast(`Imported ${addedCount} sales transaction(s).`, "success");
+      const updatedList = Array.from(salesMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      DB.setSales(updatedList);
+      Utils.toast(`Imported ${addedCount} sales (${mergedCount} merged duplicates).`, "success");
       onDone?.();
     } catch(err){
       console.error(err);

@@ -374,32 +374,34 @@ const Venue = (() => {
         </div>
 
         <!-- Top Control Bar (Zoho / Hotel Tape Chart Style) -->
+        <!-- (2026-07-13) Responsive venue controls & scrollable tabs; was plain flex -->
         <div class="card" style="margin-bottom:10px;background:var(--paper-dim);border:1.5px solid var(--line);padding:8px 16px;border-radius:12px;flex-shrink:0;">
-          <div class="flex-between" style="flex-wrap:wrap;gap:10px;">
+          <div class="flex-between venue-top-ctrls" style="flex-wrap:wrap;gap:10px;">
             <!-- Left: Nav Controls -->
-            <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               <button class="btn btn-sm btn-outline font-bold" id="btn-nav-today" style="border-radius:8px;padding:6px 14px;">Today</button>
               <div style="display:flex;gap:2px;">
                 <button class="btn btn-sm btn-ghost" id="btn-nav-prev" title="Previous week/period" style="padding:6px 8px;">${Icons.get("chevron-left",{size:16})}</button>
                 <button class="btn btn-sm btn-ghost" id="btn-nav-next" title="Next week/period" style="padding:6px 8px;"><span style="display:inline-flex;transform:rotate(180deg);">${Icons.get("chevron-left",{size:16})}</span></button>
               </div>
-              <strong style="font-size:1.18rem;color:var(--ink);margin-left:6px;font-family:var(--font-mono);">${weekRangeLabel}</strong>
+              <strong style="font-size:clamp(.85rem, 3.2vw, 1.05rem);color:var(--ink);margin-left:4px;font-family:var(--font-display);font-weight:750;letter-spacing:-.01em;white-space:nowrap;">${weekRangeLabel}</strong>
             </div>
 
             <!-- Middle: Area / Room Filter -->
             <div style="width:220px;" id="venue-area-filter-wrap"></div>
 
             <!-- Right: View Mode Toggle Tabs -->
-            <div style="display:flex;gap:4px;background:var(--paper-raised);padding:3px;border-radius:10px;border:1px solid var(--line-strong);">
-              <button class="chip ${viewMode==="week"?"active":""}" id="tab-v-week" style="margin:0;border:none;border-radius:8px;font-size:.82rem;padding:5px 12px;">${Icons.get("calendar",{size:13})} Week Calendar</button>
-              <button class="chip ${viewMode==="tape"?"active":""}" id="tab-v-tape" style="margin:0;border:none;border-radius:8px;font-size:.82rem;padding:5px 12px;">${Icons.get("clipboard",{size:13})} Area Tape Chart</button>
-              <button class="chip ${viewMode==="list"?"active":""}" id="tab-v-list" style="margin:0;border:none;border-radius:8px;font-size:.82rem;padding:5px 12px;">${Icons.get("tag",{size:13})} All Reservations</button>
+            <div class="venue-view-tabs" style="display:flex;gap:4px;background:var(--paper-raised);padding:3px;border-radius:10px;border:1px solid var(--line-strong);max-width:100%;overflow-x:auto;">
+              <button class="chip ${viewMode==="week"?"active":""}" id="tab-v-week" style="margin:0;border:none;border-radius:8px;font-size:.82rem;padding:5px 12px;flex-shrink:0;">${Icons.get("calendar",{size:13})} Week Calendar</button>
+              <button class="chip ${viewMode==="tape"?"active":""}" id="tab-v-tape" style="margin:0;border:none;border-radius:8px;font-size:.82rem;padding:5px 12px;flex-shrink:0;">${Icons.get("clipboard",{size:13})} Area Tape Chart</button>
+              <button class="chip ${viewMode==="list"?"active":""}" id="tab-v-list" style="margin:0;border:none;border-radius:8px;font-size:.82rem;padding:5px 12px;flex-shrink:0;">${Icons.get("tag",{size:13})} All Reservations</button>
             </div>
           </div>
         </div>
 
         <!-- Quick Metrics Summary -->
-        <div class="grid-3" style="margin-bottom:10px;gap:10px;flex-shrink:0;">
+        <!-- (2026-07-13) Responsive 3-col venue metrics strip on mobile; was grid-3 2-col -->
+        <div class="grid-3 venue-metrics-strip" style="margin-bottom:10px;gap:10px;flex-shrink:0;">
           <div class="card card-tight" style="border:1.5px solid var(--brand);background:var(--brand-tint);padding:10px 16px;border-radius:10px;">
             <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;color:var(--brand-deep);margin-bottom:2px;">Events (This Week)</div>
             <strong class="mono font-bold" style="font-size:1.45rem;color:var(--brand-deep);">${weekBookings.length} event(s)</strong>

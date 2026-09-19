@@ -31,13 +31,13 @@ const Utils = (() => {
 
   // (2026-07-13) Disable native image drag for smooth scroll; was draggable
   // (2026-07-13) Constrain productThumb img to prevent overflow; was unstyled
+  // (2026-07-13) Show category icon fallback until image loads; was blank white
   function productThumb(product, opts = {}){
     const iconName = DB.categoryIcon(product.category);
     const size = opts.iconSize || 28;
-    // (2026-09-17) Wrap icon in span so it can be hidden immediately when imageUrl exists; was onload-deferred
-    const iconSpan = `<span class="ic-svg-wrap" style="${product.imageUrl ? "display:none" : ""}">${Icons.get(iconName, { size })}</span>`;
+    const iconSpan = `<span class="ic-svg-wrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--brand);opacity:.4;">${Icons.get(iconName, { size })}</span>`;
     const img = product.imageUrl
-      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;" onerror="this.style.display='none';var w=this.previousElementSibling;if(w&&w.classList.contains('ic-svg-wrap'))w.style.display=''">`
+      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;position:relative;z-index:1;" onload="var w=this.previousElementSibling;if(w&&w.classList.contains('ic-svg-wrap'))w.style.display='none';" onerror="this.style.display='none';">`
       : "";
     return `${iconSpan}${img}`;
   }

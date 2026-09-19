@@ -762,11 +762,17 @@ const POS = (() => {
       return;
     }
 
-    // decrement stock
+    // (2026-07-13) Decrement stock for custom items; was skipping isCustom
     const products = DB.getProducts();
     cart.forEach(line => {
-      if(line.isCustom) return;
-      const p = products.find(x => x.id === line.productId);
+      let p = products.find(x => x.id === line.productId);
+      if(line.isCustom && DB.saveCustomItem){
+        const savedProd = DB.saveCustomItem(line);
+        if(!p && savedProd) p = savedProd;
+      }
+      if(!p && line.name){
+        p = products.find(x => (x.name||"").trim().toLowerCase() === line.name.trim().toLowerCase());
+      }
       if(p){
         const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? line.qty * p.piecesPerPack : line.qty;
         // (2026-07-13) Record negative stock on sale; was Math.max(0, remaining)
@@ -1285,7 +1291,13 @@ const POS = (() => {
       const sortedIndices = [...customIndices, ...regularIndices];
 
       // (2026-07-13) Sticky custom button on top; was hidden when custom added
+      const savedCustomItems = DB.getCustomItems ? DB.getCustomItems() : [];
+      const customDatalistHtml = `
+        <datalist id="custom-cart-item-datalist">
+          ${savedCustomItems.map(ci => `<option value="${Utils.escapeHtml(ci.name)}">${ci.price ? `₱${ci.price}` : ""}</option>`).join("")}
+        </datalist>`;
       const dottedBtnHtml = `
+        ${customDatalistHtml}
         <div class="cart-line custom-item-slot-dotted" id="btn-add-custom-dotted" style="position:sticky;top:0;z-index:5;border:1.5px dashed var(--brand);border-radius:var(--r-md);margin:2px 0 6px;padding:6px 8px;cursor:pointer;background:color-mix(in srgb, var(--brand-tint) 40%, var(--paper-raised));display:flex;align-items:center;gap:8px;">
           <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
           <div class="info" style="flex:1;min-width:0;">
@@ -1302,12 +1314,12 @@ const POS = (() => {
           <div class="cart-line" data-prod-id="${l.productId}">
             <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
             <div class="info" style="flex:1;min-width:0;">
-              <!-- (2026-07-13) Remove custom chip & widen name spacing; was squeezed -->
+              <!-- (2026-07-13) Match custom item row height & spacing; was tall 47px -->
               <div class="n custom-cart-n-wrap" style="display:flex;align-items:center;">
-                <input type="text" class="custom-cart-name-input" data-name-idx="${idx}" value="${Utils.escapeHtml(l.name)}" placeholder="Custom Item" title="Click to rename">
+                <input type="text" class="custom-cart-name-input" data-name-idx="${idx}" value="${Utils.escapeHtml(l.name)}" placeholder="Custom Item" title="Click to rename" list="custom-cart-item-datalist">
               </div>
-              <div class="p" style="display:flex;align-items:center;gap:3px;margin-top:3px;">
-                <span>₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" style="width:52px;height:20px;padding:0 4px;font-size:.74rem;font-family:var(--font-mono);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;background:var(--paper-raised);color:var(--brand-deep);text-align:right;" title="Edit custom price"><span>/ ${l.unit||"pc"}</span>
+              <div class="p" style="display:flex;align-items:center;gap:3px;margin-top:1px;font-size:.70rem;color:var(--ink-faint);font-family:var(--font-mono);font-weight:600;line-height:16px;">
+                <span>₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" title="Edit custom price"><span>/ ${l.unit||"pc"}</span>
               </div>
             </div>
             <div class="qty-stepper">
@@ -1376,17 +1388,41 @@ const POS = (() => {
           }
         };
       }
-      // (2026-07-13) Bind custom item name change & blur; was non-editable name
+      // (2026-07-13) Custom item autofill suggestions & stock sync; was unsaved
       el.querySelectorAll(".custom-cart-name-input").forEach(inp => {
-        const saveName = (e) => {
+        const handleNameInput = (e) => {
           const idx = Number(e.target.dataset.nameIdx);
-          const val = e.target.value.trim() || "Custom Item";
-          if(cart[idx] && cart[idx].name !== val){
-            pushState();
-            cart[idx].name = val;
+          const val = e.target.value.trim();
+          if(!val || !cart[idx]) return;
+          const customItems = DB.getCustomItems ? DB.getCustomItems() : [];
+          const matched = customItems.find(x => x.name.toLowerCase() === val.toLowerCase());
+          if(matched){
+            cart[idx].name = matched.name;
+            if(matched.price !== undefined) cart[idx].price = matched.price;
+            if(matched.unit) cart[idx].unit = matched.unit;
+            if(DB.saveCustomItem){
+              const prod = DB.saveCustomItem(cart[idx]);
+              if(prod) cart[idx].productId = prod.id;
+            }
             renderCart();
           }
         };
+        const saveName = (e) => {
+          const idx = Number(e.target.dataset.nameIdx);
+          const val = e.target.value.trim() || "Custom Item";
+          if(cart[idx]){
+            if(cart[idx].name !== val){
+              pushState();
+              cart[idx].name = val;
+            }
+            if(val.toLowerCase() !== "custom item" && DB.saveCustomItem){
+              const prod = DB.saveCustomItem(cart[idx]);
+              if(prod) cart[idx].productId = prod.id;
+            }
+            renderCart();
+          }
+        };
+        inp.addEventListener("input", handleNameInput);
         inp.addEventListener("change", saveName);
         inp.addEventListener("blur", saveName);
         inp.addEventListener("keydown", (e) => {
@@ -1401,6 +1437,9 @@ const POS = (() => {
           if(cart[idx]){
             pushState();
             cart[idx].price = Utils.round2(val);
+            if(cart[idx].name && cart[idx].name.toLowerCase() !== "custom item" && DB.saveCustomItem){
+              DB.saveCustomItem(cart[idx]);
+            }
             renderCart();
           }
         });
@@ -1496,12 +1535,15 @@ const POS = (() => {
     });
   }
 
-  // (2026-07-13) Add barcode field to custom item modal; was name & price only
+  // (2026-07-13) Add custom item modal with autofill; was name & price only
   function openCustomItemModal(){
     const body = `
+      <datalist id="custom-modal-item-datalist">
+        ${(DB.getCustomItems ? DB.getCustomItems() : []).map(ci => `<option value="${Utils.escapeHtml(ci.name)}">${ci.price ? `₱${ci.price}` : ""}</option>`).join("")}
+      </datalist>
       <div class="field">
         <label>Item Name / Description</label>
-        <input class="input" id="custom-item-name" placeholder="e.g. Extra Packaging, Delivery, Custom Item" value="Custom Item">
+        <input class="input" id="custom-item-name" placeholder="e.g. Extra Packaging, Delivery, Custom Item" value="Custom Item" list="custom-modal-item-datalist">
       </div>
       <div class="field" style="margin-top:10px;">
         <label>Barcode / SKU <span class="text-faint">(optional)</span></label>
@@ -1532,9 +1574,10 @@ const POS = (() => {
           const price = Number(modal.querySelector("#custom-item-price").value) || 0;
           const qty = Math.max(1, Number(modal.querySelector("#custom-item-qty").value) || 1);
           if(price < 0){ Utils.toast("Price cannot be negative.", "warn"); return; }
+          const prod = DB.saveCustomItem ? DB.saveCustomItem({ name, price, barcode }) : null;
           pushState();
           cart.push({
-            productId: Utils.uid("cust"),
+            productId: prod ? prod.id : Utils.uid("cust"),
             name,
             barcode,
             price: Utils.round2(price),
@@ -1552,6 +1595,18 @@ const POS = (() => {
         }}
       ]
     });
+    const nameInp = modal.querySelector("#custom-item-name");
+    const priceInp = modal.querySelector("#custom-item-price");
+    if(nameInp && priceInp){
+      nameInp.addEventListener("input", () => {
+        const val = nameInp.value.trim();
+        const customItems = DB.getCustomItems ? DB.getCustomItems() : [];
+        const matched = customItems.find(x => x.name.toLowerCase() === val.toLowerCase());
+        if(matched && matched.price !== undefined){
+          priceInp.value = matched.price;
+        }
+      });
+    }
     const scanBtn = modal.querySelector("#custom-item-scan-btn");
     if(scanBtn){
       scanBtn.onclick = () => Scanner.openCameraScan((code)=>{ modal.querySelector("#custom-item-barcode").value = code; });

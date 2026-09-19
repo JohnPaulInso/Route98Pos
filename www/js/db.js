@@ -14,7 +14,7 @@ const DB = (() => {
     stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", physicalAudits: NS+"physicalAudits", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
-    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue"
+    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems"
   };
 
   function read(key, fallback = null){
@@ -23,8 +23,13 @@ const DB = (() => {
       return raw ? JSON.parse(raw) : fallback;
     }catch(e){ console.warn("DB read failed", key, e); return fallback; }
   }
+  // (2026-07-13) Safe localStorage write with try/catch; was uncaught throw
   function write(key, value){
-    localStorage.setItem(key, JSON.stringify(value));
+    try{
+      localStorage.setItem(key, JSON.stringify(value));
+    }catch(e){
+      console.warn("DB write failed for key:", key, e);
+    }
     document.dispatchEvent(new CustomEvent("mm:dirty", { detail:{ key } }));
     return value;
   }
@@ -124,7 +129,34 @@ const DB = (() => {
       if(changed) write(KEYS.fuelConfig, curFuelCfg);
     }
     if(read(KEYS.products) === null) write(KEYS.products, []);
-    if(read(KEYS.sales) === null) write(KEYS.sales, []);
+    // (2026-07-13) Auto-merge sales seed with duplicate order checks; was empty []
+    const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
+    const curSales = read(KEYS.sales, null);
+    if(curSales === null){
+      write(KEYS.sales, seedSales);
+    } else if(seedSales.length > 0){
+      const makeOrderSig = (items) => (items||[]).map(it => `${it.qty||1}x${(it.name||'').trim().toLowerCase()}`).sort().join("|");
+      const salesMap = new Map();
+      curSales.forEach(s => {
+        const key = `${s.ts || 0}_${(s.total || 0).toFixed(2)}_${makeOrderSig(s.items)}`;
+        salesMap.set(key, s);
+      });
+      seedSales.forEach(s => {
+        const key = `${s.ts || 0}_${(s.total || 0).toFixed(2)}_${makeOrderSig(s.items)}`;
+        if(salesMap.has(key)){
+          const ex = salesMap.get(key);
+          if(s.items && s.items.length) ex.items = s.items;
+          ex.method = s.method || ex.method;
+          ex.cashier = s.cashier || ex.cashier;
+        } else {
+          salesMap.set(key, s);
+        }
+      });
+      const mergedSales = Array.from(salesMap.values()).sort((a,b) => (b.ts||0) - (a.ts||0));
+      if(mergedSales.length !== curSales.length){
+        write(KEYS.sales, mergedSales);
+      }
+    }
     if(read(KEYS.fuelSales) === null) write(KEYS.fuelSales, []);
     if(read(KEYS.heldSales) === null) write(KEYS.heldSales, []);
     if(read(KEYS.venueLeads) === null) write(KEYS.venueLeads, []);
@@ -190,6 +222,8 @@ const DB = (() => {
       });
       if(pChanged) write(KEYS.products, currentProds);
     }
+    // (2026-07-13) Auto-populate past daily backups history; was 2 recent only
+    populateHistoricalBackups();
   }
 
   // (2026-07-13) Auto-deduplicate products by id, barcode & name; was raw push
@@ -594,18 +628,167 @@ const DB = (() => {
     }
   }
 
-  // (2026-07-13) Manage backup records and complete all-unit snapshots. Prev: partial
+  // (2026-07-13) Save custom items for autofill & stock; was unsaved
+  function getCustomItems(){
+    let items = read(KEYS.customItems, null);
+    if(items === null){
+      items = [];
+      const sales = read(KEYS.sales, []);
+      const seen = new Set();
+      sales.forEach(s => {
+        (s.items || []).forEach(it => {
+          if(it.isCustom && it.name && it.name.trim().toLowerCase() !== "custom item" && !seen.has(it.name.trim().toLowerCase())){
+            seen.add(it.name.trim().toLowerCase());
+            items.push({ id: Utils.uid("cust"), name: it.name.trim(), price: it.price || 0, unit: it.unit || "pc" });
+          }
+        });
+      });
+      write(KEYS.customItems, items);
+    }
+    return items;
+  }
+  const setCustomItems = (v) => write(KEYS.customItems, v || []);
+  function saveCustomItem(item){
+    if(!item || !item.name) return null;
+    const cleanName = item.name.trim();
+    if(!cleanName || cleanName.toLowerCase() === "custom item") return null;
+    const items = getCustomItems();
+    const existingIdx = items.findIndex(x => x.name.toLowerCase() === cleanName.toLowerCase());
+    const data = {
+      name: cleanName,
+      price: typeof item.price === "number" ? item.price : Number(item.price) || 0,
+      unit: item.unit || "pc",
+      updatedAt: Date.now()
+    };
+    if(existingIdx >= 0){
+      items[existingIdx] = { ...items[existingIdx], ...data };
+    } else {
+      items.push({ id: Utils.uid("cust"), ...data });
+    }
+    setCustomItems(items);
+
+    const prods = getProducts();
+    let prod = prods.find(p => p.name.trim().toLowerCase() === cleanName.toLowerCase());
+    if(!prod){
+      prod = {
+        id: Utils.uid("prod"),
+        name: cleanName,
+        price: data.price,
+        cost: 0,
+        stock: 0,
+        category: "Custom",
+        unit: data.unit,
+        unitType: "piece",
+        piecesPerPack: 1,
+        barcode: item.barcode || "",
+        isCustom: true,
+        createdAt: Date.now()
+      };
+      prods.push(prod);
+      setProducts(prods);
+    } else {
+      let updated = false;
+      if(data.price > 0 && prod.isCustom && prod.price !== data.price){
+        prod.price = data.price;
+        updated = true;
+      }
+      if(!prod.isCustom){
+        prod.isCustom = true;
+        updated = true;
+      }
+      if(updated) setProducts(prods);
+    }
+    return prod;
+  }
+
   function getBackups(){ return read(KEYS.backups, []); }
   function setBackups(b){ return write(KEYS.backups, b); }
+
+  // (2026-07-13) Fix recursive backup nesting & add buildSnapshotAt; was bloat
   function saveBackup(rec){
+    if(rec && rec.data && rec.data.backups){
+      delete rec.data.backups;
+    }
     const list = getBackups().filter(x => x.id !== rec.id);
     list.unshift(rec);
-    // (2026-07-13) Retain all database backups; was limited to 50 records
     return setBackups(list);
   }
   function deleteBackup(id){
     const list = getBackups().filter(x => x.id !== id);
     return setBackups(list);
+  }
+
+  function populateHistoricalBackups(){
+    const currentBackups = getBackups();
+    const allSales = getSales();
+    if(!allSales || !allSales.length) return;
+    const salesByDay = new Map();
+    allSales.forEach(s => {
+      const d = new Date(s.ts).toLocaleDateString("en-CA");
+      if(!salesByDay.has(d)) salesByDay.set(d, []);
+      salesByDay.get(d).push(s);
+    });
+    const sortedDays = Array.from(salesByDay.keys()).sort();
+    const existingDates = new Set(currentBackups.map(b => new Date(b.createdAt || 0).toLocaleDateString("en-CA")));
+    let addedAny = false;
+    let cumulativeCount = 0;
+    sortedDays.forEach(dayStr => {
+      const daySales = salesByDay.get(dayStr);
+      cumulativeCount += daySales.length;
+      if(!existingDates.has(dayStr)){
+        const [y, m, d] = dayStr.split("-");
+        const eodDate = new Date(Number(y), Number(m)-1, Number(d), 23, 59, 0, 0);
+        const dateStr = eodDate.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) + " 11:59 PM";
+        const bId = "backup_" + y + "-" + m + "-" + d + "_235900";
+        currentBackups.push({
+          id: bId,
+          createdAt: eodDate.getTime(),
+          dateStr,
+          exportType: "automatic_1159",
+          summary: {
+            products: getProducts().length,
+            sales: cumulativeCount,
+            expenses: 0,
+            fuelSales: 0
+          }
+        });
+        existingDates.add(dayStr);
+        addedAny = true;
+      }
+    });
+    if(addedAny){
+      currentBackups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      setBackups(currentBackups);
+    }
+  }
+
+  function buildSnapshotAt(timestamp){
+    const prods = getProducts();
+    const pastSales = getSales().filter(s => (s.ts || 0) <= timestamp);
+    return {
+      products: prods,
+      categories: getCategories(),
+      sales: pastSales,
+      fuelSales: getFuelSales().filter(s => (s.ts || 0) <= timestamp),
+      fuelConfig: getFuelConfig(),
+      fuelDeliveries: getFuelDeliveries(),
+      settings: getSettings(),
+      users: getUsers(),
+      cashiers: getCashiers(),
+      heldSales: [],
+      venueLeads: getVenueLeads(),
+      bookings: getBookings(),
+      restaurantBookings: getRestaurantBookings(),
+      expenses: getExpenses().filter(e => (e.ts || 0) <= timestamp),
+      stockLog: getStockLog(),
+      restockLogs: getRestockLogs(),
+      physicalAudits: getPhysicalAudits(),
+      voidLogs: getVoidLogs(),
+      shift: getShift(),
+      backups: [],
+      exportedAt: timestamp,
+      version: 3
+    };
   }
 
   // (2026-07-13) Manage physical count audits & snapshots; was missing audits
@@ -618,7 +801,7 @@ const DB = (() => {
   }
 
   // ---------- full snapshot (for export + firestore sync) ----------
-  // (2026-07-13) Include voidLogs and backups in snapshot & restore; was omitted
+  // (2026-07-13) Exclude backups from snapshot to prevent recursion; was nested
   function snapshot(){
     return {
       products:getProducts(), categories:getCategories(), sales:getSales(), fuelSales:getFuelSales(),
@@ -626,7 +809,7 @@ const DB = (() => {
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
       stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
-      backups:getBackups(), voidLogs:getVoidLogs(), shift:getShift(), cashiers:getCashiers(),
+      backups:[], voidLogs:getVoidLogs(), shift:getShift(), cashiers:getCashiers(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -678,10 +861,11 @@ const DB = (() => {
     getBookings, setBookings, addBooking, updateBooking, deleteBooking,
     getRestaurantBookings, setRestaurantBookings, addRestaurantBooking, updateRestaurantBooking, deleteRestaurantBooking,
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
-    getBackups, setBackups, saveBackup, deleteBackup,
+    getBackups, setBackups, saveBackup, deleteBackup, buildSnapshotAt, populateHistoricalBackups,
     getShift, setShift,
     getSyncMeta, setSyncMeta,
     getSavedCart, saveCart,
+    getCustomItems, setCustomItems, saveCustomItem,
     snapshot, restoreSnapshot, wipeAll
   };
 })();

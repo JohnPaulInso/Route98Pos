@@ -281,8 +281,8 @@ const Settings = (() => {
       btn.onclick = () => {
         const id = btn.dataset.viewBackup;
         const item = DB.getBackups().find(x => x.id === id);
-        if(!item) return;
-        const snap = item.data || item;
+        // (2026-07-13) Support on-demand snapshot for older daily backups; was item.data
+        const snap = item.data || (DB.buildSnapshotAt ? DB.buildSnapshotAt(item.createdAt) : item);
         const body = `
           <div class="grid-2" style="gap:10px;margin-bottom:14px;">
             <div class="card" style="padding:10px 14px;background:var(--paper-dim);">
@@ -332,8 +332,8 @@ const Settings = (() => {
       btn.onclick = () => {
         const id = btn.dataset.downloadBackup;
         const item = DB.getBackups().find(x => x.id === id);
-        if(!item) return;
-        const blob = new Blob([JSON.stringify(item.data || item, null, 2)], { type:"application/json" });
+        const snap = item.data || (DB.buildSnapshotAt ? DB.buildSnapshotAt(item.createdAt) : item);
+        const blob = new Blob([JSON.stringify(snap, null, 2)], { type:"application/json" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = `route98_${id}.json`;
@@ -351,7 +351,8 @@ const Settings = (() => {
           message: `Restore data snapshot from ${item.dateStr}? Current live data will be replaced with this backup.`,
           danger: true,
           onConfirm: () => {
-            DB.restoreSnapshot(item.data || item);
+            const snap = item.data || (DB.buildSnapshotAt ? DB.buildSnapshotAt(item.createdAt) : item);
+            DB.restoreSnapshot(snap);
             Utils.toast("Backup restored successfully.", "success");
             App.boot();
           }

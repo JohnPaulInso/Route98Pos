@@ -256,9 +256,10 @@ const Gas = (() => {
 
     // (2026-07-13) Responsive fuel KPI grid; was inline repeat(4, 1fr)
     wrap.innerHTML = `
+      <!-- (2026-07-13) Responsive 2x2 fuel KPI cards on mobile; was 1-col tall blocks -->
       <div class="today-fuel-kpis">
         <!-- 1. Revenue Card -->
-        <div style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+        <div class="fuel-kpi-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
               <div class="lbl" style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
@@ -267,14 +268,14 @@ const Gas = (() => {
               <div class="val" style="font-size:1.55rem;font-weight:700;color:#111827;margin:8px 0 4px;font-family:var(--font-mono);">${Utils.money(totalRevenue)}</div>
               <div style="font-size:.75rem;font-weight:500;color:#6B7280;">${sales.length} dispense sales</div>
             </div>
-            <svg width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.6;">
+            <svg class="fuel-kpi-curve" width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.6;">
               <path d="M2 24 Q 16 8, 30 18 T 58 4" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" fill="none"/>
             </svg>
           </div>
         </div>
 
         <!-- 2. Gross Fuel Profit Card (Standout Priority Hero) -->
-        <div style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #D1FAE5;border-top:2px solid #059669;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+        <div class="fuel-kpi-card fuel-profit-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #D1FAE5;border-top:2px solid #059669;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
               <div class="lbl" style="font-size:.75rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
@@ -283,14 +284,14 @@ const Gas = (() => {
               <div class="val" style="font-size:1.80rem;font-weight:850;color:#059669;margin:8px 0 4px;font-family:var(--font-mono);">+${Utils.money(totalProfit)}</div>
               <div style="font-size:.75rem;font-weight:600;color:#059669;">${marginPct.toFixed(1)}% gross margin</div>
             </div>
-            <svg width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.8;">
+            <svg class="fuel-kpi-curve" width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.8;">
               <path d="M2 22 Q 16 20, 32 10 T 58 3" stroke="#059669" stroke-width="2" stroke-linecap="round" fill="none"/>
             </svg>
           </div>
         </div>
 
         <!-- 3. Expenses Card -->
-        <div style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+        <div class="fuel-kpi-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
               <div class="lbl" style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
@@ -299,14 +300,14 @@ const Gas = (() => {
               <div class="val" style="font-size:1.55rem;font-weight:700;color:#111827;margin:8px 0 4px;font-family:var(--font-mono);">${Utils.money(totalExpenses)}</div>
               <div style="font-size:.75rem;font-weight:500;color:#6B7280;">${periodDeliveries.length} bulk tankers logged</div>
             </div>
-            <svg width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.6;">
+            <svg class="fuel-kpi-curve" width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.6;">
               <path d="M2 26 Q 18 22, 34 12 T 58 6" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" fill="none"/>
             </svg>
           </div>
         </div>
 
         <!-- 4. Total Volume Dispensed Card -->
-        <div style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+        <div class="fuel-kpi-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
           <div>
             <div class="lbl" style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
                 <span style="color:#9CA3AF;">${Icons.get("droplet",{size:14})}</span> Volume (${r.label})
@@ -411,8 +412,8 @@ const Gas = (() => {
                 </div>
               </div>
 
-              <!-- Admin: Performance Metrics Strip (3 Columns with Clear Hierarchy) -->
-              <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;margin-bottom:14px;">
+              <!-- (2026-07-13) Responsive pump metrics strip on mobile; was unclassed grid -->
+              <div class="pump-metrics-strip" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;margin-bottom:14px;">
                 <!-- Col 1: Volume -->
                 <div style="background:#F9FAFB;padding:10px 8px;border-radius:8px;border:1px solid #E5E7EB;text-align:center;">
                   <div style="font-size:.68rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;">Volume (${r.label})</div>
@@ -621,8 +622,8 @@ const Gas = (() => {
               <input class="input mono font-bold" id="fuel-input" type="number" step="${mode==='amount'?'1':'0.1'}" min="1" placeholder="0.00" autofocus style="font-size:1.65rem;font-weight:700;padding:12px 16px 12px 38px;border:1.5px solid #D1D5DB;border-radius:8px;background:#FFFFFF;color:#111827;width:100%;box-sizing:border-box;">
             </div>
 
-            <!-- Quick Presets -->
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <!-- (2026-07-13) Responsive 3x2 grid presets on mobile; was unclassed flex wrap -->
+            <div class="fuel-presets-wrap" style="display:flex;gap:8px;flex-wrap:wrap;">
               ${mode === "amount" ? `
                 <button class="btn fuel-preset fuel-preset-pill font-bold" data-val="100">₱100</button>
                 <button class="btn fuel-preset fuel-preset-pill font-bold" data-val="200">₱200</button>
@@ -1495,7 +1496,8 @@ const Gas = (() => {
 
         <div style="flex:1;min-height:0;overflow-y:auto;padding-right:6px;padding-bottom:80px;">
           <!-- Performance Period Filter Navigation -->
-          <div class="card card-tight" style="padding:8px 16px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+          <!-- (2026-07-13) Responsive fuel period card on mobile; was plain card -->
+          <div class="card card-tight fuel-period-card" style="padding:8px 16px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
             <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;">
               <span style="color:#9CA3AF;">${Icons.get("calendar",{size:14})}</span> Performance Period
             </div>
