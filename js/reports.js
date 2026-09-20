@@ -426,6 +426,455 @@ const Reports = (() => {
     ["last_year", "Last Year"]
   ];
 
+  // (2026-07-13) Add Loyverse date/time/staff report filters; was static chips
+  let activeRange = null;
+  let timeFilter = "all";
+  let employeeFilter = "all";
+
+  function getActiveRange(){
+    if(activeRange) return activeRange;
+    return Analytics.getPeriodRange(periodKey);
+  }
+
+  function fmtDateRangeLabel(r){
+    const fmt = (d) => `${d.getDate()} ${d.toLocaleDateString("en-PH", { month: "short" })} ${d.getFullYear()}`;
+    if(!r || r.key === "all" || r.start <= 86400000){
+      const sales = DB.getSales ? DB.getSales() : [];
+      const fuel = DB.getFuelSales ? DB.getFuelSales() : [];
+      const allTs = [...sales, ...fuel].map(x => x.ts).filter(Boolean);
+      const minTs = allTs.length ? Math.min(...allTs) : new Date(new Date().getFullYear(), 5, 1).getTime();
+      return `${fmt(new Date(minTs))} - ${fmt(new Date())}`;
+    }
+    const dStart = new Date(r.start);
+    const dEnd = new Date(r.end);
+    if(fmt(dStart) === fmt(dEnd)){
+      return fmt(dStart);
+    }
+    return `${fmt(dStart)} - ${fmt(dEnd)}`;
+  }
+
+  function matchTimeFilter(ts){
+    if(timeFilter === "all") return true;
+    const d = new Date(ts);
+    const min = d.getHours() * 60 + d.getMinutes();
+    if(timeFilter === "morning") return min >= 6 * 60 && min < 14 * 60;
+    if(timeFilter === "afternoon") return min >= 14 * 60 && min < 22 * 60;
+    if(timeFilter === "night") return min >= 22 * 60 || min < 6 * 60;
+    return true;
+  }
+
+  function matchEmployeeFilter(record){
+    if(employeeFilter === "all") return true;
+    const emp = record.cashier || record.attendant || record.cashierName || "Admin";
+    return emp.toLowerCase() === employeeFilter.toLowerCase();
+  }
+
+  function getReportFilterFn(){
+    return (s) => matchTimeFilter(s.ts) && matchEmployeeFilter(s);
+  }
+
+  function shiftPeriod(dir){
+    const r = getActiveRange();
+    let { start, end, key } = r;
+    const oneDay = 86400000;
+    if(key === "all" || start <= oneDay){
+      const cur = new Date();
+      const s = new Date(cur.getFullYear(), cur.getMonth() + dir, 1, 0, 0, 0, 0).getTime();
+      const e = new Date(cur.getFullYear(), cur.getMonth() + dir + 1, 0, 23, 59, 59, 999).getTime();
+      start = s; end = e;
+    } else {
+      const dur = end - start;
+      if(dur <= oneDay + 1000){
+        start = start + dir * oneDay;
+        end = end + dir * oneDay;
+      } else if(dur <= 7 * oneDay + 1000){
+        start = start + dir * 7 * oneDay;
+        end = end + dir * 7 * oneDay;
+      } else {
+        const dStart = new Date(start);
+        const dEnd = new Date(end);
+        if(dStart.getDate() === 1 && new Date(dEnd.getTime() + 1000).getDate() === 1){
+          const newStart = new Date(dStart.getFullYear(), dStart.getMonth() + dir, 1, 0, 0, 0, 0);
+          const newEnd = new Date(dStart.getFullYear(), dStart.getMonth() + dir + 1, 0, 23, 59, 59, 999);
+          start = newStart.getTime();
+          end = newEnd.getTime();
+        } else {
+          start = start + dir * (dur + 1);
+          end = end + dir * (dur + 1);
+        }
+      }
+    }
+    const label = fmtDateRangeLabel({ start, end });
+    const subtitle = `${new Date(start).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(end).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`;
+    activeRange = { start, end, key: "custom", label, subtitle };
+    periodKey = "custom";
+    render();
+  }
+
+  // (2026-07-13) Match Loyverse custom date range picker; was basic inputs
+  function openDatePickerModal(){
+    const r = getActiveRange();
+    const oneDay = 86400000;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+    let tempStart = (r.start && r.start > oneDay) ? new Date(r.start).setHours(0,0,0,0) : new Date(now.getFullYear(), 5, 1).getTime();
+    let tempEnd = (r.end && r.end < Date.now() + oneDay * 365) ? new Date(r.end).setHours(0,0,0,0) : todayStart;
+    if(tempStart > tempEnd) tempStart = tempEnd;
+
+    let viewMonth = new Date(tempEnd).getMonth();
+    let viewYear = new Date(tempEnd).getFullYear();
+    let selPhase = "done";
+
+    const fmtDDMM = (ts) => {
+      const d = new Date(ts);
+      return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    };
+
+    const parseDDMM = (str) => {
+      const parts = str.trim().split(/[\/\-\.]/);
+      if(parts.length !== 3) return null;
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      if(isNaN(day) || isNaN(month) || isNaN(year)) return null;
+      const d = new Date(year, month, day);
+      return isNaN(d.getTime()) ? null : d.getTime();
+    };
+
+    const modal = Modal.open({
+      title: "",
+      body: `
+        <div class="loy-picker-wrap">
+          <div class="loy-cal-panel">
+            <div class="loy-cal-header">
+              <button class="loy-cal-nav" id="loy-prev-month" type="button">${Icons.get("chevron-left", {size:16})}</button>
+              <div class="loy-cal-title" id="loy-month-title"></div>
+              <button class="loy-cal-nav" id="loy-next-month" type="button">${Icons.get("chevron-right", {size:16})}</button>
+            </div>
+            <div class="loy-cal-weekdays">
+              <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            </div>
+            <div class="loy-cal-grid" id="loy-days-grid"></div>
+            <div class="loy-cal-inputs">
+              <div class="loy-cal-input-wrap">
+                <label>Start date</label>
+                <input type="text" id="loy-start-input" placeholder="DD/MM/YYYY">
+              </div>
+              <div class="loy-cal-input-wrap">
+                <label>End date</label>
+                <input type="text" id="loy-end-input" placeholder="DD/MM/YYYY">
+              </div>
+            </div>
+          </div>
+          <div class="loy-presets-panel">
+            <button class="loy-preset-btn" type="button" data-loy-preset="today">Today</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="yesterday">Yesterday</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="this_week">This week</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="last_week">Last week</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="this_month">This month</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="last_month">Last month</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="last_7d">Last 7 days</button>
+            <button class="loy-preset-btn" type="button" data-loy-preset="last_30d">Last 30 days</button>
+          </div>
+        </div>
+        <div class="loy-picker-footer">
+          <button class="loy-btn-cancel" id="loy-cancel-btn" type="button">CANCEL</button>
+          <button class="loy-btn-done" id="loy-done-btn" type="button">DONE</button>
+        </div>
+      `
+    });
+    modal.querySelector(".modal")?.classList.add("modal-loy-dialog");
+
+    function renderGrid(){
+      const titleEl = modal.querySelector("#loy-month-title");
+      const gridEl = modal.querySelector("#loy-days-grid");
+      const startInp = modal.querySelector("#loy-start-input");
+      const endInp = modal.querySelector("#loy-end-input");
+      const nextBtn = modal.querySelector("#loy-next-month");
+
+      const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      titleEl.textContent = `${monthNames[viewMonth]} ${viewYear}`;
+
+      if(viewYear > now.getFullYear() || (viewYear === now.getFullYear() && viewMonth >= now.getMonth())){
+        nextBtn.style.visibility = "hidden";
+      } else {
+        nextBtn.style.visibility = "visible";
+      }
+
+      startInp.value = fmtDDMM(tempStart);
+      endInp.value = fmtDDMM(tempEnd);
+
+      const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const daysInPrev = new Date(viewYear, viewMonth, 0).getDate();
+
+      let html = "";
+      let cellIdx = 0;
+
+      for(let i = firstDay - 1; i >= 0; i--){
+        const day = daysInPrev - i;
+        const cellTs = new Date(viewYear, viewMonth - 1, day).setHours(0,0,0,0);
+        const inRange = cellTs >= tempStart && cellTs <= tempEnd;
+        const isStart = cellTs === tempStart;
+        const isEnd = cellTs === tempEnd;
+        const isFuture = cellTs > todayStart;
+        const isSun = (cellIdx % 7 === 0);
+        const isSat = (cellIdx % 7 === 6);
+        html += `
+          <div class="loy-cal-cell other-month ${isFuture ? "is-future" : ""} ${inRange ? "in-range" : ""} ${isSun ? "col-sun" : ""} ${isSat ? "col-sat" : ""} ${isStart ? "range-start is-selected" : ""} ${isEnd ? "range-end is-selected" : ""}" data-ts="${cellTs}">
+            <div class="loy-cal-day-bubble">${String(day).padStart(2,"0")}</div>
+          </div>`;
+        cellIdx++;
+      }
+      for(let d = 1; d <= daysInMonth; d++){
+        const cellTs = new Date(viewYear, viewMonth, d).setHours(0,0,0,0);
+        const inRange = cellTs >= tempStart && cellTs <= tempEnd;
+        const isStart = cellTs === tempStart;
+        const isEnd = cellTs === tempEnd;
+        const isFuture = cellTs > todayStart;
+        const isSun = (cellIdx % 7 === 0);
+        const isSat = (cellIdx % 7 === 6);
+        html += `
+          <div class="loy-cal-cell ${isFuture ? "is-future" : ""} ${inRange ? "in-range" : ""} ${isSun ? "col-sun" : ""} ${isSat ? "col-sat" : ""} ${isStart ? "range-start is-selected" : ""} ${isEnd ? "range-end is-selected" : ""}" data-ts="${cellTs}">
+            <div class="loy-cal-day-bubble">${String(d).padStart(2,"0")}</div>
+          </div>`;
+        cellIdx++;
+      }
+      const totalCells = firstDay + daysInMonth;
+      const totalRows = totalCells > 35 ? 42 : 35;
+      const remaining = totalRows - totalCells;
+      for(let d = 1; d <= remaining; d++){
+        const cellTs = new Date(viewYear, viewMonth + 1, d).setHours(0,0,0,0);
+        const inRange = cellTs >= tempStart && cellTs <= tempEnd;
+        const isStart = cellTs === tempStart;
+        const isEnd = cellTs === tempEnd;
+        const isFuture = cellTs > todayStart;
+        const isSun = (cellIdx % 7 === 0);
+        const isSat = (cellIdx % 7 === 6);
+        html += `
+          <div class="loy-cal-cell other-month ${isFuture ? "is-future" : ""} ${inRange ? "in-range" : ""} ${isSun ? "col-sun" : ""} ${isSat ? "col-sat" : ""} ${isStart ? "range-start is-selected" : ""} ${isEnd ? "range-end is-selected" : ""}" data-ts="${cellTs}">
+            <div class="loy-cal-day-bubble">${String(d).padStart(2,"0")}</div>
+          </div>`;
+        cellIdx++;
+      }
+
+      gridEl.innerHTML = html;
+
+      gridEl.querySelectorAll(".loy-cal-cell").forEach(cell => {
+        cell.onclick = () => {
+          if(cell.classList.contains("is-future")) return;
+          const ts = Number(cell.dataset.ts);
+          if(selPhase === "done" || ts < tempStart){
+            tempStart = ts;
+            tempEnd = ts;
+            selPhase = "end";
+          } else {
+            tempEnd = ts;
+            selPhase = "done";
+          }
+          modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.remove("active"));
+          renderGrid();
+        };
+      });
+    }
+
+    modal.querySelector("#loy-prev-month").onclick = () => {
+      viewMonth--;
+      if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+      renderGrid();
+    };
+    modal.querySelector("#loy-next-month").onclick = () => {
+      viewMonth++;
+      if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+      renderGrid();
+    };
+
+    const handleDateInput = (inp, isStart) => {
+      const parsed = parseDDMM(inp.value);
+      if(parsed && parsed <= todayStart + oneDay){
+        if(isStart){
+          tempStart = parsed;
+          if(tempStart > tempEnd) tempEnd = tempStart;
+          viewMonth = new Date(tempStart).getMonth();
+          viewYear = new Date(tempStart).getFullYear();
+        } else {
+          tempEnd = parsed;
+          if(tempEnd < tempStart) tempStart = tempEnd;
+          viewMonth = new Date(tempEnd).getMonth();
+          viewYear = new Date(tempEnd).getFullYear();
+        }
+        renderGrid();
+      }
+    };
+
+    const startInpEl = modal.querySelector("#loy-start-input");
+    const endInpEl = modal.querySelector("#loy-end-input");
+    startInpEl.onchange = () => handleDateInput(startInpEl, true);
+    endInpEl.onchange = () => handleDateInput(endInpEl, false);
+    startInpEl.oninput = () => { if(startInpEl.value.trim().length === 10) handleDateInput(startInpEl, true); };
+    endInpEl.oninput = () => { if(endInpEl.value.trim().length === 10) handleDateInput(endInpEl, false); };
+
+    modal.querySelectorAll("[data-loy-preset]").forEach(btn => {
+      btn.onclick = () => {
+        const p = btn.dataset.loyPreset;
+        modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.toggle("active", b === btn));
+        if(p === "today"){
+          tempStart = todayStart;
+          tempEnd = todayStart;
+        } else if(p === "yesterday"){
+          tempStart = todayStart - oneDay;
+          tempEnd = todayStart - oneDay;
+        } else if(p === "this_week"){
+          const dIdx = new Date(todayStart).getDay();
+          tempStart = todayStart - (dIdx * oneDay);
+          tempEnd = todayStart;
+        } else if(p === "last_week"){
+          const dIdx = new Date(todayStart).getDay();
+          const prevSun = todayStart - (dIdx * oneDay) - (7 * oneDay);
+          tempStart = prevSun;
+          tempEnd = prevSun + (6 * oneDay);
+        } else if(p === "this_month"){
+          tempStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+          tempEnd = todayStart;
+        } else if(p === "last_month"){
+          tempStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+          tempEnd = new Date(now.getFullYear(), now.getMonth(), 0).getTime();
+        } else if(p === "last_7d"){
+          tempStart = todayStart - (6 * oneDay);
+          tempEnd = todayStart;
+        } else if(p === "last_30d"){
+          tempStart = todayStart - (29 * oneDay);
+          tempEnd = todayStart;
+        }
+        viewMonth = new Date(tempEnd).getMonth();
+        viewYear = new Date(tempEnd).getFullYear();
+        selPhase = "done";
+        renderGrid();
+      };
+    });
+
+    modal.querySelector("#loy-cancel-btn").onclick = () => Modal.close();
+
+    modal.querySelector("#loy-done-btn").onclick = () => {
+      const s = new Date(tempStart).setHours(0,0,0,0);
+      const e = new Date(tempEnd).setHours(23,59,59,999);
+      activeRange = {
+        start: s,
+        end: e,
+        key: "custom",
+        label: fmtDateRangeLabel({ start: s, end: e }),
+        subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
+      };
+      periodKey = "custom";
+      Modal.close();
+      render();
+    };
+
+    renderGrid();
+  }
+
+  function reportsToolbarHtml(){
+    const r = getActiveRange();
+    const dateLabel = fmtDateRangeLabel(r);
+    const timeBtnLabel = timeFilter === "all" ? "All day" : (timeFilter === "morning" ? "Morning" : (timeFilter === "afternoon" ? "Afternoon" : (timeFilter === "night" ? "Night" : "Custom")));
+    const empBtnLabel = employeeFilter === "all" ? "All employees" : employeeFilter;
+
+    const users = DB.getUsers ? DB.getUsers() : [];
+    const salesCashiers = [...new Set([...(DB.getSales ? DB.getSales() : []).map(s => s.cashier), ...(DB.getFuelSales ? DB.getFuelSales() : []).map(s => s.cashier || s.attendant)].filter(Boolean))];
+    const allEmps = [...new Set([...users.map(u => u.name), ...salesCashiers])].filter(Boolean);
+
+    return `
+      <!-- (2026-07-13) Reports filter toolbar matching Loyverse; was missing -->
+      <div class="rpt-toolbar" id="reports-filter-bar">
+        <div class="rpt-date-group">
+          <button class="rpt-nav-btn" id="rpt-btn-prev" title="Previous period">${Icons.get("chevron-left", {size:15})}</button>
+          <button class="rpt-date-btn" id="rpt-btn-date" title="Select date range">
+            ${Icons.get("calendar", {size:15})}
+            <span id="rpt-date-display">${dateLabel}</span>
+          </button>
+          <button class="rpt-nav-btn" id="rpt-btn-next" title="Next period">${Icons.get("chevron-right", {size:15})}</button>
+        </div>
+        <div class="rpt-dropdown-wrap">
+          <button class="rpt-dropdown-btn" id="rpt-btn-time" title="Filter by time of day">
+            ${Icons.get("clock", {size:15})}
+            <span>${timeBtnLabel}</span>
+            ${Icons.get("chevron-down", {size:13})}
+          </button>
+          <div class="rpt-dropdown-menu" id="rpt-menu-time">
+            <div class="rpt-menu-item ${timeFilter === "all" ? "active" : ""}" data-time="all">All day</div>
+            <div class="rpt-menu-item ${timeFilter === "morning" ? "active" : ""}" data-time="morning">Morning (06:00 - 14:00)</div>
+            <div class="rpt-menu-item ${timeFilter === "afternoon" ? "active" : ""}" data-time="afternoon">Afternoon (14:00 - 22:00)</div>
+            <div class="rpt-menu-item ${timeFilter === "night" ? "active" : ""}" data-time="night">Night (22:00 - 06:00)</div>
+          </div>
+        </div>
+        <div class="rpt-dropdown-wrap">
+          <button class="rpt-dropdown-btn" id="rpt-btn-emp" title="Filter by employee">
+            ${Icons.get("user", {size:15})}
+            <span>${empBtnLabel}</span>
+            ${Icons.get("chevron-down", {size:13})}
+          </button>
+          <div class="rpt-dropdown-menu" id="rpt-menu-emp">
+            <div class="rpt-menu-item ${employeeFilter === "all" ? "active" : ""}" data-emp="all">All employees</div>
+            ${allEmps.map(emp => `
+              <div class="rpt-menu-item ${employeeFilter.toLowerCase() === emp.toLowerCase() ? "active" : ""}" data-emp="${Utils.escapeHtml(emp)}">${Utils.escapeHtml(emp)}</div>
+            `).join("")}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function bindToolbarEvents(){
+    const prevBtn = document.getElementById("rpt-btn-prev");
+    const nextBtn = document.getElementById("rpt-btn-next");
+    const dateBtn = document.getElementById("rpt-btn-date");
+    const timeBtn = document.getElementById("rpt-btn-time");
+    const empBtn = document.getElementById("rpt-btn-emp");
+    const menuTime = document.getElementById("rpt-menu-time");
+    const menuEmp = document.getElementById("rpt-menu-emp");
+
+    if(prevBtn) prevBtn.onclick = () => shiftPeriod(-1);
+    if(nextBtn) nextBtn.onclick = () => shiftPeriod(1);
+    if(dateBtn) dateBtn.onclick = () => openDatePickerModal();
+
+    if(timeBtn && menuTime){
+      timeBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(menuEmp) menuEmp.classList.remove("show");
+        menuTime.classList.toggle("show");
+      };
+      menuTime.querySelectorAll("[data-time]").forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          timeFilter = item.dataset.time;
+          menuTime.classList.remove("show");
+          render();
+        };
+      });
+    }
+
+    if(empBtn && menuEmp){
+      empBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(menuTime) menuTime.classList.remove("show");
+        menuEmp.classList.toggle("show");
+      };
+      menuEmp.querySelectorAll("[data-emp]").forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          employeeFilter = item.dataset.emp;
+          menuEmp.classList.remove("show");
+          render();
+        };
+      });
+    }
+
+    document.addEventListener("click", () => {
+      if(menuTime) menuTime.classList.remove("show");
+      if(menuEmp) menuEmp.classList.remove("show");
+    }, { once: true });
+  }
+
   // (2026-07-13) Timeframe chips bar with period selector; was plain list
   function timeframeBarHtml(activeKey){
     return `
@@ -438,8 +887,9 @@ const Reports = (() => {
 
   // (2026-07-13) Sales by item table matching Loyverse report; was missing
   function salesByItemTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    const stats = Analytics.computeStats(periodKey);
+    const r = getActiveRange();
+    const filterFn = getReportFilterFn();
+    const stats = Analytics.computeStats(r, { filterFn });
     const items = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
     const totalRev = items.reduce((s,x)=>s+x.revenue,0);
     const totalUnits = items.reduce((s,x)=>s+x.units,0);
@@ -484,8 +934,9 @@ const Reports = (() => {
 
   // (2026-07-13) Sales by category table matching Loyverse report; was missing
   function salesByCategoryTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    const stats = Analytics.computeStats(periodKey);
+    const r = getActiveRange();
+    const filterFn = getReportFilterFn();
+    const stats = Analytics.computeStats(r, { filterFn });
     const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
     const totalRev = cats.reduce((s,x)=>s+x.revenue,0);
     const totalProfit = cats.reduce((s,x)=>s+x.profit,0);
@@ -530,9 +981,13 @@ const Reports = (() => {
 
   // (2026-07-13) Sales by employee table matching Loyverse report; was missing
   function salesByEmployeeTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
-    const fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const r = getActiveRange();
+    let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && matchTimeFilter(s.ts));
+    let fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end && matchTimeFilter(s.ts));
+    if(employeeFilter !== "all"){
+      sales = sales.filter(s => (s.cashier || "Admin").toLowerCase() === employeeFilter.toLowerCase());
+      fuelSales = fuelSales.filter(s => (s.cashier || s.attendant || "Gas Attendant").toLowerCase() === employeeFilter.toLowerCase());
+    }
     const empMap = {};
 
     sales.forEach(s => {
@@ -596,9 +1051,10 @@ const Reports = (() => {
 
   // (2026-07-13) Sales by payment type table matching Loyverse report; was missing
   function salesByPaymentTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
-    const fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const r = getActiveRange();
+    const filterFn = getReportFilterFn();
+    const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+    const fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
     const payMap = {};
 
     [...sales, ...fuelSales].forEach(s => {
@@ -649,8 +1105,9 @@ const Reports = (() => {
 
   // (2026-07-13) Add transaction count # & Source column to Store Sales table. Prev: unindexed
   function historyTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const r = getActiveRange();
+    const filterFn = getReportFilterFn();
+    let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
     return `
       <div class="flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px;">
         ${timeframeBarHtml(periodKey)}
@@ -692,8 +1149,9 @@ const Reports = (() => {
   }
 
   function fuelHistoryTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    let sales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    const r = getActiveRange();
+    const filterFn = getReportFilterFn();
+    let sales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
     return `
       ${timeframeBarHtml(periodKey)}
       ${sales.length ? `
@@ -716,8 +1174,8 @@ const Reports = (() => {
   }
 
   function purchasesTable(){
-    const r = Analytics.getPeriodRange(periodKey);
-    const summary = Analytics.restockSummary(periodKey);
+    const r = getActiveRange();
+    const summary = Analytics.restockSummary(r);
     return `
       ${timeframeBarHtml(periodKey)}
       <div class="grid-3" style="margin-bottom:14px;gap:10px;">
@@ -757,9 +1215,51 @@ const Reports = (() => {
       </table></div>`;
   }
 
-  // (2026-07-13) Set table overflow visible; was nested overflow-y:auto
+  function paginationBarHtml(idPrefix, curPage, totalPages, pageSize, totalItems){
+    if(!totalItems) return "";
+    return `
+      <div class="card-pagination">
+        <div class="pg-nav-group">
+          <button class="pg-btn" id="${idPrefix}-prev" type="button" ${curPage > 1 ? "" : "disabled"}>
+            ${Icons.get("chevron-left", {size:15})}
+          </button>
+          <button class="pg-btn" id="${idPrefix}-next" type="button" ${curPage < totalPages ? "" : "disabled"}>
+            ${Icons.get("chevron-right", {size:15})}
+          </button>
+        </div>
+        <div class="pg-page-box">
+          <span>Page:</span>
+          <input type="number" class="pg-input" id="${idPrefix}-page-inp" min="1" max="${totalPages}" value="${curPage}" />
+          <span>of ${totalPages}</span>
+        </div>
+        <div class="pg-divider"></div>
+        <div class="pg-rpp-box">
+          <span>Rows per page:</span>
+          <select class="pg-select" id="${idPrefix}-rpp">
+            <option value="10" ${pageSize === 10 ? "selected" : ""}>10</option>
+            <option value="25" ${pageSize === 25 ? "selected" : ""}>25</option>
+            <option value="50" ${pageSize === 50 ? "selected" : ""}>50</option>
+            <option value="100" ${pageSize === 100 ? "selected" : ""}>100</option>
+          </select>
+        </div>
+      </div>
+    `;
+  }
+
+  // (2026-07-13) Add pagination to void audit logs; was unpaginated list
+  let voidLogsPage = 1;
+  let voidLogsRPP = 100;
+
   function voidLogsCard(isDedicated = false){
     const logs = DB.getVoidLogs ? DB.getVoidLogs() : [];
+    const totalLogs = logs.length;
+    const totalPages = Math.max(1, Math.ceil(totalLogs / voidLogsRPP));
+    if(voidLogsPage > totalPages) voidLogsPage = totalPages;
+    if(voidLogsPage < 1) voidLogsPage = 1;
+
+    const startIdx = (voidLogsPage - 1) * voidLogsRPP;
+    const pagedLogs = logs.slice(startIdx, startIdx + voidLogsRPP);
+
     const cardStyle = "margin-top:16px;margin-bottom:20px;";
     const tableStyle = "overflow-x:auto;overflow-y:visible;";
     return `
@@ -774,7 +1274,7 @@ const Reports = (() => {
             <table class="data">
               <thead><tr><th>Time</th><th>Txn ID</th><th>Items Altered</th><th>Price Diff</th><th>Admin</th><th>Reason</th></tr></thead>
               <tbody>
-                ${logs.map(l => `
+                ${pagedLogs.map(l => `
                   <tr>
                     <td class="text-sm text-faint">${Utils.fmtDate(l.ts)}</td>
                     <td class="mono font-bold">${Utils.escapeHtml(l.origTxnId)}</td>
@@ -787,10 +1287,65 @@ const Reports = (() => {
               </tbody>
             </table>
           </div>
+          ${paginationBarHtml("void-pg", voidLogsPage, totalPages, voidLogsRPP, totalLogs)}
         ` : `
           <p class="text-sm text-faint" style="margin:0;padding:12px 0;">No altered or voided items recorded. All transactions are intact.</p>
         `}
       </div>`;
+  }
+
+  function bindVoidLogsEvents(isDedicated = false){
+    const logs = DB.getVoidLogs ? DB.getVoidLogs() : [];
+    const totalPages = Math.max(1, Math.ceil(logs.length / voidLogsRPP));
+
+    const rerender = () => {
+      if(isDedicated){
+        const body = document.getElementById("report-body");
+        if(body){
+          body.innerHTML = voidLogsCard(true);
+          bindVoidLogsEvents(true);
+        }
+      } else {
+        const wrap = document.getElementById("ov-void-wrap");
+        if(wrap){
+          wrap.innerHTML = voidLogsCard(false);
+          bindVoidLogsEvents(false);
+        }
+      }
+    };
+
+    const prevBtn = document.getElementById("void-pg-prev");
+    if(prevBtn){
+      prevBtn.onclick = () => {
+        if(voidLogsPage > 1){ voidLogsPage--; rerender(); }
+      };
+    }
+    const nextBtn = document.getElementById("void-pg-next");
+    if(nextBtn){
+      nextBtn.onclick = () => {
+        if(voidLogsPage < totalPages){ voidLogsPage++; rerender(); }
+      };
+    }
+    const pageInp = document.getElementById("void-pg-page-inp");
+    if(pageInp){
+      pageInp.onchange = (e) => {
+        const val = parseInt(e.target.value, 10);
+        if(!isNaN(val) && val >= 1 && val <= totalPages){
+          voidLogsPage = val;
+          rerender();
+        } else {
+          pageInp.value = voidLogsPage;
+        }
+      };
+    }
+    const rppSel = document.getElementById("void-pg-rpp");
+    if(rppSel){
+      rppSel.onchange = (e) => {
+        voidLogsRPP = parseInt(e.target.value, 10) || 100;
+        voidLogsPage = 1;
+        rerender();
+      };
+    }
   }
 
   // ---------------- Overview (admin only): stats, clickable charts, top sellers ----------------
@@ -906,6 +1461,190 @@ const Reports = (() => {
       </div>`;
   }
 
+  // (2026-07-13) Add Loyverse daily sales table to overview; was missing
+  function computeDailySales(stats){
+    const sales = stats.sales || [];
+    const fuelSales = stats.fuelSales || [];
+    const costMap = stats.costMap || Analytics.productCostMap();
+    const fuelCfg = DB.getFuelConfig ? DB.getFuelConfig() : { fuels: {} };
+    const dayMap = {};
+
+    sales.forEach(s => {
+      const d = new Date(s.ts);
+      const dayKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      if(!dayMap[dayKey]){
+        dayMap[dayKey] = {
+          dateTs: dayStart,
+          dateLabel: `${String(d.getDate()).padStart(2, "0")} ${d.toLocaleDateString("en-PH", { month: "short" })} ${d.getFullYear()}`,
+          grossSales: 0,
+          refunds: 0,
+          discounts: 0,
+          netSales: 0,
+          cogs: 0,
+          grossProfit: 0
+        };
+      }
+      const disc = Number(s.discount) || 0;
+      const tot = Number(s.total) || 0;
+      const sCOGS = (s.items || []).reduce((sum, l) => sum + (costMap[l.productId] ?? 0) * (l.qty || 1), 0);
+      dayMap[dayKey].grossSales += (tot + disc);
+      dayMap[dayKey].discounts += disc;
+      dayMap[dayKey].netSales += tot;
+      dayMap[dayKey].cogs += sCOGS;
+    });
+
+    fuelSales.forEach(f => {
+      const d = new Date(f.ts);
+      const dayKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      if(!dayMap[dayKey]){
+        dayMap[dayKey] = {
+          dateTs: dayStart,
+          dateLabel: `${String(d.getDate()).padStart(2, "0")} ${d.toLocaleDateString("en-PH", { month: "short" })} ${d.getFullYear()}`,
+          grossSales: 0,
+          refunds: 0,
+          discounts: 0,
+          netSales: 0,
+          cogs: 0,
+          grossProfit: 0
+        };
+      }
+      const amt = Number(f.amount) || 0;
+      const fCOGS = (f.costPerL ?? fuelCfg.fuels[f.fuelType]?.cost ?? 65) * (f.liters || 0);
+      dayMap[dayKey].grossSales += amt;
+      dayMap[dayKey].netSales += amt;
+      dayMap[dayKey].cogs += fCOGS;
+    });
+
+    return Object.values(dayMap).map(row => {
+      row.grossProfit = row.netSales - row.cogs;
+      return row;
+    }).sort((a, b) => b.dateTs - a.dateTs);
+  }
+
+  function exportDailySalesCSV(days){
+    const headers = ["Date", "Gross sales", "Refunds", "Discounts", "Net sales", "Cost of goods", "Gross profit"];
+    const rows = days.map(d => [
+      `"${d.dateLabel}"`,
+      d.grossSales.toFixed(2),
+      d.refunds.toFixed(2),
+      d.discounts.toFixed(2),
+      d.netSales.toFixed(2),
+      d.cogs.toFixed(2),
+      d.grossProfit.toFixed(2)
+    ]);
+    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+    Utils.downloadFile(csv, `daily_sales_${periodKey || "report"}.csv`, "text/csv");
+  }
+
+  // (2026-07-13) Add title & pagination to Daily Sales card; was plain table
+  let dailySalesPage = 1;
+  let dailySalesRPP = 100;
+
+  function renderDailySalesTable(stats){
+    const el = document.getElementById("ov-daily-sales");
+    if(!el) return;
+    const days = computeDailySales(stats);
+    const totalDays = days.length;
+    const totalPages = Math.max(1, Math.ceil(totalDays / dailySalesRPP));
+    if(dailySalesPage > totalPages) dailySalesPage = totalPages;
+    if(dailySalesPage < 1) dailySalesPage = 1;
+
+    const startIdx = (dailySalesPage - 1) * dailySalesRPP;
+    const pagedDays = days.slice(startIdx, startIdx + dailySalesRPP);
+
+    el.innerHTML = `
+      <div class="card" style="margin-bottom:16px;padding:16px 18px;">
+        <div class="flex-between" style="margin-bottom:12px;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin:0;">
+            ${Icons.get("calendar",{size:18})} Daily Sales
+          </h3>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="text-xs text-faint font-bold" style="text-transform:uppercase;">
+              ${days.length} Day(s) Recorded
+            </div>
+            <button class="btn btn-sm btn-outline" id="btn-export-daily-sales" style="font-weight:700;font-size:0.75rem;letter-spacing:0.04em;">
+              ${Icons.get("download",{size:13})} EXPORT
+            </button>
+          </div>
+        </div>
+        ${days.length ? `
+          <div class="table-wrap" style="overflow-x:auto;">
+            <table class="data" style="width:100%;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Date</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Gross sales</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Refunds</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Discounts</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Net sales</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Cost of goods</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Gross profit</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pagedDays.map(d => `
+                  <tr>
+                    <td style="font-weight:600;">${d.dateLabel}</td>
+                    <td style="text-align:right;" class="mono">${Utils.money(d.grossSales)}</td>
+                    <td style="text-align:right;" class="mono text-faint">${Utils.money(d.refunds)}</td>
+                    <td style="text-align:right;" class="mono text-faint">${Utils.money(d.discounts)}</td>
+                    <td style="text-align:right;" class="mono font-bold">${Utils.money(d.netSales)}</td>
+                    <td style="text-align:right;" class="mono">${Utils.money(d.cogs)}</td>
+                    <td style="text-align:right;color:${d.grossProfit > 0 ? "var(--success-deep)" : d.grossProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(d.grossProfit)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+          ${paginationBarHtml("ds-pg", dailySalesPage, totalPages, dailySalesRPP, totalDays)}
+        ` : `
+          <div class="empty" style="padding:24px 0;">
+            ${Icons.get("calendar",{size:28})}
+            <h3>No daily sales in this period</h3>
+          </div>
+        `}
+      </div>`;
+
+    const exportBtn = document.getElementById("btn-export-daily-sales");
+    if(exportBtn && days.length){
+      exportBtn.onclick = () => exportDailySalesCSV(days);
+    }
+    const prevBtn = document.getElementById("ds-pg-prev");
+    if(prevBtn){
+      prevBtn.onclick = () => {
+        if(dailySalesPage > 1){ dailySalesPage--; renderDailySalesTable(stats); }
+      };
+    }
+    const nextBtn = document.getElementById("ds-pg-next");
+    if(nextBtn){
+      nextBtn.onclick = () => {
+        if(dailySalesPage < totalPages){ dailySalesPage++; renderDailySalesTable(stats); }
+      };
+    }
+    const pageInp = document.getElementById("ds-pg-page-inp");
+    if(pageInp){
+      pageInp.onchange = (e) => {
+        const val = parseInt(e.target.value, 10);
+        if(!isNaN(val) && val >= 1 && val <= totalPages){
+          dailySalesPage = val;
+          renderDailySalesTable(stats);
+        } else {
+          pageInp.value = dailySalesPage;
+        }
+      };
+    }
+    const rppSel = document.getElementById("ds-pg-rpp");
+    if(rppSel){
+      rppSel.onchange = (e) => {
+        dailySalesRPP = parseInt(e.target.value, 10) || 100;
+        dailySalesPage = 1;
+        renderDailySalesTable(stats);
+      };
+    }
+  }
+
   // (2026-07-13) Render top sellers with item name fallback; was missing items
   function renderTopSellersTable(stats){
     const el = document.getElementById("ov-top-table");
@@ -992,11 +1731,11 @@ const Reports = (() => {
 
   function renderOverview(){
     const wrap = document.getElementById("report-body");
-    const r = Analytics.getPeriodRange(periodKey);
+    const r = getActiveRange();
     wrap.innerHTML = `
       <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px;align-items:center;">
         <div>
-          <span class="text-md font-bold" style="color:var(--ink);">${r.subtitle}</span>
+          <span class="text-md font-bold" style="color:var(--ink);">${r.subtitle || r.label}</span>
           <div class="text-sm text-faint">Click any chart point or category bar to drill in.</div>
         </div>
         ${timeframeBarHtml(periodKey)}
@@ -1023,44 +1762,46 @@ const Reports = (() => {
         </div>
       </div>
       <div id="ov-store-sales"></div>
+      <div id="ov-daily-sales"></div>
       <div class="card">
         <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">${Icons.get("package",{size:18})} Top Selling Items</h3>
         <div id="ov-top-table"></div>
       </div>
-      ${voidLogsCard(false)}`;
+      <div id="ov-void-wrap">
+        ${voidLogsCard(false)}
+      </div>`;
 
     const trendSel = document.getElementById("trend-period-select");
     if(trendSel){
       trendSel.onchange = (e) => {
         periodKey = e.target.value;
-        const pSel = document.getElementById("report-period-select");
-        if(pSel) pSel.value = periodKey;
-        refreshOverview();
+        activeRange = null;
+        render();
       };
     }
 
     wrap.querySelectorAll("[data-period]").forEach(chip => {
       chip.onclick = () => {
         periodKey = chip.dataset.period;
-        const pSel = document.getElementById("report-period-select");
-        if(pSel) pSel.value = periodKey;
-        if(trendSel) trendSel.value = periodKey;
-        refreshOverview();
+        activeRange = null;
+        render();
       };
     });
 
     refreshOverview();
+    bindVoidLogsEvents(false);
   }
 
   function refreshOverview(){
-    const stats = Analytics.computeStats(periodKey);
+    const r = getActiveRange();
+    const filterFn = getReportFilterFn();
+    const stats = Analytics.computeStats(r, { filterFn });
     renderOverviewStats(stats);
     renderStoreSalesCard(stats);
+    renderDailySalesTable(stats);
     buildOverviewCharts(stats);
     renderTopSellersTable(stats);
-    const pSel = document.getElementById("report-period-select");
     const trendSel = document.getElementById("trend-period-select");
-    if(pSel) pSel.value = periodKey;
     if(trendSel) trendSel.value = periodKey;
     document.querySelectorAll("[data-period]").forEach(c => c.classList.toggle("active", c.dataset.period === periodKey));
   }
@@ -1076,13 +1817,11 @@ const Reports = (() => {
         <div class="view-head">
           <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2><div class="view-sub">Sales history, analytics, shift reconciliation & void audit</div></div>
           <div class="input-row" style="width:auto;gap:8px;align-items:center;">
-            <select class="input" id="report-period-select" style="height:36px;padding:0 12px;font-size:var(--fs-sm);font-weight:700;border-radius:var(--r-md);background:var(--paper-raised);border:1px solid var(--line);color:var(--ink);cursor:pointer;">
-              ${PERIOD_FILTERS.map(([k, lbl]) => `<option value="${k}" ${periodKey === k ? "selected" : ""}>${lbl}</option>`).join("")}
-            </select>
             <button class="btn btn-ghost" id="btn-xreport">${Icons.get("clipboard",{size:15})} X Report</button>
             <button class="btn btn-danger" id="btn-zreport">${Icons.get("lock",{size:15})} Z Report</button>
           </div>
         </div>
+        ${reportsToolbarHtml()}
         <div class="category-chips" style="margin-bottom:14px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
           ${admin ? `<div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>` : ""}
           <!-- (2026-07-13) Move Receipts chip 2nd after Sales summary; was 6th chip -->
@@ -1100,22 +1839,17 @@ const Reports = (() => {
     document.getElementById("btn-xreport").onclick = openXReport;
     document.getElementById("btn-zreport").onclick = openZReport;
     document.querySelectorAll("[data-t]").forEach(c=>c.onclick=()=>{ tab=c.dataset.t; render(); });
-
-    const pSel = document.getElementById("report-period-select");
-    if(pSel){
-      pSel.onchange = (e) => {
-        periodKey = e.target.value;
-        render();
-      };
-    }
+    bindToolbarEvents();
 
     if(tab === "overview") renderOverview();
     else if(tab === "by_item"){
       document.getElementById("report-body").innerHTML = salesByItemTable();
-      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
       document.querySelectorAll("[data-top-prod]").forEach(row => {
         row.onclick = () => {
-          const stats = Analytics.computeStats(periodKey);
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const stats = Analytics.computeStats(r, { filterFn });
           const top = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
           const item = top.find(x => (x.productId && x.productId === row.dataset.topProd) || x.name === row.dataset.topProd);
           if(item) openProductDrilldown(item, stats);
@@ -1123,19 +1857,20 @@ const Reports = (() => {
       });
     } else if(tab === "by_category"){
       document.getElementById("report-body").innerHTML = salesByCategoryTable();
-      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
     } else if(tab === "by_employee"){
       document.getElementById("report-body").innerHTML = salesByEmployeeTable();
-      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
     } else if(tab === "by_payment"){
       document.getElementById("report-body").innerHTML = salesByPaymentTable();
-      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; render(); });
+      document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
     } else if(tab === "voids"){
       document.getElementById("report-body").innerHTML = voidLogsCard(true);
+      bindVoidLogsEvents(true);
     } else if(tab === "purchases"){
       document.getElementById("report-body").innerHTML = purchasesTable();
       document.querySelectorAll("[data-period]").forEach(chip => {
-        chip.onclick = () => { periodKey = chip.dataset.period; render(); };
+        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); };
       });
       document.querySelectorAll("[data-edit-restock]").forEach(b => {
         b.onclick = () => {
@@ -1152,7 +1887,7 @@ const Reports = (() => {
     } else {
       document.getElementById("report-body").innerHTML = tab==="history" ? historyTable() : fuelHistoryTable();
       document.querySelectorAll("[data-period]").forEach(chip => {
-        chip.onclick = () => { periodKey = chip.dataset.period; render(); };
+        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); };
       });
       document.querySelectorAll("[data-view-receipt]").forEach(b=>b.onclick=()=>{
         const s = DB.getSales().find(x=>x.id===b.dataset.viewReceipt);

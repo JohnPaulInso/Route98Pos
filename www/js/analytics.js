@@ -91,11 +91,15 @@ const Analytics = (() => {
     return trimmed;
   }
 
-  // (2026-07-13) Multi-business unit financial aggregation (4 businesses); was 2 units
-  function computeStats(rangeParam){
+  // (2026-07-13) Support custom filterFn in analytics stats; was range-only
+  function computeStats(rangeParam, opts = {}){
     const r = getPeriodRange(rangeParam);
-    const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
-    const fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    let fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    if(opts && typeof opts.filterFn === "function"){
+      sales = sales.filter(opts.filterFn);
+      fuelSales = fuelSales.filter(opts.filterFn);
+    }
     const bookings = (DB.getBookings ? DB.getBookings() : []).filter(b => {
       const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
       return bTs >= r.start && bTs <= r.end;
@@ -161,8 +165,8 @@ const Analytics = (() => {
     const margin = netRevenue > 0 ? (grossProfit/netRevenue)*100 : 0;
     const totalPurchases = restockSummary("all").totalCapitalSpent;
 
-    // (2026-07-13) Attach trend, top sellers and category data; was omitted
-    const trend = computeTrendData(rangeParam);
+    // (2026-07-13) Filter trend data by opts.filterFn; was unfiltered DB sales
+    const trend = computeTrendData(rangeParam, opts);
     const top = topSellers({ sales, costMap });
     const categoryBreakdown = categoryPL({ sales, costMap });
 
@@ -184,7 +188,7 @@ const Analytics = (() => {
   }
 
   // (2026-07-13) Synchronize trend buckets strictly with active range; was rolling days
-  function computeTrendData(rangeParam){
+  function computeTrendData(rangeParam, opts = {}){
     const r = getPeriodRange(rangeParam);
     const labels = [];
     const storeData = [];
@@ -197,8 +201,12 @@ const Analytics = (() => {
 
     const bookings = DB.getBookings ? DB.getBookings() : [];
     const restBookings = DB.getRestaurantBookings ? DB.getRestaurantBookings() : [];
-    const allSales = DB.getSales();
-    const allFuel = DB.getFuelSales();
+    let allSales = DB.getSales();
+    let allFuel = DB.getFuelSales();
+    if(opts && typeof opts.filterFn === "function"){
+      allSales = allSales.filter(opts.filterFn);
+      allFuel = allFuel.filter(opts.filterFn);
+    }
     const costMap = productCostMap();
     const fuelCfg = DB.getFuelConfig();
 

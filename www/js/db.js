@@ -128,34 +128,23 @@ const DB = (() => {
       });
       if(changed) write(KEYS.fuelConfig, curFuelCfg);
     }
-    if(read(KEYS.products) === null) write(KEYS.products, []);
-    // (2026-07-13) Auto-merge sales seed with duplicate order checks; was empty []
+    // (2026-07-13) Clean & sync new Loyverse catalog & sales; was stale state
+    const seedCatalog = (typeof CATALOG_SEED !== "undefined" && CATALOG_SEED.products) ? CATALOG_SEED : null;
     const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
-    const curSales = read(KEYS.sales, null);
-    if(curSales === null){
-      write(KEYS.sales, seedSales);
-    } else if(seedSales.length > 0){
-      const makeOrderSig = (items) => (items||[]).map(it => `${it.qty||1}x${(it.name||'').trim().toLowerCase()}`).sort().join("|");
-      const salesMap = new Map();
-      curSales.forEach(s => {
-        const key = `${s.ts || 0}_${(s.total || 0).toFixed(2)}_${makeOrderSig(s.items)}`;
-        salesMap.set(key, s);
-      });
-      seedSales.forEach(s => {
-        const key = `${s.ts || 0}_${(s.total || 0).toFixed(2)}_${makeOrderSig(s.items)}`;
-        if(salesMap.has(key)){
-          const ex = salesMap.get(key);
-          if(s.items && s.items.length) ex.items = s.items;
-          ex.method = s.method || ex.method;
-          ex.cashier = s.cashier || ex.cashier;
-        } else {
-          salesMap.set(key, s);
+    const syncFlagKey = NS + "loyverse_sync_20260920";
+
+    if(!localStorage.getItem(syncFlagKey)){
+      if(seedCatalog){
+        write(KEYS.products, seedCatalog.products);
+        if(seedCatalog.categories && seedCatalog.categories.length){
+          write(KEYS.categories, seedCatalog.categories);
         }
-      });
-      const mergedSales = Array.from(salesMap.values()).sort((a,b) => (b.ts||0) - (a.ts||0));
-      if(mergedSales.length !== curSales.length){
-        write(KEYS.sales, mergedSales);
       }
+      write(KEYS.sales, seedSales);
+      try{ localStorage.setItem(syncFlagKey, "true"); }catch(e){}
+    } else {
+      if(read(KEYS.products) === null) write(KEYS.products, seedCatalog ? seedCatalog.products : []);
+      if(read(KEYS.sales) === null) write(KEYS.sales, seedSales);
     }
     if(read(KEYS.fuelSales) === null) write(KEYS.fuelSales, []);
     if(read(KEYS.heldSales) === null) write(KEYS.heldSales, []);

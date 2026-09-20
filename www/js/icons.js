@@ -39,6 +39,9 @@ const Icons = (() => {
     user: `<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>`,
     users: `<circle cx="9" cy="8" r="3.2"/><path d="M2.7 20a6.3 6.3 0 0 1 12.6 0"/><path d="M15.3 5.5a3.2 3.2 0 0 1 0 6.2"/><path d="M17.5 14.2a6.3 6.3 0 0 1 3.8 5.8"/>`,
     "chevron-down": `<path d="m6 9 6 6 6-6"/>`,
+    // (2026-07-13) Add clock & chevron-right icons; was missing in PATHS
+    clock: `<circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/>`,
+    "chevron-right": `<path d="m9 18 6-6-6-6"/>`,
     "chevron-left": `<path d="m15 18-6-6 6-6"/>`,
     calendar: `<rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>`,
     "trending-up": `<path d="m3 16.5 6.5-6.5 4 4L21 6"/><path d="M15.5 6H21v5.5"/>`,
