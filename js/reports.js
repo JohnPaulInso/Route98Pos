@@ -885,7 +885,7 @@ const Reports = (() => {
       </div>`;
   }
 
-  // (2026-07-13) Sales by item table matching Loyverse report; was missing
+  // (2026-07-13) Add total row to sales by item table; was missing tfoot
   function salesByItemTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
@@ -894,6 +894,8 @@ const Reports = (() => {
     const totalRev = items.reduce((s,x)=>s+x.revenue,0);
     const totalUnits = items.reduce((s,x)=>s+x.units,0);
     const totalProfit = items.reduce((s,x)=>s+x.profit,0);
+    const totalCost = items.reduce((s,x)=>s+(x.revenue - x.profit),0);
+    const totalMargin = totalRev > 0 ? ((totalProfit / totalRev) * 100) : 0;
     return `
       ${timeframeBarHtml(periodKey)}
       <div class="grid-3" style="margin-bottom:14px;gap:10px;">
@@ -928,11 +930,21 @@ const Reports = (() => {
               </tr>`;
             }).join("")}
           </tbody>
+          <tfoot>
+            <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
+              <td colspan="3" style="font-weight:900;text-transform:uppercase;">Total</td>
+              <td class="mono font-bold">${totalUnits}</td>
+              <td class="mono font-bold">${Utils.money(totalRev)}</td>
+              <td class="mono font-bold">${Utils.money(totalCost)}</td>
+              <td class="mono font-bold" style="color:var(--success-deep);">${Utils.money(totalProfit)}</td>
+              <td class="mono font-bold">${totalMargin.toFixed(1)}%</td>
+            </tr>
+          </tfoot>
         </table></div>
       ` : `<div class="empty">${Icons.get("package",{size:34})}<h3>No item sales in ${r.label}</h3></div>`}`;
   }
 
-  // (2026-07-13) Sales by category table matching Loyverse report; was missing
+  // (2026-07-13) Add total row to category sales table; was missing tfoot
   function salesByCategoryTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
@@ -940,6 +952,8 @@ const Reports = (() => {
     const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
     const totalRev = cats.reduce((s,x)=>s+x.revenue,0);
     const totalProfit = cats.reduce((s,x)=>s+x.profit,0);
+    const totalCost = cats.reduce((s,x)=>s+(x.cogs ?? (x.revenue - x.profit)),0);
+    const totalMargin = totalRev > 0 ? ((totalProfit / totalRev) * 100) : 0;
     return `
       ${timeframeBarHtml(periodKey)}
       <div class="grid-3" style="margin-bottom:14px;gap:10px;">
@@ -975,11 +989,21 @@ const Reports = (() => {
               </tr>`;
             }).join("")}
           </tbody>
+          <tfoot>
+            <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
+              <td colspan="2" style="font-weight:900;text-transform:uppercase;">Total</td>
+              <td class="mono font-bold">${Utils.money(totalRev)}</td>
+              <td class="mono font-bold">${Utils.money(totalCost)}</td>
+              <td class="mono font-bold" style="color:var(--success-deep);">${Utils.money(totalProfit)}</td>
+              <td class="mono font-bold">${totalMargin.toFixed(1)}%</td>
+              <td class="mono font-bold">100.0%</td>
+            </tr>
+          </tfoot>
         </table></div>
       ` : `<div class="empty">${Icons.get("tag",{size:34})}<h3>No category data in ${r.label}</h3></div>`}`;
   }
 
-  // (2026-07-13) Sales by employee table matching Loyverse report; was missing
+  // (2026-07-13) Add total row to employee sales table; was missing tfoot
   function salesByEmployeeTable(){
     const r = getActiveRange();
     let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && matchTimeFilter(s.ts));
@@ -1009,6 +1033,9 @@ const Reports = (() => {
     const list = Object.values(empMap).sort((a,b)=>b.total-a.total);
     const grandTotal = list.reduce((s,x)=>s+x.total,0);
     const totalReceipts = list.reduce((s,x)=>s+x.receipts,0);
+    const totalStore = list.reduce((s,x)=>s+x.storeSales,0);
+    const totalFuel = list.reduce((s,x)=>s+x.fuelSales,0);
+    const totalAvg = totalReceipts > 0 ? (grandTotal / totalReceipts) : 0;
 
     return `
       ${timeframeBarHtml(periodKey)}
@@ -1045,11 +1072,22 @@ const Reports = (() => {
               </tr>`;
             }).join("")}
           </tbody>
+          <tfoot>
+            <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
+              <td colspan="2" style="font-weight:900;text-transform:uppercase;">Total</td>
+              <td class="mono font-bold">${totalReceipts}</td>
+              <td class="mono font-bold">${Utils.money(totalStore)}</td>
+              <td class="mono font-bold">${Utils.money(totalFuel)}</td>
+              <td class="mono font-bold" style="color:var(--brand-deep);">${Utils.money(grandTotal)}</td>
+              <td class="mono font-bold">${Utils.money(totalAvg)}</td>
+              <td class="mono font-bold">100.0%</td>
+            </tr>
+          </tfoot>
         </table></div>
       ` : `<div class="empty">${Icons.get("user",{size:34})}<h3>No employee sales in ${r.label}</h3></div>`}`;
   }
 
-  // (2026-07-13) Sales by payment type table matching Loyverse report; was missing
+  // (2026-07-13) Add total row to payment sales table; was missing tfoot
   function salesByPaymentTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
@@ -1099,6 +1137,14 @@ const Reports = (() => {
               </tr>`;
             }).join("")}
           </tbody>
+          <tfoot>
+            <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
+              <td colspan="2" style="font-weight:900;text-transform:uppercase;">Total</td>
+              <td class="mono font-bold">${totalCount}</td>
+              <td class="mono font-bold" style="color:var(--brand-deep);">${Utils.money(totalAmt)}</td>
+              <td class="mono font-bold">100.0%</td>
+            </tr>
+          </tfoot>
         </table></div>
       ` : `<div class="empty">${Icons.get("credit-card",{size:34})}<h3>No payment records in ${r.label}</h3></div>`}`;
   }
@@ -1517,28 +1563,54 @@ const Reports = (() => {
       dayMap[dayKey].cogs += fCOGS;
     });
 
-    return Object.values(dayMap).map(row => {
+    const sortedAsc = Object.values(dayMap).sort((a, b) => a.dateTs - b.dateTs);
+    let runningBalance = (DB.getShift ? (DB.getShift().openingCash || 0) : 0);
+    sortedAsc.forEach(row => {
       row.grossProfit = row.netSales - row.cogs;
-      return row;
-    }).sort((a, b) => b.dateTs - a.dateTs);
+      row.openingBalance = runningBalance;
+      row.closingBalance = runningBalance + row.netSales;
+      runningBalance = row.closingBalance;
+    });
+    return sortedAsc.sort((a, b) => b.dateTs - a.dateTs);
   }
 
   function exportDailySalesCSV(days){
-    const headers = ["Date", "Gross sales", "Refunds", "Discounts", "Net sales", "Cost of goods", "Gross profit"];
+    const headers = ["Date", "Opening balance", "Gross sales", "Refunds", "Discounts", "Net sales", "Cost of goods", "Gross profit", "Closing balance"];
     const rows = days.map(d => [
       `"${d.dateLabel}"`,
+      d.openingBalance.toFixed(2),
       d.grossSales.toFixed(2),
       d.refunds.toFixed(2),
       d.discounts.toFixed(2),
       d.netSales.toFixed(2),
       d.cogs.toFixed(2),
-      d.grossProfit.toFixed(2)
+      d.grossProfit.toFixed(2),
+      d.closingBalance.toFixed(2)
+    ]);
+    const totalGross = days.reduce((sum, d) => sum + d.grossSales, 0);
+    const totalRefunds = days.reduce((sum, d) => sum + d.refunds, 0);
+    const totalDiscounts = days.reduce((sum, d) => sum + d.discounts, 0);
+    const totalNet = days.reduce((sum, d) => sum + d.netSales, 0);
+    const totalCogs = days.reduce((sum, d) => sum + d.cogs, 0);
+    const totalProfit = days.reduce((sum, d) => sum + d.grossProfit, 0);
+    const periodOpeningBalance = days.length ? days[days.length - 1].openingBalance : 0;
+    const periodClosingBalance = days.length ? days[0].closingBalance : 0;
+    rows.push([
+      `"Total"`,
+      periodOpeningBalance.toFixed(2),
+      totalGross.toFixed(2),
+      totalRefunds.toFixed(2),
+      totalDiscounts.toFixed(2),
+      totalNet.toFixed(2),
+      totalCogs.toFixed(2),
+      totalProfit.toFixed(2),
+      periodClosingBalance.toFixed(2)
     ]);
     const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
     Utils.downloadFile(csv, `daily_sales_${periodKey || "report"}.csv`, "text/csv");
   }
 
-  // (2026-07-13) Add title & pagination to Daily Sales card; was plain table
+  // (2026-07-13) Add opening/closing cash & totals row; was sales-only table
   let dailySalesPage = 1;
   let dailySalesRPP = 100;
 
@@ -1553,6 +1625,15 @@ const Reports = (() => {
 
     const startIdx = (dailySalesPage - 1) * dailySalesRPP;
     const pagedDays = days.slice(startIdx, startIdx + dailySalesRPP);
+
+    const totalGross = days.reduce((sum, d) => sum + d.grossSales, 0);
+    const totalRefunds = days.reduce((sum, d) => sum + d.refunds, 0);
+    const totalDiscounts = days.reduce((sum, d) => sum + d.discounts, 0);
+    const totalNet = days.reduce((sum, d) => sum + d.netSales, 0);
+    const totalCogs = days.reduce((sum, d) => sum + d.cogs, 0);
+    const totalProfit = days.reduce((sum, d) => sum + d.grossProfit, 0);
+    const periodOpeningBalance = days.length ? days[days.length - 1].openingBalance : 0;
+    const periodClosingBalance = days.length ? days[0].closingBalance : 0;
 
     el.innerHTML = `
       <div class="card" style="margin-bottom:16px;padding:16px 18px;">
@@ -1575,27 +1656,54 @@ const Reports = (() => {
               <thead>
                 <tr>
                   <th style="text-align:left;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Date</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Opening balance</th>
                   <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Gross sales</th>
                   <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Refunds</th>
                   <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Discounts</th>
                   <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Net sales</th>
                   <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Cost of goods</th>
                   <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Gross profit</th>
+                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Closing balance</th>
                 </tr>
               </thead>
               <tbody>
+                <tr style="font-weight:800;background:var(--paper-dim);border-bottom:1.5px solid var(--line);">
+                  <td>Closing balance</td>
+                  <td colspan="7"></td>
+                  <td style="text-align:right;" class="mono font-bold text-success">${Utils.money(periodClosingBalance)}</td>
+                </tr>
                 ${pagedDays.map(d => `
                   <tr>
                     <td style="font-weight:600;">${d.dateLabel}</td>
+                    <td style="text-align:right;" class="mono text-faint">${Utils.money(d.openingBalance)}</td>
                     <td style="text-align:right;" class="mono">${Utils.money(d.grossSales)}</td>
                     <td style="text-align:right;" class="mono text-faint">${Utils.money(d.refunds)}</td>
                     <td style="text-align:right;" class="mono text-faint">${Utils.money(d.discounts)}</td>
                     <td style="text-align:right;" class="mono font-bold">${Utils.money(d.netSales)}</td>
                     <td style="text-align:right;" class="mono">${Utils.money(d.cogs)}</td>
                     <td style="text-align:right;color:${d.grossProfit > 0 ? "var(--success-deep)" : d.grossProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(d.grossProfit)}</td>
+                    <td style="text-align:right;" class="mono font-bold">${Utils.money(d.closingBalance)}</td>
                   </tr>
                 `).join("")}
+                <tr style="font-weight:800;background:var(--paper-dim);border-top:1.5px solid var(--line);">
+                  <td>Opening balance</td>
+                  <td style="text-align:right;" class="mono font-bold">${Utils.money(periodOpeningBalance)}</td>
+                  <td colspan="7"></td>
+                </tr>
               </tbody>
+              <tfoot>
+                <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
+                  <td style="font-weight:900;text-transform:uppercase;">Total</td>
+                  <td style="text-align:right;" class="mono">${Utils.money(periodOpeningBalance)}</td>
+                  <td style="text-align:right;" class="mono">${Utils.money(totalGross)}</td>
+                  <td style="text-align:right;" class="mono text-faint">${Utils.money(totalRefunds)}</td>
+                  <td style="text-align:right;" class="mono text-faint">${Utils.money(totalDiscounts)}</td>
+                  <td style="text-align:right;" class="mono font-bold">${Utils.money(totalNet)}</td>
+                  <td style="text-align:right;" class="mono">${Utils.money(totalCogs)}</td>
+                  <td style="text-align:right;color:${totalProfit > 0 ? "var(--success-deep)" : totalProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(totalProfit)}</td>
+                  <td style="text-align:right;" class="mono font-bold">${Utils.money(periodClosingBalance)}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
           ${paginationBarHtml("ds-pg", dailySalesPage, totalPages, dailySalesRPP, totalDays)}
