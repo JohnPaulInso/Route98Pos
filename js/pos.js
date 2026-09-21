@@ -1340,7 +1340,7 @@ const POS = (() => {
           </div>
           <div class="qty-stepper">
             <button data-dec="${idx}">${Icons.get("minus",{size:12})}</button>
-            <span class="q">${l.qty}</span>
+            <input type="number" class="q qty-input" data-qty-idx="${idx}" value="${l.qty}" min="1" step="1">
             <button data-inc="${idx}">${Icons.get("plus",{size:12})}</button>
           </div>
           <div class="lt">${Utils.money(l.price*l.qty)}</div>
@@ -1363,6 +1363,19 @@ const POS = (() => {
       el.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>changeQty(Number(b.dataset.inc),1));
       el.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>changeQty(Number(b.dataset.dec),-1));
       el.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>removeLine(Number(b.dataset.rm)));
+      // Bind quantity input direct edit
+      el.querySelectorAll(".qty-input").forEach(input => {
+        input.addEventListener("change", (e) => {
+          const idx = Number(e.target.dataset.qtyIdx);
+          const newQty = Math.max(1, Number(e.target.value) || 1);
+          const line = cart[idx];
+          if(line){
+            const delta = newQty - line.qty;
+            if(delta !== 0) changeQty(idx, delta);
+          }
+        });
+        input.addEventListener("focus", (e) => e.target.select());
+      });
       const dottedBtn = el.querySelector("#btn-add-custom-dotted");
       if(dottedBtn){
         dottedBtn.onclick = () => {

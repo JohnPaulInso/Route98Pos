@@ -380,4 +380,6 @@ body.scroll-locked{ overflow:hidden; }
 .flex-between{ display:flex; align-items:center; justify-content:space-between; }
 .text-faint{ color:var(--ink-faint); }
 .text-sm{ font-size:var(--fs-sm); }
+.mono{ font-family:var(--font-body); font-variant-numeric:tabular-nums; }
+.font-bold{ font-weight:700; }
 .scanner-live{ position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:300; background:var(--ink); color:#8FB4FF; font-family:var(--font-mono); font-size:.78rem; font-weight:700; padding:8px 16px; border-radius:20px; box-shadow:var(--shadow-lg); animation:toast-in .12s ease; display:flex; align-items:center; gap:8px; }

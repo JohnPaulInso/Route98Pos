@@ -30,6 +30,28 @@ const Reports = (() => {
   // (2026-07-13) Track receipt pagination state; was unpaginated
   let receiptPage = 1;
   let receiptRPP = 100;
+  // Sorting state for tables
+  let sortState = {
+    receipts: { column: 'ts', direction: 'desc' },
+    items: { column: 'revenue', direction: 'desc' },
+    category: { column: 'revenue', direction: 'desc' }
+  };
+  
+  // Navigation helper functions
+  function navigateToReceipts() {
+    tab = "history";
+    render();
+  }
+  
+  function navigateToSalesByItem() {
+    tab = "by_item";
+    render();
+  }
+  
+  function navigateToVoidAudit() {
+    tab = "voids";
+    render();
+  }
 
   // ---------------- shift reports (X/Z) ----------------
   // (2026-07-13) Enhanced X & Z cashier shift reports; was basic count
@@ -230,6 +252,99 @@ const Reports = (() => {
             ta.select(); document.execCommand("copy"); ta.remove();
           }
           const iconEl = copyBtn.querySelector("#txnid-icon");
+          if(iconEl) iconEl.innerHTML = Icons.get("check-circle",{size:14});
+          Utils.toast(`Copied ${txnId} to clipboard!`, "success", 1500);
+          setTimeout(() => { if(iconEl) iconEl.innerHTML = Icons.get("clipboard",{size:14}); }, 1800);
+        }catch(err){
+          Utils.toast(`Transaction ID: ${txnId}`, "info", 2000);
+        }
+      };
+    }
+  }
+
+  function openFuelSaleModal(fuelSale){
+    if(!fuelSale) return;
+    const settings = DB.getSettings();
+    const txnId = fmtTxnId(fuelSale.id);
+    
+    const body = `
+      <div class="card" style="margin-bottom:14px;background:var(--paper-dim);padding:14px 18px;border-radius:var(--r-lg);">
+        <div class="flex-between" style="margin-bottom:8px;align-items:center;">
+          <span class="text-sm text-faint" style="font-weight:700;text-transform:uppercase;">Transaction ID</span>
+          <button type="button" class="btn btn-sm" id="btn-copy-txnid-fuel" style="background:var(--warning-tint);color:var(--warning-deep);border:1.5px solid var(--warning);font-family:var(--font-mono);font-size:1.2rem;font-weight:900;letter-spacing:.04em;padding:4px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;" title="Click to copy Transaction ID">
+            <span id="txnid-text-fuel">${txnId}</span>
+            <span id="txnid-icon-fuel" style="display:flex;align-items:center;">${Icons.get("clipboard",{size:14})}</span>
+          </button>
+        </div>
+        <div class="flex-between" style="margin-bottom:6px;"><span class="text-sm text-faint" style="font-weight:700;">Date & Time</span><strong style="font-size:1rem;">${Utils.fmtDate(fuelSale.ts)}</strong></div>
+        <div class="flex-between" style="margin-bottom:6px;"><span class="text-sm text-faint" style="font-weight:700;">Attendant</span><strong style="font-size:1.05rem;">${Utils.escapeHtml(fuelSale.attendant || fuelSale.cashier || "Attendant")}</strong></div>
+        <div class="flex-between" style="align-items:center;${fuelSale.refCode ? "margin-bottom:6px;" : ""}"><span class="text-sm text-faint" style="font-weight:700;">Payment Method</span><span class="badge badge-brand" style="font-size:.92rem;font-weight:800;padding:4px 12px;border-radius:10px;">${fuelSale.method || "Cash"}</span></div>
+        ${fuelSale.refCode ? `
+          <div class="flex-between" style="align-items:center;"><span class="text-sm text-faint" style="font-weight:700;">Reference No.</span><strong class="mono" style="font-size:1.1rem;color:var(--brand-deep);">${Utils.escapeHtml(fuelSale.refCode)}</strong></div>
+        ` : ""}
+      </div>
+      <h4 style="font-size:var(--fs-sm);margin-bottom:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);">Fuel Transaction Details</h4>
+      <div class="card" style="margin-bottom:14px;background:var(--warning-tint);border:1.5px solid var(--warning);padding:16px 18px;">
+        <div class="flex-between" style="margin-bottom:10px;">
+          <span style="font-weight:700;font-size:0.9rem;color:var(--warning-deep);">Pump</span>
+          <strong style="font-size:1.3rem;color:var(--warning-deep);">${Utils.escapeHtml(fuelSale.pumpLabel || fuelSale.pump || "N/A")}</strong>
+        </div>
+        <div class="flex-between" style="margin-bottom:10px;">
+          <span style="font-weight:700;font-size:0.9rem;color:var(--warning-deep);">Fuel Type</span>
+          <strong style="font-size:1.3rem;color:var(--warning-deep);">${Utils.escapeHtml(fuelSale.fuelName || "Fuel")}</strong>
+        </div>
+        <div class="flex-between" style="margin-bottom:10px;">
+          <span style="font-weight:700;font-size:0.9rem;color:var(--warning-deep);">Liters Dispensed</span>
+          <strong class="mono" style="font-size:1.5rem;color:var(--warning-deep);">${(fuelSale.liters || 0).toFixed(2)} L</strong>
+        </div>
+        <div class="flex-between">
+          <span style="font-weight:700;font-size:0.9rem;color:var(--warning-deep);">Price per Liter</span>
+          <strong class="mono" style="font-size:1.3rem;color:var(--warning-deep);">${Utils.money((fuelSale.pricePerLiter || (fuelSale.amount / fuelSale.liters)) || 0)}</strong>
+        </div>
+      </div>
+      <div class="totals-summary" style="background:var(--paper-raised);border:1.5px solid var(--line-strong);border-radius:var(--r-lg);padding:14px 18px;">
+        <div class="totals-row grand" style="padding-top:8px;">
+          <span style="font-size:1.25rem;font-weight:800;">Total Amount</span>
+          <span class="mono" style="font-size:2.3rem;font-weight:900;color:var(--warning-deep);">${Utils.money(fuelSale.amount)}</span>
+        </div>
+        ${fuelSale.method === "Cash" && fuelSale.tendered !== undefined ? `
+          <div class="totals-row" style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;font-size:1.15rem;">
+            <span class="text-faint" style="font-weight:700;">Cash Tendered</span>
+            <span class="mono font-bold" style="font-size:1.35rem;">${Utils.money(fuelSale.tendered)}</span>
+          </div>
+          <div class="totals-row" style="margin-top:4px;font-size:1.25rem;">
+            <span style="font-weight:800;color:var(--success-deep);">Change Given</span>
+            <span class="mono font-bold" style="font-size:1.75rem;font-weight:900;color:var(--success-deep);">${Utils.money(fuelSale.change || 0)}</span>
+          </div>
+        ` : ""}
+      </div>`;
+
+    const actions = [
+      { label: "Close", cls: "btn-ghost btn-lg", onClick: Modal.close }
+    ];
+    if(Auth.isAdmin()){
+      actions.push({ label: "Delete Transaction", cls: "btn-danger btn-lg", onClick: () => { Modal.close(); deleteFuelSaleRecord(fuelSale.id); } });
+    }
+
+    const modal = Modal.open({
+      title: `${Icons.get("fuel",{size:18})} Fuel Sale Receipt`,
+      body,
+      wide: true,
+      actions
+    });
+
+    const copyBtn = modal.querySelector("#btn-copy-txnid-fuel");
+    if(copyBtn){
+      copyBtn.onclick = async () => {
+        try{
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(txnId);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.value = txnId; document.body.appendChild(ta);
+            ta.select(); document.execCommand("copy"); ta.remove();
+          }
+          const iconEl = copyBtn.querySelector("#txnid-icon-fuel");
           if(iconEl) iconEl.innerHTML = Icons.get("check-circle",{size:14});
           Utils.toast(`Copied ${txnId} to clipboard!`, "success", 1500);
           setTimeout(() => { if(iconEl) iconEl.innerHTML = Icons.get("clipboard",{size:14}); }, 1800);
@@ -832,6 +947,27 @@ const Reports = (() => {
         viewYear = new Date(tempEnd).getFullYear();
         selPhase = "done";
         renderGrid();
+        
+        // Auto-apply preset selection and close modal
+        if(p === "all"){
+          periodKey = "all";
+          activeRange = null;
+        } else {
+          const s = new Date(tempStart).setHours(0,0,0,0);
+          const e = new Date(tempEnd).setHours(23,59,59,999);
+          periodKey = p || "custom";
+          activeRange = {
+            start: s,
+            end: e,
+            key: periodKey,
+            label: fmtDateRangeLabel({ start: s, end: e }),
+            subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
+          };
+        }
+        receiptPage = 1;
+        persistRangeState();
+        Modal.close();
+        render();
       };
     });
 
@@ -972,12 +1108,39 @@ const Reports = (() => {
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
     const stats = Analytics.computeStats(r, { filterFn });
-    const items = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
+    let items = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
+    
+    // Apply sorting
+    const sortCol = sortState.items.column;
+    const sortDir = sortState.items.direction;
+    items = items.sort((a, b) => {
+      let valA, valB;
+      if(sortCol === 'name') {
+        valA = (a.name || '').toLowerCase();
+        valB = (b.name || '').toLowerCase();
+      } else if(sortCol === 'category') {
+        valA = (a.category || '').toLowerCase();
+        valB = (b.category || '').toLowerCase();
+      } else {
+        valA = a[sortCol] || 0;
+        valB = b[sortCol] || 0;
+      }
+      if(valA < valB) return sortDir === 'asc' ? -1 : 1;
+      if(valA > valB) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
     const totalRev = items.reduce((s,x)=>s+x.revenue,0);
     const totalUnits = items.reduce((s,x)=>s+x.units,0);
     const totalProfit = items.reduce((s,x)=>s+x.profit,0);
     const totalCost = items.reduce((s,x)=>s+(x.revenue - x.profit),0);
     const totalMargin = totalRev > 0 ? ((totalProfit / totalRev) * 100) : 0;
+    
+    const sortIcon = (col) => {
+      if(sortCol !== col) return '<span style="opacity:0.3">⇅</span>';
+      return sortDir === 'asc' ? '↑' : '↓';
+    };
+    
     return `
       ${timeframeBarHtml(periodKey)}
       <div class="grid-3" style="margin-bottom:14px;gap:10px;">
@@ -994,14 +1157,50 @@ const Reports = (() => {
           <div class="mono font-bold" style="font-size:1.25rem;color:var(--success-deep);">${Utils.money(totalProfit)}</div>
         </div>
       </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
+            ${Icons.get("pie-chart",{size:18})} Top Items Revenue Distribution
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="items-chart-pie"></canvas></div>
+        </div>
+        
+        <div class="card" style="padding:12px 14px;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:10px;">
+            ${Icons.get("alert-circle",{size:18})} Inventory Status Overview
+          </h3>
+          <div id="inventory-status-content"></div>
+        </div>
+      </div>
       ${items.length ? `
         <div class="table-wrap"><table class="data">
-          <thead><tr><th>#</th><th>Item</th><th>Category</th><th>Units Sold</th><th>Net Sales</th><th>Cost</th><th>Gross Profit</th><th>Margin</th></tr></thead>
+          <thead><tr>
+            <th>#</th>
+            <th colspan="2" class="sortable-header" data-table="items" data-col="name" style="cursor:pointer;">Item ${sortIcon('name')}</th>
+            <th class="sortable-header" data-table="items" data-col="category" style="cursor:pointer;">Category ${sortIcon('category')}</th>
+            <th class="sortable-header" data-table="items" data-col="units" style="cursor:pointer;">Units Sold ${sortIcon('units')}</th>
+            <th class="sortable-header" data-table="items" data-col="revenue" style="cursor:pointer;">Net Sales ${sortIcon('revenue')}</th>
+            <th class="sortable-header" data-table="items" data-col="cost" style="cursor:pointer;">Cost ${sortIcon('cost')}</th>
+            <th class="sortable-header" data-table="items" data-col="profit" style="cursor:pointer;">Gross Profit ${sortIcon('profit')}</th>
+            <th class="sortable-header" data-table="items" data-col="margin" style="cursor:pointer;">Margin ${sortIcon('margin')}</th>
+          </tr></thead>
           <tbody>
             ${items.map((it, idx) => {
               const cogs = it.revenue - it.profit;
+              const product = DB.getProducts().find(p => p.id === it.productId) || {};
+              const thumbHtml = Utils.productThumb({ 
+                imageUrl: it.imageUrl || product.imageUrl, 
+                category: it.category,
+                name: it.name 
+              }, { iconSize: 18 });
               return `<tr class="clickable-row" data-top-prod="${Utils.escapeHtml(it.productId || it.name)}">
                 <td class="text-faint">${idx + 1}</td>
+                <td style="padding:8px 4px;">
+                  <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--brand-tint);">
+                    ${thumbHtml}
+                  </div>
+                </td>
                 <td><strong>${Utils.escapeHtml(it.name)}</strong></td>
                 <td><span class="badge badge-brand">${Utils.escapeHtml(it.category)}</span></td>
                 <td class="mono font-bold">${it.units}</td>
@@ -1014,7 +1213,7 @@ const Reports = (() => {
           </tbody>
           <tfoot>
             <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
-              <td colspan="3" style="font-weight:900;text-transform:uppercase;">Total</td>
+              <td colspan="4" style="font-weight:900;text-transform:uppercase;">Total</td>
               <td class="mono font-bold">${totalUnits}</td>
               <td class="mono font-bold">${Utils.money(totalRev)}</td>
               <td class="mono font-bold">${Utils.money(totalCost)}</td>
@@ -1052,6 +1251,23 @@ const Reports = (() => {
           <div class="mono font-bold" style="font-size:1.25rem;color:var(--success-deep);">${Utils.money(totalProfit)}</div>
         </div>
       </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
+            ${Icons.get("pie-chart",{size:18})} Revenue by Category
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="category-revenue-pie"></canvas></div>
+        </div>
+        
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
+            ${Icons.get("bar-chart",{size:18})} Profit Margins
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="category-margin-bar"></canvas></div>
+        </div>
+      </div>
+      
       ${cats.length ? `
         <div class="table-wrap"><table class="data">
           <thead><tr><th>#</th><th>Category</th><th>Net Sales</th><th>Cost</th><th>Gross Profit</th><th>Margin</th><th>Share</th></tr></thead>
@@ -1288,6 +1504,24 @@ const Reports = (() => {
 
     // (2026-07-13) Show receipt select toolbar only when items checked; was always
     return `
+      ${timeframeBarHtml(periodKey)}
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
+            ${Icons.get("trending-up",{size:18})} Daily Sales Trend
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="receipts-trend-line"></canvas></div>
+        </div>
+        
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
+            ${Icons.get("pie-chart",{size:18})} Payment Methods
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="receipts-payment-pie"></canvas></div>
+        </div>
+      </div>
+      
       ${(sales.length && selectedCount > 0) ? `
         <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">
           <div class="text-sm font-bold flex-row" style="gap:8px;align-items:center;">
@@ -1477,7 +1711,7 @@ const Reports = (() => {
 
   // (2026-07-13) Add pagination to void audit logs; was unpaginated list
   let voidLogsPage = 1;
-  let voidLogsRPP = 100;
+  let voidLogsRPP = 10;
 
   function voidLogsCard(isDedicated = false){
     const logs = DB.getVoidLogs ? DB.getVoidLogs() : [];
@@ -1494,8 +1728,9 @@ const Reports = (() => {
     return `
       <div class="card" style="${cardStyle}">
         <div class="flex-between" style="margin-bottom:10px;flex-shrink:0;">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--danger-deep);margin:0;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--danger-deep);margin:0;${isDedicated ? '' : 'cursor:pointer;user-select:none;" onclick="Reports.navigateToVoidAudit()" title="Click to view full void audit'}">
             ${Icons.get("alert-triangle",{size:18})} Voided & Altered Items Audit Log (${logs.length})
+            ${isDedicated ? '' : '<span style="font-size:0.85rem;color:var(--danger);margin-left:4px;">→</span>'}
           </h3>
         </div>
         ${logs.length ? `
@@ -1589,14 +1824,44 @@ const Reports = (() => {
       <div class="flex-between" style="margin-bottom:12px;"><span class="text-sm text-faint">Total that day</span><strong class="mono">${Utils.money(total)}</strong></div>
       ${store.length ? `<h3 style="margin-bottom:8px;">${Icons.get("cart",{size:14})} Store (${store.length})</h3>
       <div class="table-wrap" style="margin-bottom:14px;"><table class="data"><tbody>
-      ${store.map(s=>`<tr><td>${Utils.fmtDate(s.ts)}</td><td>${s.items.length} item(s)</td><td>${s.method}</td><td style="text-align:right;" class="mono">${Utils.money(s.total)}</td></tr>`).join("")}
+      ${store.map(s=>`<tr class="clickable-row" data-sale-id="${s.id}" style="cursor:pointer;"><td>${Utils.fmtDate(s.ts)}</td><td>${s.items.length} item(s)</td><td>${s.method}</td><td style="text-align:right;" class="mono">${Utils.money(s.total)}</td></tr>`).join("")}
       </tbody></table></div>` : ""}
       ${fuel.length ? `<h3 style="margin-bottom:8px;">${Icons.get("fuel",{size:14})} Fuel (${fuel.length})</h3>
       <div class="table-wrap"><table class="data"><tbody>
-      ${fuel.map(s=>`<tr><td>${Utils.fmtDate(s.ts)}</td><td>${s.fuelName}</td><td>${s.liters.toFixed(2)} L</td><td style="text-align:right;" class="mono">${Utils.money(s.amount)}</td></tr>`).join("")}
+      ${fuel.map(s=>`<tr class="clickable-row" data-fuel-id="${s.id}" style="cursor:pointer;"><td>${Utils.fmtDate(s.ts)}</td><td>${s.fuelName}</td><td>${s.liters.toFixed(2)} L</td><td style="text-align:right;" class="mono">${Utils.money(s.amount)}</td></tr>`).join("")}
       </tbody></table></div>` : ""}
       ${!store.length && !fuel.length ? `<div class="empty">${Icons.get("calendar",{size:30})}<h3>No transactions this day</h3></div>` : ""}`;
-    Modal.open({ title:`${Icons.get("calendar",{size:17})} ${label}`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
+    
+    const modal = Modal.open({ 
+      title:`${Icons.get("calendar",{size:17})} ${label}`, 
+      body, 
+      wide:true, 
+      actions:[{label:"Close",cls:"btn-ghost"}] 
+    });
+    
+    // Add click handlers for store transactions
+    modal.querySelectorAll("[data-sale-id]").forEach(row => {
+      row.onclick = () => {
+        const saleId = row.dataset.saleId;
+        const sale = DB.getSales().find(s => s.id === saleId);
+        if(sale) {
+          Modal.close(); // Close the day drilldown modal
+          openReceiptModal(sale); // Open the receipt details modal
+        }
+      };
+    });
+    
+    // Add click handlers for fuel transactions
+    modal.querySelectorAll("[data-fuel-id]").forEach(row => {
+      row.onclick = () => {
+        const fuelId = row.dataset.fuelId;
+        const fuelSale = DB.getFuelSales().find(f => f.id === fuelId);
+        if(fuelSale) {
+          Modal.close(); // Close the day drilldown modal
+          openFuelSaleModal(fuelSale); // Open the fuel sale details modal
+        }
+      };
+    });
   }
 
   // (2026-07-13) Match product drilldown by name and id fallback; was id only
@@ -1629,7 +1894,6 @@ const Reports = (() => {
     const cards = [
       { lbl:"Total Net Revenue", val: p.netRevenue, hero:true },
       { lbl:"Store Gross Profit", val: p.storeGrossProfit },
-      { lbl:"Gasoline Gross Profit", val: p.fuelGrossProfit },
       { lbl:"Operating Expenses", val: -stats.totalOperatingExpenses, neg:true },
       { lbl:"Net Operating Profit", val: p.netProfit, big:true },
       { lbl:"Profit Margin", val: p.margin, isPct:true }
@@ -1783,7 +2047,7 @@ const Reports = (() => {
 
   // (2026-07-13) Add opening/closing cash & totals row; was sales-only table
   let dailySalesPage = 1;
-  let dailySalesRPP = 100;
+  let dailySalesRPP = 10;
 
   // (2026-07-13) Hide refunds & discounts cols by default; was true
   let showDailyRefunds = false;
@@ -1813,8 +2077,9 @@ const Reports = (() => {
     el.innerHTML = `
       <div class="card" style="margin-bottom:16px;padding:16px 18px;">
         <div class="flex-between" style="margin-bottom:14px;align-items:center;flex-wrap:wrap;gap:10px;">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.22rem;font-weight:800;color:var(--ink);margin:0;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.22rem;font-weight:800;color:var(--ink);margin:0;cursor:pointer;user-select:none;" onclick="Reports.navigateToReceipts()" title="Click to view all receipts">
             ${Icons.get("calendar",{size:20})} Daily Sales
+            <span style="font-size:0.85rem;color:var(--brand);margin-left:4px;">→</span>
           </h3>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <div class="text-xs font-bold" style="font-size:0.84rem;color:var(--ink-soft);text-transform:uppercase;">
@@ -1920,6 +2185,18 @@ const Reports = (() => {
       showDailyDiscounts = false;
       renderDailySalesTable(stats);
     });
+    
+    // Position tooltips on hover to prevent clipping
+    document.querySelectorAll(".date-col-cell").forEach(cell => {
+      cell.addEventListener("mouseenter", (e) => {
+        const tip = cell.querySelector(".balance-hover-tip");
+        if(tip) {
+          const rect = cell.getBoundingClientRect();
+          tip.style.left = `${rect.left + rect.width / 2}px`;
+          tip.style.top = `${rect.top}px`;
+        }
+      });
+    });
 
     const exportBtn = document.getElementById("btn-export-daily-sales");
     if(exportBtn && days.length){
@@ -1934,7 +2211,7 @@ const Reports = (() => {
     const nextBtn = document.getElementById("ds-pg-next");
     if(nextBtn){
       nextBtn.onclick = () => {
-        if(dailySalesPage < totalPages){ dailySalesPage++; renderDailySalesTable(stats); }
+        if(dailySalesPage < 1){ dailySalesPage++; renderDailySalesTable(stats); }
       };
     }
     const pageInp = document.getElementById("ds-pg-page-inp");
@@ -1966,17 +2243,30 @@ const Reports = (() => {
     const top = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats);
     el.innerHTML = top.length ? `
       <div class="table-wrap"><table class="data">
-        <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
+        <thead><tr><th>#</th><th colspan="2">Product</th><th>Category</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
         <tbody>
-          ${top.slice(0, 15).map((r, i) => `
+          ${top.slice(0, 15).map((r, i) => {
+            const product = DB.getProducts().find(p => p.id === r.productId) || {};
+            const thumbHtml = Utils.productThumb({ 
+              imageUrl: r.imageUrl || product.imageUrl, 
+              category: r.category,
+              name: r.name 
+            }, { iconSize: 18 });
+            return `
             <tr class="clickable-row" data-top-prod="${Utils.escapeHtml(r.productId || r.name)}">
               <td class="text-faint">${i+1}</td>
+              <td style="padding:8px 4px;">
+                <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--brand-tint);">
+                  ${thumbHtml}
+                </div>
+              </td>
               <td><strong>${Utils.escapeHtml(r.name)}</strong></td>
               <td><span class="badge badge-brand">${Utils.escapeHtml(r.category)}</span></td>
               <td class="mono">${r.units}</td>
               <td class="mono font-bold">${Utils.money(r.revenue)}</td>
               <td class="mono" style="color:var(--success-deep);">${Utils.money(r.profit)}</td>
-            </tr>`).join("")}
+            </tr>`;
+          }).join("")}
         </tbody>
       </table></div>` : `<div class="empty">${Icons.get("package",{size:28})}<h3>No sales in this period</h3></div>`;
     el.querySelectorAll("[data-top-prod]").forEach(row => {
@@ -1994,7 +2284,6 @@ const Reports = (() => {
     if(trendCtx && typeof Chart !== "undefined"){
       const trendData = stats.trend || Analytics.computeTrendData(periodKey);
       const store = trendData.store || trendData.storeData || [];
-      const fuel = trendData.fuel || trendData.fuelData || [];
       const labels = trendData.labels || [];
       const timestamps = trendData.timestamps || trendData.dayStarts || [];
       overviewCharts.trend = new Chart(trendCtx, {
@@ -2002,15 +2291,84 @@ const Reports = (() => {
         data: {
           labels: labels,
           datasets: [
-            { label: "Store", data: store, borderColor: "#4F46E5", backgroundColor: "rgba(79,70,229,0.1)", fill: true, tension: 0.3 },
-            { label: "Fuel", data: fuel, borderColor: "#10B981", backgroundColor: "rgba(16,185,129,0.1)", fill: true, tension: 0.3 }
+            { 
+              label: "Revenue", 
+              data: store, 
+              borderColor: "#3B82F6", 
+              backgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return 'rgba(59,130,246,0.1)';
+                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                gradient.addColorStop(0, 'rgba(59,130,246,0.35)');
+                gradient.addColorStop(0.5, 'rgba(96,165,250,0.20)');
+                gradient.addColorStop(1, 'rgba(147,197,253,0.02)');
+                return gradient;
+              },
+              fill: true, 
+              tension: 0.4,
+              borderWidth: 3,
+              pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: "#3B82F6",
+              pointHoverBorderColor: "#fff",
+              pointHoverBorderWidth: 2
+            }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
-          plugins: { legend: { position: "top" } },
+          plugins: { 
+            legend: { 
+              display: false
+            },
+            tooltip: {
+              enabled: true,
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#fff',
+              bodyColor: '#e2e8f0',
+              padding: 14,
+              cornerRadius: 10,
+              titleFont: { size: 14, weight: 'bold' },
+              bodyFont: { size: 13, weight: '600' },
+              bodySpacing: 8,
+              displayColors: false,
+              callbacks: {
+                label: (context) => {
+                  const value = context.parsed.y;
+                  return `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { 
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 11, weight: '600' },
+                color: '#64748b',
+                padding: 8
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(148, 163, 184, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 11, weight: '600' },
+                color: '#64748b',
+                padding: 8,
+                callback: (value) => '₱' + value.toLocaleString()
+              }
+            }
+          },
           onClick: (e, elements) => {
             if(elements.length > 0){
               const idx = elements[0].index;
@@ -2030,14 +2388,272 @@ const Reports = (() => {
         data: {
           labels: cats.map(c => c.category),
           datasets: [
-            { label: "Revenue", data: cats.map(c => c.revenue), backgroundColor: "#4F46E5" },
-            { label: "Profit", data: cats.map(c => c.profit), backgroundColor: "#10B981" }
+            { 
+              label: "Revenue", 
+              data: cats.map(c => c.revenue), 
+              backgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return '#6366F1';
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, '#6366F1');
+                gradient.addColorStop(1, '#8B5CF6');
+                return gradient;
+              },
+              borderRadius: 8,
+              borderSkipped: false,
+              barPercentage: 0.7,
+              categoryPercentage: 0.8
+            },
+            { 
+              label: "Profit", 
+              data: cats.map(c => c.profit), 
+              backgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return '#10B981';
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, '#10B981');
+                gradient.addColorStop(1, '#34D399');
+                return gradient;
+              },
+              borderRadius: 8,
+              borderSkipped: false,
+              barPercentage: 0.7,
+              categoryPercentage: 0.8
+            }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: "top" } }
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: { 
+            legend: { 
+              position: "top",
+              labels: {
+                usePointStyle: true,
+                pointStyle: 'rectRounded',
+                padding: 16,
+                font: { size: 13, weight: '600' }
+              }
+            },
+            tooltip: {
+              enabled: true,
+              position: 'nearest',
+              yAlign: 'bottom',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#fff',
+              bodyColor: '#e2e8f0',
+              padding: 14,
+              titleFont: { size: 14, weight: 'bold' },
+              bodyFont: { size: 13, weight: '600' },
+              bodySpacing: 8,
+              cornerRadius: 10,
+              displayColors: true,
+              boxWidth: 12,
+              boxHeight: 12,
+              usePointStyle: true,
+              callbacks: {
+                title: (items) => items[0].label,
+                label: (context) => {
+                  const label = context.dataset.label || '';
+                  const value = context.parsed.y;
+                  return ` ${label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { 
+              grid: { 
+                display: false,
+                drawBorder: false
+              },
+              ticks: { 
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 25,
+                font: { size: 11, weight: '600' },
+                color: '#64748b',
+                padding: 8
+              }
+            },
+            y: { 
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(148, 163, 184, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 11, weight: '600' },
+                color: '#64748b',
+                padding: 8,
+                callback: (value) => '₱' + value.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Revenue Distribution Bar Chart (Store vs Fuel) - Horizontal Bar
+    const revBarCtx = document.getElementById("ov-chart-revenue-bar")?.getContext("2d");
+    if(revBarCtx && typeof Chart !== "undefined"){
+      const r = getActiveRange();
+      const filterFn = getReportFilterFn();
+      const stats = Analytics.computeStats(r, { filterFn });
+      
+      overviewCharts.revenueBar = new Chart(revBarCtx, {
+        type: "bar",
+        data: {
+          labels: ["Minimart Store", "Gasoline Station"],
+          datasets: [{
+            label: "Revenue",
+            data: [stats.storeTotal || 0, stats.fuelTotal || 0],
+            backgroundColor: (context) => {
+              const chart = context.chart;
+              const {ctx, chartArea} = chart;
+              if (!chartArea) return context.dataIndex === 0 ? '#3B82F6' : '#F59E0B';
+              
+              // Create gradient for each bar
+              if(context.dataIndex === 0) {
+                // Blue gradient for Store
+                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+                gradient.addColorStop(0, '#3B82F6');
+                gradient.addColorStop(1, '#60A5FA');
+                return gradient;
+              } else {
+                // Yellow/Orange gradient for Fuel
+                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+                gradient.addColorStop(0, '#F59E0B');
+                gradient.addColorStop(1, '#FBBF24');
+                return gradient;
+              }
+            },
+            borderRadius: 10,
+            borderSkipped: false,
+            barThickness: 40
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              right: 20
+            }
+          },
+          plugins: {
+            legend: { 
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#fff',
+              bodyColor: '#e2e8f0',
+              padding: 14,
+              cornerRadius: 10,
+              titleFont: { size: 13, weight: 'bold' },
+              bodyFont: { size: 13, weight: '600' },
+              callbacks: {
+                label: (context) => {
+                  const value = context.parsed.x;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  return ` Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(148, 163, 184, 0.12)',
+                drawBorder: false,
+                lineWidth: 1
+              },
+              ticks: {
+                font: { size: 11, weight: '600', family: 'Poppins' },
+                color: '#64748b',
+                padding: 8,
+                callback: (value) => '₱' + value.toLocaleString()
+              }
+            },
+            y: {
+              grid: { 
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 13, weight: '700', family: 'Poppins' },
+                color: '#1e293b',
+                padding: 16,
+                crossAlign: 'far'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Category Breakdown Pie Chart
+    const catPieCtx = document.getElementById("ov-chart-category-pie")?.getContext("2d");
+    if(catPieCtx && typeof Chart !== "undefined"){
+      const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
+      const topCategories = cats.slice(0, 8); // Top 8 categories
+      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+      
+      overviewCharts.categoryPie = new Chart(catPieCtx, {
+        type: "doughnut",
+        data: {
+          labels: topCategories.map(c => c.category),
+          datasets: [{
+            data: topCategories.map(c => c.revenue),
+            backgroundColor: colors.slice(0, topCategories.length),
+            borderWidth: 3,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { 
+              position: "right",
+              labels: {
+                padding: 10,
+                font: { size: 11, weight: '600' },
+                boxWidth: 12,
+                boxHeight: 12,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#fff',
+              bodyColor: '#e2e8f0',
+              padding: 14,
+              cornerRadius: 10,
+              titleFont: { size: 13, weight: 'bold' },
+              bodyFont: { size: 12, weight: '600' },
+              callbacks: {
+                label: (context) => {
+                  const value = context.parsed;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  return ` ${context.label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          cutout: '65%'
         }
       });
     }
@@ -2054,25 +2670,34 @@ const Reports = (() => {
           <!-- (2026-07-13) Place period dropdown in revenue trend header; was outer banner -->
           <div class="flex-between" style="margin-bottom:10px;align-items:center;flex-wrap:wrap;gap:8px;">
             <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin:0;">
-              ${Icons.get("trending-up",{size:18})} Revenue Trend — Store vs Fuel
+              ${Icons.get("trending-up",{size:18})} Revenue Trend
             </h3>
             <select class="input" id="trend-period-select" style="height:32px;padding:2px 10px;font-size:var(--fs-xs);font-weight:700;border-radius:var(--r-md);background:var(--paper-raised);border:1px solid var(--line);color:var(--ink);cursor:pointer;width:auto;">
               ${PERIOD_FILTERS.map(([k, lbl]) => `<option value="${k}" ${periodKey === k ? "selected" : ""}>${lbl}</option>`).join("")}
             </select>
           </div>
-          <div style="position:relative;height:240px;width:100%;"><canvas id="ov-chart-trend"></canvas></div>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-trend"></canvas></div>
         </div>
         <div class="chart-card">
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
             ${Icons.get("tag",{size:18})} Revenue vs Profit by Category
           </h3>
-          <div style="position:relative;height:240px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
+            ${Icons.get("pie-chart",{size:18})} Category Breakdown
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-category-pie"></canvas></div>
         </div>
       </div>
       <div id="ov-store-sales"></div>
       <div id="ov-daily-sales"></div>
       <div class="card">
-        <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">${Icons.get("package",{size:18})} Top Selling Items</h3>
+        <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);cursor:pointer;user-select:none;" onclick="Reports.navigateToSalesByItem()" title="Click to view detailed sales by item">
+          ${Icons.get("package",{size:18})} Top Selling Items
+          <span style="font-size:0.85rem;color:var(--brand);margin-left:4px;">→</span>
+        </h3>
         <div id="ov-top-table"></div>
       </div>
       <div id="ov-void-wrap">
@@ -2114,9 +2739,58 @@ const Reports = (() => {
     document.querySelectorAll("[data-period]").forEach(c => c.classList.toggle("active", c.dataset.period === periodKey));
   }
 
+  // ---------------- Back to Top Button ----------------
+  function addBackToTopButton() {
+    // Remove existing button if any
+    const existing = document.getElementById("back-to-top-btn");
+    if(existing) existing.remove();
+    
+    // Create button
+    const btn = document.createElement("button");
+    btn.id = "back-to-top-btn";
+    btn.innerHTML = "↑";
+    btn.title = "Back to top";
+    document.body.appendChild(btn);
+    
+    // Get the scrollable container
+    const viewBody = document.querySelector(".view-body");
+    if(!viewBody) return;
+    
+    // Show/hide button based on scroll position
+    const toggleButton = () => {
+      if(viewBody.scrollTop > 300) {
+        btn.classList.add("show");
+      } else {
+        btn.classList.remove("show");
+      }
+    };
+    
+    viewBody.addEventListener("scroll", toggleButton);
+    
+    // Scroll to top when clicked
+    btn.onclick = () => {
+      viewBody.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    };
+    
+    // Initial check
+    toggleButton();
+  }
+  
+  function removeBackToTopButton() {
+    const btn = document.getElementById("back-to-top-btn");
+    if(btn) btn.remove();
+  }
+
   // ---------------- shell ----------------
   function render(){
     persistRangeState();
+    
+    // Remove back to top button when switching tabs (will be re-added if needed)
+    removeBackToTopButton();
+    
     const view = document.getElementById("view-root");
     const admin = Auth.isAdmin();
     // (2026-07-13) Allow cashiers full view of reports; was admin-restricted
@@ -2137,7 +2811,6 @@ const Reports = (() => {
           <div class="chip ${tab==="by_category"?"active":""}" data-t="by_category">${Icons.get("tag",{size:13})}Sales by category</div>
           <div class="chip ${tab==="by_employee"?"active":""}" data-t="by_employee">${Icons.get("user",{size:13})}Sales by employee</div>
           <div class="chip ${tab==="by_payment"?"active":""}" data-t="by_payment">${Icons.get("credit-card",{size:13})}Sales by payment type</div>
-          <div class="chip ${tab==="fuel"?"active":""}" data-t="fuel">${Icons.get("fuel",{size:13})}Fuel Sales</div>
           <div class="chip ${tab==="purchases"?"active":""}" data-t="purchases">${Icons.get("truck",{size:13})}Purchases & Restock</div>
           <div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>
         </div>
@@ -2166,11 +2839,167 @@ const Reports = (() => {
     document.getElementById("btn-zreport").onclick = openZReport;
     document.querySelectorAll("[data-t]").forEach(c=>c.onclick=()=>{ tab=c.dataset.t; render(); });
     bindToolbarEvents();
+    
+    // Bind sortable table headers
+    document.querySelectorAll(".sortable-header").forEach(th => {
+      th.addEventListener("click", () => {
+        const table = th.dataset.table;
+        const col = th.dataset.col;
+        if(sortState[table].column === col) {
+          sortState[table].direction = sortState[table].direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortState[table].column = col;
+          sortState[table].direction = 'desc';
+        }
+        render();
+      });
+    });
 
     if(tab === "overview") renderOverview();
     else if(tab === "by_item"){
       document.getElementById("report-body").innerHTML = salesByItemTable();
       document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
+      
+      // Add back to top button
+      addBackToTopButton();
+      
+      // Create pie chart for Sales by Item
+      const itemsPieCtx = document.getElementById("items-chart-pie")?.getContext("2d");
+      if(itemsPieCtx && typeof Chart !== "undefined"){
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        const stats = Analytics.computeStats(r, { filterFn });
+        const items = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats, 500);
+        const topItems = items.slice(0, 10); // Top 10 items
+        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#14B8A6'];
+        
+        new Chart(itemsPieCtx, {
+          type: "doughnut",
+          data: {
+            labels: topItems.map(i => i.name),
+            datasets: [{
+              data: topItems.map(i => i.revenue),
+              backgroundColor: colors.slice(0, topItems.length),
+              borderWidth: 3,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { 
+                position: "right",
+                labels: {
+                  padding: 12,
+                  font: { size: 11, weight: '600' },
+                  boxWidth: 12,
+                  boxHeight: 12,
+                  usePointStyle: true,
+                  pointStyle: 'circle'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12, weight: '600' },
+                callbacks: {
+                  label: (context) => {
+                    const value = context.parsed;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return ` Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+                  }
+                }
+              }
+            },
+            cutout: '65%'
+          }
+        });
+      }
+      
+      // Populate Inventory Status Overview
+      const statusContent = document.getElementById("inventory-status-content");
+      if(statusContent){
+        const allProducts = DB.getProducts();
+        const lowStockThreshold = 10;
+        const outOfStock = allProducts.filter(p => p.stock <= 0);
+        const lowStock = allProducts.filter(p => p.stock > 0 && p.stock <= lowStockThreshold);
+        const healthy = allProducts.filter(p => p.stock > lowStockThreshold);
+        const totalValue = allProducts.reduce((sum, p) => sum + (p.stock * (p.costPrice || p.price || 0)), 0);
+        
+        statusContent.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="card" style="background:var(--danger-tint);border:1.5px solid var(--danger);padding:8px 10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  ${Icons.get("alert-triangle",{size:14,color:"var(--danger)"})}
+                  <span style="font-weight:700;font-size:0.8rem;color:var(--danger-deep);">Out of Stock</span>
+                </div>
+                <span style="font-size:1.4rem;font-weight:900;color:var(--danger);">${outOfStock.length}</span>
+              </div>
+            </div>
+            
+            <div class="card" style="background:var(--warning-tint);border:1.5px solid var(--warning);padding:8px 10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  ${Icons.get("alert-circle",{size:14,color:"var(--warning-deep)"})}
+                  <span style="font-weight:700;font-size:0.8rem;color:var(--warning-deep);">Low Stock (≤${lowStockThreshold})</span>
+                </div>
+                <span style="font-size:1.4rem;font-weight:900;color:var(--warning-deep);">${lowStock.length}</span>
+              </div>
+            </div>
+            
+            <div class="card" style="background:var(--success-tint);border:1.5px solid var(--success);padding:8px 10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  ${Icons.get("check-circle",{size:14,color:"var(--success-deep)"})}
+                  <span style="font-weight:700;font-size:0.8rem;color:var(--success-deep);">Healthy Stock</span>
+                </div>
+                <span style="font-size:1.4rem;font-weight:900;color:var(--success-deep);">${healthy.length}</span>
+              </div>
+            </div>
+            
+            <div class="card" style="background:var(--paper-dim);border:1.5px solid var(--line);padding:8px 10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  ${Icons.get("package",{size:14})}
+                  <span style="font-weight:700;font-size:0.8rem;">Total Products</span>
+                </div>
+                <span style="font-size:1.4rem;font-weight:900;">${allProducts.length}</span>
+              </div>
+            </div>
+            
+            <div class="card" style="background:var(--brand-tint);border:1.5px solid var(--brand);padding:8px 10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  ${Icons.get("dollar-sign",{size:14,color:"var(--brand-deep)"})}
+                  <span style="font-weight:700;font-size:0.8rem;color:var(--brand-deep);">Total Value</span>
+                </div>
+                <span style="font-size:1.3rem;font-weight:900;color:var(--brand);">${Utils.money(totalValue)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      document.querySelectorAll(".sortable-header").forEach(th => {
+        th.addEventListener("click", () => {
+          const table = th.dataset.table;
+          const col = th.dataset.col;
+          if(sortState[table].column === col) {
+            sortState[table].direction = sortState[table].direction === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortState[table].column = col;
+            sortState[table].direction = 'desc';
+          }
+          render();
+        });
+      });
       document.querySelectorAll("[data-top-prod]").forEach(row => {
         row.onclick = () => {
           const r = getActiveRange();
@@ -2184,6 +3013,154 @@ const Reports = (() => {
     } else if(tab === "by_category"){
       document.getElementById("report-body").innerHTML = salesByCategoryTable();
       document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
+      
+      // Create charts for Sales by Category
+      const revPieCtx = document.getElementById("category-revenue-pie")?.getContext("2d");
+      if(revPieCtx && typeof Chart !== "undefined"){
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        const stats = Analytics.computeStats(r, { filterFn });
+        const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
+        const topCats = cats.slice(0, 10);
+        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#14B8A6'];
+        
+        new Chart(revPieCtx, {
+          type: "doughnut",
+          data: {
+            labels: topCats.map(c => c.category),
+            datasets: [{
+              data: topCats.map(c => c.revenue),
+              backgroundColor: colors.slice(0, topCats.length),
+              borderWidth: 3,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { 
+                position: "right",
+                labels: {
+                  padding: 10,
+                  font: { size: 11, weight: '600', family: 'Poppins' },
+                  boxWidth: 12,
+                  boxHeight: 12,
+                  usePointStyle: true,
+                  pointStyle: 'circle'
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12, weight: '600' },
+                callbacks: {
+                  label: (context) => {
+                    const value = context.parsed;
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return ` ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+                  }
+                }
+              }
+            },
+            cutout: '65%'
+          }
+        });
+      }
+      
+      const marginBarCtx = document.getElementById("category-margin-bar")?.getContext("2d");
+      if(marginBarCtx && typeof Chart !== "undefined"){
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        const stats = Analytics.computeStats(r, { filterFn });
+        const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
+        const sortedCats = cats.slice().sort((a, b) => {
+          const marginA = a.revenue > 0 ? ((a.profit / a.revenue) * 100) : 0;
+          const marginB = b.revenue > 0 ? ((b.profit / b.revenue) * 100) : 0;
+          return marginB - marginA;
+        }).slice(0, 8);
+        
+        new Chart(marginBarCtx, {
+          type: "bar",
+          data: {
+            labels: sortedCats.map(c => c.category),
+            datasets: [{
+              label: "Profit Margin %",
+              data: sortedCats.map(c => c.revenue > 0 ? ((c.profit / c.revenue) * 100) : 0),
+              backgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return '#10B981';
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, '#10B981');
+                gradient.addColorStop(1, '#34D399');
+                return gradient;
+              },
+              borderRadius: 8,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12, weight: '600' },
+                callbacks: {
+                  label: (context) => ` Margin: ${context.parsed.y.toFixed(1)}%`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false, drawBorder: false },
+                ticks: {
+                  font: { size: 10, weight: '600', family: 'Poppins' },
+                  color: '#64748b',
+                  maxRotation: 45,
+                  minRotation: 25
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: 'rgba(148, 163, 184, 0.1)', drawBorder: false },
+                ticks: {
+                  font: { size: 11, weight: '600', family: 'Poppins' },
+                  color: '#64748b',
+                  callback: (value) => value + '%'
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      document.querySelectorAll(".sortable-header").forEach(th => {
+        th.addEventListener("click", () => {
+          const table = th.dataset.table;
+          const col = th.dataset.col;
+          if(sortState[table].column === col) {
+            sortState[table].direction = sortState[table].direction === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortState[table].column = col;
+            sortState[table].direction = 'desc';
+          }
+          render();
+        });
+      });
     } else if(tab === "by_employee"){
       document.getElementById("report-body").innerHTML = salesByEmployeeTable();
       document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
@@ -2191,6 +3168,7 @@ const Reports = (() => {
       document.getElementById("report-body").innerHTML = salesByPaymentTable();
       document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
     } else if(tab === "voids"){
+      voidLogsRPP = 100; // Set to 100 for dedicated void audit page
       document.getElementById("report-body").innerHTML = voidLogsCard(true);
       bindVoidLogsEvents(true);
     } else if(tab === "purchases"){
@@ -2212,6 +3190,186 @@ const Reports = (() => {
       });
     } else {
       document.getElementById("report-body").innerHTML = tab==="history" ? historyTable() : fuelHistoryTable();
+      
+      // Add back to top button for history tab
+      if(tab === "history") {
+        addBackToTopButton();
+        
+        // Create charts for Receipts page
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+        
+        // Payment Methods Pie Chart
+        const payPieCtx = document.getElementById("receipts-payment-pie")?.getContext("2d");
+        if(payPieCtx && typeof Chart !== "undefined" && sales.length > 0){
+          const paymentMap = {};
+          sales.forEach(s => {
+            const method = s.method || "Cash";
+            paymentMap[method] = (paymentMap[method] || 0) + s.total;
+          });
+          
+          const colors = { 'Cash': '#10B981', 'GCash': '#3B82F6', 'Card': '#8B5CF6', 'Other': '#F59E0B' };
+          const methods = Object.keys(paymentMap);
+          
+          new Chart(payPieCtx, {
+            type: "doughnut",
+            data: {
+              labels: methods,
+              datasets: [{
+                data: methods.map(m => paymentMap[m]),
+                backgroundColor: methods.map(m => colors[m] || '#64748b'),
+                borderWidth: 3,
+                borderColor: '#fff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: {
+                    padding: 12,
+                    font: { size: 12, weight: '600', family: 'Poppins' },
+                    boxWidth: 14,
+                    boxHeight: 14,
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                  }
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                  titleColor: '#fff',
+                  bodyColor: '#e2e8f0',
+                  padding: 14,
+                  cornerRadius: 10,
+                  titleFont: { size: 13, weight: 'bold' },
+                  bodyFont: { size: 12, weight: '600' },
+                  callbacks: {
+                    label: (context) => {
+                      const value = context.parsed;
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                      return ` ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+                    }
+                  }
+                }
+              },
+              cutout: '60%'
+            }
+          });
+        }
+        
+        // Daily Sales Trend Line Chart
+        const trendLineCtx = document.getElementById("receipts-trend-line")?.getContext("2d");
+        if(trendLineCtx && typeof Chart !== "undefined" && sales.length > 0){
+          // Group sales by day and sort by date
+          const dayMap = {};
+          const dayTimestamps = {};
+          sales.forEach(s => {
+            const date = new Date(s.ts);
+            const dayKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            dayMap[dayKey] = (dayMap[dayKey] || 0) + s.total;
+            if(!dayTimestamps[dayKey]) dayTimestamps[dayKey] = date.getTime();
+          });
+          
+          // Sort by timestamp
+          const sortedEntries = Object.entries(dayMap).sort((a, b) => dayTimestamps[a[0]] - dayTimestamps[b[0]]);
+          const days = sortedEntries.map(e => e[0]);
+          const amounts = sortedEntries.map(e => e[1]);
+          
+          new Chart(trendLineCtx, {
+            type: "line",
+            data: {
+              labels: days,
+              datasets: [{
+                label: "Daily Sales",
+                data: amounts,
+                borderColor: "#3B82F6",
+                backgroundColor: (context) => {
+                  const chart = context.chart;
+                  const {ctx, chartArea} = chart;
+                  if (!chartArea) return 'rgba(59,130,246,0.05)';
+                  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                  gradient.addColorStop(0, 'rgba(59,130,246,0.15)');
+                  gradient.addColorStop(0.5, 'rgba(59,130,246,0.08)');
+                  gradient.addColorStop(1, 'rgba(59,130,246,0.01)');
+                  return gradient;
+                },
+                fill: true,
+                tension: 0.3,
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: "#3B82F6",
+                pointHoverBorderColor: "#fff",
+                pointHoverBorderWidth: 3
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              layout: {
+                padding: {
+                  top: 5,
+                  right: 10,
+                  bottom: 5,
+                  left: 5
+                }
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                  titleColor: '#fff',
+                  bodyColor: '#e2e8f0',
+                  padding: 12,
+                  cornerRadius: 8,
+                  titleFont: { size: 12, weight: 'bold', family: 'Poppins' },
+                  bodyFont: { size: 12, weight: '600', family: 'Poppins' },
+                  displayColors: false,
+                  callbacks: {
+                    title: (items) => items[0].label,
+                    label: (context) => `₱${context.parsed.y.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: { 
+                    display: false, 
+                    drawBorder: false 
+                  },
+                  ticks: {
+                    font: { size: 9, weight: '600', family: 'Poppins' },
+                    color: '#94a3b8',
+                    maxRotation: 45,
+                    minRotation: 0,
+                    autoSkip: true,
+                    maxTicksLimit: 12
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  grid: { 
+                    color: 'rgba(148, 163, 184, 0.08)', 
+                    drawBorder: false,
+                    lineWidth: 1
+                  },
+                  ticks: {
+                    font: { size: 10, weight: '600', family: 'Poppins' },
+                    color: '#94a3b8',
+                    padding: 8,
+                    callback: (value) => '₱' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value.toLocaleString())
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+      
       document.querySelectorAll("[data-period]").forEach(chip => {
         chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; receiptPage = 1; render(); };
       });
@@ -2376,5 +3534,10 @@ const Reports = (() => {
 
   }
 
-  return { render };
+  return { 
+    render,
+    navigateToReceipts,
+    navigateToSalesByItem,
+    navigateToVoidAudit
+  };
 })();
