@@ -59,28 +59,7 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  async function resolveRemoteSales(mod, database, remoteData){
-    if(!remoteData) return remoteData;
-    if(remoteData.salesChunkCount > 0){
-      const numChunks = remoteData.salesChunkCount;
-      const promises = [];
-      for(let i = 0; i < numChunks; i++){
-        promises.push(mod.getDoc(mod.doc(database, "minimart_snapshots", `sales_part_${i}`)));
-      }
-      const docs = await Promise.all(promises);
-      const combinedSales = [];
-      docs.forEach(d => {
-        if(d.exists()){
-          const partData = d.data();
-          if(Array.isArray(partData.sales)) combinedSales.push(...partData.sales);
-        }
-      });
-      return { ...remoteData, sales: combinedSales };
-    }
-    return remoteData;
-  }
-
-  // (2026-07-13) Chunk sales if snapshot exceeds Firestore 1MB; was single doc error
+  // (2026-07-13) Sync manual & recent sales to keep snapshot under 1MB; was >1MB
   async function pushSnapshot(force = false){
     const meta = DB.getSyncMeta();
     if(meta.status === "quota") return; // Prevent spamming when quota exceeded
@@ -94,29 +73,21 @@ const Sync = (() => {
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
-      const snapJsonLen = JSON.stringify(snap).length;
-      if(snapJsonLen > 700000 && localSales.length > 0){
-        const chunkSize = 350;
-        const numChunks = Math.ceil(localSales.length / chunkSize);
-        const chunkPromises = [];
-        for(let i = 0; i < numChunks; i++){
-          const chunk = localSales.slice(i * chunkSize, (i + 1) * chunkSize);
-          chunkPromises.push(
-            mod.setDoc(mod.doc(database, "minimart_snapshots", `sales_part_${i}`), {
-              sales: chunk,
-              part: i,
-              totalParts: numChunks,
-              exportedAt: snap.exportedAt || Date.now()
-            }, { merge:false })
-          );
-        }
-        await Promise.all(chunkPromises);
-        const masterSnap = { ...snap, sales: [], salesChunkCount: numChunks };
-        await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), masterSnap, { merge:false });
-      } else {
-        await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), { ...snap, salesChunkCount: 0 }, { merge:false });
-      }
+      // Only sync manual POS sales & last 100 sales to stay well under 1MB limit
+      const manualSales = localSales.filter(s => !s.isImported && s.source !== "imported");
+      const recentSales = localSales.slice(0, 100);
+      const sMap = new Map();
+      recentSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      manualSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      const liveSyncSales = Array.from(sMap.values());
 
+      const cloudSnap = {
+        ...snap,
+        sales: liveSyncSales,
+        isPartialSalesSync: true
+      };
+
+      await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), cloudSnap, { merge:false });
       DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
     }catch(err){
       console.error("Firestore sync failed", err);
@@ -139,7 +110,7 @@ const Sync = (() => {
       // Check master snapshot first
       const snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
       if(snapDoc.exists()){
-        let remoteData = snapDoc.data();
+        const remoteData = snapDoc.data();
         const localMeta = DB.getSyncMeta();
         const remoteTimestamp = remoteData.exportedAt || 0;
         const localTimestamp = localMeta.lastSynced || 0;
@@ -149,7 +120,6 @@ const Sync = (() => {
         
         // Restore if forced, local is empty, or remote is newer
         if(force || isLocalEmpty || remoteTimestamp > localTimestamp){
-          remoteData = await resolveRemoteSales(mod, database, remoteData);
           DB.restoreSnapshot(remoteData);
           DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
         } else {
@@ -393,9 +363,9 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), async (docSnap) => {
+      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), (docSnap) => {
         if(docSnap.exists()){
-          let remoteData = docSnap.data();
+          const remoteData = docSnap.data();
           const localMeta = DB.getSyncMeta();
           const remoteTimestamp = remoteData.exportedAt || 0;
           const localTimestamp = localMeta.lastSynced || 0;
@@ -406,7 +376,6 @@ const Sync = (() => {
           if(isLocalEmpty || remoteTimestamp > localTimestamp + 2000){
             const remoteProds = remoteData.products || [];
             if(isLocalEmpty || remoteProds.length !== localProducts.length || JSON.stringify(localProducts) !== JSON.stringify(remoteProds)){
-              remoteData = await resolveRemoteSales(mod, database, remoteData);
               DB.restoreSnapshot(remoteData);
               DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
               paintStatus();

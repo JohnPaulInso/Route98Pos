@@ -132,8 +132,8 @@ const DB = (() => {
     const seedCatalog = (typeof CATALOG_SEED !== "undefined" && CATALOG_SEED.products) ? CATALOG_SEED : null;
     // (2026-07-13) Restore seedSales variable in DB init; was accidentally removed
     const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
-    // (2026-07-13) Sync exact Loyverse receipts & repair 0 totals; was stale v11
-    const syncFlagKey = NS + "loyverse_sync_20260921_v14";
+    // (2026-07-13) Sync exact Loyverse receipts & restore empty sales; was stale v14
+    const syncFlagKey = NS + "loyverse_sync_20260921_v16";
 
     if(!localStorage.getItem(syncFlagKey)){
       if(seedCatalog){
@@ -164,7 +164,8 @@ const DB = (() => {
       try{ localStorage.setItem(syncFlagKey, "true"); }catch(e){}
     } else {
       if(read(KEYS.products) === null) write(KEYS.products, seedCatalog ? seedCatalog.products : []);
-      if(read(KEYS.sales) === null) write(KEYS.sales, seedSales);
+      const curSales = read(KEYS.sales);
+      if(!curSales || !curSales.length) write(KEYS.sales, seedSales);
     }
     // (2026-07-13) Recalculate any remaining zero totals from lines; was 0 total
     const currentSales = read(KEYS.sales) || [];
@@ -857,11 +858,19 @@ const DB = (() => {
       exportedAt: Date.now(), version:3
     };
   }
+  // (2026-07-13) Safely merge snapshot sales without wiping local; was setSales
   function restoreSnapshot(snap){
     if(!snap) return;
-    if(snap.products) setProducts(snap.products);
-    if(snap.categories) setCategories(snap.categories);
-    if(snap.sales) setSales(snap.sales);
+    if(snap.products && snap.products.length) setProducts(snap.products);
+    if(snap.categories && snap.categories.length) setCategories(snap.categories);
+    if(snap.sales && snap.sales.length){
+      const existing = getSales();
+      const sMap = new Map();
+      existing.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      snap.sales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      const merged = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      setSales(merged);
+    }
     if(snap.fuelSales) setFuelSales(snap.fuelSales);
     if(snap.fuelConfig) setFuelConfig(snap.fuelConfig);
     if(snap.fuelDeliveries) setFuelDeliveries(snap.fuelDeliveries);
