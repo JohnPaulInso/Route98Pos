@@ -143,19 +143,6 @@ itemCatalogRows.forEach((r, idx) => {
   productMap.set(`name:${name.toLowerCase()}`, prod);
 });
 
-const uniqueProducts = Array.from(new Set(Array.from(productMap.values())));
-const catalogSeed = {
-  categories: Array.from(categoriesSet).sort(),
-  products: uniqueProducts
-};
-
-console.log(`Generated ${catalogSeed.categories.length} categories and ${catalogSeed.products.length} products.`);
-fs.writeFileSync(
-  path.join(__dirname, '..', 'js', 'catalog_seed.js'),
-  `// Auto-generated catalog seed from Loyverse export\nconst CATALOG_SEED = ${JSON.stringify(catalogSeed, null, 2)};\nif (typeof module !== 'undefined') module.exports = CATALOG_SEED;\n`,
-  'utf8'
-);
-
 console.log('2. Reading receipts and receipts_by_item...');
 const receiptsRaw = fs.readFileSync(path.join(__dirname, 'temp_receipts', 'receipts.csv'), 'utf8');
 const receiptsItemsRaw = fs.readFileSync(path.join(__dirname, 'temp_receipts', 'receipts_by_item.csv'), 'utf8');
@@ -186,6 +173,30 @@ itemRows.forEach(r => {
   if (sku) matchedProd = productMap.get(`sku:${sku}`);
   if (!matchedProd) matchedProd = productMap.get(`name:${name.toLowerCase()}`);
 
+  if (!matchedProd && name) {
+    const newId = sku ? `p_${sku}` : `p_item_${Math.random().toString(36).slice(2, 8)}`;
+    matchedProd = {
+      id: newId,
+      sku: sku || '',
+      name,
+      category: category || 'FOOD',
+      cost: unitCost,
+      price: price || unitCost,
+      stock: 50,
+      lowStockThreshold: 5,
+      trackStock: true,
+      unit: 'pc',
+      unitType: 'piece',
+      piecesPerPack: 1,
+      barcode: '',
+      imageUrl: ''
+    };
+    productMap.set(newId, matchedProd);
+    if (sku) productMap.set(`sku:${sku}`, matchedProd);
+    productMap.set(`name:${name.toLowerCase()}`, matchedProd);
+    categoriesSet.add(category || 'FOOD');
+  }
+
   const itemObj = {
     productId: matchedProd ? matchedProd.id : (sku ? `p_${sku}` : `prod_${Math.random().toString(36).slice(2, 9)}`),
     name,
@@ -201,28 +212,62 @@ itemRows.forEach(r => {
   };
 
   if (!itemsByReceipt.has(rNo)) {
-    itemsByReceipt.set(rNo, []);
+    itemsByReceipt.set(rNo, {
+      items: [],
+      dateStr: r['Date'] || '',
+      cashier: (r['Cashier name'] || 'Owner').trim(),
+      totalNet: 0,
+      totalGross: 0,
+      totalCost: 0
+    });
   }
-  itemsByReceipt.get(rNo).push(itemObj);
+  const entry = itemsByReceipt.get(rNo);
+  entry.items.push(itemObj);
+  entry.totalNet += (itemObj.price * itemObj.qty);
+  entry.totalGross += grossSales;
+  entry.totalCost += cost;
 });
 
-const processedSales = [];
+const uniqueProducts = Array.from(new Set(Array.from(productMap.values())));
+const catalogSeed = {
+  categories: Array.from(categoriesSet).sort(),
+  products: uniqueProducts
+};
+console.log(`Generated ${catalogSeed.categories.length} categories and ${catalogSeed.products.length} products (including receipt items).`);
+fs.writeFileSync(
+  path.join(__dirname, '..', 'js', 'catalog_seed.js'),
+  `// Auto-generated catalog seed from Loyverse export\nconst CATALOG_SEED = ${JSON.stringify(catalogSeed, null, 2)};\nif (typeof module !== 'undefined') module.exports = CATALOG_SEED;\n`,
+  'utf8'
+);
+
+const salesMap = new Map();
 summaryRows.forEach(s => {
   const rNo = (s['Receipt number'] || '').trim();
   if (!rNo) return;
   const status = (s['Status'] || '').trim().toLowerCase();
   const rType = (s['Receipt type'] || '').trim().toLowerCase();
   if (status.includes('cancel') || rType.includes('cancel')) return;
+  if (salesMap.has(rNo)) return;
 
   const dateStr = (s['Date'] || '').trim();
   const ts = parseDateToTimestamp(dateStr);
-  const total = parseFloat(s['Total collected'] || s['Net sales'] || s['Gross sales']) || 0;
+  let itemsEntry = itemsByReceipt.get(rNo);
+  // (2026-07-13) Use item sum for exact Loyverse receipt total; was summary total
+  const itemsSum = itemsEntry ? parseFloat(itemsEntry.items.reduce((acc, it) => acc + (it.price * it.qty), 0).toFixed(2)) : 0;
+  const totalCollectedVal = parseFloat(s['Total collected']);
+  const netSalesVal = parseFloat(s['Net sales']);
+  const grossSalesVal = parseFloat(s['Gross sales']);
+  const total = (itemsSum > 0) ? itemsSum
+              : (!isNaN(totalCollectedVal) && totalCollectedVal > 0) ? totalCollectedVal
+              : (!isNaN(netSalesVal) && netSalesVal > 0) ? netSalesVal
+              : (!isNaN(grossSalesVal) && grossSalesVal > 0) ? grossSalesVal
+              : 0;
   const discountAmt = parseFloat(s['Discounts']) || 0;
   const taxAmt = parseFloat(s['Taxes']) || 0;
   const paymentMethod = (s['Payment type'] || 'Cash').trim();
   const cashier = (s['Cashier name'] || 'Owner').trim();
 
-  let items = itemsByReceipt.get(rNo) || [];
+  let items = itemsEntry ? itemsEntry.items : [];
   if (!items.length) {
     const desc = (s['Description'] || '').trim();
     if (desc) {
@@ -235,7 +280,8 @@ summaryRows.forEach(s => {
         items.push({
           productId: matched ? matched.id : `prod_${Math.random().toString(36).slice(2, 9)}`,
           name: n,
-          price: items.length === 1 ? total : 0,
+          price: items.length === 1 ? total : (matched ? matched.price : 0),
+          cost: matched ? matched.cost : 0,
           qty: q,
           category: matched ? matched.category : 'MISC',
           unitType: 'piece',
@@ -248,10 +294,7 @@ summaryRows.forEach(s => {
     }
   }
 
-  const orderSig = items.map(it => `${it.qty}x${it.name.toLowerCase()}`).sort().join('|');
-  const dupKey = `${ts}_${total.toFixed(2)}_${orderSig}`;
-
-  processedSales.push({
+  salesMap.set(rNo, {
     id: `TXN-${rNo}`,
     receiptNo: rNo,
     ts,
@@ -266,30 +309,41 @@ summaryRows.forEach(s => {
     tendered: total,
     change: 0,
     cashier,
-    dupKey
+    status: 'Closed',
+    source: 'imported',
+    isImported: true
   });
 });
 
-const mergedSalesMap = new Map();
-processedSales.forEach(sale => {
-  if (mergedSalesMap.has(sale.dupKey)) {
-    const ex = mergedSalesMap.get(sale.dupKey);
-    ex.id = sale.id;
-    ex.receiptNo = `${ex.receiptNo}, ${sale.receiptNo}`;
-    if (sale.items && sale.items.length) ex.items = sale.items;
-    ex.method = sale.method || ex.method;
-    ex.cashier = sale.cashier || ex.cashier;
-  } else {
-    mergedSalesMap.set(sale.dupKey, sale);
+itemsByReceipt.forEach((val, rNo) => {
+  if (!salesMap.has(rNo)) {
+    const ts = parseDateToTimestamp(val.dateStr);
+    const total = parseFloat(val.totalNet.toFixed(2));
+    const subtotal = parseFloat(val.totalGross.toFixed(2));
+    const discountAmt = parseFloat(Math.max(0, subtotal - total).toFixed(2));
+    salesMap.set(rNo, {
+      id: `TXN-${rNo}`,
+      receiptNo: rNo,
+      ts,
+      items: val.items,
+      subtotal: subtotal || total,
+      discountType: 'percent',
+      discountValue: 0,
+      discountAmt,
+      vat: 0,
+      total,
+      method: 'Cash',
+      tendered: total,
+      change: 0,
+      cashier: val.cashier || 'Owner',
+      status: 'Closed',
+      source: 'imported',
+      isImported: true
+    });
   }
 });
 
-const finalSales = Array.from(mergedSalesMap.values()).map(s => {
-  const copy = { ...s };
-  delete copy.dupKey;
-  return copy;
-}).sort((a, b) => (b.ts || 0) - (a.ts || 0));
-
+const finalSales = Array.from(salesMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
 console.log(`Generated ${finalSales.length} unique sales transactions.`);
 fs.writeFileSync(
   path.join(__dirname, '..', 'js', 'sales_seed.js'),

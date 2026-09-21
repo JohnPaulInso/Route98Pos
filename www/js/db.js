@@ -14,7 +14,7 @@ const DB = (() => {
     stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", physicalAudits: NS+"physicalAudits", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
-    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems"
+    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems", dayBalances: NS+"dayBalances"
   };
 
   function read(key, fallback = null){
@@ -130,8 +130,10 @@ const DB = (() => {
     }
     // (2026-07-13) Clean & sync new Loyverse catalog & sales; was stale state
     const seedCatalog = (typeof CATALOG_SEED !== "undefined" && CATALOG_SEED.products) ? CATALOG_SEED : null;
+    // (2026-07-13) Restore seedSales variable in DB init; was accidentally removed
     const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
-    const syncFlagKey = NS + "loyverse_sync_20260920";
+    // (2026-07-13) Sync exact Loyverse receipts & repair 0 totals; was stale v11
+    const syncFlagKey = NS + "loyverse_sync_20260921_v14";
 
     if(!localStorage.getItem(syncFlagKey)){
       if(seedCatalog){
@@ -140,12 +142,45 @@ const DB = (() => {
           write(KEYS.categories, seedCatalog.categories);
         }
       }
-      write(KEYS.sales, seedSales);
+      const existingSales = read(KEYS.sales) || [];
+      const sMap = new Map();
+      existingSales.forEach(s => {
+        const k = String(s.receiptNo || s.id || '').replace(/^TXN-/, '').trim();
+        if(k) sMap.set(k, s);
+      });
+      seedSales.forEach(s => {
+        const k = String(s.receiptNo || s.id || '').replace(/^TXN-/, '').trim();
+        if(k){
+          const existing = sMap.get(k);
+          if(existing){
+            sMap.set(k, { ...existing, ...s, id: s.id || existing.id });
+          } else {
+            sMap.set(k, s);
+          }
+        }
+      });
+      const mergedList = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      write(KEYS.sales, mergedList.length ? mergedList : seedSales);
       try{ localStorage.setItem(syncFlagKey, "true"); }catch(e){}
     } else {
       if(read(KEYS.products) === null) write(KEYS.products, seedCatalog ? seedCatalog.products : []);
       if(read(KEYS.sales) === null) write(KEYS.sales, seedSales);
     }
+    // (2026-07-13) Recalculate any remaining zero totals from lines; was 0 total
+    const currentSales = read(KEYS.sales) || [];
+    let salesRepaired = false;
+    currentSales.forEach(s => {
+      if((!s.total || s.total === 0) && s.items && s.items.length){
+        const sum = Utils.round2(s.items.reduce((acc, it) => acc + ((Number(it.qty) || 1) * (Number(it.price) || 0)), 0));
+        if(sum > 0){
+          s.total = sum;
+          s.subtotal = sum;
+          s.tendered = sum;
+          salesRepaired = true;
+        }
+      }
+    });
+    if(salesRepaired) write(KEYS.sales, currentSales);
     if(read(KEYS.fuelSales) === null) write(KEYS.fuelSales, []);
     if(read(KEYS.heldSales) === null) write(KEYS.heldSales, []);
     if(read(KEYS.venueLeads) === null) write(KEYS.venueLeads, []);
@@ -275,8 +310,24 @@ const DB = (() => {
   };
   const getCategories = () => dedupeCats(read(KEYS.categories, []));
   const setCategories = (v) => write(KEYS.categories, dedupeCats(v));
-  const getSales       = () => read(KEYS.sales, []);
-  const setSales       = (v) => write(KEYS.sales, v);
+  // (2026-07-13) Auto-deduplicate sales by receipt number and id; was raw array
+  function dedupeSalesList(list){
+    if(!Array.isArray(list) || list.length <= 1) return list || [];
+    const map = new Map();
+    list.forEach(s => {
+      if(!s) return;
+      const key = String(s.receiptNo || s.id || '').trim();
+      if(key && map.has(key)){
+        const ex = map.get(key);
+        if((!ex.items || !ex.items.length) && (s.items && s.items.length)) ex.items = s.items;
+      } else if(key){
+        map.set(key, s);
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  }
+  const getSales       = () => dedupeSalesList(read(KEYS.sales, []));
+  const setSales       = (v) => write(KEYS.sales, dedupeSalesList(v));
   const getFuelSales   = () => read(KEYS.fuelSales, []);
   const setFuelSales   = (v) => write(KEYS.fuelSales, v);
   // (2026-07-13) Support custom tanker cost & Regular (Gas) name; was forced 65.00
@@ -431,6 +482,9 @@ const DB = (() => {
   }
   const getShift       = () => read(KEYS.shift, { openedAt:Date.now(), openingCash:0 });
   const setShift       = (v) => write(KEYS.shift, v);
+  // (2026-07-13) Store daily starting and ending balances; was transient shift
+  const getDayBalances = () => read(KEYS.dayBalances, {});
+  const setDayBalances = (v) => write(KEYS.dayBalances, v || {});
   const getSyncMeta    = () => read(KEYS.syncMeta, { lastSynced:null, status:"idle" });
   const setSyncMeta    = (v) => write(KEYS.syncMeta, v);
   // (2026-07-13) Add current cart persistence methods; was in-memory only
@@ -798,7 +852,8 @@ const DB = (() => {
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
       stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
-      backups:[], voidLogs:getVoidLogs(), shift:getShift(), cashiers:getCashiers(),
+      // (2026-07-13) Include dayBalances in snapshot; was omitted
+      dayBalances:getDayBalances(), backups:[], voidLogs:getVoidLogs(), shift:getShift(), cashiers:getCashiers(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -824,6 +879,8 @@ const DB = (() => {
     if(snap.backups) setBackups(snap.backups);
     if(snap.voidLogs) setVoidLogs(snap.voidLogs);
     if(snap.shift) setShift(snap.shift);
+    // (2026-07-13) Restore dayBalances from snapshot; was omitted
+    if(snap.dayBalances) setDayBalances(snap.dayBalances);
   }
   function wipeAll(){
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
@@ -852,6 +909,7 @@ const DB = (() => {
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
     getBackups, setBackups, saveBackup, deleteBackup, buildSnapshotAt, populateHistoricalBackups,
     getShift, setShift,
+    getDayBalances, setDayBalances,
     getSyncMeta, setSyncMeta,
     getSavedCart, saveCart,
     getCustomItems, setCustomItems, saveCustomItem,

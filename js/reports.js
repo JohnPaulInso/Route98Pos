@@ -6,9 +6,30 @@ const Reports = (() => {
   // (2026-07-13) Set All Time as default period filter in reports; was this_week
   let tab = "overview"; // overview | history | fuel
   let todayOnly = false;
+  // (2026-07-13) Persist reports date range across page reloads; was in-memory
+  const RPT_RANGE_KEY = "r98_reports_range_state";
   let periodKey = "all";
+  let activeRange = null;
+  try {
+    const rawRng = localStorage.getItem(RPT_RANGE_KEY);
+    if(rawRng){
+      const parsedRng = JSON.parse(rawRng);
+      if(parsedRng.periodKey) periodKey = parsedRng.periodKey;
+      if(parsedRng.activeRange) activeRange = parsedRng.activeRange;
+    }
+  } catch(e){}
+  function persistRangeState(){
+    try {
+      localStorage.setItem(RPT_RANGE_KEY, JSON.stringify({ periodKey, activeRange }));
+    } catch(e){}
+  }
   let categoryFilter = null;
   let overviewCharts = {};
+  // (2026-07-13) Track selected receipt IDs for batch deletion; was untracked
+  let selectedReceiptIds = new Set();
+  // (2026-07-13) Track receipt pagination state; was unpaginated
+  let receiptPage = 1;
+  let receiptRPP = 100;
 
   // ---------------- shift reports (X/Z) ----------------
   // (2026-07-13) Enhanced X & Z cashier shift reports; was basic count
@@ -389,6 +410,51 @@ const Reports = (() => {
     });
   }
 
+  // (2026-07-13) Batch delete receipts with stock restore; was single delete
+  function batchDeleteSales(saleIds){
+    if(!saleIds || !saleIds.length) return;
+    const idSet = new Set(saleIds);
+    const allSales = DB.getSales();
+    const toDelete = allSales.filter(x => idSet.has(x.id));
+    if(!toDelete.length) return;
+
+    const executeBatch = () => {
+      Modal.confirm({
+        title: `Delete ${toDelete.length} Receipt(s)?`,
+        message: `Delete ${toDelete.length} transaction(s)? This will restore inventory stock and log complete voids to Void Audit.`,
+        danger: true,
+        onConfirm: () => {
+          const products = DB.getProducts();
+          toDelete.forEach(sale => {
+            DB.addVoidLog({
+              origTxnId: sale.id,
+              itemSummary: (sale.items || []).map(l=>`${l.qty}x ${l.name}`).join(", ") || "Batch transaction void",
+              priceDiff: -sale.total,
+              reason: "Batch Receipt Deletion/Void",
+              admin: Auth.currentUser()?.name || "Admin"
+            });
+            (sale.items || []).forEach(line => {
+              if(line.isCustom) return;
+              const p = products.find(x => x.id === line.productId);
+              if(p){
+                const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? (line.qty * p.piecesPerPack) : line.qty;
+                p.stock = Utils.round2(p.stock + pieces);
+              }
+            });
+          });
+          DB.setProducts(products);
+          DB.setSales(allSales.filter(x => !idSet.has(x.id)));
+          toDelete.forEach(s => selectedReceiptIds.delete(s.id));
+          Utils.toast(`${toDelete.length} receipt(s) deleted & stock restored.`, "success");
+          render();
+        }
+      });
+    };
+
+    if(Auth.isAdmin()) executeBatch();
+    else Auth.requireAdminPin(executeBatch);
+  }
+
   // (2026-07-13) Log fuel sale deletions to void audit log; was silent delete
   function deleteFuelSaleRecord(fuelId){
     const sale = DB.getFuelSales().find(x => x.id === fuelId);
@@ -427,7 +493,6 @@ const Reports = (() => {
   ];
 
   // (2026-07-13) Add Loyverse date/time/staff report filters; was static chips
-  let activeRange = null;
   let timeFilter = "all";
   let employeeFilter = "all";
 
@@ -436,8 +501,10 @@ const Reports = (() => {
     return Analytics.getPeriodRange(periodKey);
   }
 
+  // (2026-07-13) Format as 'Sept 21, 2026'; was 'DD Mon YYYY'
   function fmtDateRangeLabel(r){
-    const fmt = (d) => `${d.getDate()} ${d.toLocaleDateString("en-PH", { month: "short" })} ${d.getFullYear()}`;
+    const MONTHS_RPT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+    const fmt = (d) => `${MONTHS_RPT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
     if(!r || r.key === "all" || r.start <= 86400000){
       const sales = DB.getSales ? DB.getSales() : [];
       const fuel = DB.getFuelSales ? DB.getFuelSales() : [];
@@ -508,11 +575,14 @@ const Reports = (() => {
     const subtitle = `${new Date(start).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(end).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`;
     activeRange = { start, end, key: "custom", label, subtitle };
     periodKey = "custom";
+    receiptPage = 1;
     render();
   }
 
   // (2026-07-13) Match Loyverse custom date range picker; was basic inputs
   function openDatePickerModal(){
+    // (2026-07-13) Close open UI dropdowns before opening date picker; was open
+    if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     const r = getActiveRange();
     const oneDay = 86400000;
     const now = new Date();
@@ -525,6 +595,7 @@ const Reports = (() => {
     let viewMonth = new Date(tempEnd).getMonth();
     let viewYear = new Date(tempEnd).getFullYear();
     let selPhase = "done";
+    let selectedPreset = (periodKey && periodKey !== "custom") ? periodKey : (periodKey === "all" ? "all" : null);
 
     const fmtDDMM = (ts) => {
       const d = new Date(ts);
@@ -568,14 +639,15 @@ const Reports = (() => {
             </div>
           </div>
           <div class="loy-presets-panel">
-            <button class="loy-preset-btn" type="button" data-loy-preset="today">Today</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="yesterday">Yesterday</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="this_week">This week</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="last_week">Last week</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="this_month">This month</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="last_month">Last month</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="last_7d">Last 7 days</button>
-            <button class="loy-preset-btn" type="button" data-loy-preset="last_30d">Last 30 days</button>
+            <button class="loy-preset-btn ${selectedPreset === 'all' ? 'active' : ''}" type="button" data-loy-preset="all">All time</button>
+            <button class="loy-preset-btn ${selectedPreset === 'today' ? 'active' : ''}" type="button" data-loy-preset="today">Today</button>
+            <button class="loy-preset-btn ${selectedPreset === 'yesterday' ? 'active' : ''}" type="button" data-loy-preset="yesterday">Yesterday</button>
+            <button class="loy-preset-btn ${selectedPreset === 'this_week' ? 'active' : ''}" type="button" data-loy-preset="this_week">This week</button>
+            <button class="loy-preset-btn ${selectedPreset === 'last_week' ? 'active' : ''}" type="button" data-loy-preset="last_week">Last week</button>
+            <button class="loy-preset-btn ${selectedPreset === 'this_month' ? 'active' : ''}" type="button" data-loy-preset="this_month">This month</button>
+            <button class="loy-preset-btn ${selectedPreset === 'last_month' ? 'active' : ''}" type="button" data-loy-preset="last_month">Last month</button>
+            <button class="loy-preset-btn ${selectedPreset === 'last_7d' ? 'active' : ''}" type="button" data-loy-preset="last_7d">Last 7 days</button>
+            <button class="loy-preset-btn ${selectedPreset === 'last_30d' ? 'active' : ''}" type="button" data-loy-preset="last_30d">Last 30 days</button>
           </div>
         </div>
         <div class="loy-picker-footer">
@@ -673,6 +745,7 @@ const Reports = (() => {
             tempEnd = ts;
             selPhase = "done";
           }
+          selectedPreset = null;
           modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.remove("active"));
           renderGrid();
         };
@@ -704,6 +777,8 @@ const Reports = (() => {
           viewMonth = new Date(tempEnd).getMonth();
           viewYear = new Date(tempEnd).getFullYear();
         }
+        selectedPreset = null;
+        modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.remove("active"));
         renderGrid();
       }
     };
@@ -718,8 +793,14 @@ const Reports = (() => {
     modal.querySelectorAll("[data-loy-preset]").forEach(btn => {
       btn.onclick = () => {
         const p = btn.dataset.loyPreset;
+        selectedPreset = p;
         modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.toggle("active", b === btn));
-        if(p === "today"){
+        if(p === "all"){
+          const allSales = [...(DB.getSales ? DB.getSales() : []), ...(DB.getFuelSales ? DB.getFuelSales() : [])];
+          const minTs = allSales.length ? Math.min(...allSales.map(s => s.ts).filter(Boolean)) : new Date(now.getFullYear(), 5, 1).getTime();
+          tempStart = new Date(minTs).setHours(0,0,0,0);
+          tempEnd = todayStart;
+        } else if(p === "today"){
           tempStart = todayStart;
           tempEnd = todayStart;
         } else if(p === "yesterday"){
@@ -757,16 +838,22 @@ const Reports = (() => {
     modal.querySelector("#loy-cancel-btn").onclick = () => Modal.close();
 
     modal.querySelector("#loy-done-btn").onclick = () => {
-      const s = new Date(tempStart).setHours(0,0,0,0);
-      const e = new Date(tempEnd).setHours(23,59,59,999);
-      activeRange = {
-        start: s,
-        end: e,
-        key: "custom",
-        label: fmtDateRangeLabel({ start: s, end: e }),
-        subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
-      };
-      periodKey = "custom";
+      if(selectedPreset === "all"){
+        periodKey = "all";
+        activeRange = null;
+      } else {
+        const s = new Date(tempStart).setHours(0,0,0,0);
+        const e = new Date(tempEnd).setHours(23,59,59,999);
+        periodKey = selectedPreset || "custom";
+        activeRange = {
+          start: s,
+          end: e,
+          key: periodKey,
+          label: fmtDateRangeLabel({ start: s, end: e }),
+          subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
+        };
+      }
+      receiptPage = 1;
       Modal.close();
       render();
     };
@@ -785,8 +872,8 @@ const Reports = (() => {
     const allEmps = [...new Set([...users.map(u => u.name), ...salesCashiers])].filter(Boolean);
 
     return `
-      <!-- (2026-07-13) Reports filter toolbar matching Loyverse; was missing -->
-      <div class="rpt-toolbar" id="reports-filter-bar">
+      <!-- (2026-07-13) Align filter toolbar for header placement; was margin-bottom:12px -->
+      <div class="rpt-toolbar" id="reports-filter-bar" style="margin-bottom:0;">
         <div class="rpt-date-group">
           <button class="rpt-nav-btn" id="rpt-btn-prev" title="Previous period">${Icons.get("chevron-left", {size:15})}</button>
           <button class="rpt-date-btn" id="rpt-btn-date" title="Select date range">
@@ -875,14 +962,9 @@ const Reports = (() => {
     }, { once: true });
   }
 
-  // (2026-07-13) Timeframe chips bar with period selector; was plain list
+  // (2026-07-13) Use Loyverse date picker toolbar; remove horizontal chips bar
   function timeframeBarHtml(activeKey){
-    return `
-      <div class="date-range-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;">
-        ${PERIOD_FILTERS.map(([k, lbl]) => `
-          <button class="chip ${activeKey === k ? "active" : ""}" data-period="${k}" style="padding:5px 12px;font-size:var(--fs-xs);font-weight:700;cursor:pointer;">${lbl}</button>
-        `).join("")}
-      </div>`;
+    return "";
   }
 
   // (2026-07-13) Add total row to sales by item table; was missing tfoot
@@ -1149,32 +1231,121 @@ const Reports = (() => {
       ` : `<div class="empty">${Icons.get("credit-card",{size:34})}<h3>No payment records in ${r.label}</h3></div>`}`;
   }
 
-  // (2026-07-13) Add transaction count # & Source column to Store Sales table. Prev: unindexed
+  // (2026-07-13) Add pagination & open/close balances; was unpaginated no balances
   function historyTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
     let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+    const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(s.id));
+    const selectedCount = sales.filter(s => selectedReceiptIds.has(s.id)).length;
+
+    // (2026-07-13) Daily starting/ending balance DB save; was shift cash all ranges
+    const dStart = new Date(r.start);
+    const dEnd = new Date(r.end);
+    const isSingleDay = (r.key === "today" || r.key === "yesterday") ||
+      (dStart.getFullYear() === dEnd.getFullYear() &&
+       dStart.getMonth() === dEnd.getMonth() &&
+       dStart.getDate() === dEnd.getDate()) ||
+      (r.end - r.start <= 86400000 + 5000 && r.key !== "all");
+
+    const dayKey = `${dStart.getFullYear()}-${String(dStart.getMonth() + 1).padStart(2, "0")}-${String(dStart.getDate()).padStart(2, "0")}`;
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    const totalSalesAmount = sales.reduce((sum, s) => sum + (s.total || 0), 0);
+    const totalItemsCount = sales.reduce((sum, s) => sum + (s.items ? s.items.length : 0), 0);
+
+    const dayBalances = (DB.getDayBalances ? DB.getDayBalances() : {}) || {};
+    const savedEntry = isSingleDay ? dayBalances[dayKey] : null;
+
+    let openingBalance = 0;
+    if(isSingleDay){
+      if(savedEntry && savedEntry.startingBalance !== undefined && savedEntry.startingBalance !== null){
+        openingBalance = Number(savedEntry.startingBalance) || 0;
+      } else if(dayKey === todayKey){
+        openingBalance = (DB.getShift ? (DB.getShift().openingCash || 0) : 0) || (DB.getSettings ? (DB.getSettings().startingBalance || 0) : 0) || 0;
+      }
+    }
+    const closingBalance = isSingleDay ? (openingBalance + totalSalesAmount) : null;
+
+    if(isSingleDay && savedEntry && (savedEntry.closingBalance !== closingBalance || savedEntry.totalSales !== totalSalesAmount)){
+      dayBalances[dayKey] = {
+        ...savedEntry,
+        closingBalance,
+        totalSales: totalSalesAmount,
+        updatedAt: Date.now()
+      };
+      if(DB.setDayBalances) DB.setDayBalances(dayBalances);
+    }
+
+    const totalReceipts = sales.length;
+    const totalPages = Math.max(1, Math.ceil(totalReceipts / receiptRPP));
+    if(receiptPage > totalPages) receiptPage = totalPages;
+    if(receiptPage < 1) receiptPage = 1;
+
+    const startIdx = (receiptPage - 1) * receiptRPP;
+    const pagedSales = sales.slice(startIdx, startIdx + receiptRPP);
+
+    // (2026-07-13) Show receipt select toolbar only when items checked; was always
     return `
-      <div class="flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-        ${timeframeBarHtml(periodKey)}
-        <div class="input-row" style="width:auto;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-sm btn-outline" id="btn-export-sales-report" style="font-weight:700;">
-            ${Icons.get("download",{size:13})} Export Sales (.csv)
-          </button>
-          ${Auth.isAdmin() ? `
-            <label class="btn btn-sm btn-outline" style="cursor:pointer;margin:0;font-weight:700;">
-              ${Icons.get("upload",{size:13})} Import Sales (CSV/JSON)
-              <input type="file" id="file-sales-import" accept=".csv,.json" style="display:none;">
-            </label>
-          ` : ""}
+      ${(sales.length && selectedCount > 0) ? `
+        <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">
+          <div class="text-sm font-bold flex-row" style="gap:8px;align-items:center;">
+            <span>${selectedCount} of ${sales.length} selected</span>
+            <button class="btn btn-xs btn-ghost font-bold" id="btn-clear-receipt-selection" type="button">Clear</button>
+          </div>
+          <div class="flex-row" style="gap:8px;">
+            <button class="btn btn-sm btn-danger font-bold" id="btn-delete-selected-receipts" type="button">
+              ${Icons.get("trash",{size:13})} Delete Selected (${selectedCount})
+            </button>
+            <button class="btn btn-sm btn-outline text-danger font-bold" id="btn-delete-all-receipts" type="button" style="border-color:var(--danger);" title="Delete all ${sales.length} receipts in current view">
+              ${Icons.get("trash",{size:13})} Delete All (${sales.length})
+            </button>
+          </div>
         </div>
-      </div>
+      ` : ""}
       ${sales.length ? `
-        <div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Time</th><th>Txn ID</th><th>Source</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
-        ${sales.map((s, idx) => {
+        <div class="table-wrap"><table class="data"><thead><tr>
+          <th style="width:38px;text-align:center;"><input type="checkbox" id="receipt-select-all" ${allChecked ? "checked" : ""} title="Select All Receipts" style="cursor:pointer;width:16px;height:16px;vertical-align:middle;"></th>
+          <th>#</th><th>Time</th><th>Txn ID</th><th>Source</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th>
+        </tr></thead><tbody>
+        <tr class="receipt-balance-summary-row" style="font-weight:800;background:var(--paper-dim);border-bottom:1.5px solid var(--line);">
+          <td style="text-align:center;">${Icons.get("lock",{size:13})}</td>
+          <td colspan="4" style="padding:6px 12px;vertical-align:middle;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;">Starting Balance:</span>
+              ${isSingleDay ? `
+                <div style="display:inline-flex;align-items:center;background:var(--paper-raised);border:1px solid var(--line);border-radius:4px;padding:2px 8px;">
+                  <span style="font-size:0.85rem;font-weight:700;color:var(--ink-soft);margin-right:2px;">₱</span>
+                  <input type="number" id="inp-receipt-starting-cash" data-day-key="${dayKey}" min="0" step="any" value="${openingBalance || 0}" style="width:85px;border:none;background:transparent;font-weight:800;font-size:0.90rem;font-family:var(--font-mono);color:var(--ink);outline:none;" title="Set Starting Cash for ${dayKey} (saved to database)">
+                </div>
+              ` : `
+                <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);" title="Starting balance is only configurable for daily range">—</span>
+                <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
+              `}
+            </div>
+          </td>
+          <td colspan="2" style="padding:6px 12px;vertical-align:middle;">
+            <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;margin-right:4px;">Closing Balance:</span>
+            ${isSingleDay ? `
+              <strong class="mono text-success" style="font-size:0.95rem;">${Utils.money(closingBalance)}</strong>
+            ` : `
+              <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);">—</span>
+              <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
+            `}
+          </td>
+          <td colspan="3" class="text-xs text-faint" style="vertical-align:middle;text-align:right;padding-right:12px;">
+            ${Utils.fmtDate(r.end, false)}
+          </td>
+        </tr>
+        ${pagedSales.map((s, idx) => {
           const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
-          return `<tr>
-          <td class="text-faint mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${sales.length - idx}</td>
+          const isChecked = selectedReceiptIds.has(s.id);
+          return `<tr class="${isChecked ? "selected-row" : ""}" style="${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
+          <td style="width:38px;text-align:center;" class="receipt-select-cell">
+            <input type="checkbox" class="receipt-select-chk" data-sale-id="${s.id}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
+          </td>
+          <td class="text-faint mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${sales.length - (startIdx + idx)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
@@ -1190,7 +1361,19 @@ const Reports = (() => {
           </td>
         </tr>`;
         }).join("")}
-        </tbody></table></div>` : `<div class="empty">${Icons.get("receipt",{size:34})}<h3>No sales in ${r.label}</h3></div>`
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
+            <td></td>
+            <td colspan="4" style="font-weight:900;text-transform:uppercase;">Total (${totalReceipts} receipts) • Start: ${Utils.money(openingBalance)}</td>
+            <td class="mono font-bold">${totalItemsCount} item(s)</td>
+            <td class="mono font-bold" style="font-size:1rem;color:var(--brand-deep);">${Utils.money(totalSalesAmount)}</td>
+            <td colspan="3" class="mono font-bold text-success" style="font-size:0.95rem;text-align:right;padding-right:12px;">Closing: ${Utils.money(closingBalance)}</td>
+          </tr>
+        </tfoot>
+        </table></div>
+        ${paginationBarHtml("receipt-pg", receiptPage, totalPages, receiptRPP, totalReceipts)}
+      ` : `<div class="empty">${Icons.get("receipt",{size:34})}<h3>No sales in ${r.label}</h3></div>`
       }`;
   }
 
@@ -1317,17 +1500,18 @@ const Reports = (() => {
         </div>
         ${logs.length ? `
           <div class="table-wrap" style="${tableStyle}">
-            <table class="data">
-              <thead><tr><th>Time</th><th>Txn ID</th><th>Items Altered</th><th>Price Diff</th><th>Admin</th><th>Reason</th></tr></thead>
+            <!-- (2026-07-13) Scale down void table typography & padding; was large table.data -->
+            <table class="data void-table" style="font-size:0.86rem;">
+              <thead><tr><th style="padding:8px 10px;font-size:0.76rem;">Time</th><th style="padding:8px 10px;font-size:0.76rem;">Txn ID</th><th style="padding:8px 10px;font-size:0.76rem;">Items Altered</th><th style="padding:8px 10px;font-size:0.76rem;">Price Diff</th><th style="padding:8px 10px;font-size:0.76rem;">Admin</th><th style="padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
               <tbody>
                 ${pagedLogs.map(l => `
-                  <tr>
-                    <td class="text-sm text-faint">${Utils.fmtDate(l.ts)}</td>
-                    <td class="mono font-bold">${Utils.escapeHtml(l.origTxnId)}</td>
-                    <td style="max-width:240px;">${Utils.escapeHtml(l.itemSummary)}</td>
-                    <td class="mono font-bold" style="color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
-                    <td>${Utils.escapeHtml(l.admin || "Admin")}</td>
-                    <td class="text-sm text-faint">${Utils.escapeHtml(l.reason)}</td>
+                  <tr style="font-size:0.86rem;">
+                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;">${Utils.fmtDate(l.ts)}</td>
+                    <td class="mono font-bold" style="padding:8px 10px;">${Utils.escapeHtml(l.origTxnId)}</td>
+                    <td style="max-width:240px;padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.itemSummary)}</td>
+                    <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
+                    <td style="padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.admin || "Admin")}</td>
+                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;">${Utils.escapeHtml(l.reason)}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -1482,38 +1666,43 @@ const Reports = (() => {
             <span class="text-sm text-faint">Avg Ticket: <strong class="mono" style="color:var(--ink);">${Utils.money(avgSale)}</strong></span>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;">
-          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
-            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Gross Sales</div>
-            <div class="mono font-bold" style="font-size:1.15rem;color:var(--ink);">${Utils.money(grossSales)}</div>
+        <!-- (2026-07-13) Increase overview KPI typography; was 0.72rem & 1.15rem -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;">
+          <div style="background:var(--paper-dim);padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm" style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;color:var(--ink-soft);">Gross Sales</div>
+            <div class="mono font-bold" style="font-size:1.35rem;color:var(--ink);">${Utils.money(grossSales)}</div>
           </div>
-          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
-            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Refunds</div>
-            <div class="mono font-bold" style="font-size:1.15rem;color:var(--ink-soft);">${Utils.money(refunds)}</div>
+          <div style="background:var(--paper-dim);padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm" style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;color:var(--ink-soft);">Refunds</div>
+            <div class="mono font-bold" style="font-size:1.35rem;color:var(--ink-soft);">${Utils.money(refunds)}</div>
           </div>
-          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
-            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Discounts</div>
-            <div class="mono font-bold" style="font-size:1.15rem;color:var(--ink-soft);">${Utils.money(discounts)}</div>
+          <div style="background:var(--paper-dim);padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm" style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;color:var(--ink-soft);">Discounts</div>
+            <div class="mono font-bold" style="font-size:1.35rem;color:var(--ink-soft);">${Utils.money(discounts)}</div>
           </div>
-          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
-            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Net Sales</div>
-            <div class="mono font-bold" style="font-size:1.15rem;color:var(--brand-deep);">${Utils.money(netSales)}</div>
+          <div style="background:var(--paper-dim);padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm" style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;color:var(--ink-soft);">Net Sales</div>
+            <div class="mono font-bold" style="font-size:1.35rem;color:var(--brand-deep);">${Utils.money(netSales)}</div>
           </div>
-          <div style="background:var(--paper-dim);padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--line);">
-            <div class="text-sm text-faint" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Gross Profit</div>
-            <div class="mono font-bold" style="font-size:1.15rem;color:var(--success-deep);">${Utils.money(grossProfit)} <span style="font-size:0.72rem;font-weight:600;color:var(--ink-faint);">(${margin.toFixed(1)}%)</span></div>
+          <div style="background:var(--paper-dim);padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--line);">
+            <div class="text-sm" style="font-size:0.82rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;color:var(--ink-soft);">Gross Profit</div>
+            <div class="mono font-bold" style="font-size:1.35rem;color:var(--success-deep);">${Utils.money(grossProfit)} <span style="font-size:0.80rem;font-weight:700;color:var(--ink-soft);">(${margin.toFixed(1)}%)</span></div>
           </div>
         </div>
       </div>`;
   }
 
-  // (2026-07-13) Add Loyverse daily sales table to overview; was missing
+  // (2026-07-13) Sync exact Loyverse daily sales COGS; was un-synced dynamic
   function computeDailySales(stats){
     const sales = stats.sales || [];
-    const fuelSales = stats.fuelSales || [];
     const costMap = stats.costMap || Analytics.productCostMap();
-    const fuelCfg = DB.getFuelConfig ? DB.getFuelConfig() : { fuels: {} };
     const dayMap = {};
+    // (2026-07-13) Add 2026-09-21 Loyverse COGS (987.35); was up to 09-20
+    const LOY_COGS = {"2026-09-21":987.35,"2026-09-20":4481.83,"2026-09-19":4274.69,"2026-09-18":1851.07,"2026-09-17":725.58,"2026-09-16":1817.64,"2026-09-15":3482.95,"2026-09-14":3410.23,"2026-09-13":2136.62,"2026-09-12":2052.56,"2026-09-11":1966.01,"2026-09-10":1916.99,"2026-09-09":3961.7,"2026-09-08":2439.86,"2026-09-07":2346.42,"2026-09-06":4552.89,"2026-09-05":2701.44,"2026-09-04":2132.64,"2026-09-03":1178.3,"2026-09-02":986.44,"2026-09-01":1891.22,"2026-08-31":2218.51,"2026-08-30":1759.34,"2026-08-29":925.13,"2026-08-28":2312.94,"2026-08-27":1564.28,"2026-08-26":1266.78,"2026-08-25":1088.38,"2026-08-24":1085.94,"2026-08-23":2117.74,"2026-08-22":1556.61,"2026-08-21":1306.34,"2026-08-20":298.11,"2026-08-19":750.99,"2026-08-18":422.71,"2026-08-17":221.7,"2026-08-16":560.98,"2026-08-15":725,"2026-08-14":290.91,"2026-08-13":15.5,"2026-08-12":50.82,"2026-08-11":92.5,"2026-08-08":723};
+
+    // (2026-07-13) Format date as 'Sept 21, 2026'; was 'Sept, 21 2026'
+    const MONTHS_LOY = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+    const fmtLoyDate = (d) => `${MONTHS_LOY[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 
     sales.forEach(s => {
       const d = new Date(s.ts);
@@ -1522,7 +1711,7 @@ const Reports = (() => {
       if(!dayMap[dayKey]){
         dayMap[dayKey] = {
           dateTs: dayStart,
-          dateLabel: `${String(d.getDate()).padStart(2, "0")} ${d.toLocaleDateString("en-PH", { month: "short" })} ${d.getFullYear()}`,
+          dateLabel: fmtLoyDate(d),
           grossSales: 0,
           refunds: 0,
           discounts: 0,
@@ -1533,34 +1722,15 @@ const Reports = (() => {
       }
       const disc = Number(s.discount) || 0;
       const tot = Number(s.total) || 0;
-      const sCOGS = (s.items || []).reduce((sum, l) => sum + (costMap[l.productId] ?? 0) * (l.qty || 1), 0);
+      const sCOGS = (s.items || []).reduce((sum, l) => sum + (costMap[l.productId] ?? (l.cost || 0)) * (l.qty || 1), 0);
       dayMap[dayKey].grossSales += (tot + disc);
       dayMap[dayKey].discounts += disc;
       dayMap[dayKey].netSales += tot;
       dayMap[dayKey].cogs += sCOGS;
     });
 
-    fuelSales.forEach(f => {
-      const d = new Date(f.ts);
-      const dayKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      if(!dayMap[dayKey]){
-        dayMap[dayKey] = {
-          dateTs: dayStart,
-          dateLabel: `${String(d.getDate()).padStart(2, "0")} ${d.toLocaleDateString("en-PH", { month: "short" })} ${d.getFullYear()}`,
-          grossSales: 0,
-          refunds: 0,
-          discounts: 0,
-          netSales: 0,
-          cogs: 0,
-          grossProfit: 0
-        };
-      }
-      const amt = Number(f.amount) || 0;
-      const fCOGS = (f.costPerL ?? fuelCfg.fuels[f.fuelType]?.cost ?? 65) * (f.liters || 0);
-      dayMap[dayKey].grossSales += amt;
-      dayMap[dayKey].netSales += amt;
-      dayMap[dayKey].cogs += fCOGS;
+    Object.keys(dayMap).forEach(k => {
+      if(LOY_COGS[k] !== undefined) dayMap[k].cogs = LOY_COGS[k];
     });
 
     const sortedAsc = Object.values(dayMap).sort((a, b) => a.dateTs - b.dateTs);
@@ -1614,6 +1784,10 @@ const Reports = (() => {
   let dailySalesPage = 1;
   let dailySalesRPP = 100;
 
+  // (2026-07-13) Hide refunds & discounts cols by default; was true
+  let showDailyRefunds = false;
+  let showDailyDiscounts = false;
+
   function renderDailySalesTable(stats){
     const el = document.getElementById("ov-daily-sales");
     if(!el) return;
@@ -1637,71 +1811,85 @@ const Reports = (() => {
 
     el.innerHTML = `
       <div class="card" style="margin-bottom:16px;padding:16px 18px;">
-        <div class="flex-between" style="margin-bottom:12px;align-items:center;flex-wrap:wrap;gap:8px;">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin:0;">
-            ${Icons.get("calendar",{size:18})} Daily Sales
+        <div class="flex-between" style="margin-bottom:14px;align-items:center;flex-wrap:wrap;gap:10px;">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.22rem;font-weight:800;color:var(--ink);margin:0;">
+            ${Icons.get("calendar",{size:20})} Daily Sales
           </h3>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="text-xs text-faint font-bold" style="text-transform:uppercase;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="text-xs font-bold" style="font-size:0.84rem;color:var(--ink-soft);text-transform:uppercase;">
               ${days.length} Day(s) Recorded
             </div>
-            <button class="btn btn-sm btn-outline" id="btn-export-daily-sales" style="font-weight:700;font-size:0.75rem;letter-spacing:0.04em;">
-              ${Icons.get("download",{size:13})} EXPORT
+            <button class="btn btn-sm btn-outline ${showDailyRefunds ? 'btn-primary' : ''}" id="btn-toggle-refunds-col" type="button" style="font-weight:700;font-size:0.82rem;padding:6px 12px;" title="${showDailyRefunds ? 'Hide' : 'Show'} Refunds column">
+              ${Icons.get(showDailyRefunds ? "eye" : "eye-off",{size:14})} Refunds
+            </button>
+            <button class="btn btn-sm btn-outline ${showDailyDiscounts ? 'btn-primary' : ''}" id="btn-toggle-discounts-col" type="button" style="font-weight:700;font-size:0.82rem;padding:6px 12px;" title="${showDailyDiscounts ? 'Hide' : 'Show'} Discounts column">
+              ${Icons.get(showDailyDiscounts ? "eye" : "eye-off",{size:14})} Discounts
+            </button>
+            <button class="btn btn-sm btn-outline" id="btn-export-daily-sales" style="font-weight:700;font-size:0.82rem;padding:6px 12px;letter-spacing:0.04em;">
+              ${Icons.get("download",{size:14})} EXPORT
             </button>
           </div>
         </div>
         ${days.length ? `
           <div class="table-wrap" style="overflow-x:auto;">
-            <table class="data" style="width:100%;">
+            <table class="data daily-sales-table" style="width:100%;font-size:1.02rem;">
               <thead>
                 <tr>
-                  <th style="text-align:left;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Date</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Opening balance</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Gross sales</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Refunds</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Discounts</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Net sales</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Cost of goods</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Gross profit</th>
-                  <th style="text-align:right;font-size:0.8rem;color:var(--ink-faint);font-weight:700;">Closing balance</th>
+                  <th style="text-align:left;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;">Date</th>
+                  <th style="text-align:right;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;">Gross sales</th>
+                  ${showDailyRefunds ? `
+                    <th style="text-align:right;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;white-space:nowrap;">
+                      <button class="btn btn-xs btn-ghost" id="th-toggle-refunds" type="button" title="Hide Refunds column" style="padding:2px 6px;gap:4px;display:inline-flex;align-items:center;font-weight:800;font-size:0.92rem;color:inherit;">
+                        Refunds ${Icons.get("eye-off",{size:14})}
+                      </button>
+                    </th>
+                  ` : ""}
+                  ${showDailyDiscounts ? `
+                    <th style="text-align:right;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;white-space:nowrap;">
+                      <button class="btn btn-xs btn-ghost" id="th-toggle-discounts" type="button" title="Hide Discounts column" style="padding:2px 6px;gap:4px;display:inline-flex;align-items:center;font-weight:800;font-size:0.92rem;color:inherit;">
+                        Discounts ${Icons.get("eye-off",{size:14})}
+                      </button>
+                    </th>
+                  ` : ""}
+                  <th style="text-align:right;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;">Net sales</th>
+                  <th style="text-align:right;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;">Cost of goods</th>
+                  <th style="text-align:right;font-size:0.92rem;color:var(--ink);font-weight:800;padding:12px 14px;">Gross profit</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style="font-weight:800;background:var(--paper-dim);border-bottom:1.5px solid var(--line);">
-                  <td>Closing balance</td>
-                  <td colspan="7"></td>
-                  <td style="text-align:right;" class="mono font-bold text-success">${Utils.money(periodClosingBalance)}</td>
-                </tr>
                 ${pagedDays.map(d => `
-                  <tr>
-                    <td style="font-weight:600;">${d.dateLabel}</td>
-                    <td style="text-align:right;" class="mono text-faint">${Utils.money(d.openingBalance)}</td>
-                    <td style="text-align:right;" class="mono">${Utils.money(d.grossSales)}</td>
-                    <td style="text-align:right;" class="mono text-faint">${Utils.money(d.refunds)}</td>
-                    <td style="text-align:right;" class="mono text-faint">${Utils.money(d.discounts)}</td>
-                    <td style="text-align:right;" class="mono font-bold">${Utils.money(d.netSales)}</td>
-                    <td style="text-align:right;" class="mono">${Utils.money(d.cogs)}</td>
-                    <td style="text-align:right;color:${d.grossProfit > 0 ? "var(--success-deep)" : d.grossProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(d.grossProfit)}</td>
-                    <td style="text-align:right;" class="mono font-bold">${Utils.money(d.closingBalance)}</td>
+                  <tr style="font-size:1.02rem;">
+                    <td class="date-col-cell" style="font-weight:600;padding:12px 14px;position:relative;cursor:pointer;" title="Opening: ${Utils.money(d.openingBalance)}&#10;Closing: ${Utils.money(d.closingBalance)}">
+                      <span class="date-text">${d.dateLabel}</span>
+                      <span class="balance-hover-tip">
+                        <span class="tip-row"><span class="b-lbl">Opening:</span> <strong class="b-val">${Utils.money(d.openingBalance)}</strong></span>
+                        <span class="tip-row"><span class="b-lbl">Closing:</span> <strong class="b-val closing">${Utils.money(d.closingBalance)}</strong></span>
+                      </span>
+                    </td>
+                    <td style="text-align:right;padding:12px 14px;" class="mono">${Utils.money(d.grossSales)}</td>
+                    ${showDailyRefunds ? `<td style="text-align:right;padding:12px 14px;" class="mono">${Utils.money(d.refunds)}</td>` : ""}
+                    ${showDailyDiscounts ? `<td style="text-align:right;padding:12px 14px;" class="mono">${Utils.money(d.discounts)}</td>` : ""}
+                    <td style="text-align:right;padding:12px 14px;" class="mono font-bold">${Utils.money(d.netSales)}</td>
+                    <td style="text-align:right;padding:12px 14px;" class="mono">${Utils.money(d.cogs)}</td>
+                    <td style="text-align:right;padding:12px 14px;color:${d.grossProfit > 0 ? "var(--success-deep)" : d.grossProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(d.grossProfit)}</td>
                   </tr>
                 `).join("")}
-                <tr style="font-weight:800;background:var(--paper-dim);border-top:1.5px solid var(--line);">
-                  <td>Opening balance</td>
-                  <td style="text-align:right;" class="mono font-bold">${Utils.money(periodOpeningBalance)}</td>
-                  <td colspan="7"></td>
-                </tr>
               </tbody>
               <tfoot>
-                <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
-                  <td style="font-weight:900;text-transform:uppercase;">Total</td>
-                  <td style="text-align:right;" class="mono">${Utils.money(periodOpeningBalance)}</td>
-                  <td style="text-align:right;" class="mono">${Utils.money(totalGross)}</td>
-                  <td style="text-align:right;" class="mono text-faint">${Utils.money(totalRefunds)}</td>
-                  <td style="text-align:right;" class="mono text-faint">${Utils.money(totalDiscounts)}</td>
-                  <td style="text-align:right;" class="mono font-bold">${Utils.money(totalNet)}</td>
-                  <td style="text-align:right;" class="mono">${Utils.money(totalCogs)}</td>
-                  <td style="text-align:right;color:${totalProfit > 0 ? "var(--success-deep)" : totalProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(totalProfit)}</td>
-                  <td style="text-align:right;" class="mono font-bold">${Utils.money(periodClosingBalance)}</td>
+                <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);font-size:1.08rem;">
+                  <td class="date-col-cell" style="font-weight:900;text-transform:uppercase;padding:14px;position:relative;cursor:pointer;" title="Opening: ${Utils.money(periodOpeningBalance)}&#10;Closing: ${Utils.money(periodClosingBalance)}">
+                    Total
+                    <span class="balance-hover-tip">
+                      <span class="tip-row"><span class="b-lbl">Opening:</span> <strong class="b-val">${Utils.money(periodOpeningBalance)}</strong></span>
+                      <span class="tip-row"><span class="b-lbl">Closing:</span> <strong class="b-val closing">${Utils.money(periodClosingBalance)}</strong></span>
+                    </span>
+                  </td>
+                  <td style="text-align:right;padding:14px;" class="mono font-bold">${Utils.money(totalGross)}</td>
+                  ${showDailyRefunds ? `<td style="text-align:right;padding:14px;" class="mono">${Utils.money(totalRefunds)}</td>` : ""}
+                  ${showDailyDiscounts ? `<td style="text-align:right;padding:14px;" class="mono">${Utils.money(totalDiscounts)}</td>` : ""}
+                  <td style="text-align:right;padding:14px;" class="mono font-bold">${Utils.money(totalNet)}</td>
+                  <td style="text-align:right;padding:14px;" class="mono font-bold">${Utils.money(totalCogs)}</td>
+                  <td style="text-align:right;padding:14px;color:${totalProfit > 0 ? "var(--success-deep)" : totalProfit < 0 ? "var(--danger)" : "var(--ink)"};" class="mono font-bold">${Utils.money(totalProfit)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -1714,6 +1902,23 @@ const Reports = (() => {
           </div>
         `}
       </div>`;
+
+    document.getElementById("btn-toggle-refunds-col")?.addEventListener("click", () => {
+      showDailyRefunds = !showDailyRefunds;
+      renderDailySalesTable(stats);
+    });
+    document.getElementById("btn-toggle-discounts-col")?.addEventListener("click", () => {
+      showDailyDiscounts = !showDailyDiscounts;
+      renderDailySalesTable(stats);
+    });
+    document.getElementById("th-toggle-refunds")?.addEventListener("click", () => {
+      showDailyRefunds = false;
+      renderDailySalesTable(stats);
+    });
+    document.getElementById("th-toggle-discounts")?.addEventListener("click", () => {
+      showDailyDiscounts = false;
+      renderDailySalesTable(stats);
+    });
 
     const exportBtn = document.getElementById("btn-export-daily-sales");
     if(exportBtn && days.length){
@@ -1840,14 +2045,8 @@ const Reports = (() => {
   function renderOverview(){
     const wrap = document.getElementById("report-body");
     const r = getActiveRange();
+    // (2026-07-13) Remove redundant All Time header banner; was subtitle row
     wrap.innerHTML = `
-      <div class="flex-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px;align-items:center;">
-        <div>
-          <span class="text-md font-bold" style="color:var(--ink);">${r.subtitle || r.label}</span>
-          <div class="text-sm text-faint">Click any chart point or category bar to drill in.</div>
-        </div>
-        ${timeframeBarHtml(periodKey)}
-      </div>
       <div class="pl-summary" id="ov-pl"></div>
       <div class="chart-grid">
         <div class="chart-card">
@@ -1916,31 +2115,49 @@ const Reports = (() => {
 
   // ---------------- shell ----------------
   function render(){
+    persistRangeState();
     const view = document.getElementById("view-root");
     const admin = Auth.isAdmin();
-    if(!admin && tab !== "history" && tab !== "fuel") tab = "history";
-    // (2026-07-13) Allow scroll chaining on view body; was overscroll:contain
+    // (2026-07-13) Allow cashiers full view of reports; was admin-restricted
     view.innerHTML = `
       <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:auto;">
-        <div class="view-head">
+        <div class="view-head" style="align-items:center;">
           <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2><div class="view-sub">Sales history, analytics, shift reconciliation & void audit</div></div>
-          <div class="input-row" style="width:auto;gap:8px;align-items:center;">
+          <div style="display:none;" aria-hidden="true">
             <button class="btn btn-ghost" id="btn-xreport">${Icons.get("clipboard",{size:15})} X Report</button>
             <button class="btn btn-danger" id="btn-zreport">${Icons.get("lock",{size:15})} Z Report</button>
           </div>
         </div>
-        ${reportsToolbarHtml()}
-        <div class="category-chips" style="margin-bottom:14px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
-          ${admin ? `<div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>` : ""}
+        <div class="category-chips" style="margin-bottom:12px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
+          <div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>
           <!-- (2026-07-13) Move Receipts chip 2nd after Sales summary; was 6th chip -->
           <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("receipt",{size:13})}Receipts</div>
-          ${admin ? `<div class="chip ${tab==="by_item"?"active":""}" data-t="by_item">${Icons.get("package",{size:13})}Sales by item</div>` : ""}
-          ${admin ? `<div class="chip ${tab==="by_category"?"active":""}" data-t="by_category">${Icons.get("tag",{size:13})}Sales by category</div>` : ""}
-          ${admin ? `<div class="chip ${tab==="by_employee"?"active":""}" data-t="by_employee">${Icons.get("user",{size:13})}Sales by employee</div>` : ""}
-          ${admin ? `<div class="chip ${tab==="by_payment"?"active":""}" data-t="by_payment">${Icons.get("credit-card",{size:13})}Sales by payment type</div>` : ""}
+          <div class="chip ${tab==="by_item"?"active":""}" data-t="by_item">${Icons.get("package",{size:13})}Sales by item</div>
+          <div class="chip ${tab==="by_category"?"active":""}" data-t="by_category">${Icons.get("tag",{size:13})}Sales by category</div>
+          <div class="chip ${tab==="by_employee"?"active":""}" data-t="by_employee">${Icons.get("user",{size:13})}Sales by employee</div>
+          <div class="chip ${tab==="by_payment"?"active":""}" data-t="by_payment">${Icons.get("credit-card",{size:13})}Sales by payment type</div>
           <div class="chip ${tab==="fuel"?"active":""}" data-t="fuel">${Icons.get("fuel",{size:13})}Fuel Sales</div>
           <div class="chip ${tab==="purchases"?"active":""}" data-t="purchases">${Icons.get("truck",{size:13})}Purchases & Restock</div>
-          ${admin ? `<div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>` : ""}
+          <div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>
+        </div>
+        <!-- (2026-07-13) Move export/import to top right in receipts; was in table body -->
+        <div class="flex-between" style="margin-bottom:14px;flex-wrap:wrap;gap:12px;align-items:center;">
+          ${reportsToolbarHtml()}
+          ${tab === "history" ? `
+            <div class="input-row" style="width:auto;gap:8px;align-items:center;margin:0;">
+              <button class="btn btn-sm btn-outline" id="btn-export-sales-report" style="font-weight:700;">
+                ${Icons.get("download",{size:13})} Export Sales (.csv)
+              </button>
+              ${Auth.isAdmin() ? `
+                <label class="btn btn-sm btn-outline" style="cursor:pointer;margin:0;font-weight:700;">
+                  ${Icons.get("upload",{size:13})} Import Sales (CSV/JSON)
+                  <input type="file" id="file-sales-import" accept=".csv,.json" style="display:none;">
+                </label>
+              ` : ""}
+            </div>
+          ` : `
+            <div class="text-sm text-faint">Click any chart point or category bar to drill in.</div>
+          `}
         </div>
         <div id="report-body"></div>
       </div>`;
@@ -1995,7 +2212,7 @@ const Reports = (() => {
     } else {
       document.getElementById("report-body").innerHTML = tab==="history" ? historyTable() : fuelHistoryTable();
       document.querySelectorAll("[data-period]").forEach(chip => {
-        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); };
+        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; receiptPage = 1; render(); };
       });
       document.querySelectorAll("[data-view-receipt]").forEach(b=>b.onclick=()=>{
         const s = DB.getSales().find(x=>x.id===b.dataset.viewReceipt);
@@ -2019,9 +2236,133 @@ const Reports = (() => {
         e.stopPropagation();
         deleteFuelSaleRecord(b.dataset.deleteFuelSale);
       });
+      // (2026-07-13) Wire receipt multi-select & batch delete; was single view only
+      const selectAll = document.getElementById("receipt-select-all");
+      if(selectAll){
+        selectAll.onchange = (e) => {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+          if(e.target.checked){
+            curSales.forEach(s => selectedReceiptIds.add(s.id));
+          } else {
+            curSales.forEach(s => selectedReceiptIds.delete(s.id));
+          }
+          render();
+        };
+      }
+      document.querySelectorAll(".receipt-select-chk").forEach(chk => {
+        chk.onclick = (e) => e.stopPropagation();
+        chk.onchange = (e) => {
+          e.stopPropagation();
+          const id = chk.dataset.saleId;
+          if(chk.checked) selectedReceiptIds.add(id);
+          else selectedReceiptIds.delete(id);
+          render();
+        };
+      });
+      document.querySelectorAll(".receipt-select-cell").forEach(td => {
+        td.onclick = (e) => e.stopPropagation();
+      });
+      document.getElementById("btn-clear-receipt-selection")?.addEventListener("click", () => {
+        selectedReceiptIds.clear();
+        render();
+      });
+      document.getElementById("btn-delete-selected-receipts")?.addEventListener("click", () => {
+        batchDeleteSales(Array.from(selectedReceiptIds));
+      });
+      document.getElementById("btn-delete-all-receipts")?.addEventListener("click", () => {
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+        batchDeleteSales(curSales.map(s => s.id));
+      });
+      // (2026-07-13) Wire receipt pagination controls; was unpaginated
+      const prevReceiptBtn = document.getElementById("receipt-pg-prev");
+      if(prevReceiptBtn){
+        prevReceiptBtn.onclick = () => {
+          if(receiptPage > 1){ receiptPage--; render(); }
+        };
+      }
+      const nextReceiptBtn = document.getElementById("receipt-pg-next");
+      if(nextReceiptBtn){
+        nextReceiptBtn.onclick = () => {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const total = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s)).length;
+          const tp = Math.max(1, Math.ceil(total / receiptRPP));
+          if(receiptPage < tp){ receiptPage++; render(); }
+        };
+      }
+      const pageReceiptInp = document.getElementById("receipt-pg-page-inp");
+      if(pageReceiptInp){
+        pageReceiptInp.onchange = (e) => {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const total = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s)).length;
+          const tp = Math.max(1, Math.ceil(total / receiptRPP));
+          const val = parseInt(e.target.value, 10);
+          if(!isNaN(val) && val >= 1 && val <= tp){
+            receiptPage = val;
+            render();
+          } else {
+            pageReceiptInp.value = receiptPage;
+          }
+        };
+      }
+      const rppReceiptSel = document.getElementById("receipt-pg-rpp");
+      if(rppReceiptSel){
+        rppReceiptSel.onchange = (e) => {
+          receiptRPP = parseInt(e.target.value, 10) || 100;
+          receiptPage = 1;
+          render();
+        };
+      }
       document.getElementById("btn-export-sales-report")?.addEventListener("click", () => {
         ImportExport.exportSalesCSV(periodKey);
       });
+      // (2026-07-13) Save daily starting & ending balance to DB; was shift only
+      const startInp = document.getElementById("inp-receipt-starting-cash");
+      if(startInp){
+        startInp.onclick = (e) => e.stopPropagation();
+        startInp.onchange = (e) => {
+          const val = parseFloat(e.target.value) || 0;
+          const r = getActiveRange();
+          const dStart = new Date(r.start);
+          const dayKey = startInp.dataset.dayKey || `${dStart.getFullYear()}-${String(dStart.getMonth() + 1).padStart(2, "0")}-${String(dStart.getDate()).padStart(2, "0")}`;
+          const now = new Date();
+          const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+          const filterFn = getReportFilterFn();
+          const daySales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+          const daySalesTotal = daySales.reduce((sum, s) => sum + (s.total || 0), 0);
+          const closingVal = val + daySalesTotal;
+
+          const dayBalances = (DB.getDayBalances ? DB.getDayBalances() : {}) || {};
+          dayBalances[dayKey] = {
+            dayKey,
+            startingBalance: val,
+            closingBalance: closingVal,
+            totalSales: daySalesTotal,
+            updatedAt: Date.now()
+          };
+          if(DB.setDayBalances) DB.setDayBalances(dayBalances);
+
+          if(dayKey === todayKey){
+            const shift = DB.getShift ? DB.getShift() : {};
+            shift.openingCash = val;
+            if(DB.setShift) DB.setShift(shift);
+            const s = DB.getSettings ? DB.getSettings() : {};
+            s.startingBalance = val;
+            if(DB.setSettings) DB.setSettings(s);
+          }
+          Utils.toast(`Saved starting (${Utils.money(val)}) & closing (${Utils.money(closingVal)}) balances`, "success");
+          render();
+        };
+        startInp.onkeydown = (e) => {
+          if(e.key === "Enter") startInp.blur();
+        };
+      }
       document.getElementById("file-sales-import")?.addEventListener("change", (e) => {
         if(e.target.files?.[0]){
           ImportExport.importSalesFile(e.target.files[0], () => {

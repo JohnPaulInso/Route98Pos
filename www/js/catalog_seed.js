@@ -10340,6 +10340,22 @@ const CATALOG_SEED = {
       "piecesPerPack": 1,
       "barcode": "4800047840272",
       "imageUrl": "https://visualeducation.com/wp-content/uploads/2017/05/packshot_kalr_taylor-1024x768.jpg"
+    },
+    {
+      "id": "p_98000073",
+      "sku": "98000073",
+      "name": "FISH CRACKERS",
+      "category": "SNACKS",
+      "cost": 6.8,
+      "price": 9,
+      "stock": 50,
+      "lowStockThreshold": 5,
+      "trackStock": true,
+      "unit": "pc",
+      "unitType": "piece",
+      "piecesPerPack": 1,
+      "barcode": "",
+      "imageUrl": ""
     }
   ]
 };

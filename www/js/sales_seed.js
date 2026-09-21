@@ -1,6 +1,1839 @@
 // Auto-generated Loyverse receipts seed
 const SALES_SEED = [
   {
+    "id": "TXN-2-1136",
+    "receiptNo": "2-1136",
+    "ts": 1789959300000,
+    "items": [
+      {
+        "productId": "p_10232",
+        "name": "LA MIA TUNA HOTSPCY",
+        "price": 38,
+        "cost": 33.18,
+        "qty": 1,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.lamia.ph/wp-content/uploads/2024/01/Hot-Spicy_Tuna-Products.png"
+      },
+      {
+        "productId": "p_10281",
+        "name": "NOBRELLI CHOCO-KESO-UBE 1.3L",
+        "price": 210.98,
+        "cost": 168,
+        "qty": 1,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://d2j6dbq0eux0bg.cloudfront.net/images/17197054/2650348632.jpg"
+      },
+      {
+        "productId": "p_10146",
+        "name": "CRISPY PATATA 24G",
+        "price": 9.98,
+        "cost": 7.75,
+        "qty": 3,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://img.freepik.com/premium-photo/crispy-potato-chips-packet-png-style-white-background_1115207-9190.jpg?w=1480"
+      },
+      {
+        "productId": "p_10374",
+        "name": "SKYFLAKES CRACKER",
+        "price": 9.98,
+        "cost": 6,
+        "qty": 3,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.srssulit.com/wp-content/uploads/products/6346-1.png"
+      }
+    ],
+    "subtotal": 308.86,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 308.86,
+    "method": "Cash",
+    "tendered": 308.86,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1135",
+    "receiptNo": "2-1135",
+    "ts": 1789959000000,
+    "items": [
+      {
+        "productId": "p_10015",
+        "name": "ZONROX ORIG 250",
+        "price": 26,
+        "cost": 0,
+        "qty": 1,
+        "category": "CLEANING/LAUNDRY SUPPLIES",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://img.lazcdn.com/g/p/3dae5038bc97fe257f8a3f5ec84ec42f.png_720x720q80.png"
+      },
+      {
+        "productId": "p_9800125",
+        "name": "NISSIN BUTTER COCONUT 14G",
+        "price": 5.98,
+        "cost": 3.27,
+        "qty": 4,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://shopsuki.ph/cdn/shop/files/4800092332791_800x.jpg?v=1700107585"
+      },
+      {
+        "productId": "p_10136",
+        "name": "OISHI PRAWN CRACKERS NATURAL 24G",
+        "price": 9,
+        "cost": 7.4,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.oishi.com.ph/wp-content/uploads/2017/04/oishi-prawn-crackers-100g-copy.png"
+      },
+      {
+        "productId": "p_10152",
+        "name": "MOBY CARAMEL",
+        "price": 11,
+        "cost": 8.25,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "http://sigemart.com/cdn/shop/files/moby-caramel-puffs-60g-nutri-snack-pinoyhyper.png?v=1738785278"
+      },
+      {
+        "productId": "p_10235",
+        "name": "#misc",
+        "price": 7,
+        "cost": 0,
+        "qty": 1,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": true,
+        "imageUrl": "https://visualeducation.com/wp-content/uploads/2017/05/product-photography-white-background-pack-shot-posterframe.jpg"
+      },
+      {
+        "productId": "p_10017",
+        "name": "PALMOLIVE IM",
+        "price": 8.98,
+        "cost": 0,
+        "qty": 2,
+        "category": "BATH ESSENTIALS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "http://sukli.com/cdn/shop/products/PalmoliveNaturals-Whitewith100_NaturalMilkProtein-115G_1200x1200.jpg?v=1673634160"
+      },
+      {
+        "productId": "p_98000003",
+        "name": "ARIEL TWIN JUMBO POWDER SUNRISE FRESH 66G",
+        "price": 19.98,
+        "cost": 15.12,
+        "qty": 1,
+        "category": "CLEANING/LAUNDRY SUPPLIES",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://allmartshop.com/cdn/shop/files/ArielPowderSunriseFreshTwinJumboPack66g.jpg?v=1736412902"
+      }
+    ],
+    "subtotal": 114.86,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 114.86,
+    "method": "Cash",
+    "tendered": 114.86,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1134",
+    "receiptNo": "2-1134",
+    "ts": 1789956240000,
+    "items": [
+      {
+        "productId": "p_10440",
+        "name": "NATURE'S SPRING DISTILLED 5LTRS",
+        "price": 185,
+        "cost": 161.82,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://shopsuki.ph/cdn/shop/files/4800049715400_1024x.jpg?v=1709290080"
+      },
+      {
+        "productId": "p_98000066",
+        "name": "IVORY GRAINS CLASSIC 5KG",
+        "price": 300,
+        "cost": 264.5,
+        "qty": 1,
+        "category": "RICE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20IVORY%20GRAINS%20CLASSIC%205KG%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 485,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 485,
+    "method": "Cash",
+    "tendered": 485,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1133",
+    "receiptNo": "2-1133",
+    "ts": 1789955460000,
+    "items": [
+      {
+        "productId": "p_10366",
+        "name": "CREAMLINE SUNDAE CARAMEL 120ML",
+        "price": 24.98,
+        "cost": 15.85,
+        "qty": 1,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://api.supermacs.ie/uploads/62b9e4a11524e/medium-62b9e4a11524e.png"
+      }
+    ],
+    "subtotal": 24.98,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 24.98,
+    "method": "Cash",
+    "tendered": 24.98,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1132",
+    "receiptNo": "2-1132",
+    "ts": 1789955340000,
+    "items": [
+      {
+        "productId": "p_98000059",
+        "name": "NOVA COUNTRY CHEDDAR 78G",
+        "price": 38.5,
+        "cost": 29.55,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20NOVA%20COUNTRY%20CHEDDAR%2078G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "price": 19.98,
+        "cost": 16.15,
+        "qty": 1,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://sukigrocer.com/cdn/shop/files/Sf5b89d4476e84bb1b66c38340c9c7772e.jpg?v=1745472590"
+      },
+      {
+        "productId": "p_10343",
+        "name": "CREAMLINE JUMBO CONE MANGO PEANUT 140ML",
+        "price": 29.98,
+        "cost": 24.1,
+        "qty": 1,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://cdn.freshful.ro/media/cache/sylius_shop_product_original/b9/fa/01077d1d904e93deab482c8248aa.jpg"
+      },
+      {
+        "productId": "p_10147",
+        "name": "PIATTOS CHEESE 40G",
+        "price": 18.5,
+        "cost": 15.75,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://cdn.store-assets.com/s/377840/i/61785483.jpeg"
+      },
+      {
+        "productId": "p_98000065",
+        "name": "CHIPPY CHILI & CHEESE 108G",
+        "price": 28.75,
+        "cost": 21.35,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20CHIPPY%20CHILI%20%26%20CHEESE%20108G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_98000056",
+        "name": "NOVA COUNTRY CHEDDAR 38G",
+        "price": 18.25,
+        "cost": 14,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20NOVA%20COUNTRY%20CHEDDAR%2038G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_98000063",
+        "name": "VCUT CHEESE FLAVOR 60G",
+        "price": 41.5,
+        "cost": 31.95,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20VCUT%20CHEESE%20FLAVOR%2060G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10206",
+        "name": "NIPS MILK CHOCO 14G",
+        "price": 8,
+        "cost": 5.87,
+        "qty": 6,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://urc.com.my/wp-content/uploads/2024/03/Nips-Milk-Choco-70g.png"
+      },
+      {
+        "productId": "p_98000137",
+        "name": "NUTRI STAR CHICKEN BBQ",
+        "price": 10,
+        "cost": 8.25,
+        "qty": 3,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20NUTRI%20STAR%20CHICKEN%20BBQ%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10410",
+        "name": "HAPPY NUTS SWEET CHILI 5G",
+        "price": 2,
+        "cost": 1.1,
+        "qty": 20,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20HAPPY%20NUTS%20SWEET%20CHILI%205G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10409",
+        "name": "HAPPY CHICKEN ADOBO 5G",
+        "price": 2,
+        "cost": 1.1,
+        "qty": 10,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20HAPPY%20CHICKEN%20ADOBO%205G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10395",
+        "name": "CORN BITS HALO HALO",
+        "price": 2,
+        "cost": 1.09,
+        "qty": 12,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20PEEWEE%20SIZZLING%20BBQ%2060G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 357.46,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 357.46,
+    "method": "Cash",
+    "tendered": 357.46,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1131",
+    "receiptNo": "2-1131",
+    "ts": 1789915740000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 1,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 12,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 12,
+    "method": "Cash",
+    "tendered": 12,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1130",
+    "receiptNo": "2-1130",
+    "ts": 1789915740000,
+    "items": [
+      {
+        "productId": "p_10299",
+        "name": "ICE CUBE 2KG",
+        "price": 35,
+        "cost": 24,
+        "qty": 1,
+        "category": "ICE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://res.cloudinary.com/goflink/image/upload/b_rgb:F8F8F8/f_png/w_800,ar_1:1,c_fill,g_south/product-images-prod/55bdc5e1-26a6-4eb0-815a-4c0c49f461a7.png"
+      }
+    ],
+    "subtotal": 35,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 35,
+    "method": "Cash",
+    "tendered": 35,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1129",
+    "receiptNo": "2-1129",
+    "ts": 1789915740000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 3,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_98000110",
+        "name": "MIGHTY PULA STICK",
+        "price": 10,
+        "cost": 8.02,
+        "qty": 4,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20MIGHTY%20PULA%20%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 76,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 76,
+    "method": "Cash",
+    "tendered": 76,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1128",
+    "receiptNo": "2-1128",
+    "ts": 1789915620000,
+    "items": [
+      {
+        "productId": "p_10084",
+        "name": "RED HORSE LITRO",
+        "price": 145,
+        "cost": 120,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.cebooze.com/app/uploads/2023/07/1l.jpeg"
+      },
+      {
+        "productId": "p_98000112",
+        "name": "MIGHTY PUTI STICK",
+        "price": 10,
+        "cost": 8.02,
+        "qty": 1,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20MIGHTY%20PUTI%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 155,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 155,
+    "method": "Cash",
+    "tendered": 155,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1127",
+    "receiptNo": "2-1127",
+    "ts": 1789915320000,
+    "items": [
+      {
+        "productId": "p_10469",
+        "name": "TODAY'S MIXED FRUITS 836G",
+        "price": 125,
+        "cost": 99,
+        "qty": 1,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20TODAY%27S%20MIXED%20FRUITS%20836G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 125,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 125,
+    "method": "Cash",
+    "tendered": 125,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1126",
+    "receiptNo": "2-1126",
+    "ts": 1789915200000,
+    "items": [
+      {
+        "productId": "p_98000116",
+        "name": "WINSTON WHITE STICK",
+        "price": 12,
+        "cost": 9.92,
+        "qty": 1,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20WHITE%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10044",
+        "name": "FUEGO MATCH - PIECE",
+        "price": 3,
+        "cost": 0,
+        "qty": 1,
+        "category": "HOME ESSENTIALS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://enjoytheperk.com/cdn/shop/products/67.png?v=1673884009"
+      },
+      {
+        "productId": "p_10235",
+        "name": "#misc",
+        "price": 5,
+        "cost": 0,
+        "qty": 1,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": true,
+        "imageUrl": "https://visualeducation.com/wp-content/uploads/2017/05/product-photography-white-background-pack-shot-posterframe.jpg"
+      }
+    ],
+    "subtotal": 20,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 20,
+    "method": "Cash",
+    "tendered": 20,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1125",
+    "receiptNo": "2-1125",
+    "ts": 1789913700000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 3,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 36,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 36,
+    "method": "Cash",
+    "tendered": 36,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1124",
+    "receiptNo": "2-1124",
+    "ts": 1789912560000,
+    "items": [
+      {
+        "productId": "p_10480",
+        "name": "STAR CORNED BEEF 150G",
+        "price": 40,
+        "cost": 34.75,
+        "qty": 1,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20STAR%20CORNED%20BEEF%20150G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 40,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 40,
+    "method": "Cash",
+    "tendered": 40,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1123",
+    "receiptNo": "2-1123",
+    "ts": 1789911420000,
+    "items": [
+      {
+        "productId": "p_10155",
+        "name": "DINGDONG MIXED NUT 30G",
+        "price": 10,
+        "cost": 6.75,
+        "qty": 3,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://shopsuki.ph/cdn/shop/files/4800092332791_800x.jpg?v=1700107585"
+      }
+    ],
+    "subtotal": 30,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 30,
+    "method": "Cash",
+    "tendered": 30,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1122",
+    "receiptNo": "2-1122",
+    "ts": 1789911360000,
+    "items": [
+      {
+        "productId": "p_10352",
+        "name": "CREAMLINE COOLERS STRAWBERRY 50ML",
+        "price": 14,
+        "cost": 9.9,
+        "qty": 2,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.rebisco.com.ph/1399-thickbox_default/cream-cooler-strawberry.jpg"
+      },
+      {
+        "productId": "p_10371",
+        "name": "CREAMLINE COOLERS MELON 70ML",
+        "price": 14,
+        "cost": 9.9,
+        "qty": 1,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.rebisco.com.ph/1397-thickbox_default/cream-cooler-melon.jpg"
+      },
+      {
+        "productId": "p_10381",
+        "name": "CREAMLINE COOLERS CHOCOLATE 50ML",
+        "price": 14,
+        "cost": 9.9,
+        "qty": 1,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://sukigrocer.com/cdn/shop/files/Sf5b89d4476e84bb1b66c38340c9c7772e.jpg?v=1745472590"
+      }
+    ],
+    "subtotal": 56,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 56,
+    "method": "Cash",
+    "tendered": 56,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1121",
+    "receiptNo": "2-1121",
+    "ts": 1789911120000,
+    "items": [
+      {
+        "productId": "p_10321",
+        "name": "LUCKYME MAC & CHEESE",
+        "price": 28.98,
+        "cost": 24.25,
+        "qty": 2,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://luckyme.ph/static/uploads/products/product_16_3dbc1962.webp"
+      },
+      {
+        "productId": "p_10322",
+        "name": "NESTLE KOKO CRUNCH",
+        "price": 9,
+        "cost": 6.08,
+        "qty": 5,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://images.ctfassets.net/b9z5sch0zany/3KZ5MXoHHZRESzJINbuBCH/cd632db27b788f94935d6b0339c9a2ca/Milo-3.2kg.png"
+      }
+    ],
+    "subtotal": 102.96,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 102.96,
+    "method": "Cash",
+    "tendered": 102.96,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1120",
+    "receiptNo": "2-1120",
+    "ts": 1789910460000,
+    "items": [
+      {
+        "productId": "p_10408",
+        "name": "SURF POWDER ROSE FRESH 65G",
+        "price": 10,
+        "cost": 7.25,
+        "qty": 3,
+        "category": "CLEANING/LAUNDRY SUPPLIES",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20SURF%20POWDER%20ROSE%20FRESH%2065G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10253",
+        "name": "STING 290ML",
+        "price": 25,
+        "cost": 16.75,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://p16-oec-sg.ibyteimg.com/tos-alisg-i-aphluv4xwc-sg/6cd0212398dd48e699d2abf54a4eafbd~tplv-aphluv4xwc-resize-jpeg:800:800.jpeg?dr=15584&t=555f072d&ps=933b5bde&shp=6ce186a1&shcp=e1be8f53&idc=maliva&from=1826719393"
+      }
+    ],
+    "subtotal": 55,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 55,
+    "method": "Cash",
+    "tendered": 55,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1119",
+    "receiptNo": "2-1119",
+    "ts": 1789909440000,
+    "items": [
+      {
+        "productId": "p_10085",
+        "name": "SM FLAVORED BEER APPLE",
+        "price": 53,
+        "cost": 41,
+        "qty": 2,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://happyhour.ph/cdn/shop/products/san-miguel-flavored-beer-apple-330ml-760211.jpg?v=1708591405&width=1445"
+      },
+      {
+        "productId": "p_98000063",
+        "name": "VCUT CHEESE FLAVOR 60G",
+        "price": 41.5,
+        "cost": 31.95,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20VCUT%20CHEESE%20FLAVOR%2060G%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 147.5,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 147.5,
+    "method": "Cash",
+    "tendered": 147.5,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1118",
+    "receiptNo": "2-1118",
+    "ts": 1789909260000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 2,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 24,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 24,
+    "method": "Cash",
+    "tendered": 24,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1117",
+    "receiptNo": "2-1117",
+    "ts": 1789909200000,
+    "items": [
+      {
+        "productId": "p_10142",
+        "name": "OISHI PRAWN CRACKERS SPICY 24G",
+        "price": 9,
+        "cost": 7.5,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.oishi.com.ph/wp-content/uploads/2017/04/oishi-prawn-crackers-spicy-100g-copy.png"
+      },
+      {
+        "productId": "p_10084",
+        "name": "RED HORSE LITRO",
+        "price": 145,
+        "cost": 120,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.cebooze.com/app/uploads/2023/07/1l.jpeg"
+      },
+      {
+        "productId": "p_10155",
+        "name": "DINGDONG MIXED NUT 30G",
+        "price": 10,
+        "cost": 6.75,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://shopsuki.ph/cdn/shop/files/4800092332791_800x.jpg?v=1700107585"
+      },
+      {
+        "productId": "p_10235",
+        "name": "#misc",
+        "price": 3,
+        "cost": 0,
+        "qty": 1,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": true,
+        "imageUrl": "https://visualeducation.com/wp-content/uploads/2017/05/product-photography-white-background-pack-shot-posterframe.jpg"
+      }
+    ],
+    "subtotal": 167,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 167,
+    "method": "Cash",
+    "tendered": 167,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1116",
+    "receiptNo": "2-1116",
+    "ts": 1789908600000,
+    "items": [
+      {
+        "productId": "p_10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "price": 25,
+        "cost": 14.26,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "http://www.magicstarsupermarket.com/cdn/shop/products/Natures-Spring-Purified-Water-1L-500x500-product_popup_1200x1200.png?v=1594886657"
+      },
+      {
+        "productId": "p_10298",
+        "name": "ICE CUBE 1KG",
+        "price": 25,
+        "cost": 13,
+        "qty": 1,
+        "category": "ICE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://5.imimg.com/data5/IMOB/Default/2025/3/498986786/GX/FJ/BW/75057132/img-20240305-wa0000-3-1743154965003-jpg-500x500.jpg"
+      }
+    ],
+    "subtotal": 50,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 50,
+    "method": "Cash",
+    "tendered": 50,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1115",
+    "receiptNo": "2-1115",
+    "ts": 1789908540000,
+    "items": [
+      {
+        "productId": "p_10174",
+        "name": "KOPIKO BLACK 2PK",
+        "price": 16.98,
+        "cost": 13.4,
+        "qty": 1,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://imartgrocersph.com/wp-content/uploads/2020/09/Kopiko-Black-3-in-1-Twin-Pack-60g.png"
+      },
+      {
+        "productId": "p_98000050",
+        "name": "GREAT TASTE WHITE TWIN PACK",
+        "price": 14,
+        "cost": 10.83,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20GREAT%20TASTE%20WHITE%20TWIN%20PACK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10216",
+        "name": "MANG JUAN SUKANG PAOMBONG 90G",
+        "price": 29.75,
+        "cost": 22.5,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://seattlemanilaorientalstore.com/wp-content/uploads/2023/06/img_0771-1-scaled.jpeg"
+      }
+    ],
+    "subtotal": 60.73,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 60.73,
+    "method": "Cash",
+    "tendered": 60.73,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1114",
+    "receiptNo": "2-1114",
+    "ts": 1789907700000,
+    "items": [
+      {
+        "productId": "p_98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "price": 60,
+        "cost": 48,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20DELIGHT%20PROBIOTIC%20400ML%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10368",
+        "name": "CREAMLINE MINI CUP CHOCOLATE 75ML",
+        "price": 19.98,
+        "cost": 12.7,
+        "qty": 2,
+        "category": "ICE CREAM 🍦",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.rebisco.com.ph/1403-thickbox_default/mini-cup-chocolate.jpg"
+      }
+    ],
+    "subtotal": 99.96,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 99.96,
+    "method": "Cash",
+    "tendered": 99.96,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1113",
+    "receiptNo": "2-1113",
+    "ts": 1789907040000,
+    "items": [
+      {
+        "productId": "p_10084",
+        "name": "RED HORSE LITRO",
+        "price": 145,
+        "cost": 120,
+        "qty": 2,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.cebooze.com/app/uploads/2023/07/1l.jpeg"
+      }
+    ],
+    "subtotal": 290,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 290,
+    "method": "Cash",
+    "tendered": 290,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1112",
+    "receiptNo": "2-1112",
+    "ts": 1789906080000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 3,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10043",
+        "name": "LION TIGER KATOL - COIL",
+        "price": 5,
+        "cost": 4,
+        "qty": 1,
+        "category": "HOME ESSENTIALS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.royplazastore.com/media/208006.jpg"
+      }
+    ],
+    "subtotal": 41,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 41,
+    "method": "Cash",
+    "tendered": 41,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1111",
+    "receiptNo": "2-1111",
+    "ts": 1789904760000,
+    "items": [
+      {
+        "productId": "p_98000110",
+        "name": "MIGHTY PULA STICK",
+        "price": 10,
+        "cost": 8.02,
+        "qty": 2,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20MIGHTY%20PULA%20%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 20,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 20,
+    "method": "Cash",
+    "tendered": 20,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1110",
+    "receiptNo": "2-1110",
+    "ts": 1789904520000,
+    "items": [
+      {
+        "productId": "p_10084",
+        "name": "RED HORSE LITRO",
+        "price": 145,
+        "cost": 120,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.cebooze.com/app/uploads/2023/07/1l.jpeg"
+      }
+    ],
+    "subtotal": 145,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 145,
+    "method": "Cash",
+    "tendered": 145,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1109",
+    "receiptNo": "2-1109",
+    "ts": 1789904100000,
+    "items": [
+      {
+        "productId": "p_10330",
+        "name": "LEMON SQUARE CHEESE CAKE",
+        "price": 11.98,
+        "cost": 7.7,
+        "qty": 1,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://pinoywarehouse.com.au/wp-content/uploads/2025/02/noodlesLucky-Me-Beef-na-Beef.png"
+      },
+      {
+        "productId": "p_98000053",
+        "name": "C2 SOLO LEMON 230ML",
+        "price": 17,
+        "cost": 15.32,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20C2%20SOLO%20LEMON%20230ML%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 28.98,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 28.98,
+    "method": "Cash",
+    "tendered": 28.98,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1108",
+    "receiptNo": "2-1108",
+    "ts": 1789903740000,
+    "items": [
+      {
+        "productId": "p_98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "price": 60,
+        "cost": 48,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20DELIGHT%20PROBIOTIC%20400ML%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 60,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 60,
+    "method": "Card",
+    "tendered": 60,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1107",
+    "receiptNo": "2-1107",
+    "ts": 1789903140000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 2,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 24,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 24,
+    "method": "Cash",
+    "tendered": 24,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1106",
+    "receiptNo": "2-1106",
+    "ts": 1789903020000,
+    "items": [
+      {
+        "productId": "p_10143",
+        "name": "CHIPPY BBQ 25G",
+        "price": 9.75,
+        "cost": 6.3,
+        "qty": 1,
+        "category": "SNACKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "http://shopsuki.ph/cdn/shop/files/102064818_1024x.png?v=1685351781"
+      }
+    ],
+    "subtotal": 9.75,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 9.75,
+    "method": "Cash",
+    "tendered": 9.75,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1105",
+    "receiptNo": "2-1105",
+    "ts": 1789903020000,
+    "items": [
+      {
+        "productId": "p_10298",
+        "name": "ICE CUBE 1KG",
+        "price": 25,
+        "cost": 13,
+        "qty": 1,
+        "category": "ICE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://5.imimg.com/data5/IMOB/Default/2025/3/498986786/GX/FJ/BW/75057132/img-20240305-wa0000-3-1743154965003-jpg-500x500.jpg"
+      }
+    ],
+    "subtotal": 25,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 25,
+    "method": "Cash",
+    "tendered": 25,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1104",
+    "receiptNo": "2-1104",
+    "ts": 1789902480000,
+    "items": [
+      {
+        "productId": "p_98000054",
+        "name": "C2 GREEN TEA APPLE 1L",
+        "price": 57.75,
+        "cost": 44.42,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20C2%20GREEN%20TEA%20APPLE%201L%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_10005",
+        "name": "EFFICASCENT25",
+        "price": 28.5,
+        "cost": 0,
+        "qty": 1,
+        "category": "ESSENTIAL OILS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://lzd-img-global.slatic.net/g/p/4d8b4624c22aa83c2e415ae3504c1d55.png_720x720q80.jpg_.webp"
+      }
+    ],
+    "subtotal": 86.25,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 86.25,
+    "method": "Cash",
+    "tendered": 86.25,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1102",
+    "receiptNo": "2-1102",
+    "ts": 1789901580000,
+    "items": [
+      {
+        "productId": "p_10260",
+        "name": "HOLIDAY BEEF LOAF",
+        "price": 25,
+        "cost": 21,
+        "qty": 4,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://avicatransport.com/cdn/shop/products/holibl150g.jpg?v=1675415195"
+      }
+    ],
+    "subtotal": 100,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 100,
+    "method": "Cash",
+    "tendered": 100,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1101",
+    "receiptNo": "2-1101",
+    "ts": 1789901220000,
+    "items": [
+      {
+        "productId": "p_10084",
+        "name": "RED HORSE LITRO",
+        "price": 145,
+        "cost": 120,
+        "qty": 2,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.cebooze.com/app/uploads/2023/07/1l.jpeg"
+      }
+    ],
+    "subtotal": 290,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 290,
+    "method": "Cash",
+    "tendered": 290,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1100",
+    "receiptNo": "2-1100",
+    "ts": 1789900260000,
+    "items": [
+      {
+        "productId": "p_10261",
+        "name": "555 SARDINES 155G",
+        "price": 26,
+        "cost": 23.45,
+        "qty": 2,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://bf1af2.akinoncloudcdn.com/products/2024/09/11/65182/fc44aba3-b32c-4ac0-8ef8-12a5c8a755ac.jpg"
+      },
+      {
+        "productId": "p_10201",
+        "name": "OSAKA SARDINES",
+        "price": 27,
+        "cost": 23.39,
+        "qty": 1,
+        "category": "FOOD",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://static.vecteezy.com/system/resources/previews/068/978/728/non_2x/an-open-tin-of-sardines-on-a-white-background-free-photo.jpg"
+      }
+    ],
+    "subtotal": 79,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 79,
+    "method": "Cash",
+    "tendered": 79,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1099",
+    "receiptNo": "2-1099",
+    "ts": 1789900080000,
+    "items": [
+      {
+        "productId": "p_98000117",
+        "name": "WINSTON RED STICK",
+        "price": 12,
+        "cost": 9.1,
+        "qty": 2,
+        "category": "CIGARETTE",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20WINSTON%20RED%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      },
+      {
+        "productId": "p_98000110",
+        "name": "MIGHTY PULA STICK",
+        "price": 10,
+        "cost": 8.02,
+        "qty": 2,
+        "category": "MISC",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://image.pollinations.ai/prompt/realistic%20retail%20product%20photo%20of%20MIGHTY%20PULA%20%20STICK%2C%20front-facing%2C%20isolated%20on%20white%20background"
+      }
+    ],
+    "subtotal": 44,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 44,
+    "method": "Cash",
+    "tendered": 44,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1098",
+    "receiptNo": "2-1098",
+    "ts": 1789899780000,
+    "items": [
+      {
+        "productId": "p_10084",
+        "name": "RED HORSE LITRO",
+        "price": 145,
+        "cost": 120,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.cebooze.com/app/uploads/2023/07/1l.jpeg"
+      }
+    ],
+    "subtotal": 145,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 145,
+    "method": "Cash",
+    "tendered": 145,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-1097",
+    "receiptNo": "2-1097",
+    "ts": 1789899000000,
+    "items": [
+      {
+        "productId": "p_10316",
+        "name": "GILLETTE RUBIE BLADE",
+        "price": 15,
+        "cost": 0,
+        "qty": 1,
+        "category": "HOME ESSENTIALS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://shopsuki.ph/cdn/shop/files/102054319_1024x.png?v=1699520149"
+      }
+    ],
+    "subtotal": 15,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 15,
+    "method": "Cash",
+    "tendered": 15,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
     "id": "TXN-2-1096",
     "receiptNo": "2-1096",
     "ts": 1789899000000,
@@ -28,7 +1861,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 107.76,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1095",
@@ -58,7 +1894,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 145,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1094",
@@ -101,7 +1940,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1093",
@@ -131,7 +1973,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1092",
@@ -161,7 +2006,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1091",
@@ -191,7 +2039,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1090",
@@ -234,7 +2085,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1089",
@@ -290,7 +2144,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 321.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1088",
@@ -320,7 +2177,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 145,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1087",
@@ -350,7 +2210,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1086",
@@ -393,7 +2256,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 85,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1085",
@@ -423,7 +2289,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1084",
@@ -453,7 +2322,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1083",
@@ -509,7 +2381,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 188.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1082",
@@ -539,7 +2414,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 3,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1081",
@@ -595,7 +2473,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 198.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1080",
@@ -625,7 +2506,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1079",
@@ -655,7 +2539,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1078",
@@ -685,7 +2572,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1077",
@@ -715,7 +2605,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1076",
@@ -745,7 +2638,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1075",
@@ -788,7 +2684,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1074",
@@ -831,7 +2730,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 33.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1073",
@@ -861,7 +2763,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22.89,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1072",
@@ -904,7 +2809,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1071",
@@ -934,7 +2842,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1070",
@@ -990,7 +2901,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 63,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1069",
@@ -1033,7 +2947,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 134.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1068",
@@ -1063,7 +2980,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1067",
@@ -1093,7 +3013,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1066",
@@ -1123,7 +3046,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1065",
@@ -1153,7 +3079,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1064",
@@ -1183,7 +3112,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1063",
@@ -1226,7 +3158,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 80,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1062",
@@ -1256,7 +3191,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1061",
@@ -1299,7 +3237,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 79,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1060",
@@ -1342,7 +3283,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 184.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1059",
@@ -1385,7 +3329,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1058",
@@ -1415,7 +3362,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1057",
@@ -1471,7 +3421,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 26.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1056",
@@ -1501,7 +3454,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1055",
@@ -1531,7 +3487,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1054",
@@ -1561,7 +3520,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 120,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1053",
@@ -1591,7 +3553,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 215,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1052",
@@ -1660,7 +3625,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 221.78,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1051",
@@ -1690,7 +3658,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 14.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1050",
@@ -1733,7 +3704,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 295,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1049",
@@ -1776,7 +3750,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1048",
@@ -1806,7 +3783,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1047",
@@ -1875,7 +3855,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 61.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1046",
@@ -1905,7 +3888,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 14,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1045",
@@ -1935,7 +3921,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1044",
@@ -1965,7 +3954,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1043",
@@ -1995,7 +3987,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1042",
@@ -2025,7 +4020,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 290,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1041",
@@ -2068,7 +4066,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 374.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1040",
@@ -2137,7 +4138,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1039",
@@ -2167,7 +4171,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1038",
@@ -2197,7 +4204,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 145,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1037",
@@ -2253,7 +4263,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 165,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1036",
@@ -2296,7 +4309,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1035",
@@ -2339,7 +4355,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1034",
@@ -2434,7 +4453,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 113.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1033",
@@ -2464,7 +4486,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 16,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1032",
@@ -2507,7 +4532,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1031",
@@ -2537,7 +4565,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1030",
@@ -2580,7 +4611,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 330.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1029",
@@ -2610,7 +4644,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1028",
@@ -2640,7 +4677,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 185,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1027",
@@ -2683,7 +4723,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 51,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1026",
@@ -2713,7 +4756,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1025",
@@ -2743,7 +4789,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1024",
@@ -2786,7 +4835,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1023",
@@ -2829,7 +4881,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1022",
@@ -2859,7 +4914,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1021",
@@ -2889,7 +4947,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1020",
@@ -2932,7 +4993,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 94.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1019",
@@ -3027,7 +5091,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 247.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1018",
@@ -3057,7 +5124,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1017",
@@ -3100,7 +5170,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 51,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1016",
@@ -3130,7 +5203,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1015",
@@ -3160,7 +5236,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1014",
@@ -3203,7 +5282,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1013",
@@ -3233,7 +5315,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1012",
@@ -3263,7 +5348,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1011",
@@ -3293,7 +5381,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1010",
@@ -3323,7 +5414,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1009",
@@ -3353,7 +5447,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1008",
@@ -3383,7 +5480,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1007",
@@ -3595,7 +5695,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 557.32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1006",
@@ -3625,7 +5728,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1005",
@@ -3707,7 +5813,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 162.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1004",
@@ -3750,7 +5859,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1003",
@@ -3806,7 +5918,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1002",
@@ -3862,7 +5977,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 69.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1001",
@@ -3892,7 +6010,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-1000",
@@ -4000,7 +6121,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 657.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0999",
@@ -4069,7 +6193,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 362,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0998",
@@ -4099,7 +6226,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0997",
@@ -4129,7 +6259,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0996",
@@ -4159,7 +6292,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0995",
@@ -4189,7 +6325,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0994",
@@ -4219,7 +6358,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0993",
@@ -4275,7 +6417,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 66.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0992",
@@ -4305,7 +6450,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0991",
@@ -4335,7 +6483,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0990",
@@ -4365,7 +6516,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0989",
@@ -4395,7 +6549,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0988",
@@ -4425,7 +6582,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0987",
@@ -4455,7 +6615,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0986",
@@ -4485,7 +6648,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0985",
@@ -4528,7 +6694,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0984",
@@ -4571,7 +6740,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 100.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0983",
@@ -4614,7 +6786,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0982",
@@ -4644,7 +6819,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0981",
@@ -4674,7 +6852,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0980",
@@ -4704,7 +6885,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0979",
@@ -4734,7 +6918,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0978",
@@ -4764,7 +6951,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 320,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0977",
@@ -4807,7 +6997,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0976",
@@ -4850,7 +7043,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0975",
@@ -4906,7 +7102,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0974",
@@ -4936,7 +7135,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0973",
@@ -4979,7 +7181,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0972",
@@ -5022,7 +7227,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0971",
@@ -5052,7 +7260,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0970",
@@ -5082,7 +7293,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 110,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0969",
@@ -5112,7 +7326,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0968",
@@ -5142,7 +7359,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0967",
@@ -5211,7 +7431,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 103.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0966",
@@ -5254,7 +7477,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0965",
@@ -5284,7 +7510,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0964",
@@ -5327,7 +7556,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0963",
@@ -5383,7 +7615,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0962",
@@ -5426,7 +7661,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 148,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0961",
@@ -5482,7 +7720,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0960",
@@ -5512,7 +7753,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0959",
@@ -5568,7 +7812,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0958",
@@ -5598,7 +7845,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0957",
@@ -5667,7 +7917,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 67,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0956",
@@ -5697,7 +7950,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0955",
@@ -5727,7 +7983,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0954",
@@ -5757,7 +8016,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0953",
@@ -5787,7 +8049,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 107.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0952",
@@ -5830,7 +8095,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0951",
@@ -5860,7 +8128,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0950",
@@ -5890,7 +8161,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 210.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0949",
@@ -5946,7 +8220,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0948",
@@ -5976,7 +8253,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0947",
@@ -6019,7 +8299,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 129.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0946",
@@ -6062,7 +8345,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0945",
@@ -6105,7 +8391,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 31,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0944",
@@ -6161,7 +8450,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 142.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0943",
@@ -6230,7 +8522,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0942",
@@ -6273,7 +8568,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 67,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0941",
@@ -6316,7 +8614,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 99,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0940",
@@ -6411,7 +8712,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 220.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0939",
@@ -6441,7 +8745,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0938",
@@ -6471,7 +8778,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0937",
@@ -6501,7 +8811,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0936",
@@ -6583,7 +8896,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 334,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0935",
@@ -6613,7 +8929,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0934",
@@ -6669,7 +8988,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0933",
@@ -6712,7 +9034,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 100,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0932",
@@ -6768,7 +9093,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0931",
@@ -6798,7 +9126,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0930",
@@ -6828,7 +9159,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0929",
@@ -6871,7 +9205,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0928",
@@ -6927,7 +9264,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0927",
@@ -6996,7 +9336,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0926",
@@ -7078,7 +9421,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 194.38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0925",
@@ -7134,7 +9480,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0924",
@@ -7164,7 +9513,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 38.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0923",
@@ -7194,7 +9546,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0922",
@@ -7250,7 +9605,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0921",
@@ -7280,7 +9638,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0920",
@@ -7310,7 +9671,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 16,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0919",
@@ -7353,7 +9717,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 61.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0918",
@@ -7383,7 +9750,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0917",
@@ -7413,7 +9783,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0916",
@@ -7456,7 +9829,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0915",
@@ -7486,7 +9862,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0914",
@@ -7516,7 +9895,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0913",
@@ -7559,7 +9941,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0912",
@@ -7589,7 +9974,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0911",
@@ -7619,7 +10007,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0910",
@@ -7649,7 +10040,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0909",
@@ -7679,7 +10073,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0908",
@@ -7761,7 +10158,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0907",
@@ -7791,7 +10191,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0906",
@@ -7821,7 +10224,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0905",
@@ -8007,7 +10413,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 437.61,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0904",
@@ -8037,7 +10446,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0903",
@@ -8132,7 +10544,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 320,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0902",
@@ -8175,7 +10590,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 99.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0901",
@@ -8205,7 +10623,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0900",
@@ -8235,7 +10656,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0899",
@@ -8291,7 +10715,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0898",
@@ -8334,7 +10761,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0897",
@@ -8377,7 +10807,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0896",
@@ -8407,7 +10840,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0894",
@@ -8437,7 +10873,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0893",
@@ -8467,7 +10906,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0892",
@@ -8562,7 +11004,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 180.88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0891",
@@ -8592,7 +11037,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0890",
@@ -8622,7 +11070,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0887",
@@ -8730,7 +11181,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 167.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0886",
@@ -8760,7 +11214,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 11.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0885",
@@ -8803,7 +11260,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 334,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0884",
@@ -8833,7 +11293,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 56,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0883",
@@ -8863,7 +11326,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0882",
@@ -8893,7 +11359,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0881",
@@ -8923,7 +11392,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 23.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0880",
@@ -8953,7 +11425,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0879",
@@ -8983,7 +11458,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0878",
@@ -9013,7 +11491,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0877",
@@ -9043,7 +11524,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0876",
@@ -9073,7 +11557,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0875",
@@ -9103,7 +11590,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 185,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0874",
@@ -9146,7 +11636,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0873",
@@ -9189,7 +11682,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0872",
@@ -9232,7 +11728,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0871",
@@ -9275,7 +11774,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 52,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0870",
@@ -9305,7 +11807,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0869",
@@ -9361,7 +11866,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 188.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0868",
@@ -9391,7 +11899,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 77,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0867",
@@ -9421,7 +11932,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0866",
@@ -9464,7 +11978,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0865",
@@ -9507,7 +12024,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0864",
@@ -9537,7 +12057,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0863",
@@ -9567,7 +12090,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0862",
@@ -9597,7 +12123,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0861",
@@ -9653,7 +12182,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 124.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0860",
@@ -9683,7 +12215,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0859",
@@ -9739,7 +12274,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0858",
@@ -9782,7 +12320,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0857",
@@ -9825,7 +12366,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 153.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0856",
@@ -9868,7 +12412,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 61.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0855",
@@ -9898,7 +12445,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0854",
@@ -9928,7 +12478,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 870,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0853",
@@ -9997,7 +12550,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 291,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0852",
@@ -10040,7 +12596,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0851",
@@ -10122,7 +12681,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 403,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0850",
@@ -10165,7 +12727,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 73.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0849",
@@ -10195,7 +12760,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 26.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0848",
@@ -10238,7 +12806,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 180,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0847",
@@ -10268,7 +12839,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0846",
@@ -10324,7 +12898,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0845",
@@ -10367,7 +12944,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0844",
@@ -10410,7 +12990,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 100,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0843",
@@ -10466,7 +13049,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 190,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0842",
@@ -10509,7 +13095,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0841",
@@ -10552,7 +13141,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 81.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0840",
@@ -10608,7 +13200,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 137.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0839",
@@ -10651,7 +13246,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0838",
@@ -10681,7 +13279,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0837",
@@ -10724,7 +13325,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0836",
@@ -10767,7 +13371,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 77,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0835",
@@ -10810,7 +13417,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0834",
@@ -10853,7 +13463,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0833",
@@ -10896,7 +13509,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 76,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0832",
@@ -10926,7 +13542,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0831",
@@ -10956,7 +13575,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0830",
@@ -10986,7 +13608,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0829",
@@ -11016,7 +13641,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0828",
@@ -11046,7 +13674,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0827",
@@ -11076,7 +13707,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 21.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0826",
@@ -11106,7 +13740,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0825",
@@ -11136,7 +13773,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0824",
@@ -11166,7 +13806,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 363.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0823",
@@ -11196,7 +13839,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0822",
@@ -11226,7 +13872,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0821",
@@ -11256,7 +13905,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0820",
@@ -11299,7 +13951,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 164.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0819",
@@ -11368,7 +14023,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 112,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0818",
@@ -11411,7 +14069,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 245,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0817",
@@ -11441,7 +14102,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0816",
@@ -11497,7 +14161,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 130,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0815",
@@ -11527,7 +14194,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0814",
@@ -11557,7 +14227,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0813",
@@ -11600,7 +14273,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0812",
@@ -11643,7 +14319,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0811",
@@ -11686,7 +14365,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 242.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0810",
@@ -11716,7 +14398,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0809",
@@ -11759,7 +14444,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0808",
@@ -11789,7 +14477,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0807",
@@ -11858,7 +14549,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 74,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0806",
@@ -11888,7 +14582,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0805",
@@ -11970,7 +14667,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 135.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0804",
@@ -12013,7 +14713,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0803",
@@ -12056,7 +14759,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0802",
@@ -12112,7 +14818,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 98.46,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0801",
@@ -12259,7 +14968,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 376.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0800",
@@ -12289,7 +15001,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 49.9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0799",
@@ -12319,7 +15034,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0798",
@@ -12362,7 +15080,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0797",
@@ -12418,7 +15139,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 33.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0796",
@@ -12461,7 +15185,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0795",
@@ -12491,7 +15218,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0794",
@@ -12521,7 +15251,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0793",
@@ -12564,7 +15297,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 66,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0792",
@@ -12594,7 +15330,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0791",
@@ -12624,7 +15363,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0790",
@@ -12654,7 +15396,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0789",
@@ -12710,7 +15455,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 110.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0788",
@@ -12753,7 +15501,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 105.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0787",
@@ -12822,7 +15573,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 102.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0786",
@@ -12904,7 +15658,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 134.46,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0785",
@@ -12960,7 +15717,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 141.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0784",
@@ -12990,7 +15750,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 6,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0783",
@@ -13020,7 +15783,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0782",
@@ -13050,7 +15816,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0781",
@@ -13106,7 +15875,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0780",
@@ -13136,7 +15908,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 14.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0779",
@@ -13166,7 +15941,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0778",
@@ -13222,7 +16000,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 181.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0777",
@@ -13291,7 +16072,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 103,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0776",
@@ -13334,7 +16118,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0775",
@@ -13364,7 +16151,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0774",
@@ -13420,7 +16210,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 196.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0773",
@@ -13450,7 +16243,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0772",
@@ -13493,7 +16289,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0771",
@@ -13523,7 +16322,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0770",
@@ -13553,7 +16355,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0769",
@@ -13596,7 +16401,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0768",
@@ -13626,7 +16434,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0767",
@@ -13708,7 +16519,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 99.23,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0766",
@@ -13738,7 +16552,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0765",
@@ -13768,7 +16585,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0764",
@@ -13850,7 +16670,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 477.84,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0763",
@@ -13880,7 +16703,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0762",
@@ -13923,7 +16749,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 95.8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0761",
@@ -13966,7 +16795,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0760",
@@ -13996,7 +16828,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0759",
@@ -14026,7 +16861,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0758",
@@ -14056,7 +16894,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0756",
@@ -14099,7 +16940,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 165,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0755",
@@ -14142,7 +16986,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0754",
@@ -14198,7 +17045,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 172,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0753",
@@ -14228,7 +17078,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0752",
@@ -14284,7 +17137,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0751",
@@ -14314,7 +17170,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0750",
@@ -14344,7 +17203,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 145,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0749",
@@ -14426,7 +17288,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 114.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0747",
@@ -14469,7 +17334,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0746",
@@ -14499,7 +17367,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0745",
@@ -14568,7 +17439,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 218.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0744",
@@ -14598,7 +17472,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0743",
@@ -14628,7 +17505,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 106,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0742",
@@ -14671,7 +17551,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0741",
@@ -14701,7 +17584,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 110,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0740",
@@ -14744,7 +17630,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0739",
@@ -14774,7 +17663,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 76,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0738",
@@ -14804,7 +17696,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0737",
@@ -14834,7 +17729,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0736",
@@ -14864,7 +17762,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0735",
@@ -14920,7 +17821,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0734",
@@ -14976,7 +17880,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0733",
@@ -15019,7 +17926,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0732",
@@ -15101,7 +18011,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 101.42,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0731",
@@ -15144,7 +18057,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0730",
@@ -15187,7 +18103,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 148,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0729",
@@ -15217,7 +18136,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0728",
@@ -15286,7 +18208,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 143.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0727",
@@ -15329,7 +18254,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0726",
@@ -15385,7 +18313,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0725",
@@ -15415,7 +18346,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 43,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0724",
@@ -15445,7 +18379,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0723",
@@ -15501,7 +18438,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0722",
@@ -15544,7 +18484,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 61,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0721",
@@ -15587,7 +18530,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 43.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0720",
@@ -15617,7 +18563,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0719",
@@ -15647,7 +18596,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0718",
@@ -15781,7 +18733,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 159.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0717",
@@ -15811,7 +18766,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0716",
@@ -15854,7 +18812,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0715",
@@ -15897,7 +18858,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0714",
@@ -15940,7 +18904,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 31.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0713",
@@ -15996,7 +18963,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 86,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0712",
@@ -16026,7 +18996,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0711",
@@ -16056,7 +19029,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 3,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0710",
@@ -16112,7 +19088,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 208,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0709",
@@ -16168,7 +19147,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 89.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0348",
@@ -16198,7 +19180,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0347",
@@ -16254,7 +19239,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0708",
@@ -16323,7 +19311,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 157.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0707",
@@ -16353,7 +19344,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0706",
@@ -16396,7 +19390,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0705",
@@ -16452,7 +19449,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0704",
@@ -16482,7 +19482,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0703",
@@ -16551,7 +19554,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0702",
@@ -16607,7 +19613,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0701",
@@ -16650,7 +19659,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0700",
@@ -16693,7 +19705,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48.71,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0699",
@@ -16788,7 +19803,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 268.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0698",
@@ -16922,7 +19940,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 189.44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0697",
@@ -16965,7 +19986,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0696",
@@ -16995,7 +20019,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0695",
@@ -17051,7 +20078,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 693.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0694",
@@ -17081,7 +20111,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0693",
@@ -17137,7 +20170,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 174.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0692",
@@ -17206,7 +20242,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 144,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0691",
@@ -17275,7 +20314,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 52.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0690",
@@ -17305,7 +20347,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0689",
@@ -17335,7 +20380,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0688",
@@ -17482,7 +20530,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 641.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0687",
@@ -17512,7 +20563,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0686",
@@ -17581,7 +20635,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 56,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0685",
@@ -17728,7 +20785,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 270.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0681",
@@ -17797,7 +20857,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 92.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0680",
@@ -17827,7 +20890,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0679",
@@ -17857,7 +20923,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0678",
@@ -17887,7 +20956,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 127,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0677",
@@ -17943,7 +21015,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 79.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0676",
@@ -17986,7 +21061,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 180.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0675",
@@ -18068,7 +21146,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 76.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0674",
@@ -18098,7 +21179,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0673",
@@ -18206,7 +21290,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 88.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0672",
@@ -18236,7 +21323,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0671",
@@ -18266,7 +21356,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0670",
@@ -18309,7 +21402,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0669",
@@ -18430,7 +21526,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 197.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0668",
@@ -18512,7 +21611,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 132.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0667",
@@ -18568,7 +21670,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0666",
@@ -18598,7 +21703,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0665",
@@ -18641,7 +21749,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0664",
@@ -18671,7 +21782,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0663",
@@ -18701,7 +21815,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0662",
@@ -18744,7 +21861,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0661",
@@ -18813,7 +21933,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0660",
@@ -18843,7 +21966,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 21.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0659",
@@ -18938,7 +22064,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 149.44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0658",
@@ -19007,7 +22136,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 79.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0684",
@@ -19037,7 +22169,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 51,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0683",
@@ -19067,7 +22202,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0682",
@@ -19110,7 +22248,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0657",
@@ -19166,7 +22307,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 139,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0656",
@@ -19196,7 +22340,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0655",
@@ -19265,7 +22412,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 555,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0654",
@@ -19295,7 +22445,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0653",
@@ -19325,7 +22478,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0652",
@@ -19355,7 +22511,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0651",
@@ -19450,7 +22609,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 400.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0650",
@@ -19493,7 +22655,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0649",
@@ -19536,7 +22701,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0648",
@@ -19579,7 +22747,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0647",
@@ -19674,7 +22845,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 101.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0646",
@@ -19717,7 +22891,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0645",
@@ -19747,7 +22924,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0644",
@@ -19777,7 +22957,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0643",
@@ -19820,7 +23003,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0642",
@@ -19863,7 +23049,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 147,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0641",
@@ -19906,7 +23095,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0640",
@@ -19949,7 +23141,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 33.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0639",
@@ -19992,7 +23187,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0638",
@@ -20048,7 +23246,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 49.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0637",
@@ -20078,7 +23279,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0636",
@@ -20108,7 +23312,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0635",
@@ -20138,7 +23345,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0634",
@@ -20168,7 +23378,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0633",
@@ -20237,7 +23450,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 153.8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0632",
@@ -20280,7 +23496,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 310.78,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0631",
@@ -20310,7 +23529,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0630",
@@ -20353,7 +23575,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 156.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0629",
@@ -20435,7 +23660,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 69.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0628",
@@ -20465,7 +23693,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0627",
@@ -20495,7 +23726,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0626",
@@ -20525,7 +23759,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0625",
@@ -20555,7 +23792,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0624",
@@ -20598,7 +23838,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0623",
@@ -20628,7 +23871,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0622",
@@ -20684,7 +23930,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 64.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0621",
@@ -20714,7 +23963,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0620",
@@ -20744,7 +23996,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0619",
@@ -20774,7 +24029,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 4,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0618",
@@ -20817,7 +24075,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 26.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0617",
@@ -20899,7 +24160,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 228.76,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0616",
@@ -20929,7 +24193,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0615",
@@ -20972,7 +24239,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 74.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0614",
@@ -21002,7 +24272,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 13,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0613",
@@ -21032,7 +24305,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 130,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0612",
@@ -21062,7 +24338,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0611",
@@ -21092,7 +24371,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0610",
@@ -21148,7 +24430,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 154.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0609",
@@ -21178,7 +24463,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0608",
@@ -21221,7 +24509,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 85,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0346",
@@ -21251,7 +24542,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0345",
@@ -21281,7 +24575,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0344",
@@ -21311,7 +24608,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0343",
@@ -21354,7 +24654,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 695.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0342",
@@ -21384,7 +24687,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0607",
@@ -21440,7 +24746,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0606",
@@ -21470,7 +24779,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 21.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0605",
@@ -21500,7 +24812,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0604",
@@ -21530,7 +24845,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0603",
@@ -21560,7 +24878,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0602",
@@ -21590,7 +24911,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0601",
@@ -21646,7 +24970,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0600",
@@ -21676,7 +25003,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0599",
@@ -21719,7 +25049,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 229.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0598",
@@ -21749,7 +25082,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0597",
@@ -21792,7 +25128,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 159.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0596",
@@ -21835,7 +25174,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0595",
@@ -21865,7 +25207,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0594",
@@ -21908,7 +25253,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0593",
@@ -21990,7 +25338,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 110.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0592",
@@ -22020,7 +25371,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 310,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0591",
@@ -22180,7 +25534,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 1383.4,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0590",
@@ -22223,7 +25580,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 68,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0589",
@@ -22292,7 +25652,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 91.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0588",
@@ -22348,7 +25711,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0587",
@@ -22378,7 +25744,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0586",
@@ -22408,7 +25777,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 165,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0585",
@@ -22438,7 +25810,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 205,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0584",
@@ -22468,7 +25843,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 229.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0583",
@@ -22511,7 +25889,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0582",
@@ -22541,7 +25922,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 630,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0581",
@@ -22636,7 +26020,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 261.44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0580",
@@ -22666,7 +26053,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 21.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0579",
@@ -22696,7 +26086,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 290,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0578",
@@ -22726,7 +26119,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0577",
@@ -22769,7 +26165,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 136,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0576",
@@ -22799,7 +26198,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0575",
@@ -22829,7 +26231,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0574",
@@ -22872,7 +26277,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0573",
@@ -22928,7 +26336,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 318,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0572",
@@ -22971,7 +26382,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 63.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0571",
@@ -23001,7 +26415,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0570",
@@ -23031,7 +26448,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0569",
@@ -23074,7 +26494,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 459.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0568",
@@ -23104,7 +26527,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0567",
@@ -23134,7 +26560,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0566",
@@ -23164,7 +26593,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0565",
@@ -23194,7 +26626,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0564",
@@ -23224,7 +26659,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 435,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0563",
@@ -23254,7 +26692,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 57.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0562",
@@ -23284,7 +26725,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0561",
@@ -23314,7 +26758,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0560",
@@ -23344,7 +26791,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0559",
@@ -23387,7 +26837,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0558",
@@ -23417,7 +26870,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0557",
@@ -23447,7 +26903,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0556",
@@ -23477,7 +26936,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 225,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0555",
@@ -23507,7 +26969,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0554",
@@ -23537,7 +27002,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 100,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0553",
@@ -23567,7 +27035,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 14.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0552",
@@ -23610,7 +27081,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 33.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0551",
@@ -23640,7 +27114,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0550",
@@ -23670,7 +27147,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0549",
@@ -23700,7 +27180,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0548",
@@ -23743,7 +27226,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0547",
@@ -23786,7 +27272,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0546",
@@ -23829,7 +27318,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0545",
@@ -23872,7 +27364,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0544",
@@ -23941,7 +27436,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0543",
@@ -23984,7 +27482,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0542",
@@ -24014,7 +27515,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 14,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0541",
@@ -24070,7 +27574,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0540",
@@ -24178,7 +27685,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 112.46,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0539",
@@ -24208,7 +27718,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0538",
@@ -24329,7 +27842,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 153.44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0537",
@@ -24359,7 +27875,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0536",
@@ -24389,7 +27908,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0535",
@@ -24484,7 +28006,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 320.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0534",
@@ -24527,7 +28052,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 164.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0533",
@@ -24570,7 +28098,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65.86,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0532",
@@ -24613,7 +28144,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0531",
@@ -24669,7 +28203,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 42,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0530",
@@ -24764,7 +28301,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 190.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0529",
@@ -24794,7 +28334,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0528",
@@ -24824,7 +28367,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0341",
@@ -24880,7 +28426,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 119.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0340",
@@ -24923,7 +28472,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0524",
@@ -24953,7 +28505,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0523",
@@ -24983,7 +28538,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0522",
@@ -25026,7 +28584,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0521",
@@ -25082,7 +28643,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 83.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0520",
@@ -25138,7 +28702,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0519",
@@ -25168,7 +28735,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0518",
@@ -25198,7 +28768,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0517",
@@ -25228,7 +28801,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0516",
@@ -25271,7 +28847,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0515",
@@ -25301,7 +28880,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0514",
@@ -25331,7 +28913,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0513",
@@ -25387,7 +28972,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 153.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0512",
@@ -25417,7 +29005,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0511",
@@ -25460,7 +29051,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 109.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0510",
@@ -25490,7 +29084,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0509",
@@ -25520,7 +29117,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0508",
@@ -25550,7 +29150,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0507",
@@ -25593,7 +29196,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0506",
@@ -25649,7 +29255,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 178.67,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0505",
@@ -25679,7 +29288,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0504",
@@ -25709,7 +29321,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0503",
@@ -25739,7 +29354,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0502",
@@ -25769,7 +29387,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0501",
@@ -25838,7 +29459,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.23,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0500",
@@ -25868,7 +29492,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 169.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0499",
@@ -25898,7 +29525,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 169.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0498",
@@ -25928,7 +29558,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0497",
@@ -25958,7 +29591,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0496",
@@ -25988,7 +29624,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 58,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0495",
@@ -26070,7 +29709,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72.44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0494",
@@ -26178,7 +29820,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 121,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0527",
@@ -26208,7 +29853,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0526",
@@ -26251,7 +29899,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0525",
@@ -26307,7 +29958,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 119.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0493",
@@ -26350,7 +30004,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 345,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0492",
@@ -26419,7 +30076,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 217.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0491",
@@ -26475,7 +30135,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0490",
@@ -26531,7 +30194,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0489",
@@ -26600,7 +30266,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 199.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0488",
@@ -26656,7 +30325,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 396,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0487",
@@ -26686,7 +30358,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0486",
@@ -26716,7 +30391,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0485",
@@ -26759,7 +30437,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 325,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0484",
@@ -26789,7 +30470,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0483",
@@ -26819,7 +30503,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 74.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0482",
@@ -26862,7 +30549,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0481",
@@ -26918,7 +30608,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0480",
@@ -26974,7 +30667,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0479",
@@ -27017,7 +30713,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 154,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0478",
@@ -27060,7 +30759,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 121,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0477",
@@ -27116,7 +30818,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 68.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0476",
@@ -27172,7 +30877,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 910,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0475",
@@ -27202,7 +30910,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0474",
@@ -27232,7 +30943,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0473",
@@ -27262,7 +30976,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 155.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0472",
@@ -27305,7 +31022,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0471",
@@ -27348,7 +31068,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 101.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0470",
@@ -27378,7 +31101,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0469",
@@ -27421,7 +31147,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0468",
@@ -27451,7 +31180,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0467",
@@ -27481,7 +31213,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0466",
@@ -27511,7 +31246,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0465",
@@ -27541,7 +31279,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0464",
@@ -27571,7 +31312,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0463",
@@ -27601,7 +31345,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0462",
@@ -27657,7 +31404,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 43.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0461",
@@ -27726,7 +31476,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 71.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0460",
@@ -27756,7 +31509,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0459",
@@ -27825,7 +31581,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 322.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0458",
@@ -27855,7 +31614,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0457",
@@ -27898,7 +31660,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 26.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0456",
@@ -27928,7 +31693,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0455",
@@ -27958,7 +31726,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0454",
@@ -28001,7 +31772,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 86.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0453",
@@ -28096,7 +31870,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 202.9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0452",
@@ -28165,7 +31942,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 85,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0451",
@@ -28195,7 +31975,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0450",
@@ -28225,7 +32008,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0449",
@@ -28255,7 +32041,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0448",
@@ -28285,7 +32074,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 169.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0447",
@@ -28315,7 +32107,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0446",
@@ -28345,7 +32140,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0445",
@@ -28375,7 +32173,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0444",
@@ -28405,7 +32206,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0443",
@@ -28435,7 +32239,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0442",
@@ -28465,7 +32272,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0441",
@@ -28495,7 +32305,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0440",
@@ -28525,7 +32338,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 169.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0439",
@@ -28568,7 +32384,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 42.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0438",
@@ -28598,7 +32417,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0437",
@@ -28628,7 +32450,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0436",
@@ -28658,7 +32483,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0435",
@@ -28714,7 +32542,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0434",
@@ -28744,7 +32575,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0433",
@@ -28774,7 +32608,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0432",
@@ -28843,7 +32680,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 86,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0431",
@@ -28873,7 +32713,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0430",
@@ -28916,7 +32759,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 42,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0429",
@@ -28959,7 +32805,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 480,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0428",
@@ -28989,7 +32838,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0427",
@@ -29019,7 +32871,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0426",
@@ -29062,7 +32917,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 51,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0425",
@@ -29092,7 +32950,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0424",
@@ -29122,7 +32983,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 560,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0423",
@@ -29165,7 +33029,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 97.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0422",
@@ -29208,7 +33075,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0421",
@@ -29238,7 +33108,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0420",
@@ -29359,7 +33232,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 427.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0419",
@@ -29415,7 +33291,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0418",
@@ -29484,7 +33363,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64.21,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0417",
@@ -29514,7 +33396,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0416",
@@ -29544,7 +33429,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0415",
@@ -29574,7 +33462,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0414",
@@ -29617,7 +33508,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0413",
@@ -29647,7 +33541,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0412",
@@ -29690,7 +33587,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0411",
@@ -29720,7 +33620,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0410",
@@ -29789,7 +33692,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0409",
@@ -29819,7 +33725,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0408",
@@ -29875,7 +33784,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 145.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0407",
@@ -29931,7 +33843,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 42,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0406",
@@ -29974,11 +33889,14 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 95,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
-    "id": "TXN-2-0404",
-    "receiptNo": "2-0405, 2-0404",
+    "id": "TXN-2-0405",
+    "receiptNo": "2-0405",
     "ts": 1788603480000,
     "items": [
       {
@@ -30004,7 +33922,43 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-2-0404",
+    "receiptNo": "2-0404",
+    "ts": 1788603480000,
+    "items": [
+      {
+        "productId": "p_10239",
+        "name": "MOUNTAIN DEW (290ML)",
+        "price": 20,
+        "cost": 16.35,
+        "qty": 2,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://cdn.store-assets.com/s/377840/i/16427684.jpeg"
+      }
+    ],
+    "subtotal": 40,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 40,
+    "method": "Cash",
+    "tendered": 40,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0403",
@@ -30047,7 +34001,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0402",
@@ -30116,7 +34073,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 221.9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0401",
@@ -30146,7 +34106,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0400",
@@ -30176,7 +34139,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0399",
@@ -30206,7 +34172,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0398",
@@ -30249,7 +34218,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 122,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0397",
@@ -30305,7 +34277,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0396",
@@ -30348,7 +34323,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 71,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0395",
@@ -30378,7 +34356,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0394",
@@ -30408,7 +34389,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 155.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0393",
@@ -30451,7 +34435,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0392",
@@ -30481,7 +34468,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0391",
@@ -30524,7 +34514,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0390",
@@ -30580,7 +34573,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 79.48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0389",
@@ -30610,7 +34606,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0388",
@@ -30653,7 +34652,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0387",
@@ -30683,7 +34685,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0386",
@@ -30713,7 +34718,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 2,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0385",
@@ -30743,7 +34751,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0384",
@@ -30851,7 +34862,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 166.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0383",
@@ -30894,7 +34908,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0382",
@@ -30937,7 +34954,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0381",
@@ -30980,7 +35000,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0380",
@@ -31023,7 +35046,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 286,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0379",
@@ -31066,7 +35092,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 56.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0378",
@@ -31122,7 +35151,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 49.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0377",
@@ -31165,7 +35197,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 74.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0376",
@@ -31234,7 +35269,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 164.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0375",
@@ -31277,7 +35315,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0374",
@@ -31333,7 +35374,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 127.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0373",
@@ -31363,7 +35407,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0372",
@@ -31419,7 +35466,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0371",
@@ -31540,7 +35590,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 192.21,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0370",
@@ -31570,7 +35623,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0369",
@@ -31600,7 +35656,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0368",
@@ -31630,7 +35689,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0367",
@@ -31673,7 +35735,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 198,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0366",
@@ -31703,7 +35768,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 255,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0365",
@@ -31733,7 +35801,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0364",
@@ -31763,7 +35834,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0363",
@@ -31793,7 +35867,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0362",
@@ -31823,7 +35900,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0361",
@@ -31853,7 +35933,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0360",
@@ -31883,7 +35966,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0359",
@@ -31913,7 +35999,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0358",
@@ -31943,7 +36032,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0357",
@@ -31973,7 +36065,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0356",
@@ -32003,7 +36098,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0355",
@@ -32033,7 +36131,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0354",
@@ -32063,7 +36164,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0353",
@@ -32093,7 +36197,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0352",
@@ -32123,7 +36230,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0351",
@@ -32153,7 +36263,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 23.25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0350",
@@ -32183,7 +36296,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0347",
@@ -32213,7 +36329,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0346",
@@ -32243,7 +36362,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0345",
@@ -32286,7 +36408,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 132.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0344",
@@ -32316,7 +36441,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0343",
@@ -32359,7 +36487,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0342",
@@ -32389,7 +36520,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0341",
@@ -32419,7 +36553,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 420,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0340",
@@ -32553,7 +36690,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 225.23,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0349",
@@ -32583,7 +36723,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0348",
@@ -32613,7 +36756,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0339",
@@ -32656,7 +36802,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0338",
@@ -32686,7 +36835,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 8.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0337",
@@ -32729,7 +36881,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 46.73,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0336",
@@ -32759,7 +36914,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0335",
@@ -32789,7 +36947,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0334",
@@ -32819,7 +36980,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0333",
@@ -32888,7 +37052,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 126.78,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0332",
@@ -32918,7 +37085,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0331",
@@ -32948,7 +37118,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 25.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0330",
@@ -32978,7 +37151,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0329",
@@ -33008,7 +37184,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0328",
@@ -33077,7 +37256,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 103.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0327",
@@ -33107,7 +37289,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0326",
@@ -33137,7 +37322,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0339",
@@ -33167,7 +37355,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0338",
@@ -33210,7 +37401,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 191.86,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0325",
@@ -33240,7 +37434,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0324",
@@ -33270,7 +37467,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 6,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0323",
@@ -33326,7 +37526,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 131.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0322",
@@ -33356,7 +37559,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0321",
@@ -33386,7 +37592,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0320",
@@ -33429,7 +37638,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 41.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0319",
@@ -33459,7 +37671,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0318",
@@ -33489,7 +37704,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0317",
@@ -33519,7 +37737,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 71,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0316",
@@ -33562,7 +37783,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 194.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0315",
@@ -33592,7 +37816,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 184.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0314",
@@ -33622,7 +37849,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0313",
@@ -33652,7 +37882,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0312",
@@ -33682,7 +37915,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0311",
@@ -33712,7 +37948,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0310",
@@ -33742,7 +37981,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0309",
@@ -33772,7 +38014,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0308",
@@ -33802,7 +38047,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0307",
@@ -33858,7 +38106,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 155.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0306",
@@ -33901,7 +38152,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 63.21,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0305",
@@ -33944,7 +38198,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0304",
@@ -33974,7 +38231,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0303",
@@ -34030,7 +38290,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 106.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0302",
@@ -34060,7 +38323,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0301",
@@ -34090,7 +38356,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0337",
@@ -34146,7 +38415,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0294",
@@ -34189,7 +38461,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0293",
@@ -34219,7 +38494,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0292",
@@ -34262,7 +38540,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 21.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0291",
@@ -34292,7 +38573,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0290",
@@ -34322,7 +38606,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0289",
@@ -34391,7 +38678,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 216.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0288",
@@ -34421,7 +38711,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0287",
@@ -34490,7 +38783,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 111.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0286",
@@ -34533,7 +38829,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 108.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0285",
@@ -34563,7 +38862,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0284",
@@ -34593,7 +38895,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0283",
@@ -34623,7 +38928,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0282",
@@ -34705,7 +39013,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 169.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0300",
@@ -34735,7 +39046,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0299",
@@ -34778,7 +39092,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0298",
@@ -34808,7 +39125,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0297",
@@ -34838,7 +39158,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0296",
@@ -34868,7 +39191,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0295",
@@ -34898,7 +39224,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0281",
@@ -34928,7 +39257,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0280",
@@ -34958,7 +39290,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 1,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0279",
@@ -35001,7 +39336,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0278",
@@ -35070,7 +39408,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 190.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0277",
@@ -35100,7 +39441,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0276",
@@ -35130,7 +39474,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0275",
@@ -35160,7 +39507,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0274",
@@ -35190,7 +39540,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 155,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0273",
@@ -35233,7 +39586,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 435,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0272",
@@ -35263,7 +39619,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0271",
@@ -35293,7 +39652,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 21.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0270",
@@ -35336,7 +39698,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0269",
@@ -35366,7 +39731,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0268",
@@ -35396,7 +39764,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0267",
@@ -35439,7 +39810,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 165,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0266",
@@ -35508,7 +39882,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 316.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0265",
@@ -35538,7 +39915,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0264",
@@ -35568,7 +39948,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0263",
@@ -35598,7 +39981,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0262",
@@ -35628,7 +40014,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 155.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0261",
@@ -35658,7 +40047,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0260",
@@ -35688,7 +40080,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0259",
@@ -35718,7 +40113,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0258",
@@ -35748,7 +40146,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0257",
@@ -35778,7 +40179,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0256",
@@ -35808,7 +40212,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0255",
@@ -35838,7 +40245,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0254",
@@ -35868,7 +40278,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0253",
@@ -35898,7 +40311,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0252",
@@ -35954,7 +40370,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 57.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0251",
@@ -36023,7 +40442,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0250",
@@ -36066,7 +40488,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0249",
@@ -36109,7 +40534,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 51.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0248",
@@ -36165,7 +40593,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 85.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0247",
@@ -36195,7 +40626,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0246",
@@ -36225,7 +40659,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0245",
@@ -36268,7 +40705,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0244",
@@ -36298,7 +40738,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 163.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0243",
@@ -36328,7 +40771,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0242",
@@ -36358,7 +40804,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0241",
@@ -36388,7 +40837,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0240",
@@ -36418,7 +40870,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0239",
@@ -36461,7 +40916,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 314.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0238",
@@ -36491,7 +40949,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0237",
@@ -36521,7 +40982,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0236",
@@ -36564,7 +41028,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0235",
@@ -36594,7 +41061,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0234",
@@ -36624,7 +41094,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 163.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0233",
@@ -36654,7 +41127,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0232",
@@ -36697,7 +41173,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0231",
@@ -36727,7 +41206,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0230",
@@ -36757,7 +41239,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0229",
@@ -36813,7 +41298,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 56.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0228",
@@ -36843,7 +41331,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0227",
@@ -36925,7 +41416,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0226",
@@ -37072,7 +41566,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 711.56,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0225",
@@ -37115,7 +41612,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0224",
@@ -37145,7 +41645,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0223",
@@ -37175,7 +41678,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0222",
@@ -37218,7 +41724,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 77.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0221",
@@ -37248,7 +41757,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0220",
@@ -37291,7 +41803,10 @@ const SALES_SEED = [
     "method": "Card",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0219",
@@ -37321,7 +41836,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0218",
@@ -37351,7 +41869,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0217",
@@ -37407,7 +41928,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 80,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0216",
@@ -37476,7 +42000,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 151.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0215",
@@ -37545,7 +42072,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 78.9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0214",
@@ -37575,7 +42105,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0213",
@@ -37631,7 +42164,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 61.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0212",
@@ -37661,7 +42197,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0211",
@@ -37691,7 +42230,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0210",
@@ -37721,7 +42263,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0209",
@@ -37855,7 +42400,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 224.44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0208",
@@ -37924,7 +42472,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 87,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0207",
@@ -37954,7 +42505,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 184.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0206",
@@ -37997,7 +42551,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0205",
@@ -38027,7 +42584,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0204",
@@ -38057,7 +42617,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 280,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0203",
@@ -38100,7 +42663,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0202",
@@ -38130,7 +42696,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 155.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0201",
@@ -38160,7 +42729,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0200",
@@ -38190,7 +42762,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0199",
@@ -38220,7 +42795,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 119.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0198",
@@ -38250,7 +42828,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0197",
@@ -38280,7 +42861,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0196",
@@ -38310,7 +42894,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0195",
@@ -38340,7 +42927,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0194",
@@ -38370,7 +42960,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0193",
@@ -38400,7 +42993,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0192",
@@ -38443,7 +43039,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 80,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0191",
@@ -38473,7 +43072,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0190",
@@ -38516,7 +43118,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 42,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0189",
@@ -38546,7 +43151,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0188",
@@ -38589,7 +43197,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 55.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0187",
@@ -38632,7 +43243,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 181.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0186",
@@ -38688,7 +43302,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 58,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0185",
@@ -38731,7 +43348,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0184",
@@ -38761,7 +43381,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0183",
@@ -38804,7 +43427,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0182",
@@ -38847,7 +43473,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0181",
@@ -38929,7 +43558,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 209.88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0180",
@@ -38959,7 +43591,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0179",
@@ -39067,7 +43702,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 82.88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0178",
@@ -39110,7 +43748,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0177",
@@ -39140,7 +43781,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0176",
@@ -39170,7 +43814,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0175",
@@ -39200,7 +43847,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0174",
@@ -39230,7 +43880,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0173",
@@ -39286,7 +43939,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 114.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0172",
@@ -39316,7 +43972,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0171",
@@ -39359,7 +44018,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0170",
@@ -39389,7 +44051,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0169",
@@ -39419,7 +44084,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0168",
@@ -39449,7 +44117,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0167",
@@ -39479,7 +44150,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0166",
@@ -39509,7 +44183,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0165",
@@ -39539,7 +44216,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0164",
@@ -39582,7 +44262,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 186.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0163",
@@ -39612,7 +44295,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0162",
@@ -39655,7 +44341,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0161",
@@ -39698,7 +44387,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0336",
@@ -39728,7 +44420,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0160",
@@ -39784,7 +44479,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 119.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0335",
@@ -39814,7 +44512,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0334",
@@ -39844,7 +44545,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0159",
@@ -39913,7 +44617,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 171.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0158",
@@ -40008,7 +44715,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 109.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0157",
@@ -40064,7 +44774,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0156",
@@ -40107,7 +44820,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0155",
@@ -40150,7 +44866,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0154",
@@ -40180,7 +44899,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 4,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0153",
@@ -40223,7 +44945,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 92.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0152",
@@ -40253,7 +44978,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0151",
@@ -40283,7 +45011,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0150",
@@ -40313,7 +45044,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0149",
@@ -40343,7 +45077,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0148",
@@ -40373,7 +45110,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0147",
@@ -40442,7 +45182,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 243.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0333",
@@ -40472,7 +45215,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0332",
@@ -40528,7 +45274,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 144.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0146",
@@ -40571,7 +45320,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0331",
@@ -40653,7 +45405,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 469.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0145",
@@ -40683,7 +45438,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0144",
@@ -40791,7 +45549,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0143",
@@ -40886,7 +45647,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 259.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0142",
@@ -40929,7 +45693,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 78,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0141",
@@ -40959,7 +45726,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0140",
@@ -41067,7 +45837,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 526.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0139",
@@ -41123,7 +45896,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 63,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0138",
@@ -41153,7 +45929,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0137",
@@ -41183,7 +45962,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0136",
@@ -41213,7 +45995,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0135",
@@ -41256,7 +46041,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 309.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0134",
@@ -41286,7 +46074,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0133",
@@ -41316,7 +46107,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 280,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0132",
@@ -41346,7 +46140,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0131",
@@ -41376,7 +46173,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0130",
@@ -41406,7 +46206,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0129",
@@ -41449,7 +46252,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 44.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0128",
@@ -41479,7 +46285,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0127",
@@ -41535,7 +46344,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0126",
@@ -41565,7 +46377,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0125",
@@ -41595,7 +46410,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0124",
@@ -41625,7 +46443,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0123",
@@ -41655,7 +46476,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0122",
@@ -41685,7 +46509,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0121",
@@ -41715,7 +46542,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0120",
@@ -41745,7 +46575,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0119",
@@ -41775,7 +46608,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0118",
@@ -41818,7 +46654,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 49.9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0330",
@@ -41861,7 +46700,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 864.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0329",
@@ -41891,7 +46733,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0117",
@@ -41973,7 +46818,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 99.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0116",
@@ -42003,7 +46851,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0115",
@@ -42033,7 +46884,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0114",
@@ -42063,7 +46917,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0113",
@@ -42106,7 +46963,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 44.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0112",
@@ -42136,7 +46996,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0111",
@@ -42166,7 +47029,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0110",
@@ -42222,7 +47088,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 184.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0109",
@@ -42252,7 +47121,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0108",
@@ -42282,7 +47154,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0107",
@@ -42325,7 +47200,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 79.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0106",
@@ -42355,7 +47233,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 23,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0105",
@@ -42385,7 +47266,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0104",
@@ -42532,7 +47416,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 258.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0103",
@@ -42601,7 +47488,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 71.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0102",
@@ -42631,7 +47521,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0101",
@@ -42661,7 +47554,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0100",
@@ -42691,7 +47587,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0099",
@@ -42734,7 +47633,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 49,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0098",
@@ -42777,7 +47679,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 568.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0097",
@@ -42807,7 +47712,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0096",
@@ -42837,7 +47745,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0095",
@@ -42867,7 +47778,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0094",
@@ -42897,7 +47811,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0093",
@@ -42927,7 +47844,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0092",
@@ -42970,7 +47890,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 159.6,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0091",
@@ -43000,7 +47923,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0090",
@@ -43030,7 +47956,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0089",
@@ -43073,7 +48002,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 23.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0088",
@@ -43103,7 +48035,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0087",
@@ -43172,7 +48107,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 93.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0086",
@@ -43215,7 +48153,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0085",
@@ -43245,7 +48186,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0084",
@@ -43275,7 +48219,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0083",
@@ -43305,7 +48252,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 16.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0082",
@@ -43335,7 +48285,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0081",
@@ -43365,7 +48318,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0080",
@@ -43421,7 +48377,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 328.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0079",
@@ -43451,7 +48410,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0078",
@@ -43520,7 +48482,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 112.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0077",
@@ -43576,7 +48541,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 117.9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0076",
@@ -43619,7 +48587,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 156.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0075",
@@ -43649,7 +48620,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0074",
@@ -43692,7 +48666,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 26.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0073",
@@ -43735,7 +48712,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0072",
@@ -43765,7 +48745,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0071",
@@ -43795,7 +48778,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0070",
@@ -43825,7 +48811,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0328",
@@ -43894,7 +48883,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 137.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0327",
@@ -43924,7 +48916,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 209.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0326",
@@ -43980,7 +48975,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0325",
@@ -44010,7 +49008,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0324",
@@ -44066,7 +49067,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 99.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0323",
@@ -44096,7 +49100,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0322",
@@ -44139,7 +49146,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0321",
@@ -44169,7 +49179,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0320",
@@ -44225,7 +49238,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 119.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0319",
@@ -44281,7 +49297,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0318",
@@ -44350,7 +49369,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 259.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0317",
@@ -44380,7 +49402,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0316",
@@ -44410,7 +49435,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0315",
@@ -44440,7 +49468,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0314",
@@ -44470,7 +49501,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0313",
@@ -44500,7 +49534,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0312",
@@ -44556,7 +49593,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 78.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0311",
@@ -44586,7 +49626,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0310",
@@ -44655,7 +49698,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 108.92,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0309",
@@ -44698,7 +49744,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 54.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0308",
@@ -44754,7 +49803,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 76.94,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0069",
@@ -44849,7 +49901,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 197,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0068",
@@ -44905,7 +49960,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 77,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0307",
@@ -44935,7 +49993,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0306",
@@ -44965,7 +50026,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0305",
@@ -45021,7 +50085,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 73.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0304",
@@ -45064,7 +50131,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 191.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0303",
@@ -45094,7 +50164,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0302",
@@ -45124,7 +50197,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0301",
@@ -45154,7 +50230,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0300",
@@ -45184,7 +50263,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0299",
@@ -45240,7 +50322,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0067",
@@ -45322,7 +50407,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 283.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0066",
@@ -45352,7 +50440,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0065",
@@ -45395,7 +50486,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0064",
@@ -45425,7 +50519,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 23,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0063",
@@ -45455,7 +50552,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0062",
@@ -45498,7 +50598,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0061",
@@ -45528,7 +50631,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 240,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0060",
@@ -45558,7 +50664,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 159,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0059",
@@ -45588,7 +50697,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0058",
@@ -45618,7 +50730,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0057",
@@ -45674,7 +50789,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0056",
@@ -45704,7 +50822,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0055",
@@ -45747,7 +50868,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0054",
@@ -45777,7 +50901,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0298",
@@ -45820,7 +50947,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0297",
@@ -45850,7 +50980,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 164.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0296",
@@ -45906,7 +51039,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 158.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0295",
@@ -45962,7 +51098,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 329.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0294",
@@ -45992,7 +51131,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0293",
@@ -46074,7 +51216,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 167.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0292",
@@ -46104,7 +51249,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0291",
@@ -46225,7 +51373,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 209.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0053",
@@ -46255,7 +51406,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 199.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0052",
@@ -46285,7 +51439,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0290",
@@ -46315,7 +51472,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0289",
@@ -46345,7 +51505,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0288",
@@ -46388,7 +51551,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0287",
@@ -46444,7 +51610,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 80,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0286",
@@ -46487,7 +51656,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 169.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0051",
@@ -46517,7 +51689,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0050",
@@ -46599,7 +51774,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 181.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0049",
@@ -46629,7 +51807,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0048",
@@ -46659,7 +51840,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0047",
@@ -46689,7 +51873,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0046",
@@ -46732,7 +51919,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0045",
@@ -46775,7 +51965,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0044",
@@ -46805,7 +51998,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0285",
@@ -46874,7 +52070,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 186.8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0043",
@@ -46917,7 +52116,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0042",
@@ -46960,7 +52162,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 124.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0041",
@@ -46990,7 +52195,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0040",
@@ -47020,7 +52228,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0039",
@@ -47050,7 +52261,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0038",
@@ -47080,7 +52294,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0037",
@@ -47110,7 +52327,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0036",
@@ -47140,7 +52360,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 180,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0035",
@@ -47196,7 +52419,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 71,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0284",
@@ -47239,7 +52465,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 118,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0283",
@@ -47269,7 +52498,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0282",
@@ -47299,7 +52531,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0281",
@@ -47329,7 +52564,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0280",
@@ -47372,7 +52610,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 82.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0279",
@@ -47402,7 +52643,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0278",
@@ -47497,7 +52741,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0277",
@@ -47527,7 +52774,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0276",
@@ -47557,7 +52807,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0275",
@@ -47587,7 +52840,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0274",
@@ -47617,7 +52873,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 29.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0273",
@@ -47647,7 +52906,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0272",
@@ -47716,7 +52978,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 110,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0271",
@@ -47746,7 +53011,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0270",
@@ -47776,7 +53044,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0269",
@@ -47806,7 +53077,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0268",
@@ -47836,7 +53110,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0267",
@@ -47866,7 +53143,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 39.96,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0266",
@@ -47922,7 +53202,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 138,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0265",
@@ -47952,7 +53235,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0264",
@@ -48008,7 +53294,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 95.88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0034",
@@ -48051,7 +53340,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 49.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0263",
@@ -48081,7 +53373,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0262",
@@ -48137,7 +53432,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0261",
@@ -48193,7 +53491,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0260",
@@ -48223,7 +53524,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0259",
@@ -48253,7 +53557,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0258",
@@ -48283,7 +53590,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0257",
@@ -48326,7 +53636,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0256",
@@ -48369,7 +53682,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 84.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0255",
@@ -48425,7 +53741,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34.98,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0254",
@@ -48455,7 +53774,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0253",
@@ -48485,7 +53807,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0252",
@@ -48515,7 +53840,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0251",
@@ -48558,7 +53886,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0250",
@@ -48588,7 +53919,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0249",
@@ -48618,7 +53952,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0248",
@@ -48648,7 +53985,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0247",
@@ -48678,7 +54018,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0246",
@@ -48734,7 +54077,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 51.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0245",
@@ -48764,7 +54110,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0244",
@@ -48807,7 +54156,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0243",
@@ -48850,7 +54202,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0242",
@@ -48958,7 +54313,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 102,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0241",
@@ -48988,7 +54346,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0240",
@@ -49018,7 +54379,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0239",
@@ -49061,7 +54425,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0238",
@@ -49104,7 +54471,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 87,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0237",
@@ -49147,7 +54517,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0236",
@@ -49177,7 +54550,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0235",
@@ -49220,7 +54596,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 210,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0234",
@@ -49302,7 +54681,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 494,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0231",
@@ -49345,7 +54727,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 87,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0230",
@@ -49479,7 +54864,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 330,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0229",
@@ -49509,7 +54897,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0228",
@@ -49539,7 +54930,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0227",
@@ -49582,7 +54976,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0226",
@@ -49612,7 +55009,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0225",
@@ -49681,7 +55081,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 62.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0224",
@@ -49711,7 +55114,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0223",
@@ -49754,7 +55160,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 23,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0222",
@@ -49784,7 +55193,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0221",
@@ -49827,7 +55239,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0220",
@@ -49870,7 +55285,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 191,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0219",
@@ -49926,7 +55344,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0218",
@@ -49956,7 +55377,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0217",
@@ -49999,7 +55423,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0216",
@@ -50042,7 +55469,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 73.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0215",
@@ -50072,7 +55502,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0214",
@@ -50102,7 +55535,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0213",
@@ -50132,7 +55568,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0212",
@@ -50162,11 +55601,14 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
-    "id": "TXN-1-0210",
-    "receiptNo": "1-0211, 1-0210",
+    "id": "TXN-1-0211",
+    "receiptNo": "1-0211",
     "ts": 1787284800000,
     "items": [
       {
@@ -50192,7 +55634,43 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
+  },
+  {
+    "id": "TXN-1-0210",
+    "receiptNo": "1-0210",
+    "ts": 1787284800000,
+    "items": [
+      {
+        "productId": "p_10111",
+        "name": "LIFT BERRY BOLT 320",
+        "price": 18,
+        "cost": 0,
+        "qty": 1,
+        "category": "DRINKS",
+        "unitType": "piece",
+        "unit": "pc",
+        "piecesPerPack": 1,
+        "isCustom": false,
+        "imageUrl": "https://www.chegoeson.com/wp-content/uploads/2026/02/1.jpg"
+      }
+    ],
+    "subtotal": 18,
+    "discountType": "percent",
+    "discountValue": 0,
+    "discountAmt": 0,
+    "vat": 0,
+    "total": 18,
+    "method": "Cash",
+    "tendered": 18,
+    "change": 0,
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0209",
@@ -50222,7 +55700,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0208",
@@ -50252,7 +55733,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0207",
@@ -50282,7 +55766,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0206",
@@ -50312,7 +55799,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0205",
@@ -50342,7 +55832,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0204",
@@ -50385,7 +55878,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0203",
@@ -50415,7 +55911,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0202",
@@ -50458,7 +55957,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 43,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0201",
@@ -50540,7 +56042,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 299,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0200",
@@ -50622,7 +56127,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 124,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0199",
@@ -50704,7 +56212,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 70,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0198",
@@ -50734,7 +56245,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0197",
@@ -50764,7 +56278,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0033",
@@ -50807,7 +56324,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0032",
@@ -50863,7 +56383,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 42,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0031",
@@ -50919,7 +56442,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 80,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0030",
@@ -50949,7 +56475,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0029",
@@ -51005,7 +56534,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0028",
@@ -51061,7 +56593,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 103,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0027",
@@ -51091,7 +56626,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0026",
@@ -51121,7 +56659,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0025",
@@ -51177,7 +56718,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 87,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0024",
@@ -51207,7 +56751,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0023",
@@ -51237,7 +56784,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0196",
@@ -51332,7 +56882,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 291,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0195",
@@ -51375,7 +56928,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 59,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0194",
@@ -51457,7 +57013,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 171,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0193",
@@ -51487,7 +57046,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 130,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0192",
@@ -51517,7 +57079,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 130,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0191",
@@ -51560,7 +57125,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0190",
@@ -51590,7 +57158,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0189",
@@ -51620,7 +57191,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0188",
@@ -51650,7 +57224,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0187",
@@ -51680,7 +57257,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0186",
@@ -51736,7 +57316,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0185",
@@ -51766,7 +57349,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0184",
@@ -51796,7 +57382,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0183",
@@ -51839,7 +57428,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0182",
@@ -51869,7 +57461,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0181",
@@ -51899,7 +57494,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0180",
@@ -51929,7 +57527,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0179",
@@ -51959,7 +57560,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 125,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0178",
@@ -51989,7 +57593,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0177",
@@ -52032,7 +57639,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0176",
@@ -52140,7 +57750,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 253.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0175",
@@ -52196,7 +57809,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0174",
@@ -52239,7 +57855,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 88,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0173",
@@ -52321,7 +57940,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 93,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0172",
@@ -52351,7 +57973,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0171",
@@ -52394,7 +58019,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 44,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0170",
@@ -52450,7 +58078,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0022",
@@ -52506,7 +58137,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0169",
@@ -52536,7 +58170,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0168",
@@ -52566,7 +58203,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0167",
@@ -52596,7 +58236,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0166",
@@ -52626,7 +58269,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0165",
@@ -52656,7 +58302,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0164",
@@ -52686,7 +58335,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0163",
@@ -52729,7 +58381,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0162",
@@ -52759,7 +58414,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0161",
@@ -52789,7 +58447,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0160",
@@ -52819,7 +58480,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0159",
@@ -52888,7 +58552,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 116,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0158",
@@ -52918,7 +58585,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0157",
@@ -52948,7 +58618,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0156",
@@ -52978,7 +58651,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0155",
@@ -53008,7 +58684,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0154",
@@ -53038,7 +58717,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0153",
@@ -53068,7 +58750,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 46,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0152",
@@ -53111,7 +58796,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0151",
@@ -53141,7 +58829,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0150",
@@ -53171,7 +58862,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 27,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0149",
@@ -53201,7 +58895,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0148",
@@ -53231,7 +58928,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0147",
@@ -53261,7 +58961,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0146",
@@ -53291,7 +58994,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0145",
@@ -53334,7 +59040,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0144",
@@ -53364,7 +59073,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0143",
@@ -53394,7 +59106,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0142",
@@ -53450,7 +59165,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 80,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0141",
@@ -53493,7 +59211,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0140",
@@ -53536,7 +59257,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0139",
@@ -53566,7 +59290,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0138",
@@ -53609,7 +59336,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0137",
@@ -53652,7 +59382,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 52,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0021",
@@ -53708,7 +59441,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 126,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0020",
@@ -53738,7 +59474,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0136",
@@ -53768,7 +59507,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0135",
@@ -53798,7 +59540,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0134",
@@ -53841,7 +59586,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 64,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0133",
@@ -53884,7 +59632,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0019",
@@ -53927,7 +59678,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0018",
@@ -53957,7 +59711,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0017",
@@ -53987,7 +59744,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0016",
@@ -54017,7 +59777,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0015",
@@ -54047,7 +59810,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0014",
@@ -54077,7 +59843,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0013",
@@ -54172,7 +59941,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 101,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0012",
@@ -54202,7 +59974,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0011",
@@ -54232,7 +60007,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0010",
@@ -54262,7 +60040,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0009",
@@ -54292,7 +60073,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0008",
@@ -54322,7 +60106,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0007",
@@ -54352,7 +60139,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0006",
@@ -54421,7 +60211,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 168,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0005",
@@ -54451,7 +60244,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0004",
@@ -54481,7 +60277,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0003",
@@ -54524,7 +60323,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 58,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0002",
@@ -54567,7 +60369,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-2-0001",
@@ -54597,7 +60402,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0131",
@@ -54640,7 +60448,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0130",
@@ -54670,7 +60481,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0129",
@@ -54700,7 +60514,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0128",
@@ -54743,7 +60560,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 36,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0127",
@@ -54799,7 +60619,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 40,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0126",
@@ -54829,7 +60652,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 420,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0125",
@@ -54859,7 +60685,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 90,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0124",
@@ -54902,7 +60731,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0123",
@@ -54932,7 +60764,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0122",
@@ -54962,7 +60797,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0121",
@@ -54992,7 +60830,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0120",
@@ -55035,7 +60876,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0119",
@@ -55078,7 +60922,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0118",
@@ -55121,7 +60968,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0117",
@@ -55151,7 +61001,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 34,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0116",
@@ -55233,7 +61086,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 138.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0115",
@@ -55263,7 +61119,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 9,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0114",
@@ -55293,7 +61152,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 660,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0113",
@@ -55323,7 +61185,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0112",
@@ -55366,7 +61231,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 43,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0111",
@@ -55396,7 +61264,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0110",
@@ -55426,7 +61297,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0109",
@@ -55456,7 +61330,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0108",
@@ -55486,7 +61363,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0107",
@@ -55542,7 +61422,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 63,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0106",
@@ -55572,7 +61455,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0105",
@@ -55602,7 +61488,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 53,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0104",
@@ -55632,7 +61521,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0103",
@@ -55675,7 +61567,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 166,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0102",
@@ -55705,7 +61600,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0101",
@@ -55735,7 +61633,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0100",
@@ -55765,7 +61666,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0099",
@@ -55795,7 +61699,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0098",
@@ -55851,7 +61758,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 120,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0097",
@@ -55881,7 +61791,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0096",
@@ -55924,7 +61837,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0095",
@@ -55967,7 +61883,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 48,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0094",
@@ -55997,7 +61916,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0093",
@@ -56040,7 +61962,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 32,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0092",
@@ -56096,7 +62021,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 60,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0091",
@@ -56126,7 +62054,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 38,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0090",
@@ -56156,7 +62087,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0089",
@@ -56212,7 +62146,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 72,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0088",
@@ -56242,7 +62179,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0087",
@@ -56285,7 +62225,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0086",
@@ -56328,7 +62271,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 69,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0085",
@@ -56358,7 +62304,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 35,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0084",
@@ -56401,7 +62350,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 126,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0083",
@@ -56483,7 +62435,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 261,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0082",
@@ -56526,7 +62481,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 99,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0081",
@@ -56556,7 +62514,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0080",
@@ -56599,7 +62560,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 24,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0079",
@@ -56629,7 +62593,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 18,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0078",
@@ -56659,7 +62626,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0077",
@@ -56689,7 +62659,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0076",
@@ -56719,7 +62692,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0075",
@@ -56749,7 +62725,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0074",
@@ -56818,7 +62797,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0073",
@@ -56848,7 +62830,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0072",
@@ -56878,7 +62863,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 25,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0071",
@@ -56908,7 +62896,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0070",
@@ -56951,7 +62942,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 58.65,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0069",
@@ -56981,7 +62975,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0068",
@@ -57050,7 +63047,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 91,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0067",
@@ -57158,7 +63158,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 159,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0066",
@@ -57331,7 +63334,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 254,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0065",
@@ -57374,7 +63380,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 37,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0064",
@@ -57508,7 +63517,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 283.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0063",
@@ -57551,7 +63563,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 117,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0062",
@@ -57607,7 +63622,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0061",
@@ -57637,7 +63655,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 28.5,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0060",
@@ -57667,7 +63688,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0059",
@@ -57697,7 +63721,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0058",
@@ -57740,7 +63767,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0057",
@@ -57770,7 +63800,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0056",
@@ -57813,7 +63846,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0055",
@@ -57869,7 +63905,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0054",
@@ -57912,7 +63951,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 19,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0053",
@@ -58046,7 +64088,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 200,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0052",
@@ -58089,7 +64134,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0051",
@@ -58119,7 +64167,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0050",
@@ -58149,7 +64200,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0049",
@@ -58179,7 +64233,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0048",
@@ -58209,7 +64266,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0047",
@@ -58239,7 +64299,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 75,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0046",
@@ -58282,7 +64345,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0045",
@@ -58312,7 +64378,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 8,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0044",
@@ -58342,7 +64411,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0043",
@@ -58372,7 +64444,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0042",
@@ -58402,7 +64477,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 12,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0041",
@@ -58432,7 +64510,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0040",
@@ -58462,7 +64543,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0039",
@@ -58492,7 +64576,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0038",
@@ -58522,7 +64609,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 150,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0037",
@@ -58552,7 +64642,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 20,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0036",
@@ -58595,7 +64688,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 204,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0035",
@@ -58638,7 +64734,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 160,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0034",
@@ -58694,7 +64793,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 50,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0033",
@@ -58737,7 +64839,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 160,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0032",
@@ -58767,7 +64872,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0031",
@@ -58797,7 +64905,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0030",
@@ -58827,7 +64938,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 15,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0029",
@@ -58857,7 +64971,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 140,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0027",
@@ -58887,7 +65004,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 10,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0026",
@@ -58930,7 +65050,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 22,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0025",
@@ -58960,7 +65083,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0024",
@@ -59003,7 +65129,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 157,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0022",
@@ -59033,7 +65162,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 17,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0021",
@@ -59063,7 +65195,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 30,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0020",
@@ -59106,7 +65241,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 47,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0019",
@@ -59136,7 +65274,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 106,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0018",
@@ -59205,7 +65346,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 203,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   },
   {
     "id": "TXN-1-0017",
@@ -59235,7 +65379,10 @@ const SALES_SEED = [
     "method": "Cash",
     "tendered": 45,
     "change": 0,
-    "cashier": "Owner"
+    "cashier": "Owner",
+    "status": "Closed",
+    "source": "imported",
+    "isImported": true
   }
 ];
 if (typeof module !== 'undefined') module.exports = SALES_SEED;

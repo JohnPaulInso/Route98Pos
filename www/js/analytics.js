@@ -24,20 +24,21 @@ const Analytics = (() => {
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0).getTime();
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999).getTime();
 
+    // (2026-07-13) Format date as 'Sept 21, 2026'; was toLocaleDateString
     if(typeof p === "number"){
       const start = Utils.daysAgo(p - 1);
-      return { start, end: Date.now(), key: `${p}d`, label: `Last ${p} Days`, subtitle: `${new Date(start).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${now.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}` };
+      return { start, end: Date.now(), key: `${p}d`, label: `Last ${p} Days`, subtitle: `${Utils.fmtDate(start, false)} – ${Utils.fmtDate(now, false)}` };
     }
     if(p && typeof p === "object" && p.start !== undefined){
-      return { ...p, key: p.key || "custom", subtitle: p.subtitle || `${new Date(p.start).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(p.end).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}` };
+      return { ...p, key: p.key || "custom", subtitle: p.subtitle || `${Utils.fmtDate(p.start, false)} – ${Utils.fmtDate(p.end, false)}` };
     }
 
     const fmtMonth = (d) => d.toLocaleDateString("en-PH", { month: "short", year: "numeric" });
-    const fmtDayRange = (s, e) => `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`;
+    const fmtDayRange = (s, e) => `${Utils.fmtDate(s, false)} – ${Utils.fmtDate(e, false)}`;
 
     switch(p){
       case "today":
-        return { start: todayStart, end: todayEnd, key: "today", label: "Today", subtitle: `Today · ${now.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}` };
+        return { start: todayStart, end: todayEnd, key: "today", label: "Today", subtitle: `Today · ${Utils.fmtDate(now, false)}` };
       case "this_week":
         return { start: thisWeekStart, end: thisWeekEnd, key: "this_week", label: "This Week", subtitle: `This Week · ${fmtDayRange(thisWeekStart, thisWeekEnd)}` };
       case "last_week":
@@ -68,8 +69,8 @@ const Analytics = (() => {
         return { start, end, key: "last_year", label: "Last Year", subtitle: `Year ${now.getFullYear() - 1}` };
       }
       case "all":
-      default:
-        return { start: 0, end: Date.now() + 86400000, key: "all", label: "All Time", subtitle: `All Time Records up to ${now.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}` };
+        // (2026-07-13) Format subtitle date as 'Sept 21, 2026'; was toLocaleDate
+        return { start: 0, end: Date.now() + 86400000, key: "all", label: "All Time", subtitle: `All Time Records up to ${Utils.fmtDate(now, false)}` };
     }
   }
 

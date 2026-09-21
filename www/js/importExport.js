@@ -304,40 +304,22 @@ const ImportExport = (() => {
     Utils.toast(`Exported ${sales.length} sales (${rows.length} items).`, "success");
   }
 
-  // Helper date/time parser
+  // (2026-07-13) Parse DD/MM/YYYY Loyverse format accurately; was Date.parse
   function parseDateToTimestamp(dateStr, timeStr){
     if(!dateStr) return Date.now();
     let str = String(dateStr).trim();
     if(timeStr) str += " " + String(timeStr).trim();
+    const dmy = str.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if(dmy){
+      const [_, d, m, y, h, min, sec] = dmy;
+      return new Date(Number(y), Number(m) - 1, Number(d), Number(h || 12), Number(min || 0), Number(sec || 0)).getTime();
+    }
     const num = Number(str);
     if(!isNaN(num) && num > 1000000000) {
       return num < 10000000000 ? num * 1000 : num;
     }
     let ts = Date.parse(str);
     if(!isNaN(ts)) return ts;
-    const parts = str.match(/^(\d{1,4})[/\-.](\d{1,2})[/\-.](\d{1,4})(.*)$/);
-    if(parts){
-      let p1 = parseInt(parts[1], 10), p2 = parseInt(parts[2], 10), p3 = parseInt(parts[3], 10);
-      let rest = (parts[4] || "").trim();
-      let year, month, day;
-      if(p1 > 1000){ year = p1; month = p2 - 1; day = p3; }
-      else if(p3 > 1000){
-        if(p1 > 12){ day = p1; month = p2 - 1; year = p3; }
-        else { month = p1 - 1; day = p2; year = p3; }
-      }
-      let hours = 12, mins = 0, secs = 0;
-      if(rest){
-        const tm = rest.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)?/i);
-        if(tm){
-          hours = parseInt(tm[1], 10); mins = parseInt(tm[2], 10); secs = tm[3] ? parseInt(tm[3], 10) : 0;
-          const ampm = (tm[4] || "").toLowerCase();
-          if(ampm === "pm" && hours < 12) hours += 12;
-          if(ampm === "am" && hours === 12) hours = 0;
-        }
-      }
-      const d = new Date(year, month, day, hours, mins, secs);
-      if(!isNaN(d.getTime())) return d.getTime();
-    }
     return Date.now();
   }
 
@@ -353,6 +335,7 @@ const ImportExport = (() => {
       } else {
         const rows = Utils.fromCSV(text);
         if(!rows.length){ Utils.toast("No rows found in file.", "warn"); return; }
+        const prods = DB.getProducts ? DB.getProducts() : [];
         const grouped = new Map();
         let fallbackCounter = 1;
         rows.forEach(r => {
@@ -361,12 +344,13 @@ const ImportExport = (() => {
             const k = keys.find(key => terms.some(t => key.toLowerCase().trim() === t || key.toLowerCase().includes(t)));
             return k ? r[k] : "";
           };
-          const receiptId = String(findVal(["receipt_no","receipt no","receipt","txn id","txnid","transaction id","order #","order id","invoice","id"]) || "").trim() || `OLD-TXN-${fallbackCounter}`;
+          const receiptId = String(findVal(["receipt_no","receipt no","receipt number","receipt","txn id","txnid","transaction id","order #","order id","invoice","id"]) || "").trim() || `OLD-TXN-${fallbackCounter}`;
           const dateVal = findVal(["date","txn date","transaction date","timestamp","created at","time stamp"]);
           const timeVal = findVal(["time","hour"]);
           const ts = parseDateToTimestamp(dateVal, timeVal);
           const itemName = (findVal(["item_name","item name","product name","product","item","description","name"]) || "Imported Item").trim();
           const category = (findVal(["category","cat","department"]) || "MISC").trim().toUpperCase();
+          const skuVal = String(findVal(["sku","barcode","item code"]) || "").trim();
           // (2026-07-13) Parse currency symbols and filter cancelled sales; was raw Number
           const typeVal = String(findVal(["type","transaction type","txn type","status"]) || "").toLowerCase();
           if(typeVal.includes("cancelled") || typeVal.includes("canceled")) return;
@@ -377,83 +361,100 @@ const ImportExport = (() => {
             const num = parseFloat(cleaned);
             return isNaN(num) ? 0 : num;
           };
+          // (2026-07-13) Parse Loyverse gross/net sales & calculate sums; was 0 total
           const qty = Math.max(1, parseMoney(findVal(["quantity","qty","units","count"])) || 1);
           const price = parseMoney(findVal(["unit_price","unit price","price","gross price","rate"]));
           const subtotalVal = parseMoney(findVal(["subtotal","sub total"]));
           const discountVal = parseMoney(findVal(["discount","discount amt","discount applied"]));
           const vatVal = parseMoney(findVal(["vat","tax","vat incl"]));
-          const totalVal = parseMoney(findVal(["total_due","total amount","total due","total","grand total","net total","amount"])) || (qty * price);
+          const lineGross = parseMoney(findVal(["gross sales","gross_sales","gross amt"]));
+          const lineNet = parseMoney(findVal(["net sales","net_sales","net amt"]));
+          const costVal = parseMoney(findVal(["cost of goods","cost_of_goods","cost","unit cost"]));
+          const totalVal = parseMoney(findVal(["total collected","total_due","total amount","total due","total","grand total","net total","amount"])) || lineNet || lineGross || (qty * price);
+          const itemPrice = price || (qty > 0 && lineGross ? Utils.round2(lineGross / qty) : (qty > 0 && totalVal ? Utils.round2(totalVal / qty) : 0));
           const method = String(findVal(["payment_method","payment method","payment type","payment","method"]) || "Cash").trim();
           const cashier = String(findVal(["cashier","user","staff","employee","cashier name"]) || "Cashier").trim();
           const refCode = String(findVal(["reference_no","reference no","ref no","reference","ref code"]) || "").trim();
 
+          const matched = prods.find(p => (skuVal && p.sku === skuVal) || (p.name && p.name.trim().toLowerCase() === itemName.toLowerCase()));
+          const finalPrice = itemPrice || (matched ? matched.price : 0);
           const itemObj = {
-            productId: Utils.uid("prod"),
-            name: itemName,
-            category: category || "MISC",
-            price: price || (qty > 0 ? Utils.round2(totalVal / qty) : 0),
+            productId: matched ? matched.id : Utils.uid("prod"),
+            name: matched ? matched.name : itemName,
+            category: (matched ? matched.category : category) || "MISC",
+            price: finalPrice,
+            cost: qty > 0 && costVal > 0 ? Utils.round2(costVal / qty) : (matched ? matched.cost : 0),
             qty,
             unitType: "piece",
             unit: "pc",
             piecesPerPack: 1,
-            imageUrl: ""
+            imageUrl: matched ? matched.imageUrl : ""
           };
 
+          const lineItemTotal = lineNet || (qty * finalPrice) || totalVal;
           if(!grouped.has(receiptId)){
             grouped.set(receiptId, {
               id: receiptId.startsWith("TXN-") ? receiptId : (receiptId.startsWith("OLD-") ? receiptId : `TXN-${receiptId}`),
+              receiptNo: receiptId,
               ts,
               items: [itemObj],
-              subtotal: subtotalVal || totalVal,
+              subtotal: lineItemTotal,
               discountType: "percent",
               discountValue: 0,
               discountAmt: discountVal,
               vat: vatVal,
-              total: totalVal,
+              total: lineItemTotal,
               method: method || "Cash",
               refCode,
-              tendered: totalVal,
+              tendered: lineItemTotal,
               change: 0,
-              cashier: cashier || "Cashier"
+              cashier: cashier || "Cashier",
+              status: "Closed",
+              source: "imported",
+              isImported: true
             });
-            if(!findVal(["receipt_no","receipt no","receipt","txn id","txnid","transaction id"])) fallbackCounter++;
+            if(!findVal(["receipt_no","receipt no","receipt number","receipt","txn id","txnid","transaction id"])) fallbackCounter++;
           } else {
             const entry = grouped.get(receiptId);
             entry.items.push(itemObj);
-            if(totalVal > entry.total) entry.total = totalVal;
-            else entry.total += (qty * itemObj.price);
+            entry.total = Utils.round2(entry.items.reduce((sum, it) => sum + ((it.qty || 1) * (it.price || 0)), 0));
             entry.subtotal = entry.total;
+            entry.tendered = entry.total;
           }
         });
         rawSales = Array.from(grouped.values());
       }
       if(!rawSales.length){ Utils.toast("No sales found.", "warn"); return; }
-      // (2026-07-13) Deduplicate & merge sales by date, amount & order; was ID only
+      // (2026-07-13) Deduplicate sales by receipt number & id; was order signature
       const existing = DB.getSales();
-      const makeOrderSig = (items) => (items||[]).map(it => `${it.qty||1}x${(it.name||'').trim().toLowerCase()}`).sort().join("|");
       const salesMap = new Map();
       existing.forEach(s => {
-        const key = `${s.ts || 0}_${(s.total || 0).toFixed(2)}_${makeOrderSig(s.items)}`;
-        salesMap.set(key, s);
+        const key = String(s.receiptNo || s.id || '').trim();
+        if(key) salesMap.set(key, s);
       });
       let addedCount = 0;
       let mergedCount = 0;
       rawSales.forEach(sale => {
-        const key = `${sale.ts || 0}_${(sale.total || 0).toFixed(2)}_${makeOrderSig(sale.items)}`;
-        if(salesMap.has(key)){
+        const key = String(sale.receiptNo || sale.id || '').trim();
+        if(key && salesMap.has(key)){
           const ex = salesMap.get(key);
           if(sale.items && sale.items.length) ex.items = sale.items;
           ex.method = sale.method || ex.method;
           ex.cashier = sale.cashier || ex.cashier;
+          if(sale.total > 0){
+            ex.total = sale.total;
+            ex.subtotal = sale.subtotal || sale.total;
+            ex.tendered = sale.tendered || sale.total;
+          }
           mergedCount++;
-        } else {
+        } else if(key){
           salesMap.set(key, sale);
           addedCount++;
         }
       });
       const updatedList = Array.from(salesMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
       DB.setSales(updatedList);
-      Utils.toast(`Imported ${addedCount} sales (${mergedCount} merged duplicates).`, "success");
+      Utils.toast(`Imported ${addedCount} sales (${mergedCount} updated).`, "success");
       onDone?.();
     } catch(err){
       console.error(err);

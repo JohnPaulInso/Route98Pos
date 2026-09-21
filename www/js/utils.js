@@ -16,12 +16,23 @@ const Utils = (() => {
 
   function round2(n){ return Math.round((Number(n)+Number.EPSILON)*100)/100; }
 
-  function fmtDate(ts, withTime = true){
+  // (2026-07-13) Format as 'Sept 21, 2026'; was toLocaleDateString en-PH
+  const MONTHS_APP = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+  function fmtDate(ts, opts = true){
+    if(!ts) return "—";
     const d = new Date(ts);
-    const date = d.toLocaleDateString("en-PH", { month:"short", day:"2-digit", year:"numeric" });
-    if(!withTime) return date;
-    const time = d.toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" });
-    return `${date}, ${time}`;
+    if(isNaN(d.getTime())) return "—";
+    const month = MONTHS_APP[d.getMonth()];
+    const day = d.getDate();
+    const year = d.getFullYear();
+    const dateStr = `${month} ${day}, ${year}`;
+    const showTime = typeof opts === "object" ? !opts.hideTime : Boolean(opts);
+    if(!showTime) return dateStr;
+    const hours = d.getHours();
+    const mins = String(d.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const h12 = hours % 12 || 12;
+    return `${dateStr}, ${h12}:${mins} ${ampm}`;
   }
 
   function startOfDay(ts = Date.now()){

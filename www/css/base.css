@@ -1,8 +1,8 @@
 /* (2026-07-13) Allow scroll chaining on elements; was global overscroll none */
 *,*::before,*::after{ box-sizing:border-box; touch-action:manipulation; }
-/* (2026-07-13) Scale root typography to balanced 13.5px; was 15px */
+/* (2026-07-13) Scale root typography to 13.8px; was 15px */
 html{
-  font-size:13.5px;
+  font-size:13.8px;
   height:100%;
   overscroll-behavior:none !important;
   overscroll-behavior-y:none !important;
@@ -275,11 +275,12 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
 
 /* (2026-07-13) Set horizontal overflow and auto overscroll; was overflow:auto */
 .table-wrap{ overflow-x:auto; overflow-y:visible; overscroll-behavior:auto; border:1px solid var(--line); border-radius:var(--r-lg); background:var(--paper-raised); }
-table.data{ width:100%; border-collapse:collapse; font-size:var(--fs-sm); }
+/* (2026-07-13) Tune table typography to 0.90rem & 9px; was 1rem & 12px */
+table.data{ width:100%; border-collapse:collapse; font-size:.90rem; }
 table.data th{
-  text-align:left; padding:10px 12px; background:var(--paper-dim); color:var(--ink-soft);
-  font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; z-index:1;
-  border-bottom:1px solid var(--line); font-weight:700;
+  text-align:left; padding:9px 12px; background:var(--paper-dim); color:var(--ink);
+  font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; z-index:1;
+  border-bottom:1px solid var(--line); font-weight:800;
 }
 /* (2026-07-13) Sticky column 1 with solid background; was unpinned first column */
 table.data th:first-child{ position:sticky; left:0; z-index:11; background:var(--paper-dim); }
@@ -287,7 +288,7 @@ table.data td:first-child{ position:sticky; left:0; z-index:10; background:var(-
 table.data tr.out-of-stock td:first-child{ background:var(--danger-tint); }
 table.data tr.low-stock td:first-child{ background:var(--warning-tint); }
 table.data tbody tr.inv-row-selected td:first-child{ background:var(--brand-tint); }
-table.data td{ padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+table.data td{ padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle; font-size:.90rem; }
 /* (2026-07-13) Add text truncation and ellipsis rules; was plain table cells */
 table.data td strong{ max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:middle; }
 .brand-cell{ display:block; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-faint); font-size:.78rem; font-weight:600; }
@@ -314,11 +315,12 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
   table.data tr.low-stock:hover td{ background:var(--warning-tint); filter:brightness(.97); }
 }
 
-/* (2026-07-13) Upgrade modal typography with big readable fonts; was compact */
+/* (2026-07-13) Raise modal z-index to 10000 above dropdowns; was 100 */
 .modal-backdrop{
   position:fixed; inset:0; background:rgba(10,13,30,.55); display:flex; align-items:center; justify-content:center;
-  z-index:100; padding:16px; backdrop-filter:blur(2px);
+  z-index:10000; padding:16px; backdrop-filter:blur(2px);
 }
+.modal .ui-select-list{ z-index:10002; }
 /* (2026-07-13) Fix modal flex structure & footer alignment. Prev: block flow */
 .modal{
   background:var(--paper-raised); border-radius:var(--r-lg); width:100%; max-width:640px;

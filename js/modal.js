@@ -15,6 +15,8 @@ const Modal = (() => {
 
   function open({ title, body, actions = [], wide = false, onClose }){
     close();
+    // (2026-07-13) Close open dropdowns before opening modal; was staying open
+    if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     document.body.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
