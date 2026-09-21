@@ -1722,7 +1722,8 @@ const Reports = (() => {
       }
       const disc = Number(s.discount) || 0;
       const tot = Number(s.total) || 0;
-      const sCOGS = (s.items || []).reduce((sum, l) => sum + (costMap[l.productId] ?? (l.cost || 0)) * (l.qty || 1), 0);
+      // (2026-07-13) Dynamic daily COGS using item purchase cost; was catalog map cost
+      const sCOGS = (s.items || []).reduce((sum, l) => sum + ((l.cost !== undefined ? Number(l.cost) : (costMap[l.productId] ?? 0)) * (Number(l.qty) || 1)), 0);
       dayMap[dayKey].grossSales += (tot + disc);
       dayMap[dayKey].discounts += disc;
       dayMap[dayKey].netSales += tot;

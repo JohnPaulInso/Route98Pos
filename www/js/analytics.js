@@ -115,8 +115,9 @@ const Analytics = (() => {
     const fuelCfg = DB.getFuelConfig();
 
     // 1. Minimart
+    // (2026-07-13) Store COGS using item purchase cost; was catalog map cost
     const storeNetRevenue = sales.reduce((s,x)=> s + (x.total - (x.vat||0)), 0);
-    const storeCOGS = sales.reduce((s,x)=> s + x.items.reduce((s2,l)=> s2 + (costMap[l.productId] ?? 0) * l.qty, 0), 0);
+    const storeCOGS = sales.reduce((s,x)=> s + (x.items || []).reduce((s2,l)=> s2 + ((l.cost !== undefined ? Number(l.cost) : (costMap[l.productId] ?? 0)) * (Number(l.qty) || 1)), 0), 0);
     const storeGrossProfit = Math.max(0, storeNetRevenue - storeCOGS);
     const storeTotal = sales.reduce((s,x)=>s+x.total,0);
     const storeTxCount = sales.length;
@@ -430,17 +431,18 @@ const Analytics = (() => {
         const cat = sanitizeCategory(l.category);
         const name = (l.name || "Item").trim();
         const key = name.toLowerCase() || l.productId || "item";
-        if(!map[key]) map[key] = { productId: l.productId || key, name: name || "Item", category: cat, units: 0, revenue: 0 };
+        // (2026-07-13) Item profit using recorded line cost; was catalog cost
+        if(!map[key]) map[key] = { productId: l.productId || key, name: name || "Item", category: cat, units: 0, revenue: 0, cogs: 0 };
         const qty = Number(l.qty) || 1;
         const price = Number(l.price) || 0;
+        const itemCost = l.cost !== undefined ? Number(l.cost) : (stats.costMap[l.productId] ?? prodCostByName[name.toLowerCase()] ?? 0);
         map[key].units += qty;
         map[key].revenue += price * qty;
+        map[key].cogs += itemCost * qty;
       });
     });
     return Object.values(map).map(row => {
-      const cost = stats.costMap[row.productId] ?? prodCostByName[row.name.toLowerCase()] ?? 0;
-      const cogs = cost * row.units;
-      const profit = row.revenue - cogs;
+      const profit = row.revenue - row.cogs;
       return { ...row, revenue: Utils.round2(row.revenue), profit: Utils.round2(profit), margin: row.revenue > 0 ? (profit / row.revenue) * 100 : 0 };
     }).sort((a,b) => b.revenue - a.revenue).slice(0, limit);
   }
@@ -456,10 +458,12 @@ const Analytics = (() => {
         const rawCat = l.category || prodCatMap[l.productId] || "GENERAL";
         const cat = sanitizeCategory(rawCat);
         if(!map[cat]) map[cat] = { category:cat, revenue:0, cogs:0 };
+        // (2026-07-13) Category COGS using recorded line cost; was catalog cost
         const price = Number(l.price) || 0;
         const qty = Number(l.qty) || 1;
+        const itemCost = l.cost !== undefined ? Number(l.cost) : (stats.costMap?.[l.productId] ?? 0);
         map[cat].revenue += price * qty;
-        map[cat].cogs += (stats.costMap?.[l.productId] ?? 0) * qty;
+        map[cat].cogs += itemCost * qty;
       });
     });
     if(Object.keys(map).length === 0 && prods.length > 0){
