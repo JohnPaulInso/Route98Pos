@@ -1,0 +1,875 @@
+/* ============================================================
+   MOBILE RESPONSIVE STYLES - Real Mobile App Experience
+   ============================================================ */
+
+/* Mobile First: Base styles for < 768px */
+@media (max-width: 767px) {
+  /* ============ GLOBAL MOBILE ADJUSTMENTS ============ */
+  html {
+    font-size: 14px;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    overflow-x: hidden;
+    font-size: 1rem;
+  }
+
+  /* ============ HIDE SIDEBAR ON MOBILE ============ */
+  .sidebar {
+    display: none;
+  }
+
+  /* ============ SHOW BOTTOM NAV ON MOBILE ============ */
+  .bottom-nav {
+    display: block;
+    background: color-mix(in srgb, var(--paper-raised) 95%, transparent);
+    backdrop-filter: blur(20px) saturate(1.8);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .bn-btn {
+    padding: 8px 4px;
+    min-height: 56px;
+  }
+
+  .bn-btn .ic-svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* ============ MOBILE APP LAYOUT ============ */
+  #app {
+    flex-direction: column;
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .main-col {
+    width: 100%;
+    flex: 1;
+    padding-bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+  }
+
+  /* ============ TOPBAR MOBILE ============ */
+  .topbar {
+    padding: 12px 16px;
+    min-height: 56px;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .topbar h1 {
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-clock {
+    display: none; /* Hide clock on mobile to save space */
+  }
+
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .user-chip {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .user-chip span {
+    font-size: 0.85rem;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ============ VIEW PADDING ============ */
+  .view {
+    padding: 0;
+  }
+
+  .view-head {
+    margin-bottom: 0;
+    gap: 10px;
+    padding: 12px 16px 12px;
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--line);
+  }
+  
+  /* Add padding to content sections, not view wrapper */
+  .pl-summary,
+  .chart-grid,
+  .stat-grid,
+  .table-wrap,
+  .card,
+  .rpt-toolbar {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  
+  /* First element after view-head */
+  .view > *:not(.view-head):first-of-type {
+    margin-top: 16px;
+  }
+  
+  /* Last element before bottom nav */
+  .view > *:last-child {
+    margin-bottom: calc(var(--bottomnav-h) + 16px);
+  }
+
+  .view-head h2 {
+    font-size: 1.3rem;
+  }
+
+  .view-sub {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  /* ============ BUTTONS MOBILE ============ */
+  .btn {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    touch-action: manipulation;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .btn-lg {
+    min-height: 52px;
+    padding: 16px 24px;
+    font-size: 1.1rem;
+  }
+
+  /* ============ FORMS MOBILE ============ */
+  .input, textarea.input {
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 1rem;
+  }
+
+  .field label {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+
+  /* ============ GRIDS MOBILE ============ */
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pl-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* ============ CARDS MOBILE ============ */
+  .card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .stat-card, .pl-card {
+    padding: 14px;
+  }
+
+  .pl-card .lbl {
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+  }
+
+  .pl-card .val, .pl-card .amt {
+    font-size: 1.3rem;
+  }
+
+  .chart-card {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .chart-card h3 {
+    font-size: 1rem;
+    margin-bottom: 16px;
+    font-weight: 800;
+  }
+
+  /* ============ TABLES MOBILE ============ */
+  .table-wrap {
+    border-radius: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table.data {
+    font-size: 0.85rem;
+    min-width: 600px; /* Allow horizontal scroll */
+  }
+
+  table.data th {
+    padding: 10px 8px;
+    font-size: 0.7rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  table.data td {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+
+  table.data td strong {
+    max-width: 150px;
+  }
+
+  /* Pin first column on mobile for tables */
+  table.data th:first-child,
+  table.data td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 9;
+    background: var(--paper-raised);
+  }
+
+  table.data th:first-child {
+    z-index: 11;
+    background: var(--paper-dim);
+  }
+
+  /* ============ MODALS MOBILE ============ */
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    max-height: 95vh;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    animation: slide-up 0.3s ease;
+  }
+
+  .modal-wide {
+    max-width: 100%;
+  }
+
+  .modal-head {
+    padding: 16px 20px;
+    border-bottom: 2px solid var(--line);
+  }
+
+  .modal-head h3 {
+    font-size: 1.2rem;
+  }
+
+  .modal-body {
+    padding: 20px;
+    font-size: 1rem;
+  }
+
+  .modal-foot {
+    padding: 16px 20px;
+    gap: 8px;
+    flex-direction: column-reverse;
+  }
+
+  .modal-foot .btn {
+    width: 100%;
+  }
+
+  .modal .field {
+    margin-bottom: 16px;
+  }
+
+  .modal .input, .modal textarea.input {
+    font-size: 1.05rem;
+    padding: 12px 14px;
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* ============ POS LAYOUT MOBILE ============ */
+  .pos-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 0;
+    height: calc(100vh - var(--topbar-h) - var(--bottomnav-h));
+  }
+
+  .pos-resizer {
+    display: none;
+  }
+
+  .pos-catalog {
+    order: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .pos-cart {
+    order: 2;
+    position: fixed;
+    bottom: var(--bottomnav-h);
+    left: 0;
+    right: 0;
+    max-height: 40vh;
+    border-radius: 16px 16px 0 0;
+    border: none;
+    border-top: 2px solid var(--line);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 25;
+    transform: translateY(calc(100% - 60px));
+    transition: transform 0.3s ease;
+  }
+
+  .pos-cart.expanded {
+    transform: translateY(0);
+  }
+
+  .cart-head {
+    cursor: pointer;
+    padding: 12px 16px;
+  }
+
+  .cart-head h3 {
+    font-size: 1rem;
+  }
+
+  .cart-items {
+    max-height: calc(40vh - 200px);
+    padding: 8px 12px;
+  }
+
+  .cart-foot {
+    padding: 12px 16px;
+  }
+
+  /* ============ PRODUCT GRID MOBILE ============ */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 0 2px;
+  }
+
+  .product-card {
+    border-radius: 12px;
+  }
+
+  .product-card .thumb {
+    height: 110px;
+  }
+
+  .product-card .info {
+    padding: 10px;
+  }
+
+  .product-card .name {
+    font-size: 0.85rem;
+  }
+
+  .product-card .price {
+    font-size: 0.9rem;
+  }
+
+  /* ============ SEARCH BAR MOBILE ============ */
+  .pos-search-row {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .pos-search-row .input {
+    font-size: 1rem;
+    padding: 12px 14px 12px 40px;
+  }
+
+  /* ============ CATEGORY CHIPS MOBILE ============ */
+  .category-chips {
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+
+  .category-chips .chip {
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  /* ============ CART LINES MOBILE ============ */
+  .cart-line {
+    padding: 10px 8px;
+    gap: 10px;
+  }
+
+  .cart-line .thumb-sm {
+    width: 40px;
+    height: 40px;
+  }
+
+  .cart-line .info .n {
+    font-size: 0.9rem;
+  }
+
+  .cart-line .info .p {
+    font-size: 0.75rem;
+  }
+
+  .qty-stepper {
+    padding: 3px;
+    gap: 3px;
+  }
+
+  .qty-stepper button {
+    width: 28px;
+    height: 28px;
+  }
+
+  .qty-stepper .qty-input {
+    width: 40px;
+    font-size: 0.9rem;
+  }
+
+  .cart-line .lt {
+    font-size: 0.9rem;
+    width: auto;
+    min-width: 60px;
+  }
+
+  /* ============ TOTALS MOBILE ============ */
+  .totals-summary {
+    padding: 12px;
+  }
+
+  .totals-row {
+    font-size: 0.85rem;
+  }
+
+  .totals-row.grand {
+    font-size: 1.15rem;
+  }
+
+  .cart-actions-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cart-actions-row > * {
+    width: 100%;
+  }
+
+  /* ============ GASOLINE MOBILE ============ */
+  .pump-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .fuel-sale-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .today-fuel-strip {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* ============ PAYMENT METHODS MOBILE ============ */
+  .pos-payment-methods {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .pos-payment-methods .chip {
+    padding: 12px 10px;
+    font-size: 0.85rem;
+  }
+
+  /* ============ TOAST MOBILE ============ */
+  #toast-stack {
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--bottomnav-h) + 12px + env(safe-area-inset-bottom));
+    max-width: none;
+  }
+
+  .toast {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+
+  /* ============ BADGES MOBILE ============ */
+  .badge {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+  }
+
+  /* ============ CHIPS MOBILE ============ */
+  .chip {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  /* ============ EMPTY STATES MOBILE ============ */
+  .empty {
+    padding: 60px 20px;
+  }
+
+  .empty .ic-svg {
+    width: 64px;
+    height: 64px;
+  }
+
+  .empty h3 {
+    font-size: 1.2rem;
+  }
+
+  /* ============ BACK TO TOP BUTTON MOBILE ============ */
+  .back-to-top-btn,
+  #back-to-top-btn {
+    bottom: calc(var(--bottomnav-h) + 16px + env(safe-area-inset-bottom)) !important;
+    right: 16px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  /* ============ REPORTS TOOLBAR MOBILE ============ */
+  .rpt-toolbar {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rpt-date-group {
+    width: auto;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  
+  .rpt-nav-btn {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+
+  .rpt-date-btn {
+    padding: 0 10px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  
+  /* Hide text, show icons only on mobile */
+  .rpt-date-btn .btn-text {
+    display: none;
+  }
+  
+  .rpt-date-btn .ic-svg {
+    margin: 0;
+  }
+  
+  .rpt-dropdown-wrap {
+    flex-shrink: 0;
+  }
+
+  .rpt-dropdown-btn {
+    width: auto;
+    height: 44px;
+    padding: 0 12px;
+    min-width: 44px;
+  }
+  
+  /* Show only icons on mobile for dropdowns */
+  .rpt-dropdown-btn .btn-text {
+    display: none;
+  }
+  
+  .rpt-dropdown-btn .ic-svg {
+    margin: 0;
+  }
+
+  /* ============ DAILY SALES TABLE MOBILE ============ */
+  .daily-sales-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ============ INVENTORY CARDS MOBILE ============ */
+  .inventory-status-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .inventory-status-card {
+    padding: 10px !important;
+  }
+
+  .inventory-status-card .label {
+    font-size: 0.7rem !important;
+  }
+
+  .inventory-status-card .value {
+    font-size: 1.1rem !important;
+  }
+
+  /* ============ SCAN OVERLAY MOBILE ============ */
+  .scan-overlay-top {
+    padding: 16px;
+  }
+
+  .scan-overlay-bottom {
+    padding: 16px;
+  }
+
+  .scan-recent-list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ============ LOGIN SCREEN MOBILE ============ */
+  .login-card {
+    max-width: 100%;
+    padding: 24px 20px;
+  }
+
+  /* ============ DUE AMOUNT CARD MOBILE ============ */
+  .due-amount-card .val {
+    font-size: 2.2rem;
+  }
+
+  /* ============ CHECKOUT MOBILE ============ */
+  .checkout-change-box .val {
+    font-size: 1.8rem;
+  }
+
+  /* ============ SAFE AREAS ============ */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .topbar {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .bottom-nav {
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+
+  /* ============ PREVENT OVERSCROLL ============ */
+  body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .view {
+    overscroll-behavior-y: contain;
+  }
+
+  /* ============ IMPROVE TOUCH TARGETS ============ */
+  button,
+  .btn,
+  .chip,
+  .icon-btn,
+  a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* ============ TEXT LEGIBILITY ============ */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* ============================================================
+   TABLET RESPONSIVE: 768px - 1024px
+   ============================================================ */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .topbar h1 {
+    font-size: 1.2rem;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE MOBILE: Height < 500px
+   ============================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal {
+    max-height: 98vh;
+  }
+
+  .modal-body {
+    padding: 16px 20px;
+  }
+
+  .pos-cart {
+    max-height: 50vh;
+  }
+
+  .empty {
+    padding: 30px 20px;
+  }
+}
+
+/* ============================================================
+   SMALL MOBILE: < 375px
+   ============================================================ */
+@media (max-width: 374px) {
+  html {
+    font-size: 13px;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .product-card .thumb {
+    height: 90px;
+  }
+
+  .pos-payment-methods {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-line .lt {
+    font-size: 0.85rem;
+    min-width: 50px;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+  }
+}
+
+/* ============================================================
+   PHABLET / LARGE MOBILE: 375px - 414px
+   ============================================================ */
+@media (min-width: 375px) and (max-width: 414px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+/* ============================================================
+   EXTRA FEATURES FOR MOBILE
+   ============================================================ */
+@media (max-width: 767px) {
+  /* Pull-to-refresh indicator space */
+  .view {
+    padding-top: 16px;
+  }
+
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Better focus styles for accessibility */
+  *:focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .category-chips::-webkit-scrollbar,
+  .scan-recent-list::-webkit-scrollbar {
+    height: 2px;
+  }
+
+  /* Loading skeleton for better UX */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--paper-dim) 25%,
+      var(--paper-raised) 50%,
+      var(--paper-dim) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Haptic feedback visual hint */
+  .haptic-feedback:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+  }
+}

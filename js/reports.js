@@ -1014,15 +1014,15 @@ const Reports = (() => {
           <button class="rpt-nav-btn" id="rpt-btn-prev" title="Previous period">${Icons.get("chevron-left", {size:15})}</button>
           <button class="rpt-date-btn" id="rpt-btn-date" title="Select date range">
             ${Icons.get("calendar", {size:15})}
-            <span id="rpt-date-display">${dateLabel}</span>
+            <span class="btn-text" id="rpt-date-display">${dateLabel}</span>
           </button>
           <button class="rpt-nav-btn" id="rpt-btn-next" title="Next period">${Icons.get("chevron-right", {size:15})}</button>
         </div>
         <div class="rpt-dropdown-wrap">
           <button class="rpt-dropdown-btn" id="rpt-btn-time" title="Filter by time of day">
             ${Icons.get("clock", {size:15})}
-            <span>${timeBtnLabel}</span>
-            ${Icons.get("chevron-down", {size:13})}
+            <span class="btn-text">${timeBtnLabel}</span>
+            <span class="btn-text">${Icons.get("chevron-down", {size:13})}</span>
           </button>
           <div class="rpt-dropdown-menu" id="rpt-menu-time">
             <div class="rpt-menu-item ${timeFilter === "all" ? "active" : ""}" data-time="all">All day</div>
@@ -1034,8 +1034,8 @@ const Reports = (() => {
         <div class="rpt-dropdown-wrap">
           <button class="rpt-dropdown-btn" id="rpt-btn-emp" title="Filter by employee">
             ${Icons.get("user", {size:15})}
-            <span>${empBtnLabel}</span>
-            ${Icons.get("chevron-down", {size:13})}
+            <span class="btn-text">${empBtnLabel}</span>
+            <span class="btn-text">${Icons.get("chevron-down", {size:13})}</span>
           </button>
           <div class="rpt-dropdown-menu" id="rpt-menu-emp">
             <div class="rpt-menu-item ${employeeFilter === "all" ? "active" : ""}" data-emp="all">All employees</div>
@@ -2657,6 +2657,178 @@ const Reports = (() => {
         }
       });
     }
+    
+    // Top Products Horizontal Bar Chart
+    const topProdsCtx = document.getElementById("ov-chart-top-products")?.getContext("2d");
+    if(topProdsCtx && typeof Chart !== "undefined"){
+      const allSales = DB.getSales().filter(s => {
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        if (r && (s.ts < r.start || s.ts > r.end)) return false;
+        if (filterFn && !filterFn(s)) return false;
+        return true;
+      });
+      
+      // Aggregate sales by product
+      const productMap = {};
+      allSales.forEach(sale => {
+        (sale.items || []).forEach(item => {
+          const key = item.productId || item.name;
+          if (!productMap[key]) {
+            productMap[key] = {
+              name: item.name,
+              revenue: 0,
+              quantity: 0
+            };
+          }
+          productMap[key].revenue += (item.price * item.qty);
+          productMap[key].quantity += item.qty;
+        });
+      });
+      
+      // Sort by revenue and get top 8
+      const topProducts = Object.values(productMap)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 8);
+      
+      overviewCharts.topProducts = new Chart(topProdsCtx, {
+        type: "bar",
+        data: {
+          labels: topProducts.map(p => p.name),
+          datasets: [{
+            label: "Revenue",
+            data: topProducts.map(p => p.revenue),
+            backgroundColor: (context) => {
+              const chart = context.chart;
+              const {ctx, chartArea} = chart;
+              if (!chartArea) return '#3B82F6';
+              
+              // Create vibrant blue to purple gradient
+              const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+              gradient.addColorStop(0, '#3B82F6');
+              gradient.addColorStop(0.5, '#6366F1');
+              gradient.addColorStop(1, '#8B5CF6');
+              return gradient;
+            },
+            borderRadius: 10,
+            borderSkipped: false,
+            barThickness: 26,
+            // Add shadow effect
+            borderWidth: 0,
+            hoverBackgroundColor: (context) => {
+              const chart = context.chart;
+              const {ctx, chartArea} = chart;
+              if (!chartArea) return '#2563EB';
+              const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+              gradient.addColorStop(0, '#2563EB');
+              gradient.addColorStop(0.5, '#4F46E5');
+              gradient.addColorStop(1, '#7C3AED');
+              return gradient;
+            }
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 15,
+              right: 30,
+              bottom: 15,
+              left: 15
+            }
+          },
+          plugins: {
+            legend: { 
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.96)',
+              titleColor: '#fff',
+              bodyColor: '#e2e8f0',
+              padding: 16,
+              cornerRadius: 12,
+              titleFont: { size: 14, weight: 'bold', family: 'Poppins' },
+              bodyFont: { size: 13, weight: '600', family: 'Poppins' },
+              displayColors: false,
+              borderColor: 'rgba(59, 130, 246, 0.5)',
+              borderWidth: 1,
+              callbacks: {
+                title: (items) => {
+                  const label = items[0].label;
+                  // Show full name in tooltip
+                  return label;
+                },
+                label: (context) => {
+                  const value = context.parsed.x;
+                  const idx = context.dataIndex;
+                  const qty = topProducts[idx].quantity;
+                  const avgPrice = value / qty;
+                  return [
+                    `Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                    `Units Sold: ${qty.toLocaleString()} units`,
+                    `Avg. Price: ₱${avgPrice.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(148, 163, 184, 0.08)',
+                drawBorder: false,
+                lineWidth: 1
+              },
+              border: {
+                display: false
+              },
+              ticks: {
+                font: { size: 11, weight: '600', family: 'Poppins' },
+                color: '#64748b',
+                padding: 10,
+                maxRotation: 0,
+                callback: (value) => {
+                  if (value >= 1000000) return '₱' + (value/1000000).toFixed(1) + 'M';
+                  if (value >= 1000) return '₱' + (value/1000).toFixed(0) + 'k';
+                  return '₱' + value.toLocaleString();
+                }
+              }
+            },
+            y: {
+              grid: { 
+                display: false,
+                drawBorder: false
+              },
+              border: {
+                display: false
+              },
+              ticks: {
+                font: { size: 12, weight: '700', family: 'Poppins' },
+                color: '#1e293b',
+                padding: 16,
+                crossAlign: 'far',
+                autoSkip: false,
+                callback: function(value, index) {
+                  const label = this.getLabelForValue(value);
+                  // Better truncation with ellipsis
+                  if (label.length > 22) {
+                    return label.substring(0, 20) + '...';
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeOutQuart'
+          }
+        }
+      });
+    }
   }
 
   function renderOverview(){
@@ -2689,6 +2861,12 @@ const Reports = (() => {
             ${Icons.get("pie-chart",{size:18})} Category Breakdown
           </h3>
           <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-category-pie"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
+            ${Icons.get("package",{size:18})} Top Products
+          </h3>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-top-products"></canvas></div>
         </div>
       </div>
       <div id="ov-store-sales"></div>
