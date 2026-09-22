@@ -92,36 +92,12 @@
 
   /* ============ VIEW PADDING ============ */
   .view {
-    padding: 0;
+    padding: 12px 16px;
   }
 
   .view-head {
-    margin-bottom: 0;
+    margin-bottom: 12px;
     gap: 10px;
-    padding: 12px 16px 12px;
-    background: var(--paper-raised);
-    border-bottom: 1px solid var(--line);
-  }
-  
-  /* Add padding to content sections, not view wrapper */
-  .pl-summary,
-  .chart-grid,
-  .stat-grid,
-  .table-wrap,
-  .card,
-  .rpt-toolbar {
-    margin-left: 16px;
-    margin-right: 16px;
-  }
-  
-  /* First element after view-head */
-  .view > *:not(.view-head):first-of-type {
-    margin-top: 16px;
-  }
-  
-  /* Last element before bottom nav */
-  .view > *:last-child {
-    margin-bottom: calc(var(--bottomnav-h) + 16px);
   }
 
   .view-head h2 {

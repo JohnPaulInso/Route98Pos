@@ -27,16 +27,26 @@ const MobileUtils = (() => {
     
     if (!cartEl || !cartHead) return;
     
+    // Add visual indicator if not present
+    if (!cartHead.querySelector('.cart-expand-handle')) {
+      const handle = document.createElement('div');
+      handle.className = 'cart-expand-handle';
+      handle.style.cssText = 'position:absolute;top:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;background:var(--line-strong);border-radius:2px;';
+      cartHead.insertBefore(handle, cartHead.firstChild);
+    }
+    
     // Add tap handler to expand/collapse cart
     cartHead.addEventListener('click', (e) => {
       // Don't trigger if clicking buttons inside cart head
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button, .btn, .icon-btn')) return;
       
       isExpanded = !isExpanded;
       if (isExpanded) {
         cartEl.classList.add('expanded');
+        hapticLight();
       } else {
         cartEl.classList.remove('expanded');
+        hapticLight();
       }
     });
     
@@ -44,8 +54,13 @@ const MobileUtils = (() => {
     const observer = new MutationObserver(() => {
       const itemCount = document.querySelectorAll('.cart-line').length;
       if (itemCount > 0 && !isExpanded) {
-        isExpanded = true;
-        cartEl.classList.add('expanded');
+        setTimeout(() => {
+          isExpanded = true;
+          cartEl.classList.add('expanded');
+        }, 300);
+      } else if (itemCount === 0 && isExpanded) {
+        isExpanded = false;
+        cartEl.classList.remove('expanded');
       }
     });
     
@@ -309,7 +324,8 @@ const MobileUtils = (() => {
     // Close modal on backdrop click
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('modal-backdrop') && isMobile()) {
-        const closeBtn = document.querySelector('.modal-foot .btn-ghost');
+        hapticLight();
+        const closeBtn = document.querySelector('.modal-foot .btn-ghost, .modal-foot .btn:not(.btn-primary)');
         if (closeBtn) {
           closeBtn.click();
         }
@@ -321,45 +337,53 @@ const MobileUtils = (() => {
     
     let modalStartY = 0;
     let modalCurrentY = 0;
+    let isDragging = false;
     
     document.addEventListener('touchstart', (e) => {
       const modal = e.target.closest('.modal');
-      if (modal && isMobile()) {
+      const modalBody = e.target.closest('.modal-body');
+      if (modal && !modalBody && isMobile()) {
         modalStartY = e.touches[0].pageY;
+        isDragging = false;
       }
     }, { passive: true });
     
     document.addEventListener('touchmove', (e) => {
       const modal = e.target.closest('.modal');
-      if (modal && modalStartY && isMobile()) {
+      const modalBody = e.target.closest('.modal-body');
+      
+      if (modal && modalStartY && !modalBody && isMobile()) {
         modalCurrentY = e.touches[0].pageY;
         const deltaY = modalCurrentY - modalStartY;
         
         // Only allow downward swipe
-        if (deltaY > 0 && modal.scrollTop === 0) {
-          e.preventDefault();
-          modal.style.transform = `translateY(${Math.min(deltaY, 200)}px)`;
+        if (deltaY > 0) {
+          isDragging = true;
+          modal.style.transform = `translateY(${Math.min(deltaY * 0.5, 100)}px)`;
+          modal.style.transition = 'none';
         }
       }
-    });
+    }, { passive: true });
     
     document.addEventListener('touchend', (e) => {
       const modal = e.target.closest('.modal');
       if (modal && modalStartY && isMobile()) {
         const deltaY = modalCurrentY - modalStartY;
         
-        if (deltaY > 100) {
+        if (deltaY > 100 && isDragging) {
           // Close modal
-          const closeBtn = document.querySelector('.modal-foot .btn-ghost');
+          hapticMedium();
+          const closeBtn = document.querySelector('.modal-foot .btn-ghost, .modal-foot .btn:not(.btn-primary)');
           if (closeBtn) {
             closeBtn.click();
-            hapticMedium();
           }
         }
         
         modal.style.transform = '';
+        modal.style.transition = '';
         modalStartY = 0;
         modalCurrentY = 0;
+        isDragging = false;
       }
     }, { passive: true });
   }

@@ -1208,9 +1208,9 @@ const POS = (() => {
         const endItem = Math.min(allFiltered.length, startIndex + CATALOG_PAGE_SIZE);
         let pageBtnsHtml = "";
         for(let i = 1; i <= totalPages; i++){
-          if(i === 1 || i === totalPages || (i >= catalogPage - 1 && i <= catalogPage + 1)){
+          if(i === 1 || i === totalPages || (i >= catalogPage - 2 && i <= catalogPage + 2)){
             pageBtnsHtml += `<button class="btn-page ${i===catalogPage?"active":""}" data-pos-page="${i}">${i}</button>`;
-          } else if(i === catalogPage - 2 || i === catalogPage + 2){
+          } else if(i === catalogPage - 3 || i === catalogPage + 3){
             pageBtnsHtml += `<span style="padding:0 4px;color:var(--ink-faint);">…</span>`;
           }
         }

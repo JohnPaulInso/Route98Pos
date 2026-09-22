@@ -1,0 +1,644 @@
+/* ============================================================
+   COMPREHENSIVE MOBILE FIXES - All Mobile View Issues
+   ============================================================ */
+
+@media (max-width: 767px) {
+  /* ============ GLOBAL RESETS ============ */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html {
+    font-size: 14px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  
+  body {
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ============ VIEW CONTAINER FIXES ============ */
+  .view {
+    padding: 0 !important;
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* View header - sticky with background */
+  .view-head {
+    padding: 14px 16px !important;
+    margin-bottom: 0 !important;
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .view-head h2 {
+    font-size: 1.3rem !important;
+  }
+  
+  .view-sub {
+    font-size: 0.85rem !important;
+  }
+
+  /* ============ CONTENT SECTIONS - ADD PADDING ============ */
+  .view > .pl-summary {
+    padding: 16px;
+    margin: 0 !important;
+  }
+  
+  .view > .chart-grid {
+    padding: 0 16px 16px;
+    margin: 0 !important;
+  }
+  
+  .view > .stat-grid {
+    padding: 0 16px 16px;
+    margin: 0 !important;
+  }
+  
+  /* Tables need horizontal scroll */
+  .view .table-wrap {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+  
+  /* Cards within view */
+  .view > .card {
+    margin: 0 16px 16px !important;
+  }
+
+  /* ============ REPORTS TOOLBAR ============ */
+  .rpt-toolbar {
+    padding: 12px 16px !important;
+    margin: 0 !important;
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .rpt-date-group {
+    flex-shrink: 0;
+  }
+  
+  .rpt-dropdown-wrap {
+    flex-shrink: 0;
+  }
+
+  /* ============ SUMMARY CARDS ============ */
+  .pl-summary {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .pl-card {
+    padding: 16px !important;
+  }
+
+  /* ============ CHART GRID ============ */
+  .chart-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .chart-card {
+    padding: 20px !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .chart-card h3 {
+    font-size: 1rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* ============ TABLES ============ */
+  table.data {
+    min-width: 600px;
+  }
+  
+  table.data th,
+  table.data td {
+    padding: 12px 10px !important;
+    font-size: 0.85rem !important;
+  }
+  
+  table.data th {
+    font-size: 0.75rem !important;
+  }
+
+  /* ============ POS LAYOUT ============ */
+  .pos-layout {
+    grid-template-columns: 1fr !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  
+  .pos-catalog {
+    padding: 12px 16px !important;
+  }
+  
+  .pos-search-row {
+    margin-bottom: 12px;
+  }
+  
+  .category-chips {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+  
+  .product-grid {
+    padding: 0 !important;
+  }
+
+  /* ============ CART DRAWER ============ */
+  .pos-cart {
+    position: fixed;
+    bottom: var(--bottomnav-h);
+    left: 0;
+    right: 0;
+    max-height: 50vh;
+    transform: translateY(calc(100% - 60px));
+    transition: transform 0.3s ease;
+    z-index: 25;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .pos-cart.expanded {
+    transform: translateY(0);
+  }
+  
+  .cart-head {
+    padding: 14px 16px !important;
+    cursor: pointer;
+    border-bottom: 2px solid var(--line);
+  }
+  
+  .cart-items {
+    padding: 8px 16px !important;
+    max-height: calc(50vh - 200px);
+  }
+  
+  .cart-foot {
+    padding: 12px 16px !important;
+  }
+
+  /* ============ FORMS ============ */
+  .field {
+    margin-bottom: 16px !important;
+  }
+  
+  .input,
+  textarea.input,
+  select.input {
+    min-height: 44px !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important; /* Prevent zoom */
+  }
+  
+  .field label {
+    font-size: 0.9rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* ============ BUTTONS ============ */
+  .btn {
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+    font-size: 1rem !important;
+  }
+  
+  .btn-sm {
+    min-height: 38px !important;
+    padding: 9px 14px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .btn-lg {
+    min-height: 52px !important;
+    padding: 16px 24px !important;
+  }
+  
+  .btn-block {
+    width: 100% !important;
+  }
+
+  /* ============ MODALS ============ */
+  .modal-backdrop {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  
+  .modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 95vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    margin: 0 !important;
+  }
+  
+  .modal-head {
+    padding: 16px 20px !important;
+  }
+  
+  .modal-body {
+    padding: 20px !important;
+    max-height: calc(95vh - 160px);
+    overflow-y: auto;
+  }
+  
+  .modal-foot {
+    padding: 16px 20px !important;
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+  }
+  
+  .modal-foot .btn {
+    width: 100% !important;
+  }
+
+  /* ============ GRIDS ============ */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .stat-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* ============ PRODUCT GRID ============ */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .product-card {
+    border-radius: 12px !important;
+  }
+  
+  .product-card .thumb {
+    height: 100px !important;
+  }
+
+  /* ============ GASOLINE ============ */
+  .pump-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 16px !important;
+  }
+  
+  .fuel-sale-panel {
+    grid-template-columns: 1fr !important;
+    padding: 0 16px !important;
+  }
+  
+  .today-fuel-strip {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 16px !important;
+  }
+
+  /* ============ DASHBOARD ============ */
+  .dash-snapshot-card {
+    padding: 16px !important;
+    margin: 0 16px 12px !important;
+  }
+
+  /* ============ INVENTORY ============ */
+  .inventory-status-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* ============ EXPENSE CARDS ============ */
+  .expense-card {
+    margin: 0 16px 12px !important;
+  }
+
+  /* ============ BOTTOM SPACING ============ */
+  .view > *:last-child {
+    margin-bottom: calc(var(--bottomnav-h) + 20px) !important;
+  }
+
+  /* ============ BACK TO TOP BUTTON ============ */
+  #back-to-top-btn,
+  .back-to-top-btn {
+    bottom: calc(var(--bottomnav-h) + 16px) !important;
+    right: 16px !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  /* ============ TOASTS ============ */
+  #toast-stack {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: calc(var(--bottomnav-h) + 16px) !important;
+    max-width: none !important;
+  }
+  
+  .toast {
+    width: 100% !important;
+  }
+
+  /* ============ CHIPS ============ */
+  .chip {
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap;
+  }
+
+  /* ============ BADGES ============ */
+  .badge {
+    padding: 4px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* ============ EMPTY STATES ============ */
+  .empty {
+    padding: 60px 20px !important;
+  }
+
+  /* ============ LOGIN SCREEN ============ */
+  .login-card {
+    max-width: 100% !important;
+    margin: 0 20px !important;
+  }
+
+  /* ============ PAYMENT METHODS ============ */
+  .pos-payment-methods {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* ============ CASH PRESETS ============ */
+  .cash-presets-row {
+    gap: 8px !important;
+  }
+  
+  .cash-preset-btn {
+    min-width: 70px !important;
+    padding: 10px !important;
+  }
+
+  /* ============ DUE AMOUNT ============ */
+  .due-amount-card {
+    padding: 20px !important;
+  }
+  
+  .due-amount-card .val {
+    font-size: 2.2rem !important;
+  }
+
+  /* ============ CHECKOUT CHANGE ============ */
+  .checkout-change-box {
+    padding: 16px !important;
+  }
+  
+  .checkout-change-box .val {
+    font-size: 1.8rem !important;
+  }
+
+  /* ============ QUANTITY STEPPER ============ */
+  .qty-stepper {
+    padding: 3px !important;
+  }
+  
+  .qty-stepper button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .qty-stepper .qty-input {
+    width: 44px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* ============ CART LINES ============ */
+  .cart-line {
+    padding: 12px 8px !important;
+  }
+  
+  .cart-line .thumb-sm {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* ============ TOTALS SUMMARY ============ */
+  .totals-summary {
+    padding: 14px !important;
+  }
+  
+  .totals-row {
+    font-size: 0.9rem !important;
+  }
+  
+  .totals-row.grand {
+    font-size: 1.2rem !important;
+  }
+
+  /* ============ ODOMETER ============ */
+  .odometer {
+    padding: 8px 12px !important;
+  }
+  
+  .odometer .digit {
+    font-size: 1.2rem !important;
+  }
+
+  /* ============ SCAN OVERLAY ============ */
+  .scan-overlay-top {
+    padding: 16px !important;
+  }
+  
+  .scan-overlay-bottom {
+    padding: 16px !important;
+  }
+
+  /* ============ CUSTOM ITEM CARD ============ */
+  .custom-item-card {
+    margin: 0 16px 12px !important;
+  }
+
+  /* ============ UI SELECT DROPDOWN ============ */
+  .ui-select-list {
+    max-width: calc(100vw - 32px) !important;
+    max-height: 60vh !important;
+  }
+
+  /* ============ DATE RANGE BAR ============ */
+  .date-range-bar {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 0 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* ============ VOID LOGS ============ */
+  .audit-disc-card {
+    margin: 0 16px 12px !important;
+  }
+
+  /* ============ DAILY SALES TABLE ============ */
+  .daily-sales-grid {
+    padding: 0 !important;
+  }
+  
+  .daily-sales-cell {
+    min-width: 100px !important;
+  }
+
+  /* ============ TOP SELLERS TABLE ============ */
+  #top-sellers-card {
+    margin: 0 16px 16px !important;
+  }
+
+  /* ============ RECEIPTS TABLE ============ */
+  #receipts-table-wrap {
+    margin: 0 !important;
+  }
+
+  /* ============ HORIZONTAL SCROLL HINTS ============ */
+  .table-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(245, 247, 252, 0.9), transparent);
+    pointer-events: none;
+  }
+
+  /* ============ PREVENT HORIZONTAL SCROLL ON BODY ============ */
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .main-col {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* ============ FIX OVERFLOWING CONTENT ============ */
+  * {
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+  
+  table,
+  .table-wrap,
+  canvas {
+    max-width: none; /* Allow these to overflow properly */
+  }
+
+  /* ============ SAFE AREA INSETS ============ */
+  .topbar {
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
+  }
+  
+  .bottom-nav {
+    padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
+  }
+  
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* ============ LANDSCAPE MODE ADJUSTMENTS ============ */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .modal {
+      max-height: 98vh !important;
+    }
+    
+    .pos-cart {
+      max-height: 60vh !important;
+    }
+    
+    .chart-card canvas {
+      max-height: 180px !important;
+    }
+  }
+
+  /* ============ SMALL SCREENS < 375px ============ */
+  @media (max-width: 374px) {
+    html {
+      font-size: 13px;
+    }
+    
+    .product-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+    }
+    
+    .chart-card {
+      padding: 16px !important;
+    }
+    
+    .pl-card {
+      padding: 14px !important;
+    }
+  }
+
+  /* ============ LOADING STATES ============ */
+  .loading-skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--paper-dim) 25%,
+      var(--paper-raised) 50%,
+      var(--paper-dim) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ============ SMOOTH SCROLLING ============ */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  .view,
+  .cart-items,
+  .product-grid,
+  .modal-body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* ============ TEXT SELECTION ============ */
+  .product-card *,
+  .btn *,
+  .chip * {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  input,
+  textarea,
+  [contenteditable="true"],
+  table td {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
