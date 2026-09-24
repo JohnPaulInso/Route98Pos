@@ -41,14 +41,13 @@ const Utils = (() => {
   function daysAgo(n){ return startOfDay(Date.now()) - n*86400000; }
 
   // (2026-07-13) Disable native image drag for smooth scroll; was draggable
-  // (2026-07-13) Constrain productThumb img to prevent overflow; was unstyled
-  // (2026-07-13) Show category icon fallback until image loads; was blank white
+  // (2026-07-13) Centered product thumbnail on pure white background; was gray
   function productThumb(product, opts = {}){
     const iconName = DB.categoryIcon(product.category);
     const size = opts.iconSize || 28;
-    const iconSpan = `<span class="ic-svg-wrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--brand);opacity:.4;">${Icons.get(iconName, { size })}</span>`;
+    const iconSpan = `<span class="ic-svg-wrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--brand);opacity:.6;background:#ffffff;">${Icons.get(iconName, { size })}</span>`;
     const img = product.imageUrl
-      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" style="max-width:100%;max-height:100%;object-fit:contain;position:relative;z-index:1;" onload="var w=this.previousElementSibling;if(w&&w.classList.contains('ic-svg-wrap'))w.style.display='none';" onerror="this.style.display='none';">`
+      ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name || '')}" loading="lazy" draggable="false" style="position:absolute;inset:0;margin:auto;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;object-position:center;z-index:1;background:#ffffff;display:block;" onload="var w=this.previousElementSibling;if(w&&w.classList.contains('ic-svg-wrap'))w.style.display='none';" onerror="this.style.display='none';">`
       : "";
     return `${iconSpan}${img}`;
   }
@@ -283,5 +282,22 @@ const Utils = (() => {
     }
   };
 
-  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound };
+  // (2026-07-13) Open drawer without triggering printer dialog; was iframe print
+  function openCashDrawer(){
+    try {
+      Sound.cashChime();
+      if(window.Android && typeof window.Android.openCashDrawer === "function"){
+        window.Android.openCashDrawer();
+        return;
+      }
+      if(window.printerBridge && typeof window.printerBridge.openDrawer === "function"){
+        window.printerBridge.openDrawer();
+        return;
+      }
+    } catch(err){
+      console.warn("Cash drawer trigger error:", err);
+    }
+  }
+
+  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound, openCashDrawer };
 })();

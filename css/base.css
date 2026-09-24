@@ -131,6 +131,37 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
 .topbar h1{ font-size:var(--fs-md); font-weight:800; }
 .topbar-spacer{ flex:1; }
 .topbar-clock{ font-family:var(--font-mono); font-size:var(--fs-sm); color:var(--ink-soft); font-weight:600; }
+/* (2026-07-13) Topbar shift status indicator badge; was missing */
+.topbar-shift-badge{
+  display:inline-flex; align-items:center; gap:6px; padding:3px 10px;
+  border-radius:20px; font-size:0.75rem; font-weight:700; cursor:pointer;
+  border:1px solid transparent; background:transparent; transition:all var(--transition);
+  font-family:inherit; line-height:1.2; user-select:none; -webkit-user-select:none;
+}
+.topbar-shift-badge.shift-open{
+  background:rgba(16,185,129,0.12); color:#059669; border-color:rgba(16,185,129,0.28);
+}
+[data-theme="dark"] .topbar-shift-badge.shift-open{
+  background:rgba(16,185,129,0.2); color:#34d399; border-color:rgba(16,185,129,0.4);
+}
+.topbar-shift-badge.shift-closed{
+  background:rgba(239,68,68,0.12); color:#dc2626; border-color:rgba(239,68,68,0.28);
+}
+[data-theme="dark"] .topbar-shift-badge.shift-closed{
+  background:rgba(239,68,68,0.2); color:#f87171; border-color:rgba(239,68,68,0.4);
+}
+.topbar-shift-badge:hover{
+  transform:translateY(-1px); filter:brightness(1.05);
+}
+.topbar-shift-badge .shift-dot{
+  width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0;
+}
+.topbar-shift-badge .shift-dot.green{
+  background:#10b981; box-shadow:0 0 6px rgba(16,185,129,0.7);
+}
+.topbar-shift-badge .shift-dot.red{
+  background:#ef4444; box-shadow:0 0 6px rgba(239,68,68,0.7);
+}
 .icon-btn{
   width:34px; height:34px; border-radius:var(--r-md); border:1px solid var(--line);
   background:var(--paper-raised); cursor:pointer; display:flex; align-items:center; justify-content:center;

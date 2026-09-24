@@ -8,36 +8,45 @@ const App = (() => {
       group: "OVERVIEW",
       views: [
         // (2026-07-13) Executive dashboard restricted to admin; was admin,cashier
-        { id:"dashboard", label:"Executive Dashboard", ic:"bar-chart", mod:Dashboard, roles:["admin"], color:"#312E81" }
+        { id:"dashboard", label:"Executive Dashboard", ic:"bar-chart", mod:Dashboard, roles:["admin"], color:"#312E81" },
+        // (2026-07-13) Place Shift under Overview below Dashboard; was in operations
+        { id:"shift", label:"Shift", ic:"clock", mod:Shift, roles:["admin","cashier"], color:"#0284C7" }
       ]
     },
+    // (2026-07-13) Core retail business units; separated venue and restaurant
     {
       group: "BUSINESS UNITS",
       views: [
         { id:"pos", label:"Minimart Store", ic:"store", mod:POS, roles:["admin","cashier"], color:"#2563EB" },
-        { id:"gasoline", label:"Gasoline Station", ic:"fuel", mod:Gas, roles:["admin","cashier"], color:"#D97706" },
-        { id:"venue", label:"Event Venue", ic:"party", mod:Venue, roles:["admin","cashier"], color:"#7C3AED" },
-        { id:"restaurant", label:"Restaurant", ic:"utensils", mod:Restaurant, roles:["admin"], color:"#059669" }
+        { id:"gasoline", label:"Gasoline Station", ic:"fuel", mod:Gas, roles:["admin","cashier"], color:"#D97706" }
       ]
     },
     {
       group: "OPERATIONS",
       views: [
-        // (2026-07-13) Restrict inventory access to admin only. Prev: admin,cashier
+        // (2026-07-13) Sort operations: Reports, Inventory, Expenses (OPEX); was unsorted
+        { id:"reports", label:"Reports", ic:"clipboard", mod:Reports, roles:["admin","cashier"], color:"#4B5563" },
         { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin"], color:"#4B5563" },
-        { id:"expenses", label:"Expenses (OPEX)", ic:"dollar-sign", mod:Expenses, roles:["admin"], color:"#DC2626" },
-        { id:"reports", label:"Reports", ic:"clipboard", mod:Reports, roles:["admin","cashier"], color:"#4B5563" }
+        { id:"expenses", label:"Expenses (OPEX)", ic:"dollar-sign", mod:Expenses, roles:["admin"], color:"#DC2626" }
       ]
     },
     {
       group: "SYSTEM",
       views: [
-        { id:"settings", label:"Settings", ic:"settings", mod:Settings, roles:["admin"], color:"#4B5563" }
+        { id:"settings", label:"Settings", ic:"gear", mod:Settings, roles:["admin"], color:"#4B5563" }
+      ]
+    },
+    // (2026-07-13) Group inactive event venue and restaurant together; was separate
+    {
+      group: "INACTIVE",
+      views: [
+        { id:"venue", label:"Event Venue", ic:"party", mod:Venue, roles:["admin","cashier"], color:"#7C3AED" },
+        { id:"restaurant", label:"Restaurant", ic:"utensils", mod:Restaurant, roles:["admin"], color:"#059669" }
       ]
     }
   ];
   const VIEWS = NAV_SECTIONS.flatMap(s => s.views);
-  const BOTTOM_NAV_IDS = ["dashboard","pos","gasoline","venue","inventory"];
+  const BOTTOM_NAV_IDS = ["dashboard","pos","gasoline","venue","shift","inventory"];
   let currentView = "dashboard";
 
   function accessibleViews(){
@@ -64,7 +73,15 @@ const App = (() => {
     view.mod.render();
   }
 
+  // (2026-07-13) Preserve active search/inputs during background rerender; was wiped
   function rerenderCurrentView(){
+    const active = document.activeElement;
+    if(active && ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)){
+      if(active.id === "pos-search" && currentView === "pos"){
+        POS.renderCatalog?.();
+      }
+      return;
+    }
     const view = VIEWS.find(v => v.id === currentView);
     view?.mod.render();
   }
@@ -78,6 +95,24 @@ const App = (() => {
     const dotB = document.getElementById("inv-badge-dot-bn");
     if(dotB){ dotB.style.display = count > 0 ? "block" : "none"; }
     document.getElementById("topbar-title-view") && (document.getElementById("topbar-title-view").textContent = VIEWS.find(v=>v.id===currentView)?.label || "");
+    paintShiftIndicator();
+  }
+
+  // (2026-07-13) Topbar shift status indicator: green open, red closed; was none
+  function paintShiftIndicator(){
+    const el = document.getElementById("topbar-shift-indicator");
+    if(!el) return;
+    const s = DB.getShift ? DB.getShift() : null;
+    const isOpen = Boolean(s && s.status === "open");
+    if(isOpen){
+      el.className = "topbar-shift-badge shift-open";
+      el.innerHTML = `<span class="shift-dot green"></span><span>Open Shift</span>`;
+      el.title = `Shift is Open (${s.cashier || "Cashier"}) — Click to manage`;
+    } else {
+      el.className = "topbar-shift-badge shift-closed";
+      el.innerHTML = `<span class="shift-dot red"></span><span>Closed Shift</span>`;
+      el.title = "Shift is Closed — Click to open shift";
+    }
   }
 
   function paintTopbar(){
@@ -89,6 +124,7 @@ const App = (() => {
     if(chip) chip.textContent = user?.name || "";
     const av = document.getElementById("user-chip-av");
     if(av) av.textContent = (user?.name||"?").slice(0,1).toUpperCase();
+    paintShiftIndicator();
   }
 
   // (2026-07-13) Real-time clock updating every 1s; was static/30s interval
@@ -180,7 +216,11 @@ const App = (() => {
           <header class="topbar">
             <!-- (2026-07-13) Add mobile menu button in topbar; was desktop title only -->
             <button class="icon-btn mobile-menu-btn" id="btn-topbar-menu" title="Navigation Menu" style="display:none;margin-right:6px;flex-shrink:0;">${Icons.get("menu",{size:18})}</button>
-            <h1 id="topbar-title-view">${VIEWS.find(v=>v.id===currentView)?.label || ""}</h1>
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <h1 id="topbar-title-view">${VIEWS.find(v=>v.id===currentView)?.label || ""}</h1>
+              <!-- (2026-07-13) Topbar shift status indicator badge; was missing -->
+              <button type="button" id="topbar-shift-indicator" class="topbar-shift-badge" title="Shift status"></button>
+            </div>
             <span class="topbar-spacer"></span>
             <span class="topbar-clock" id="topbar-clock"></span>
             <button class="icon-btn" id="theme-toggle-btn" title="Toggle theme"></button>
@@ -208,12 +248,13 @@ const App = (() => {
         </div>
       </nav>
 
-      <div id="toast-stack"></div>
-      <div id="receipt-print" class="hidden"></div>`;
+      <div id="toast-stack"></div>`;
 
     document.querySelectorAll(".nav-btn, .bn-btn[data-nav]").forEach(b => b.onclick = () => navigate(b.dataset.nav));
     document.getElementById("btn-topbar-menu")?.addEventListener("click", openMobileNav);
     document.getElementById("btn-bn-more")?.addEventListener("click", openMobileNav);
+    // (2026-07-13) Click shift indicator to open shift management; was no handler
+    document.getElementById("topbar-shift-indicator")?.addEventListener("click", () => navigate("shift"));
     document.getElementById("user-chip").onclick = () => {
       Modal.confirm({ title:"Log out?", message:`Sign out ${Auth.currentUser()?.name}?`, onConfirm: () => Auth.logout() });
     };

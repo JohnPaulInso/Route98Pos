@@ -195,7 +195,19 @@ const POS = (() => {
     const product = DB.findByBarcode(clean);
     if(!product){
       Utils.Sound.error();
-      Utils.toast(`No product found for barcode ${code}.`, "error");
+      Modal.confirm({
+        title: "Product Not Found",
+        message: `No product found for barcode "${code}". Would you like to add a new product with this barcode?`,
+        confirmText: "Add New Product",
+        cancelText: "Cancel",
+        onConfirm: () => {
+          if(typeof Inventory !== "undefined" && Inventory.openAddProductModal){
+            Inventory.openAddProductModal(clean); // Pass barcode to pre-fill
+          } else {
+            Utils.toast("Navigate to Inventory to add products.", "info");
+          }
+        }
+      });
       renderCatalog();
       return;
     }
@@ -376,6 +388,10 @@ const POS = (() => {
         e.preventDefault();
         finalizeSale(modal);
       }
+    });
+    // (2026-07-13) Filter ref input on paste/scan; was unfiltered raw characters
+    modal.querySelector("#ref-code-input")?.addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/[^\x20-\x7E]/g, "").replace(/[^a-zA-Z0-9\s\-_#/]/g, "").slice(0, 30);
     });
     modal.querySelector("#ref-code-input")?.addEventListener("keydown", (e) => {
       if(e.key === "Enter"){
@@ -696,7 +712,8 @@ const POS = (() => {
     const isCash = sale.method === "Cash";
     const settings = DB.getSettings();
 
-    // (2026-07-13) Auto-print receipt after every transaction; was optional toggle
+    // (2026-07-13) Auto-open cash drawer on sale completion; was manual open only
+    Utils.openCashDrawer();
     printReceipt(sale);
 
     const body = `
@@ -744,6 +761,7 @@ const POS = (() => {
       body,
       wide: true,
       actions: [
+        { label: "Open Drawer", cls: "btn-outline btn-lg", onClick: () => { Utils.openCashDrawer(); } },
         { label: "Print Receipt (JK580H)", cls: "btn-outline btn-lg", onClick: () => { printReceipt(sale); } },
         { label: "Start Next Sale", cls: "btn-primary btn-lg", onClick: Modal.close }
       ]
@@ -752,9 +770,12 @@ const POS = (() => {
 
   function finalizeSale(modal){
     const t = totals();
-    const method = modal.dataset.method;
-    const refCode = (modal.querySelector("#ref-code-input")?.value || "").trim();
+    // (2026-07-13) Sanitize refCode to alphanumeric; was unsanitized raw string
+    const rawRef = (modal.querySelector("#ref-code-input")?.value || "").trim();
+    const refCode = rawRef.replace(/[^\x20-\x7E]/g, "").replace(/[^a-zA-Z0-9\s\-_#/]/g, "").slice(0, 30).trim();
     const cashInput = modal.querySelector("#cash-input");
+    // (2026-09-24) Read method from modal.dataset; was undefined local var from openCheckout
+    const method = modal.dataset.method || "Cash";
     const tendered = method === "Cash" ? Number(cashInput.value||0) : t.grand;
     if(method === "Cash" && tendered < t.grand){
       Utils.Sound.error();
@@ -880,77 +901,81 @@ const POS = (() => {
     });
   }
 
-  // (2026-07-13) 7-11 layout with barcode & tight bounds; was generic receipt
+  // (2026-07-13) Safe receipt print on document.body; was hidden inside #root
   function printReceipt(sale){
+    if(!sale) return;
     const settings = DB.getSettings();
-    // (2026-07-13) Ensure receipt print container exists; was silent return
     let win = document.getElementById("receipt-print");
     if(!win){
       win = document.createElement("div");
       win.id = "receipt-print";
-      win.className = "hidden";
+      document.body.appendChild(win);
+    } else if(win.parentElement !== document.body){
       document.body.appendChild(win);
     }
-    const cleanTxnId = (sale.id || "").replace(/^TXN-/, "");
+    win.className = "";
+    const cleanTxnId = (sale.id || sale.receiptNo || "").replace(/^TXN-/, "");
+    const saleItems = Array.isArray(sale.items) ? sale.items : [];
+    const saleMethod = (sale.method || "Cash").toUpperCase();
+    const saleSubtotal = sale.subtotal !== undefined ? sale.subtotal : (sale.total || 0);
+    const saleTendered = sale.tendered !== undefined ? sale.tendered : (sale.total || 0);
     win.innerHTML = `
       <div class="receipt jk580h">
-        <div class="center" style="margin-bottom:3px;">
-          <!-- (2026-07-13) Enlarge receipt logo to 24mm; was 16mm -->
-          <img src="logo.png" alt="Route 98" style="width:24mm;max-width:92px;height:auto;display:block;margin:0 auto 2px;">
-          <div class="bold brand-title">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
-          <div class="text-xs store-address">${Utils.escapeHtml(settings.address && settings.address !== "Cebu City, Philippines" ? settings.address : "Cabangcalan, Dakit, Bogo City, Cebu")}</div>
-          <!-- (2026-07-13) Add VAT REG TIN on top; was dynamic TIN -->
-          <div class="text-xs">VAT REG TIN: ${Utils.escapeHtml(settings.tin || "811-387-946-00000")}</div>
-          <div class="bold text-xs" style="margin-top:2px;letter-spacing:0.02em;">THANKS FOR SHOPPING</div>
-          
+        <div class="center" style="margin-bottom:2px;">
+          <img src="logo.png" alt="Route 98" style="width:18mm;max-width:70px;height:auto;display:block;margin:0 auto 2px;">
+          <div class="bold brand-title" style="font-size:12.5px;font-weight:800;letter-spacing:0.02em;">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
+          <div class="store-address" style="font-size:9px;line-height:1.2;">${Utils.escapeHtml(settings.address && settings.address !== "Cebu City, Philippines" ? settings.address : "Cabangcalan, Dakit, Bogo City, Cebu")}</div>
+          <div style="font-size:8.5px;">VAT REG TIN: ${Utils.escapeHtml(settings.tin || "811-387-946-00000")}</div>
+          <div class="bold" style="margin-top:2px;letter-spacing:0.04em;font-size:9.5px;font-weight:800;">THANKS FOR SHOPPING</div>
         </div>
         <hr class="receipt-dash">
-        <div class="center bold text-xs receipt-sale-hdr">--== SALE TRANSACTION ==--</div>
+        <div class="center bold receipt-sale-hdr" style="font-size:10px;font-weight:800;letter-spacing:0.03em;">--== SALE TRANSACTION ==--</div>
         <div class="receipt-items">
-          ${sale.items.map(l => `
-            <div class="item-line">
+          ${saleItems.map(l => `
+            <div class="item-line" style="margin-bottom:2px;">
               <div class="row">
-                <span class="item-name">${Utils.escapeHtml(l.name)}</span>
-                <span class="bold num">${Utils.money(l.price * l.qty)}</span>
+                <span class="item-name" style="flex:1;font-size:10px;font-weight:600;">${Utils.escapeHtml(l.name || "Item")}</span>
+                <span class="bold num" style="flex-shrink:0;text-align:right;font-size:10.5px;">${Utils.money((l.price || 0) * (l.qty || 1))}</span>
               </div>
-              ${l.qty > 1 ? `
-                <div class="row item-detail">
-                  <span>&nbsp;&nbsp;${l.qty} @ ${Utils.money(l.price)}</span>
+              ${(l.qty || 1) > 1 ? `
+                <div class="row item-detail" style="font-size:9px;color:#222;">
+                  <span>&nbsp;${l.qty} @ ${Utils.money(l.price || 0)}</span>
                 </div>
               ` : ""}
             </div>
           `).join("")}
         </div>
-        <div class="row" style="margin-top:2px;"><span>SUBTOTAL</span><span class="bold num">${Utils.money(sale.subtotal)}</span></div>
-        ${sale.discountAmt ? `<div class="row"><span>DISCOUNT</span><span class="num">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        <!-- (2026-07-13) Re-include VAT row on receipt; was omitted -->
-        ${settings.vatEnabled ? `<div class="row"><span>VAT (${settings.vatRate}%)</span><span class="num">${Utils.money(sale.vat)}</span></div>` : ""}
+        <div class="row" style="margin-top:3px;font-size:10px;"><span>SUBTOTAL</span><span class="bold num" style="font-size:10.5px;">${Utils.money(saleSubtotal)}</span></div>
+        ${sale.discountAmt ? `<div class="row" style="font-size:10px;"><span>DISCOUNT</span><span class="num" style="font-size:10.5px;">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
         <hr class="receipt-solid">
-        <div class="row bold text-lg" style="margin:1px 0;"><span>TOTAL</span><span class="num">${Utils.money(sale.total)}</span></div>
+        <div class="row bold" style="margin:2px 0;font-size:12.5px;font-weight:900;"><span>TOTAL</span><span class="num" style="font-size:13px;">${Utils.money(sale.total || 0)}</span></div>
         <hr class="receipt-solid">
-        <div class="row"><span>PAYMENT</span><span>${sale.method.toUpperCase()}</span></div>
-        <div class="row"><span>AMOUNT</span><span class="num">${Utils.money(sale.tendered)}</span></div>
-        ${sale.method==="Cash" ? `<div class="row"><span>CHANGE</span><span class="num">${Utils.money(sale.change || 0)}</span></div>` : ""}
-        ${sale.refCode ? `<div class="row text-xs"><span>REF:</span><span>${Utils.escapeHtml(sale.refCode)}</span></div>` : ""}
+        <div class="row" style="font-size:10px;"><span>PAYMENT</span><span style="font-size:10px;font-weight:700;">${saleMethod}</span></div>
+        <div class="row" style="font-size:10px;"><span>AMOUNT</span><span class="num" style="font-size:10.5px;">${Utils.money(saleTendered)}</span></div>
+        ${saleMethod==="CASH" ? `<div class="row" style="font-size:10px;"><span>CHANGE</span><span class="num" style="font-size:10.5px;font-weight:700;">${Utils.money(sale.change || 0)}</span></div>` : ""}
+        ${settings.vatEnabled ? `<div class="row" style="font-size:9px;margin-top:2px;"><span>VAT (${settings.vatRate || 12}%)</span><span class="num" style="font-size:9.5px;">${Utils.money(sale.vat || 0)}</span></div>` : ""}
+        ${(() => {
+          if(!sale.refCode) return "";
+          const safeRef = String(sale.refCode).replace(/[^\x20-\x7E]/g, "").replace(/[^a-zA-Z0-9\s\-_#/]/g, "").trim().slice(0, 24);
+          return safeRef ? `<div class="row" style="font-size:9px;"><span>REF:</span><span class="mono" style="font-size:9px;max-width:65%;word-break:break-all;">${Utils.escapeHtml(safeRef)}</span></div>` : "";
+        })()}
         <hr class="receipt-dash">
-        <div class="row text-xs"><span>TXN ID:</span><span class="num">#TXN-${cleanTxnId}</span></div>
-        <div class="row text-xs"><span>DATE:</span><span>${Utils.fmtDate(sale.ts)}</span></div>
-        <!-- (2026-07-13) Show active cashier (Rosella/Niño); was omitted -->
-        ${sale.cashier ? `<div class="row text-xs"><span>CASHIER:</span><span>${Utils.escapeHtml(sale.cashier)}</span></div>` : ""}
+        <div class="row" style="font-size:9.5px;"><span>TXN ID:</span><span class="num" style="font-size:9.5px;font-weight:700;">#TXN-${cleanTxnId}</span></div>
+        <div class="row" style="font-size:8.5px;"><span>DATE:</span><span style="font-size:8.5px;">${Utils.fmtDate(sale.ts || Date.now())}</span></div>
+        ${sale.cashier ? `<div class="row" style="font-size:9px;"><span>CASHIER:</span><span style="font-size:9px;">${Utils.escapeHtml(sale.cashier)}</span></div>` : ""}
         <hr class="receipt-dash">
-        <div class="center" style="margin:3px 0 1px;">
-          <svg width="140" height="28" viewBox="0 0 140 28" style="display:block;margin:0 auto;max-width:100%;">
-            <rect x="0" y="0" width="140" height="28" fill="#fff"/>
+        <div class="center" style="margin:3px 0 2px;">
+          <svg width="130" height="26" viewBox="0 0 95 18" style="display:block;margin:0 auto;max-width:85%;">
+            <rect x="0" y="0" width="95" height="18" fill="#fff"/>
             <g fill="#000">
-              <rect x="8" y="0" width="2" height="28"/><rect x="12" y="0" width="1" height="28"/><rect x="15" y="0" width="3" height="28"/><rect x="20" y="0" width="1" height="28"/><rect x="23" y="0" width="2" height="28"/><rect x="27" y="0" width="3" height="28"/><rect x="32" y="0" width="1" height="28"/><rect x="35" y="0" width="4" height="28"/><rect x="41" y="0" width="2" height="28"/><rect x="45" y="0" width="1" height="28"/><rect x="48" y="0" width="3" height="28"/><rect x="53" y="0" width="2" height="28"/><rect x="57" y="0" width="4" height="28"/><rect x="63" y="0" width="1" height="28"/><rect x="66" y="0" width="2" height="28"/><rect x="70" y="0" width="3" height="28"/><rect x="75" y="0" width="1" height="28"/><rect x="78" y="0" width="3" height="28"/><rect x="83" y="0" width="2" height="28"/><rect x="87" y="0" width="4" height="28"/><rect x="93" y="0" width="1" height="28"/><rect x="96" y="0" width="3" height="28"/><rect x="101" y="0" width="2" height="28"/><rect x="105" y="0" width="1" height="28"/><rect x="108" y="0" width="4" height="28"/><rect x="114" y="0" width="2" height="28"/><rect x="118" y="0" width="3" height="28"/><rect x="123" y="0" width="1" height="28"/><rect x="126" y="0" width="3" height="28"/><rect x="131" y="0" width="2" height="28"/>
+              <rect x="3" y="0" width="1.5" height="18"/><rect x="6" y="0" width="1" height="18"/><rect x="9" y="0" width="1.5" height="18"/><rect x="12" y="0" width="1" height="18"/><rect x="15" y="0" width="1.5" height="18"/><rect x="19" y="0" width="1.5" height="18"/><rect x="22" y="0" width="1" height="18"/><rect x="25" y="0" width="1.5" height="18"/><rect x="29" y="0" width="1.5" height="18"/><rect x="32" y="0" width="1" height="18"/><rect x="35" y="0" width="1.5" height="18"/><rect x="39" y="0" width="1.5" height="18"/><rect x="43" y="0" width="1.5" height="18"/><rect x="46" y="0" width="1" height="18"/><rect x="49" y="0" width="1.5" height="18"/><rect x="53" y="0" width="1.5" height="18"/><rect x="56" y="0" width="1" height="18"/><rect x="59" y="0" width="1.5" height="18"/><rect x="63" y="0" width="1.5" height="18"/><rect x="67" y="0" width="1.5" height="18"/><rect x="70" y="0" width="1" height="18"/><rect x="73" y="0" width="1.5" height="18"/><rect x="77" y="0" width="1.5" height="18"/><rect x="80" y="0" width="1" height="18"/><rect x="83" y="0" width="1.5" height="18"/><rect x="87" y="0" width="1.5" height="18"/>
             </g>
           </svg>
-          <div class="text-xs num" style="letter-spacing:0.12em;font-size:8px;">${cleanTxnId ? cleanTxnId.padEnd(14, '0') : "13485572675148"}</div>
+          <div class="num" style="letter-spacing:0.06em;font-size:9px;font-weight:700;">${cleanTxnId ? cleanTxnId.padEnd(14, '0') : "13485572675148"}</div>
         </div>
-        <div class="center bold text-xs footer-msg">${settings.receiptFooter ? Utils.escapeHtml(settings.receiptFooter).toUpperCase() : "THANKS FOR SHOPPING HERE<br>WE WILL SEE YOU SOON"}</div>
-        <!-- (2026-07-13) Straight cut line & 22mm cutter feed; was cut at total -->
+        <div class="center bold footer-msg" style="font-size:9.5px;line-height:1.25;">${settings.receiptFooter ? Utils.escapeHtml(settings.receiptFooter).toUpperCase() : "THANKS FOR SHOPPING HERE<br>WE WILL SEE YOU SOON"}</div>
         <div class="receipt-cut-line"></div>
-        <div style="height:22mm;"></div>
+        <div style="height:15mm;"></div>
       </div>`;
     setTimeout(() => {
       window.print();
@@ -1111,7 +1136,20 @@ const POS = (() => {
       </div>`;
     }).join("");
 
-    grid.innerHTML = customCardHtml + (items.length ? cardsHtml : `<div class="empty" style="grid-column:2/-1;">${Icons.get("search",{size:34})}<h3>No products found</h3><p>Try a different search or category.</p></div>`);
+    // (2026-09-24) Show Add New Product card when search finds nothing; was empty msg only
+    const addNewCardHtml = !items.length && searchTerm.trim() ? `
+      <div class="product-card add-new-product-card" id="btn-grid-add-new-product" role="button" style="border:2px dashed var(--brand);background:var(--brand-tint);">
+        <div class="thumb" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+          <div class="custom-card-icon" style="background:var(--brand-tint);color:var(--brand-deep);">
+            ${Icons.get("package",{size:22,strokeWidth:2.3})}
+          </div>
+        </div>
+        <div class="info" style="text-align:center;align-items:center;padding:6px 8px 8px;">
+          <span class="brand-lbl" style="color:var(--brand);font-weight:700;">Add New Product</span>
+          <span class="name" style="color:var(--ink);font-weight:700;min-height:auto;font-size:.78rem;">Not in catalog?<br>Add it now</span>
+        </div>
+      </div>` : "";
+    grid.innerHTML = customCardHtml + (items.length ? cardsHtml : `<div class="empty" style="grid-column:${searchTerm.trim()?"3":"2"}/-1;">${Icons.get("search",{size:34})}<h3>No products found</h3><p>Try a different search or category.</p></div>`) + addNewCardHtml;
 
     // (2026-07-13) Kinetic scroll only on touch; ignore mouse pointers. Prev: all pointers
     let isScrollDragging = false;
@@ -1185,6 +1223,17 @@ const POS = (() => {
         }
         return;
       }
+      // (2026-09-24) Add New Product card click — opens inventory form; was missing
+      const addNewBtn = e.target.closest("#btn-grid-add-new-product");
+      if(addNewBtn){
+        const prefill = searchTerm.trim() || "";
+        if(typeof Inventory !== "undefined" && Inventory.openAddProductModal){
+          Inventory.openAddProductModal(prefill);
+        } else {
+          Utils.toast("Navigate to Inventory to add products.", "info");
+        }
+        return;
+      }
       const card = e.target.closest(".product-card[data-id]");
       // (2026-07-13) Allow clicking zero/negative stock cards; was blocked on oos
       if(!card) return;
@@ -1198,6 +1247,21 @@ const POS = (() => {
           animateFlyToCart(card, p);
           Utils.toast(`Added ${p.name}`, "success", 1000);
         }
+      }
+    };
+
+    // (2026-07-13) Right-click product card to edit product; was default context menu
+    grid.oncontextmenu = (e) => {
+      const card = e.target.closest(".product-card[data-id]");
+      if(!card) return;
+      e.preventDefault();
+      const pid = card.dataset.id;
+      const p = DB.getProducts().find(x => x.id === pid);
+      if(!p) return;
+      if(typeof Inventory !== "undefined" && Inventory.openProductForm){
+        Inventory.openProductForm(p);
+      } else {
+        Utils.toast("Inventory editor unavailable.", "warn");
       }
     };
 
@@ -1313,18 +1377,18 @@ const POS = (() => {
           return `
           <div class="cart-line" data-prod-id="${l.productId}">
             <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
-            <div class="info" style="flex:1;min-width:0;">
-              <!-- (2026-07-13) Match custom item row height & spacing; was tall 47px -->
+            <div class="info" style="flex:1;min-width:0;overflow:hidden;">
+              <!-- (2026-07-13) Align /pc and fix custom item row height; was wrapping -->
               <div class="n custom-cart-n-wrap" style="display:flex;align-items:center;">
                 <input type="text" class="custom-cart-name-input" data-name-idx="${idx}" value="${Utils.escapeHtml(l.name)}" placeholder="Custom Item" title="Click to rename" list="custom-cart-item-datalist">
               </div>
-              <div class="p" style="display:flex;align-items:center;gap:3px;margin-top:1px;font-size:.70rem;color:var(--ink-faint);font-family:var(--font-mono);font-weight:600;line-height:16px;">
-                <span>₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" title="Edit custom price"><span>/ ${l.unit||"pc"}</span>
+              <div class="p custom-cart-p-wrap" style="display:inline-flex;align-items:center;gap:2px;margin-top:1px;font-size:.70rem;color:var(--ink-faint);font-family:var(--font-mono);font-weight:600;line-height:16px;white-space:nowrap;flex-wrap:nowrap;">
+                <span>₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" title="Edit custom price"><span style="white-space:nowrap;flex-shrink:0;">/ ${l.unit||"pc"}</span>
               </div>
             </div>
             <div class="qty-stepper">
               <button data-dec="${idx}">${Icons.get("minus",{size:12})}</button>
-              <span class="q">${l.qty}</span>
+              <input type="number" class="q qty-input" data-qty-idx="${idx}" value="${l.qty}" min="1" step="1">
               <button data-inc="${idx}">${Icons.get("plus",{size:12})}</button>
             </div>
             <div class="lt">${Utils.money(l.price*l.qty)}</div>
@@ -1734,7 +1798,19 @@ const POS = (() => {
               }
             } else {
               Utils.Sound.error();
-              Utils.toast(`No product found for "${clean}"`, "error");
+              Modal.confirm({
+                title: "Product Not Found",
+                message: `No product found for "${clean}". Would you like to add a new product?`,
+                confirmText: "Add New Product",
+                cancelText: "Cancel",
+                onConfirm: () => {
+                  if(typeof Inventory !== "undefined" && Inventory.openAddProductModal){
+                    Inventory.openAddProductModal(clean); // Pass search term
+                  } else {
+                    Utils.toast("Navigate to Inventory to add products.", "info");
+                  }
+                }
+              });
             }
           }
           search.value = "";

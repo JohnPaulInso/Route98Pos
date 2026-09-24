@@ -394,6 +394,162 @@ const Inventory = (() => {
     });
   }
 
+  // (2026-07-13) View past transactions for specific product; was missing
+  function openProductTransactionsModal(product){
+    if(!product) return;
+    const allSales = DB.getSales();
+    const pid = String(product.id || "").trim();
+    const pBarcode = String(product.barcode || "").trim();
+    const pName = String(product.name || "").trim().toLowerCase();
+
+    const matches = [];
+    allSales.forEach(sale => {
+      const items = (sale.items || []).filter(line => {
+        const lPid = String(line.productId || "").trim();
+        const lBarcode = String(line.barcode || "").trim();
+        const lName = String(line.name || "").trim().toLowerCase();
+        return (pid && lPid === pid) || (pBarcode && lBarcode === pBarcode) || (pName && lName === pName);
+      });
+      if(items.length){
+        const totalQty = items.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
+        const totalLineAmount = items.reduce((sum, i) => sum + ((Number(i.qty) || 0) * (Number(i.price) || 0)), 0);
+        matches.push({
+          sale,
+          items,
+          totalQty,
+          totalLineAmount,
+          ts: sale.ts || 0,
+          method: sale.method || "Cash",
+          cashier: sale.cashier || "Cashier",
+          receiptNo: sale.receiptNo || sale.id || ""
+        });
+      }
+    });
+
+    matches.sort((a, b) => b.ts - a.ts);
+    const totalQtySold = matches.reduce((sum, m) => sum + m.totalQty, 0);
+    const totalRev = matches.reduce((sum, m) => sum + m.totalLineAmount, 0);
+
+    const body = `
+      <div style="padding:4px 0 10px;">
+        <div class="card card-tight" style="margin-bottom:14px;background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
+          // (2026-07-13) Clean white centered thumb in transaction modal; was unclassed
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <span class="prod-thumb-sm" style="width:40px;height:40px;flex-shrink:0;margin:0;">${Utils.productThumb(product, { iconSize:22 })}</span>
+            <div style="min-width:0;flex:1;">
+              <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:var(--ink);">${Utils.escapeHtml(product.name)}</h3>
+              <div class="text-xs text-faint">
+                ${product.brand ? `<span>${Utils.escapeHtml(product.brand)} · </span>` : ""}
+                Barcode: <strong class="mono">${Utils.escapeHtml(product.barcode || "—")}</strong> · Category: <strong>${Utils.escapeHtml(product.category || "—")}</strong>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:8px;padding-top:10px;border-top:1px dashed var(--line);">
+            <div><span class="text-xs text-faint" style="font-weight:700;display:block;">Current Stock</span><strong class="mono font-bold" style="font-size:1.1rem;color:${product.stock<=0?'var(--danger)':'var(--ink)'};">${product.stock} ${product.unit||'pc'}</strong></div>
+            <div><span class="text-xs text-faint" style="font-weight:700;display:block;">Total Units Sold</span><strong class="mono font-bold" style="font-size:1.1rem;color:var(--brand-deep);">${totalQtySold} pcs</strong></div>
+            <div><span class="text-xs text-faint" style="font-weight:700;display:block;">Sales Revenue</span><strong class="mono font-bold" style="font-size:1.1rem;color:var(--success-deep);">${Utils.money(totalRev)}</strong></div>
+            <div><span class="text-xs text-faint" style="font-weight:700;display:block;">Transactions</span><strong class="mono font-bold" style="font-size:1.1rem;color:var(--brand);">${matches.length} txns</strong></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+          <h4 style="margin:0;font-size:0.95rem;font-weight:800;color:var(--ink);">Sales History (${matches.length})</h4>
+          ${matches.length ? `<span class="text-xs text-faint">Sorted newest first</span>` : ""}
+        </div>
+
+        <!-- (2026-07-13) Scoped compact font styling for product history modal; was oversized -->
+        <style>
+          .prod-history-modal .data th{ font-size:0.75rem !important; padding:7px 10px !important; letter-spacing:0.03em; }
+          .prod-history-modal .data td{ font-size:0.82rem !important; padding:7px 10px !important; }
+          .prod-history-modal tr.history-row-clickable{ cursor:pointer; transition:background 0.15s ease; }
+          .prod-history-modal tr.history-row-clickable:hover{ background:var(--brand-tint) !important; }
+        </style>
+
+        ${matches.length ? `
+          <div class="table-wrap prod-history-modal" style="max-height:420px;overflow-y:auto;overflow-x:auto;border:1px solid var(--line);border-radius:8px;">
+            <table class="data" style="width:100%;min-width:580px;font-size:0.82rem;table-layout:fixed;">
+              <thead>
+                <tr>
+                  <th style="width:140px;">Date & Time</th>
+                  <th style="width:100px;">Receipt #</th>
+                  <th style="width:90px;">Cashier</th>
+                  <th style="width:70px;">Quantity</th>
+                  <th style="width:80px;">Unit Price</th>
+                  <th style="text-align:right;">Subtotal</th>
+                  <th style="text-align:center;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${matches.map(m => `
+                  <tr class="history-row-clickable" data-row-receipt="${Utils.escapeHtml(m.sale.id)}" title="Click to view full receipt">
+                    <td style="font-size:0.80rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.fmtDate(m.ts)}</td>
+                    <td class="mono font-bold" style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;">#${Utils.escapeHtml(m.receiptNo)}</td>
+                    <td style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.escapeHtml(m.cashier)}</td>
+                    <td class="mono font-bold" style="font-size:0.82rem;color:var(--brand-deep);">${m.totalQty} ${m.items[0]?.unitType === "pack" ? "pk" : "pc"}</td>
+                    <td class="mono" style="font-size:0.82rem;">${Utils.money(m.items[0]?.price || 0)}</td>
+                    <td class="mono font-bold" style="font-size:0.84rem;text-align:right;">${Utils.money(m.totalLineAmount)}</td>
+                    <td style="text-align:center;">
+                      <button class="btn btn-xs btn-outline font-bold" data-view-receipt="${Utils.escapeHtml(m.sale.id)}" style="padding:2px 8px;font-size:0.74rem;">
+                        View Receipt
+                      </button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div class="card" style="padding:32px 16px;text-align:center;background:var(--paper-dim);border:1px dashed var(--line);border-radius:10px;">
+            <p class="text-faint text-sm" style="margin:0;">No sales transactions found for this product yet.</p>
+          </div>
+        `}
+      </div>
+    `;
+
+    const modal = Modal.open({
+      title: `${Icons.get("clock",{size:18})} Product Transaction History`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Close", cls: "btn-ghost" },
+        { label: "Edit Product", cls: "btn-outline", onClick: () => { Modal.close(); openProductForm(product); } }
+      ]
+    });
+
+    if(modal){
+      // (2026-09-24) Use 90vw; was 95vw/1120px causing right-side cut in modal
+      modal.style.maxWidth = "900px";
+      modal.style.width = "90vw";
+      modal.style.overflowX = "hidden";
+    }
+
+    const showReceiptAndReturn = (saleId) => {
+      const s = DB.getSales().find(x => x.id === saleId);
+      if(!s) return;
+      Modal.close();
+      if(typeof Reports !== "undefined" && Reports.openReceiptModal){
+        Reports.openReceiptModal(s, {
+          onClose: () => {
+            setTimeout(() => openProductTransactionsModal(product), 50);
+          }
+        });
+      } else if(typeof POS !== "undefined" && POS.printByRecord){
+        POS.printByRecord(s);
+      }
+    };
+
+    modal.querySelectorAll("[data-row-receipt]").forEach(row => {
+      row.onclick = () => showReceiptAndReturn(row.dataset.rowReceipt);
+    });
+
+    modal.querySelectorAll("[data-view-receipt]").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        showReceiptAndReturn(btn.dataset.viewReceipt);
+      };
+    });
+  }
+
   // (2026-07-13) Uppercase categories & export button; was mixed unexported
   function manageCategories(){
     const cats = DB.getCategories();
@@ -1425,6 +1581,8 @@ const Inventory = (() => {
         </td>
         <td>${p.stock<=0?`<span class="badge badge-rust font-bold" style="font-size:.72rem;padding:2px 6px;">Out of stock</span>`:low?`<span class="badge badge-amber font-bold" style="font-size:.72rem;padding:2px 6px;">Low stock</span>`:`<span class="badge badge-green font-bold" style="font-size:.72rem;padding:2px 6px;">OK</span>`}</td>
         <td style="text-align:right;white-space:nowrap;">
+          <!-- (2026-07-13) Show product sales transactions button; was adjust/edit/delete -->
+          <button class="btn btn-sm btn-ghost" data-history="${p.id}" title="View Past Transactions">${Icons.get("clock",{size:14})}</button>
           <button class="btn btn-sm btn-ghost" data-adj="${p.id}" title="Adjust stock">${Icons.get("package",{size:14})}</button>
           <button class="btn btn-sm btn-ghost" data-edit="${p.id}" title="Edit">${Icons.get("edit",{size:14})}</button>
           <button class="btn btn-sm btn-ghost" data-del="${p.id}" title="Delete">${Icons.get("trash",{size:14})}</button>
@@ -1513,15 +1671,22 @@ const Inventory = (() => {
       });
       row.addEventListener("pointerup", () => clearTimeout(timer));
       row.addEventListener("pointercancel", () => clearTimeout(timer));
+      // (2026-07-13) Click inventory row opens product transaction history; was noop
       row.addEventListener("click", (e) => {
         if(isLongPress){
           e.preventDefault();
           e.stopPropagation();
           isLongPress = false;
+          return;
         }
+        if(e.target.closest("button, input, [data-preview-img], [data-copy-name]")) return;
+        if(selectMode) return;
+        const p = DB.getProducts().find(x => x.id === row.dataset.prodRow);
+        if(p) openProductTransactionsModal(p);
       }, true);
     });
 
+    tbody.querySelectorAll("[data-history]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductTransactionsModal(DB.getProducts().find(p=>p.id===b.dataset.history)); });
     tbody.querySelectorAll("[data-edit]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductForm(DB.getProducts().find(p=>p.id===b.dataset.edit)); });
     tbody.querySelectorAll("[data-adj]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openStockAdjust(DB.getProducts().find(p=>p.id===b.dataset.adj)); });
     tbody.querySelectorAll("[data-del]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); deleteProduct(DB.getProducts().find(p=>p.id===b.dataset.del)); });
@@ -1692,5 +1857,29 @@ const Inventory = (() => {
 
   function resetSearch(){ searchTerm = ""; }
 
-  return { render, openProductForm, resetSearch };
+  // (2026-09-24) Wrapper to open add product modal with pre-filled barcode or name
+  function openAddProductModal(prefillValue = null){
+    // First switch to inventory view
+    if(typeof App !== "undefined" && App.navigate){
+      App.navigate("inventory");
+    }
+    // Open the form after a brief delay to ensure view is rendered
+    setTimeout(() => {
+      openProductForm();
+      // Pre-fill barcode or name field
+      if(prefillValue){
+        const barcodeField = document.getElementById("f-barcode");
+        const nameField = document.getElementById("f-name");
+        // If it looks like a barcode (all digits or alphanumeric with no spaces)
+        if(/^[A-Z0-9]+$/i.test(prefillValue)){
+          if(barcodeField) barcodeField.value = prefillValue;
+        } else {
+          // Otherwise treat as name search term
+          if(nameField) nameField.value = prefillValue;
+        }
+      }
+    }, 150);
+  }
+
+  return { render, openProductForm, openAddProductModal, openProductTransactionsModal, resetSearch };
 })();

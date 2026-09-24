@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Transactions</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 2rem; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.75rem; margin-bottom: 0.5rem; color: #333; }
+    p { color: #666; margin-bottom: 1.5rem; line-height: 1.5; }
+    .file-section { margin-bottom: 1.5rem; padding: 1rem; border: 2px dashed #ddd; border-radius: 4px; background: #fafafa; }
+    .file-section label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #555; }
+    .file-section input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+    .btn { padding: 0.75rem 1.5rem; background: #10b981; color: white; border: none; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: #059669; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .status { margin-top: 1.5rem; padding: 1rem; border-radius: 4px; display: none; }
+    .status.success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; display: block; }
+    .status.error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; display: block; }
+    .status.info { background: #dbeafe; color: #1e40af; border: 1px solid: #3b82f6; display: block; }
+    .warning { background: #fef3c7; color: #92400e; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; border: 1px solid #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📥 Import Transactions</h1>
+    <p>Import sales from the CSV files. The system will automatically check for duplicates based on receipt numbers.</p>
+    
+    <div class="warning">
+      <strong>⚠️ Important:</strong> This will merge new transactions with existing sales. Duplicates will be detected by receipt number and updated, not re-added.
+    </div>
+
+    <div class="file-section">
+      <label for="fileInput">Select CSV File(s):</label>
+      <input type="file" id="fileInput" accept=".csv" multiple>
+      <small style="display:block; margin-top:0.5rem; color:#666;">
+        You can select both CSV files at once (Ctrl+Click or Cmd+Click)
+      </small>
+    </div>
+
+    <button class="btn" id="importBtn" onclick="importFiles()">Import Transactions</button>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/importExport.js"></script>
+
+  <script>
+    async function importFiles() {
+      const fileInput = document.getElementById('fileInput');
+      const statusDiv = document.getElementById('status');
+      const btn = document.getElementById('importBtn');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = 'Please select at least one CSV file.';
+        return;
+      }
+
+      btn.disabled = true;
+      statusDiv.className = 'status info';
+      statusDiv.textContent = `Processing ${fileInput.files.length} file(s)...`;
+
+      try {
+        let totalAdded = 0;
+        let totalMerged = 0;
+        let filesProcessed = 0;
+
+        for (const file of fileInput.files) {
+          statusDiv.textContent = `Processing ${file.name}... (${filesProcessed + 1}/${fileInput.files.length})`;
+          
+          await new Promise((resolve) => {
+            ImportExport.importSalesFile(file, () => {
+              // Get the results from localStorage to count changes
+              const currentSales = DB.getSales();
+              console.log(`Processed ${file.name}: ${currentSales.length} total sales in system`);
+              filesProcessed++;
+              resolve();
+            });
+          });
+
+          // Small delay between files
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        const finalCount = DB.getSales().length;
+        statusDiv.className = 'status success';
+        statusDiv.innerHTML = `
+          <strong>✅ Import Complete!</strong><br>
+          Files processed: ${filesProcessed}<br>
+          Total transactions in system: ${finalCount}<br>
+          <small>Duplicates were automatically detected and merged by receipt number.</small>
+        `;
+
+        // Clear the file input
+        fileInput.value = '';
+        
+      } catch (error) {
+        console.error('Import error:', error);
+        statusDiv.className = 'status error';
+        statusDiv.innerHTML = `
+          <strong>❌ Import Failed</strong><br>
+          ${error.message || 'An error occurred during import.'}
+        `;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Initialize DB on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        if (typeof DB !== 'undefined' && DB.init) {
+          DB.init();
+          console.log('Database initialized');
+        }
+      } catch (e) {
+        console.error('DB init error:', e);
+      }
+    });
+  </script>
+</body>
+</html>

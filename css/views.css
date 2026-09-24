@@ -208,12 +208,15 @@
 .custom-card-stepper{
   background:var(--paper-raised);
 }
-/* (2026-07-13) Match custom row height & spacing; was tall 22px/20px */
-.custom-cart-n-wrap{ overflow:visible !important; width:100%; margin:0; line-height:1; }
-.custom-cart-name-input{ font-family:inherit; font-size:.82rem; font-weight:700; color:var(--ink); background:transparent; border:1px solid transparent; border-radius:4px; padding:0 3px; margin:0 0 0 -4px; width:100%; max-width:135px; height:16px; line-height:1.2; outline:none; cursor:text; box-sizing:border-box; transition:border-color var(--transition), background var(--transition), box-shadow var(--transition); }
+/* (2026-07-13) Align /pc and fix custom cart row height; was wrapping */
+.custom-cart-n-wrap{ overflow:hidden !important; width:100%; margin:0; line-height:1.1; }
+.custom-cart-p-wrap{ white-space:nowrap !important; flex-wrap:nowrap !important; }
+.custom-cart-name-input{ font-family:inherit; font-size:.82rem; font-weight:700; color:var(--ink); background:transparent; border:1px solid transparent; border-radius:4px; padding:0 3px; margin:0 0 0 -4px; width:100%; max-width:120px; height:16px; line-height:1.2; outline:none; cursor:text; box-sizing:border-box; transition:border-color var(--transition), background var(--transition), box-shadow var(--transition); text-overflow:ellipsis; }
 .custom-cart-name-input:hover{ border-color:var(--line-strong); background:var(--paper-dim); }
 .custom-cart-name-input:focus{ border-color:var(--brand); background:var(--paper-raised); box-shadow:0 0 0 2px var(--brand-tint); }
-.custom-cart-price-input{ width:48px; height:16px; line-height:14px; text-align:right; border:1px solid var(--line-strong); border-radius:3px; background:var(--paper-raised); color:var(--brand-deep); padding:0 3px; font-size:.70rem; font-family:var(--font-mono); font-weight:700; box-sizing:border-box; }
+.custom-cart-price-input{ width:38px; height:16px; line-height:14px; text-align:right; border:1px solid var(--line-strong); border-radius:3px; background:var(--paper-raised); color:var(--brand-deep); padding:0 2px; font-size:.70rem; font-family:var(--font-mono); font-weight:700; box-sizing:border-box; -moz-appearance:textfield; }
+.custom-cart-price-input::-webkit-outer-spin-button,
+.custom-cart-price-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
 
 /* (2026-07-13) Style floating product ghost and pop; was basic box */
 .flying-product-ghost{
@@ -268,8 +271,8 @@
   background:var(--paper-raised);
   border-radius:4px;
 }
-.prod-thumb-sm{ position:relative; overflow:hidden; }
-.prod-thumb-sm img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.prod-thumb-sm{ position:relative; overflow:hidden; background:#ffffff !important; }
+.prod-thumb-sm img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; background:#ffffff; }
 .prod-thumb-sm .ic-svg{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--brand); }
 .cart-line .lt{ font-family:var(--font-mono); font-weight:700; font-size:.84rem; color:var(--brand-deep); width:60px; text-align:right; }
 /* (2026-07-13) Enhance cart foot totals summary styling; was plain rows */
@@ -612,14 +615,15 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
 .stock-bar{ width:70px; height:6px; background:var(--paper-dim); border-radius:6px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:6px; }
 .stock-bar > i{ display:block; height:100%; background:var(--success); }
 .stock-bar.low > i{ background:var(--danger); }
-.prod-thumb-sm{ width:34px; height:34px; border-radius:8px; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; margin-right:9px; background:var(--paper-dim); border:1px solid var(--line); position:relative; }
-[data-theme="dark"] .prod-thumb-sm{ background:var(--paper-dim); }
-.prod-thumb-sm img{ position:absolute; inset:2px; width:calc(100% - 4px); height:calc(100% - 4px); object-fit:contain; }
+/* (2026-07-13) Clean white background & centered product thumbs; was paper-dim */
+.prod-thumb-sm{ width:34px; height:34px; border-radius:8px; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; margin-right:9px; background:#ffffff !important; border:1px solid var(--line); position:relative; }
+[data-theme="dark"] .prod-thumb-sm{ background:#ffffff !important; }
+.prod-thumb-sm img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; background:#ffffff; }
 .prod-thumb-sm .ic-svg{ color:var(--brand); }
 .brand-cell{ display:block; font-size:.68rem; color:var(--ink-faint); font-weight:600; margin-top:1px; }
-.image-preview{ width:88px; height:88px; border-radius:var(--r-md); overflow:hidden; background:var(--paper-dim); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; }
-[data-theme="dark"] .image-preview{ background:var(--paper-dim); }
-.image-preview img{ position:absolute; inset:4px; width:calc(100% - 8px); height:calc(100% - 8px); object-fit:contain; }
+.image-preview{ width:88px; height:88px; border-radius:var(--r-md); overflow:hidden; background:#ffffff !important; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; }
+[data-theme="dark"] .image-preview{ background:#ffffff !important; }
+.image-preview img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; background:#ffffff; }
 .image-preview .ic-svg{ color:var(--brand); }
 /* (2026-07-13) Add inventory selection styles; was non-selectable */
 .inv-select-col{ width:38px; text-align:center; padding:9px 6px; }
@@ -705,12 +709,14 @@ table.data th:first-child{
 /* Receipt tear cut line */
 .receipt .receipt-cut-line{ margin-top: 7px; border: none; border-top: 1px dashed #000; width: 100%; display: block; }
 
-/* (2026-09-24) Auto-fit paper height & hide screen DOM; was 210mm tall sheet */
+#receipt-print{ display: none; }
+
+/* (2026-07-13) Set thermal receipt print layout; was blank on hidden #root */
 @media print{
-  @page{ size: 50mm auto; margin: 0mm; }
+  @page{ size: 58mm auto; margin: 0mm; }
   html, body{
-    width: 50mm !important;
-    max-width: 50mm !important;
+    width: 58mm !important;
+    max-width: 58mm !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -719,57 +725,69 @@ table.data th:first-child{
     background: #fff !important;
     overflow: visible !important;
   }
-  #app{
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  #root, #app, header, nav, aside, main, .view, .topbar, .sidebar, .bottom-nav, #toast-stack, #modal-root, .modal-backdrop, .modal{
+    display: none !important;
   }
-  #app > *:not(#receipt-print){ display: none !important; }
-  /* (2026-07-13) Hide modal backdrop on receipt print; was unhidden backdrop */
-  header, nav, aside, main, .view, .topbar, .sidebar, .bottom-nav, #toast-stack, #modal-root, .modal-backdrop, .modal{ display: none !important; }
-  body *{ visibility: hidden !important; }
-  #receipt-print, #receipt-print *{ visibility: visible !important; }
+  body > *:not(#receipt-print){
+    display: none !important;
+  }
   #receipt-print{
     display: block !important;
+    visibility: visible !important;
     position: static !important;
-    width: 50mm !important;
-    max-width: 50mm !important;
+    width: 58mm !important;
+    max-width: 58mm !important;
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+  #receipt-print *{
+    visibility: visible !important;
+  }
   .receipt.jk580h, .receipt{
+    display: block !important;
+    visibility: visible !important;
     width: 50mm !important;
     max-width: 50mm !important;
     height: auto !important;
     min-height: 0 !important;
     box-sizing: border-box !important;
-    padding: 0.5mm 1mm 0mm 2.5mm !important;
+    padding: 1mm 1.5mm 0mm 1.5mm !important;
     margin: 0 auto !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     overflow: hidden !important;
+    font-size: 9.5px !important;
+    line-height: 1.25 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   }
   .receipt .row{
-    gap: 0.5px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .receipt .num{
+    font-family: 'Consolas', monospace !important;
+    font-variant-numeric: tabular-nums !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    font-size: 8px !important;
+    font-weight: 700 !important;
   }
   .receipt .center{
+    text-align: center !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
   }

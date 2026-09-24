@@ -181,11 +181,20 @@ const Sync = (() => {
           if(cloudSales.length){
             const curSales = DB.getSales();
             const curSaleIds = new Set(curSales.map(s => String(s.id).toLowerCase()));
+            // (2026-07-13) Omit deleted sales from cloud pull & delete doc; was re-added
+            const deletedIds = DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : new Set();
             let addedS = false;
             cloudSales.forEach(s => {
-              if(!curSaleIds.has(String(s.id).toLowerCase())){
+              const sId = String(s.id || "").toLowerCase();
+              const rId = String(s.receiptNo || "").toLowerCase();
+              const cleanId = sId.replace(/^txn-/, "");
+              if(deletedIds.has(s.id) || deletedIds.has(sId) || deletedIds.has(rId) || deletedIds.has(cleanId)){
+                try { mod.deleteDoc(mod.doc(database, "sales", String(s.id || s.receiptNo))).catch(()=>{}); } catch(e){}
+                return;
+              }
+              if(!curSaleIds.has(sId)){
                 curSales.push(s);
-                curSaleIds.add(String(s.id).toLowerCase());
+                curSaleIds.add(sId);
                 addedS = true;
               }
             });
@@ -363,7 +372,9 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), (docSnap) => {
+      // (2026-07-13) Ignore local write echo in onSnapshot; was false remote reload
+      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
+        if(docSnap.metadata?.hasPendingWrites) return;
         if(docSnap.exists()){
           const remoteData = docSnap.data();
           const localMeta = DB.getSyncMeta();
@@ -391,6 +402,23 @@ const Sync = (() => {
     }
   }
 
+  // (2026-07-13) Delete removed sale document directly in Firestore; was persisting
+  async function deleteSaleDoc(saleId){
+    try {
+      const settings = DB.getSettings();
+      if(!settings.firebaseConfig) return;
+      const { db: database, mod } = await ensureFirebase();
+      const docId = String(saleId);
+      await mod.deleteDoc(mod.doc(database, "sales", docId)).catch(()=>{});
+      const cleanId = docId.replace(/^TXN-/, "");
+      if(cleanId !== docId){
+        await mod.deleteDoc(mod.doc(database, "sales", cleanId)).catch(()=>{});
+      }
+    } catch(e){
+      console.warn("Could not delete sale doc from Firestore:", e);
+    }
+  }
+
   // (2026-07-13) Auto-drain offline queue when reconnecting; was disconnected
   async function syncOfflineQueue(){
     const queue = DB.getOfflineQueue ? DB.getOfflineQueue() : [];
@@ -409,7 +437,8 @@ const Sync = (() => {
 
   function init(){
     document.addEventListener("mm:dirty", (e) => {
-      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.backups) return;
+      // (2026-07-13) Skip auto-sync on local cart typing & deletions; was reload spam
+      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds) return;
       scheduleAutoSync();
     });
     window.addEventListener("online", () => {
@@ -440,7 +469,7 @@ const Sync = (() => {
   }
 
   return {
-    init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue,
+    init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue, deleteSaleDoc,
     createDailyBackup, checkDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();

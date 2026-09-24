@@ -143,8 +143,8 @@ const Reports = (() => {
   // (2026-07-13) Shared TXN ID formatter; was inline per-call, inconsistent
   function fmtTxnId(id){ const c=(id||"").replace(/[^a-zA-Z0-9]/g,"").toUpperCase().slice(-8); return `TXN-${c||"00000000"}`; }
 
-  // (2026-07-13) Copiable clean TXN ID pill with copy feedback; was static text
-  function openReceiptModal(sale){
+  // (2026-07-13) Support onClose callback in openReceiptModal; was no navigation
+  function openReceiptModal(sale, opts = {}){
     if(!sale) return;
     const settings = DB.getSettings();
     const txnId = fmtTxnId(sale.id);
@@ -225,7 +225,7 @@ const Reports = (() => {
 
     // (2026-07-13) Edit sale, void logs & restock rollbacks for Admin; was delete only
     const actions = [
-      { label: "Close", cls: "btn-ghost btn-lg", onClick: Modal.close }
+      { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modal.close(); if(opts.onClose) opts.onClose(); } }
     ];
     if(Auth.isAdmin()){
       actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modal.close(); openEditSaleModal(sale); } });
@@ -237,7 +237,8 @@ const Reports = (() => {
       title: `${Icons.get("receipt",{size:18})} Receipt & Transaction Details`,
       body,
       wide: true,
-      actions
+      actions,
+      onClose: opts.onClose
     });
 
     const copyBtn = modal.querySelector("#btn-copy-txnid");
@@ -412,7 +413,7 @@ const Reports = (() => {
             priceDiff,
             reason,
             admin: Auth.currentUser()?.name || "Admin"
-          });
+          });n
           const sales = DB.getSales();
           const idx = sales.findIndex(x => x.id === sale.id);
           if(idx !== -1){
@@ -492,14 +493,21 @@ const Reports = (() => {
   }
 
   // (2026-07-13) Delete store & fuel sale records with confirmation. Prev: view only
+  // (2026-09-24) Track if confirmation is open to prevent duplicates
+  let deleteConfirmOpen = false;
+
   function deleteSaleRecord(saleId){
+    if(deleteConfirmOpen) return; // Prevent duplicate confirmations
     const sale = DB.getSales().find(x => x.id === saleId);
     if(!sale) return;
+    
+    deleteConfirmOpen = true;
     Modal.confirm({
       title: "Delete Sale Record?",
       message: `Delete transaction ${sale.receiptNo || sale.id} (${Utils.money(sale.total)})? This will log a complete transaction void.`,
       danger: true,
       onConfirm: () => {
+        deleteConfirmOpen = false;
         DB.addVoidLog({
           origTxnId: sale.id,
           itemSummary: (sale.items || []).map(l=>`${l.qty}x ${l.name}`).join(", ") || "Complete transaction void",
@@ -518,15 +526,23 @@ const Reports = (() => {
           }
         });
         DB.setProducts(products);
-        DB.setSales(DB.getSales().filter(x => x.id !== saleId));
+        // (2026-07-13) Filter deleted sale by normalized ID & sync cloud; was local id
+        const cleanId = String(saleId).replace(/^TXN-/i, "");
+        DB.setSales(DB.getSales().filter(x => x.id !== saleId && x.id !== cleanId && x.receiptNo !== saleId && x.receiptNo !== cleanId));
+        DB.markSaleDeleted(saleId, sale.receiptNo);
+        if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(saleId);
         Utils.toast("Sale record deleted & logged to Void Audit.", "success");
         render();
+      },
+      onCancel: () => {
+        deleteConfirmOpen = false;
       }
     });
   }
 
   // (2026-07-13) Batch delete receipts with stock restore; was single delete
   function batchDeleteSales(saleIds){
+    if(deleteConfirmOpen) return; // Prevent duplicate confirmations
     if(!saleIds || !saleIds.length) return;
     const idSet = new Set(saleIds);
     const allSales = DB.getSales();
@@ -534,11 +550,13 @@ const Reports = (() => {
     if(!toDelete.length) return;
 
     const executeBatch = () => {
+      deleteConfirmOpen = true;
       Modal.confirm({
         title: `Delete ${toDelete.length} Receipt(s)?`,
         message: `Delete ${toDelete.length} transaction(s)? This will restore inventory stock and log complete voids to Void Audit.`,
         danger: true,
         onConfirm: () => {
+          deleteConfirmOpen = false;
           const products = DB.getProducts();
           toDelete.forEach(sale => {
             DB.addVoidLog({
@@ -559,9 +577,17 @@ const Reports = (() => {
           });
           DB.setProducts(products);
           DB.setSales(allSales.filter(x => !idSet.has(x.id)));
-          toDelete.forEach(s => selectedReceiptIds.delete(s.id));
+          toDelete.forEach(s => {
+            selectedReceiptIds.delete(s.id);
+            // (2026-07-13) Batch purge deleted sales from Firestore & local; was local id
+            DB.markSaleDeleted(s.id, s.receiptNo);
+            if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(s.id);
+          });
           Utils.toast(`${toDelete.length} receipt(s) deleted & stock restored.`, "success");
           render();
+        },
+        onCancel: () => {
+          deleteConfirmOpen = false;
         }
       });
     };
@@ -1197,7 +1223,7 @@ const Reports = (() => {
               return `<tr class="clickable-row" data-top-prod="${Utils.escapeHtml(it.productId || it.name)}">
                 <td class="text-faint">${idx + 1}</td>
                 <td style="padding:8px 4px;">
-                  <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--brand-tint);">
+                  <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#ffffff;border:1px solid var(--line);">
                     ${thumbHtml}
                   </div>
                 </td>
@@ -1448,10 +1474,32 @@ const Reports = (() => {
   }
 
   // (2026-07-13) Add pagination & open/close balances; was unpaginated no balances
+  // (2026-09-24) Receipt search state variable
+  let receiptSearchTerm = "";
+
   function historyTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
     let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+    
+    // (2026-09-24) Apply search filter by TXN ID or item names
+    if(receiptSearchTerm && receiptSearchTerm.trim()){
+      const searchLower = receiptSearchTerm.trim().toLowerCase();
+      sales = sales.filter(s => {
+        // Search in TXN ID
+        const txnId = fmtTxnId(s.id).toLowerCase();
+        if(txnId.includes(searchLower)) return true;
+        
+        // Search in item names
+        if(s.items && s.items.length > 0){
+          return s.items.some(item => 
+            (item.name || "").toLowerCase().includes(searchLower)
+          );
+        }
+        return false;
+      });
+    }
+    
     const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(s.id));
     const selectedCount = sales.filter(s => selectedReceiptIds.has(s.id)).length;
 
@@ -1474,19 +1522,49 @@ const Reports = (() => {
     const dayBalances = (DB.getDayBalances ? DB.getDayBalances() : {}) || {};
     const savedEntry = isSingleDay ? dayBalances[dayKey] : null;
 
-    let openingBalance = 0;
-    if(isSingleDay){
-      if(savedEntry && savedEntry.startingBalance !== undefined && savedEntry.startingBalance !== null){
-        openingBalance = Number(savedEntry.startingBalance) || 0;
-      } else if(dayKey === todayKey){
-        openingBalance = (DB.getShift ? (DB.getShift().openingCash || 0) : 0) || (DB.getSettings ? (DB.getSettings().startingBalance || 0) : 0) || 0;
-      }
-    }
-    const closingBalance = isSingleDay ? (openingBalance + totalSalesAmount) : null;
+    // (2026-07-13) Fetch starting and closing balances directly from shift; was manual
+    const shiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
+    const dayShifts = shiftLogs.filter(l => {
+      if(!l.openedAt) return false;
+      const ld = new Date(l.openedAt);
+      const lk = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, "0")}-${String(ld.getDate()).padStart(2, "0")}`;
+      return lk === dayKey;
+    }).sort((a,b) => (a.openedAt || 0) - (b.openedAt || 0));
 
-    if(isSingleDay && savedEntry && (savedEntry.closingBalance !== closingBalance || savedEntry.totalSales !== totalSalesAmount)){
+    const activeShift = DB.getShift ? DB.getShift() : null;
+    const isActiveToday = isSingleDay && (dayKey === todayKey) && activeShift && activeShift.status === "open";
+
+    let openingBalance = 0;
+    let closingBalance = null;
+
+    if(isSingleDay){
+      if(dayShifts.length > 0){
+        openingBalance = Number(dayShifts[0].openingCash) || 0;
+        const latestShift = dayShifts[dayShifts.length - 1];
+        if(isActiveToday){
+          const actTotals = (typeof Shift !== "undefined" && Shift.calculateShiftTotals) ? Shift.calculateShiftTotals(activeShift) : null;
+          closingBalance = actTotals ? actTotals.expectedCash : (openingBalance + totalSalesAmount);
+        } else {
+          closingBalance = (latestShift.actualCash !== undefined && latestShift.actualCash !== null && Number(latestShift.actualCash) > 0)
+            ? Number(latestShift.actualCash)
+            : (Number(latestShift.expectedCash) || (openingBalance + totalSalesAmount));
+        }
+      } else if(isActiveToday){
+        openingBalance = Number(activeShift.openingCash) || 0;
+        const actTotals = (typeof Shift !== "undefined" && Shift.calculateShiftTotals) ? Shift.calculateShiftTotals(activeShift) : null;
+        closingBalance = actTotals ? actTotals.expectedCash : (openingBalance + totalSalesAmount);
+      } else if(savedEntry && savedEntry.startingBalance !== undefined && savedEntry.startingBalance !== null){
+        openingBalance = Number(savedEntry.startingBalance) || 0;
+        closingBalance = savedEntry.closingBalance !== undefined ? Number(savedEntry.closingBalance) : (openingBalance + totalSalesAmount);
+      } else {
+        openingBalance = (DB.getSettings ? (DB.getSettings().startingBalance || 0) : 0);
+        closingBalance = openingBalance + totalSalesAmount;
+      }
+
       dayBalances[dayKey] = {
-        ...savedEntry,
+        ...(dayBalances[dayKey] || {}),
+        dayKey,
+        startingBalance: openingBalance,
         closingBalance,
         totalSales: totalSalesAmount,
         updatedAt: Date.now()
@@ -1508,8 +1586,9 @@ const Reports = (() => {
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
         <div class="chart-card">
+          <!-- (2026-07-13) Dynamic chart title hourly vs daily; was daily-only -->
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
-            ${Icons.get("trending-up",{size:18})} Daily Sales Trend
+            ${Icons.get("trending-up",{size:18})} ${isSingleDay ? "Hourly Sales Trend" : "Daily Sales Trend"}
           </h3>
           <div style="position:relative;height:200px;width:100%;"><canvas id="receipts-trend-line"></canvas></div>
         </div>
@@ -1521,6 +1600,8 @@ const Reports = (() => {
           <div style="position:relative;height:200px;width:100%;"><canvas id="receipts-payment-pie"></canvas></div>
         </div>
       </div>
+      
+      ${/* (2026-09-24) Receipt search bar - moved to table header */""}
       
       ${(sales.length && selectedCount > 0) ? `
         <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">
@@ -1538,21 +1619,45 @@ const Reports = (() => {
           </div>
         </div>
       ` : ""}
+      <!-- (2026-07-13) Integrated search input with internal icons; was misaligned -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;">
+          ${receiptSearchTerm ? `
+            <div style="font-size:0.85rem;color:var(--ink-soft);">
+              <strong style="color:var(--brand-deep);">${sales.length}</strong> result(s) found for "<strong>${Utils.escapeHtml(receiptSearchTerm)}</strong>"
+            </div>
+          ` : ""}
+        </div>
+        <div style="position:relative;width:100%;max-width:340px;display:flex;align-items:center;">
+          <span style="position:absolute;left:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-faint);pointer-events:none;z-index:2;">
+            ${Icons.get("search",{size:15})}
+          </span>
+          <input 
+            type="text" 
+            id="receipt-search-input" 
+            class="input" 
+            placeholder="Search by TXN ID or item..." 
+            value="${Utils.escapeHtml(receiptSearchTerm)}"
+            style="padding-left:34px;padding-right:34px;border-radius:8px;font-size:0.875rem;height:36px;box-sizing:border-box;width:100%;margin:0;"
+          />
+          <button type="button" id="clear-receipt-search" style="position:absolute;right:8px;background:none;border:none;color:var(--ink-soft);cursor:pointer;padding:0;width:20px;height:20px;display:${receiptSearchTerm ? "inline-flex" : "none"};align-items:center;justify-content:center;z-index:2;" title="Clear search">
+            ${Icons.get("x",{size:14})}
+          </button>
+        </div>
+      </div>
       ${sales.length ? `
         <div class="table-wrap"><table class="data"><thead><tr>
           <th style="width:38px;text-align:center;"><input type="checkbox" id="receipt-select-all" ${allChecked ? "checked" : ""} title="Select All Receipts" style="cursor:pointer;width:16px;height:16px;vertical-align:middle;"></th>
           <th>#</th><th>Time</th><th>Txn ID</th><th>Source</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th>
         </tr></thead><tbody>
         <tr class="receipt-balance-summary-row" style="font-weight:800;background:var(--paper-dim);border-bottom:1.5px solid var(--line);">
-          <td style="text-align:center;">${Icons.get("lock",{size:13})}</td>
+          <td style="text-align:center;">${Icons.get("clock",{size:13})}</td>
           <td colspan="4" style="padding:6px 12px;vertical-align:middle;">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;">Starting Balance:</span>
               ${isSingleDay ? `
-                <div style="display:inline-flex;align-items:center;background:var(--paper-raised);border:1px solid var(--line);border-radius:4px;padding:2px 8px;">
-                  <span style="font-size:0.85rem;font-weight:700;color:var(--ink-soft);margin-right:2px;">₱</span>
-                  <input type="number" id="inp-receipt-starting-cash" data-day-key="${dayKey}" min="0" step="any" value="${openingBalance || 0}" style="width:85px;border:none;background:transparent;font-weight:800;font-size:0.90rem;font-family:var(--font-mono);color:var(--ink);outline:none;" title="Set Starting Cash for ${dayKey} (saved to database)">
-                </div>
+                <strong class="mono" style="font-size:0.95rem;color:var(--ink);">${Utils.money(openingBalance)}</strong>
+                <span class="badge badge-brand font-bold" style="font-size:0.65rem;padding:2px 6px;text-transform:uppercase;">Shift Float</span>
               ` : `
                 <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);" title="Starting balance is only configurable for daily range">—</span>
                 <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
@@ -1560,13 +1665,16 @@ const Reports = (() => {
             </div>
           </td>
           <td colspan="2" style="padding:6px 12px;vertical-align:middle;">
-            <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;margin-right:4px;">Closing Balance:</span>
-            ${isSingleDay ? `
-              <strong class="mono text-success" style="font-size:0.95rem;">${Utils.money(closingBalance)}</strong>
-            ` : `
-              <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);">—</span>
-              <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
-            `}
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;margin-right:2px;">Closing Balance:</span>
+              ${isSingleDay ? `
+                <strong class="mono font-bold text-success" style="font-size:0.95rem;">${Utils.money(closingBalance)}</strong>
+                <span class="badge badge-green font-bold" style="font-size:0.65rem;padding:2px 6px;text-transform:uppercase;">Shift Drawer</span>
+              ` : `
+                <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);">—</span>
+                <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
+              `}
+            </div>
           </td>
           <td colspan="3" class="text-xs text-faint" style="vertical-align:middle;text-align:right;padding-right:12px;">
             ${Utils.fmtDate(r.end, false)}
@@ -1575,6 +1683,8 @@ const Reports = (() => {
         ${pagedSales.map((s, idx) => {
           const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
           const isChecked = selectedReceiptIds.has(s.id);
+          // (2026-09-24) Format item list with @ symbol and quantity
+          const itemsList = (s.items || []).map(item => `@${item.qty}x ${item.name}`).join(", ");
           return `<tr class="${isChecked ? "selected-row" : ""}" style="${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
           <td style="width:38px;text-align:center;" class="receipt-select-cell">
             <input type="checkbox" class="receipt-select-chk" data-sale-id="${s.id}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
@@ -1583,7 +1693,12 @@ const Reports = (() => {
           <td style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
-          <td style="cursor:pointer;" data-view-receipt="${s.id}"><button class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:var(--fs-xs);">${Icons.get("receipt",{size:12})} ${s.items.length} item(s)</button></td>
+          <td style="cursor:pointer;max-width:300px;" data-view-receipt="${s.id}">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <button class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:var(--fs-xs);align-self:flex-start;">${Icons.get("receipt",{size:12})} ${s.items.length} item(s)</button>
+              <span style="font-size:0.7rem;color:var(--ink-soft);line-height:1.3;display:block;" title="${itemsList}">${itemsList}</span>
+            </div>
+          </td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier || "Cashier"}</td>
@@ -1891,12 +2006,13 @@ const Reports = (() => {
     const wrap = document.getElementById("ov-pl");
     if(!wrap) return;
     const p = stats.pl;
+    // Force recalculation to ensure stats match current date range
     const cards = [
-      { lbl:"Total Net Revenue", val: p.netRevenue, hero:true },
-      { lbl:"Store Gross Profit", val: p.storeGrossProfit },
-      { lbl:"Operating Expenses", val: -stats.totalOperatingExpenses, neg:true },
-      { lbl:"Net Operating Profit", val: p.netProfit, big:true },
-      { lbl:"Profit Margin", val: p.margin, isPct:true }
+      { lbl:"Total Net Revenue", val: p.netRevenue || 0, hero:true },
+      { lbl:"Store Gross Profit", val: p.storeGrossProfit || 0 },
+      { lbl:"Operating Expenses", val: -(stats.totalOperatingExpenses || 0), neg:true },
+      { lbl:"Net Operating Profit", val: p.netProfit || 0, big:true },
+      { lbl:"Profit Margin", val: p.margin || 0, isPct:true }
     ];
     wrap.innerHTML = cards.map(c => `
       <div class="pl-card ${c.hero?"hero":""} ${c.big?"big":""}">
@@ -1910,10 +2026,10 @@ const Reports = (() => {
     const el = document.getElementById("ov-store-sales");
     if(!el) return;
     const storeSales = stats.sales || [];
-    const discounts = storeSales.reduce((s,x) => s + (Number(x.discount) || 0), 0);
-    const grossSales = stats.storeTotal + discounts;
+    const discounts = storeSales.reduce((s,x) => s + (Number(x.discountAmt) || Number(x.discount) || 0), 0);
+    const grossSales = (stats.storeTotal || 0) + discounts;
     const refunds = 0;
-    const netSales = stats.storeNetRevenue || stats.storeTotal;
+    const netSales = stats.storeNetRevenue || stats.storeTotal || 0;
     const grossProfit = stats.storeGrossProfit || 0;
     const txCount = stats.storeTxCount || 0;
     const avgSale = txCount > 0 ? (netSales / txCount) : 0;
@@ -2256,7 +2372,7 @@ const Reports = (() => {
             <tr class="clickable-row" data-top-prod="${Utils.escapeHtml(r.productId || r.name)}">
               <td class="text-faint">${i+1}</td>
               <td style="padding:8px 4px;">
-                <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--brand-tint);">
+                <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#ffffff;border:1px solid var(--line);">
                   ${thumbHtml}
                 </div>
               </td>
@@ -3439,30 +3555,57 @@ const Reports = (() => {
           });
         }
         
-        // Daily Sales Trend Line Chart
+        // (2026-07-13) Hourly sales trend on single day; was daily-only single point
         const trendLineCtx = document.getElementById("receipts-trend-line")?.getContext("2d");
         if(trendLineCtx && typeof Chart !== "undefined" && sales.length > 0){
-          // Group sales by day and sort by date
-          const dayMap = {};
-          const dayTimestamps = {};
-          sales.forEach(s => {
-            const date = new Date(s.ts);
-            const dayKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            dayMap[dayKey] = (dayMap[dayKey] || 0) + s.total;
-            if(!dayTimestamps[dayKey]) dayTimestamps[dayKey] = date.getTime();
-          });
-          
-          // Sort by timestamp
-          const sortedEntries = Object.entries(dayMap).sort((a, b) => dayTimestamps[a[0]] - dayTimestamps[b[0]]);
-          const days = sortedEntries.map(e => e[0]);
-          const amounts = sortedEntries.map(e => e[1]);
+          const dStart = new Date(r.start);
+          const dEnd = new Date(r.end);
+          const isSingleDay = (r.key === "today" || r.key === "yesterday") ||
+            (dStart.getFullYear() === dEnd.getFullYear() &&
+             dStart.getMonth() === dEnd.getMonth() &&
+             dStart.getDate() === dEnd.getDate()) ||
+            (r.end - r.start <= 86400000 + 5000 && r.key !== "all");
+
+          let days = [];
+          let amounts = [];
+          let chartLabel = "Daily Sales";
+
+          if(isSingleDay){
+            chartLabel = "Hourly Sales";
+            const hourMap = Array(24).fill(0);
+            sales.forEach(s => {
+              const h = new Date(s.ts).getHours();
+              if(h >= 0 && h < 24) hourMap[h] = Utils.round2(hourMap[h] + (s.total || 0));
+            });
+            days = Array.from({ length: 24 }, (_, h) => {
+              const ampm = h >= 12 ? "PM" : "AM";
+              const h12 = h % 12 || 12;
+              return `${h12} ${ampm}`;
+            });
+            amounts = hourMap;
+          } else {
+            // Group sales by day and sort by date
+            const dayMap = {};
+            const dayTimestamps = {};
+            sales.forEach(s => {
+              const date = new Date(s.ts);
+              const dayKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              dayMap[dayKey] = (dayMap[dayKey] || 0) + s.total;
+              if(!dayTimestamps[dayKey]) dayTimestamps[dayKey] = date.getTime();
+            });
+            
+            // Sort by timestamp
+            const sortedEntries = Object.entries(dayMap).sort((a, b) => dayTimestamps[a[0]] - dayTimestamps[b[0]]);
+            days = sortedEntries.map(e => e[0]);
+            amounts = sortedEntries.map(e => e[1]);
+          }
           
           new Chart(trendLineCtx, {
             type: "line",
             data: {
               labels: days,
               datasets: [{
-                label: "Daily Sales",
+                label: chartLabel,
                 data: amounts,
                 borderColor: "#3B82F6",
                 backgroundColor: (context) => {
@@ -3478,7 +3621,7 @@ const Reports = (() => {
                 fill: true,
                 tension: 0.3,
                 borderWidth: 2.5,
-                pointRadius: 0,
+                pointRadius: isSingleDay ? ((ctx) => (ctx.raw > 0 ? 3.5 : 0)) : (days.length <= 1 ? 4 : 0),
                 pointHoverRadius: 6,
                 pointHoverBackgroundColor: "#3B82F6",
                 pointHoverBorderColor: "#fff",
@@ -3508,7 +3651,7 @@ const Reports = (() => {
                   bodyFont: { size: 12, weight: '600', family: 'Poppins' },
                   displayColors: false,
                   callbacks: {
-                    title: (items) => items[0].label,
+                    title: (items) => isSingleDay ? `${items[0].label} Sales` : items[0].label,
                     label: (context) => `₱${context.parsed.y.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                   }
                 }
@@ -3565,9 +3708,12 @@ const Reports = (() => {
         const s = DB.getSales().find(x=>x.id===b.dataset.reprint);
         if(s) POS.printByRecord(s);
       });
-      document.querySelectorAll("[data-delete-sale]").forEach(b=>b.onclick=(e)=>{
-        e.stopPropagation();
-        deleteSaleRecord(b.dataset.deleteSale);
+      document.querySelectorAll("[data-delete-sale]").forEach(b=>{
+        b.onclick=(e)=>{
+          e.stopPropagation();
+          const saleId = b.dataset.deleteSale;
+          if(saleId) deleteSaleRecord(saleId);
+        };
       });
       document.querySelectorAll("[data-delete-fuel-sale]").forEach(b=>b.onclick=(e)=>{
         e.stopPropagation();
@@ -3606,13 +3752,15 @@ const Reports = (() => {
         render();
       });
       document.getElementById("btn-delete-selected-receipts")?.addEventListener("click", () => {
-        batchDeleteSales(Array.from(selectedReceiptIds));
+        const ids = Array.from(selectedReceiptIds);
+        if(ids.length > 0) batchDeleteSales(ids);
       });
       document.getElementById("btn-delete-all-receipts")?.addEventListener("click", () => {
         const r = getActiveRange();
         const filterFn = getReportFilterFn();
         const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
-        batchDeleteSales(curSales.map(s => s.id));
+        const ids = curSales.map(s => s.id);
+        if(ids.length > 0) batchDeleteSales(ids);
       });
       // (2026-07-13) Wire receipt pagination controls; was unpaginated
       const prevReceiptBtn = document.getElementById("receipt-pg-prev");
@@ -3658,6 +3806,43 @@ const Reports = (() => {
       document.getElementById("btn-export-sales-report")?.addEventListener("click", () => {
         ImportExport.exportSalesCSV(periodKey);
       });
+      
+      // (2026-07-13) Debounce receipt search & preserve input focus; was wiped per-char
+      const onReceiptSearch = Utils.debounce((val) => {
+        receiptSearchTerm = val;
+        receiptPage = 1;
+        const curInput = document.getElementById("receipt-search-input");
+        const cursor = curInput ? curInput.selectionStart : null;
+        render();
+        const reInput = document.getElementById("receipt-search-input");
+        if(reInput){
+          reInput.focus();
+          if(cursor !== null) reInput.setSelectionRange(cursor, cursor);
+        }
+      }, 250);
+
+      const receiptSearchInput = document.getElementById("receipt-search-input");
+      if(receiptSearchInput){
+        receiptSearchInput.oninput = (e) => {
+          const val = e.target.value;
+          const clearBtn = document.getElementById("clear-receipt-search");
+          if(clearBtn) clearBtn.style.display = val ? "inline-flex" : "none";
+          onReceiptSearch(val);
+        };
+        receiptSearchInput.onkeydown = (e) => {
+          if(e.key === "Escape"){
+            receiptSearchTerm = "";
+            receiptPage = 1;
+            render();
+          }
+        };
+      }
+      document.getElementById("clear-receipt-search")?.addEventListener("click", () => {
+        receiptSearchTerm = "";
+        receiptPage = 1;
+        render();
+      });
+      
       // (2026-07-13) Save daily starting & ending balance to DB; was shift only
       const startInp = document.getElementById("inp-receipt-starting-cash");
       if(startInp){
@@ -3714,6 +3899,7 @@ const Reports = (() => {
 
   return { 
     render,
+    openReceiptModal,
     navigateToReceipts,
     navigateToSalesByItem,
     navigateToVoidAudit

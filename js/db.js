@@ -15,7 +15,9 @@ const DB = (() => {
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
     voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems", dayBalances: NS+"dayBalances",
-    deletedSaleIds: NS+"deletedSaleIds" // (2026-09-24) Track deleted sale IDs to prevent re-sync
+    deletedSaleIds: NS+"deletedSaleIds", // (2026-09-24) Track deleted sale IDs to prevent re-sync
+    // (2026-07-13) Persistent cashier shift history log storage; was shift only
+    shiftLogs: NS+"shiftLogs"
   };
 
   function read(key, fallback = null){
@@ -133,8 +135,8 @@ const DB = (() => {
     const seedCatalog = (typeof CATALOG_SEED !== "undefined" && CATALOG_SEED.products) ? CATALOG_SEED : null;
     // (2026-07-13) Restore seedSales variable in DB init; was accidentally removed
     const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
-    // (2026-07-13) Sync exact Loyverse receipts & restore empty sales; was stale v14
-    const syncFlagKey = NS + "loyverse_sync_20260921_v16";
+    // (2026-09-25) Sync Loyverse import v18 Sept 21-24; was v17
+    const syncFlagKey = NS + "loyverse_sync_20260925_v18";
 
     if(!localStorage.getItem(syncFlagKey)){
       if(seedCatalog){
@@ -328,18 +330,41 @@ const DB = (() => {
     });
     return Array.from(map.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   }
-  const getSales       = () => {
+  // (2026-07-13) Filter deleted sales by normalized ID & receiptNo; was exact id only
+  const getSales = () => {
     const allSales = dedupeSalesList(read(KEYS.sales, []));
     const deletedIds = getDeletedSaleIds();
-    // (2026-09-24) Filter out deleted sales on every read
-    return allSales.filter(s => !deletedIds.has(s.id));
+    return allSales.filter(s => {
+      const sId = String(s.id || "").trim();
+      const rId = String(s.receiptNo || "").trim();
+      const clean = sId.replace(/^TXN-/i, "");
+      return !deletedIds.has(sId) && !deletedIds.has(sId.toLowerCase()) &&
+             !deletedIds.has(rId) && !deletedIds.has(rId.toLowerCase()) &&
+             !deletedIds.has(clean) && !deletedIds.has(clean.toLowerCase());
+    });
   };
   const setSales       = (v) => write(KEYS.sales, dedupeSalesList(v));
-  // (2026-09-24) Track deleted sale IDs to prevent cloud re-sync
+  // (2026-07-13) Store multi-format deleted keys to prevent reload resync; was single
   const getDeletedSaleIds = () => new Set(read(KEYS.deletedSaleIds, []));
-  const markSaleDeleted = (saleId) => {
+  const markSaleDeleted = (saleId, receiptNo = null) => {
     const deleted = getDeletedSaleIds();
-    deleted.add(saleId);
+    if(saleId){
+      const sId = String(saleId).trim();
+      deleted.add(sId);
+      deleted.add(sId.toLowerCase());
+      const clean = sId.replace(/^TXN-/i, "");
+      deleted.add(clean);
+      deleted.add(clean.toLowerCase());
+      deleted.add("TXN-" + clean);
+    }
+    if(receiptNo){
+      const rId = String(receiptNo).trim();
+      deleted.add(rId);
+      deleted.add(rId.toLowerCase());
+      const cleanR = rId.replace(/^TXN-/i, "");
+      deleted.add(cleanR);
+      deleted.add(cleanR.toLowerCase());
+    }
     write(KEYS.deletedSaleIds, Array.from(deleted));
   };
   const getFuelSales   = () => read(KEYS.fuelSales, []);
@@ -494,8 +519,17 @@ const DB = (() => {
     q.push({ ...txn, queuedAt: Date.now() });
     setOfflineQueue(q);
   }
-  const getShift       = () => read(KEYS.shift, { openedAt:Date.now(), openingCash:0 });
+  const getShift       = () => read(KEYS.shift, { openedAt:Date.now(), openingCash:0, cashier:"Rosella", status:"open" });
   const setShift       = (v) => write(KEYS.shift, v);
+  // (2026-07-13) Manage shift logs history & cash drawer balance; was transient
+  const getShiftLogs   = () => read(KEYS.shiftLogs, []);
+  const setShiftLogs   = (v) => write(KEYS.shiftLogs, v || []);
+  const saveShiftLog   = (item) => {
+    const logs = getShiftLogs();
+    logs.unshift(item);
+    setShiftLogs(logs);
+    return item;
+  };
   // (2026-07-13) Store daily starting and ending balances; was transient shift
   const getDayBalances = () => read(KEYS.dayBalances, {});
   const setDayBalances = (v) => write(KEYS.dayBalances, v || {});
@@ -881,10 +915,16 @@ const DB = (() => {
       const deletedIds = getDeletedSaleIds();
       const sMap = new Map();
       existing.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
-      // (2026-09-24) Filter out deleted sales during merge
+      // (2026-07-13) Filter out deleted sales in snapshot merge; was reviving deleted
       snap.sales.forEach(s => { 
-        const k = String(s.receiptNo || s.id || '').trim(); 
-        if(k && !deletedIds.has(s.id)) sMap.set(k, s); 
+        const k = String(s.receiptNo || s.id || "").trim(); 
+        const sId = String(s.id || "").trim();
+        const rId = String(s.receiptNo || "").trim();
+        const clean = sId.replace(/^TXN-/i, "");
+        const isDeleted = deletedIds.has(sId) || deletedIds.has(sId.toLowerCase()) ||
+                          deletedIds.has(rId) || deletedIds.has(rId.toLowerCase()) ||
+                          deletedIds.has(clean) || deletedIds.has(clean.toLowerCase());
+        if(k && !isDeleted && !sMap.has(k)) sMap.set(k, s); 
       });
       const merged = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
       setSales(merged);
@@ -906,6 +946,7 @@ const DB = (() => {
     if(snap.backups) setBackups(snap.backups);
     if(snap.voidLogs) setVoidLogs(snap.voidLogs);
     if(snap.shift) setShift(snap.shift);
+    if(snap.shiftLogs) setShiftLogs(snap.shiftLogs);
     // (2026-07-13) Restore dayBalances from snapshot; was omitted
     if(snap.dayBalances) setDayBalances(snap.dayBalances);
   }
@@ -935,7 +976,7 @@ const DB = (() => {
     getRestaurantBookings, setRestaurantBookings, addRestaurantBooking, updateRestaurantBooking, deleteRestaurantBooking,
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
     getBackups, setBackups, saveBackup, deleteBackup, buildSnapshotAt, populateHistoricalBackups,
-    getShift, setShift,
+    getShift, setShift, getShiftLogs, setShiftLogs, saveShiftLog,
     getDayBalances, setDayBalances,
     getSyncMeta, setSyncMeta,
     getSavedCart, saveCart,
