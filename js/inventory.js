@@ -1692,5 +1692,29 @@ const Inventory = (() => {
 
   function resetSearch(){ searchTerm = ""; }
 
-  return { render, openProductForm, resetSearch };
+  // (2026-09-24) Wrapper to open add product modal with pre-filled barcode or name
+  function openAddProductModal(prefillValue = null){
+    // First switch to inventory view
+    if(typeof App !== "undefined" && App.navigate){
+      App.navigate("inventory");
+    }
+    // Open the form after a brief delay to ensure view is rendered
+    setTimeout(() => {
+      openProductForm();
+      // Pre-fill barcode or name field
+      if(prefillValue){
+        const barcodeField = document.getElementById("f-barcode");
+        const nameField = document.getElementById("f-name");
+        // If it looks like a barcode (all digits or alphanumeric with no spaces)
+        if(/^[A-Z0-9]+$/i.test(prefillValue)){
+          if(barcodeField) barcodeField.value = prefillValue;
+        } else {
+          // Otherwise treat as name search term
+          if(nameField) nameField.value = prefillValue;
+        }
+      }
+    }, 150);
+  }
+
+  return { render, openProductForm, openAddProductModal, resetSearch };
 })();

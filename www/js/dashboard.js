@@ -260,7 +260,7 @@ const Dashboard = (() => {
 
     if(typeof Chart !== "undefined"){
       Chart.defaults.color = textColor;
-      Chart.defaults.font.family = "Montserrat, sans-serif";
+      Chart.defaults.font.family = "Poppins, sans-serif";
       Chart.defaults.font.size = 12;
     }
 

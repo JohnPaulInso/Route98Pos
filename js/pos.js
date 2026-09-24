@@ -195,7 +195,19 @@ const POS = (() => {
     const product = DB.findByBarcode(clean);
     if(!product){
       Utils.Sound.error();
-      Utils.toast(`No product found for barcode ${code}.`, "error");
+      Modal.confirm({
+        title: "Product Not Found",
+        message: `No product found for barcode "${code}". Would you like to add a new product with this barcode?`,
+        confirmText: "Add New Product",
+        cancelText: "Cancel",
+        onConfirm: () => {
+          if(typeof Inventory !== "undefined" && Inventory.openAddProductModal){
+            Inventory.openAddProductModal(clean); // Pass barcode to pre-fill
+          } else {
+            Utils.toast("Navigate to Inventory to add products.", "info");
+          }
+        }
+      });
       renderCatalog();
       return;
     }
@@ -894,61 +906,55 @@ const POS = (() => {
     const cleanTxnId = (sale.id || "").replace(/^TXN-/, "");
     win.innerHTML = `
       <div class="receipt jk580h">
-        <div class="center" style="margin-bottom:3px;">
-          <!-- (2026-07-13) Enlarge receipt logo to 24mm; was 16mm -->
-          <img src="logo.png" alt="Route 98" style="width:24mm;max-width:92px;height:auto;display:block;margin:0 auto 2px;">
-          <div class="bold brand-title">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
-          <div class="text-xs store-address">${Utils.escapeHtml(settings.address && settings.address !== "Cebu City, Philippines" ? settings.address : "Cabangcalan, Dakit, Bogo City, Cebu")}</div>
-          <!-- (2026-07-13) Add VAT REG TIN on top; was dynamic TIN -->
-          <div class="text-xs">VAT REG TIN: ${Utils.escapeHtml(settings.tin || "811-387-946-00000")}</div>
-          <div class="bold text-xs" style="margin-top:2px;letter-spacing:0.02em;">THANKS FOR SHOPPING</div>
-          
+        <div class="center" style="margin-bottom:1px;">
+          <img src="logo.png" alt="Route 98" style="width:14mm;max-width:56px;height:auto;display:block;margin:0 auto 1px;">
+          <div class="bold brand-title" style="font-size:9px;">${Utils.escapeHtml(settings.businessName || "Route 98")}</div>
+          <div class="text-xs store-address" style="font-size:5.5px;line-height:1.05;">${Utils.escapeHtml(settings.address && settings.address !== "Cebu City, Philippines" ? settings.address : "Cabangcalan, Dakit, Bogo City, Cebu")}</div>
+          <div class="text-xs" style="font-size:5.5px;">VAT REG TIN: ${Utils.escapeHtml(settings.tin || "811-387-946-00000")}</div>
+          <div class="bold text-xs" style="margin-top:1px;letter-spacing:0.005em;font-size:6px;">THANKS FOR SHOPPING</div>
         </div>
         <hr class="receipt-dash">
-        <div class="center bold text-xs receipt-sale-hdr">--== SALE TRANSACTION ==--</div>
+        <div class="center bold text-xs receipt-sale-hdr" style="font-size:6px;">--== SALE TRANSACTION ==--</div>
         <div class="receipt-items">
           ${sale.items.map(l => `
             <div class="item-line">
               <div class="row">
-                <span class="item-name">${Utils.escapeHtml(l.name)}</span>
-                <span class="bold num">${Utils.money(l.price * l.qty)}</span>
+                <span class="item-name" style="flex:1;font-size:7px;">${Utils.escapeHtml(l.name)}</span>
+                <span class="bold num" style="flex-shrink:0;text-align:right;font-size:8px;">${Utils.money(l.price * l.qty)}</span>
               </div>
               ${l.qty > 1 ? `
-                <div class="row item-detail">
-                  <span>&nbsp;&nbsp;${l.qty} @ ${Utils.money(l.price)}</span>
+                <div class="row item-detail" style="font-size:6px;">
+                  <span>&nbsp;${l.qty} @ ${Utils.money(l.price)}</span>
                 </div>
               ` : ""}
             </div>
           `).join("")}
         </div>
-        <div class="row" style="margin-top:2px;"><span>SUBTOTAL</span><span class="bold num">${Utils.money(sale.subtotal)}</span></div>
-        ${sale.discountAmt ? `<div class="row"><span>DISCOUNT</span><span class="num">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        <!-- (2026-07-13) Re-include VAT row on receipt; was omitted -->
-        ${settings.vatEnabled ? `<div class="row"><span>VAT (${settings.vatRate}%)</span><span class="num">${Utils.money(sale.vat)}</span></div>` : ""}
+        <div class="row" style="margin-top:1px;font-size:7px;"><span>SUBTOTAL</span><span class="bold num" style="font-size:8px;">${Utils.money(sale.subtotal)}</span></div>
+        ${sale.discountAmt ? `<div class="row" style="font-size:7px;"><span>DISCOUNT</span><span class="num" style="font-size:8px;">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
         <hr class="receipt-solid">
-        <div class="row bold text-lg" style="margin:1px 0;"><span>TOTAL</span><span class="num">${Utils.money(sale.total)}</span></div>
+        <div class="row bold text-lg" style="margin:0.5px 0;font-size:8.5px;"><span>TOTAL</span><span class="num" style="font-size:9px;">${Utils.money(sale.total)}</span></div>
         <hr class="receipt-solid">
-        <div class="row"><span>PAYMENT</span><span>${sale.method.toUpperCase()}</span></div>
-        <div class="row"><span>AMOUNT</span><span class="num">${Utils.money(sale.tendered)}</span></div>
-        ${sale.method==="Cash" ? `<div class="row"><span>CHANGE</span><span class="num">${Utils.money(sale.change || 0)}</span></div>` : ""}
-        ${sale.refCode ? `<div class="row text-xs"><span>REF:</span><span>${Utils.escapeHtml(sale.refCode)}</span></div>` : ""}
+        <div class="row" style="font-size:7px;"><span>PAYMENT</span><span style="font-size:7px;">${sale.method.toUpperCase()}</span></div>
+        <div class="row" style="font-size:7px;"><span>AMOUNT</span><span class="num" style="font-size:8px;">${Utils.money(sale.tendered)}</span></div>
+        ${sale.method==="Cash" ? `<div class="row" style="font-size:7px;"><span>CHANGE</span><span class="num" style="font-size:8px;">${Utils.money(sale.change || 0)}</span></div>` : ""}
+        ${settings.vatEnabled ? `<div class="row" style="font-size:6px;margin-top:1.5px;"><span>VAT (${settings.vatRate}%)</span><span class="num" style="font-size:7px;">${Utils.money(sale.vat)}</span></div>` : ""}
+        ${sale.refCode ? `<div class="row text-xs" style="font-size:6px;"><span>REF:</span><span style="word-break:break-all;max-width:55%;font-size:5.5px;">${Utils.escapeHtml(sale.refCode)}</span></div>` : ""}
         <hr class="receipt-dash">
-        <div class="row text-xs"><span>TXN ID:</span><span class="num">#TXN-${cleanTxnId}</span></div>
-        <div class="row text-xs"><span>DATE:</span><span>${Utils.fmtDate(sale.ts)}</span></div>
-        <!-- (2026-07-13) Show active cashier (Rosella/Niño); was omitted -->
-        ${sale.cashier ? `<div class="row text-xs"><span>CASHIER:</span><span>${Utils.escapeHtml(sale.cashier)}</span></div>` : ""}
+        <div class="row text-xs" style="font-size:6px;"><span>TXN ID:</span><span class="num" style="font-size:6.5px;">#TXN-${cleanTxnId}</span></div>
+        <div class="row text-xs" style="font-size:5.5px;"><span>DATE:</span><span style="word-break:break-all;font-size:5px;">${Utils.fmtDate(sale.ts)}</span></div>
+        ${sale.cashier ? `<div class="row text-xs" style="font-size:6px;"><span>CASHIER:</span><span style="font-size:6px;">${Utils.escapeHtml(sale.cashier)}</span></div>` : ""}
         <hr class="receipt-dash">
-        <div class="center" style="margin:3px 0 1px;">
-          <svg width="140" height="28" viewBox="0 0 140 28" style="display:block;margin:0 auto;max-width:100%;">
-            <rect x="0" y="0" width="140" height="28" fill="#fff"/>
+        <div class="center" style="margin:1.5px 0 1px;">
+          <svg width="95" height="18" viewBox="0 0 95 18" style="display:block;margin:0 auto;max-width:100%;">
+            <rect x="0" y="0" width="95" height="18" fill="#fff"/>
             <g fill="#000">
-              <rect x="8" y="0" width="2" height="28"/><rect x="12" y="0" width="1" height="28"/><rect x="15" y="0" width="3" height="28"/><rect x="20" y="0" width="1" height="28"/><rect x="23" y="0" width="2" height="28"/><rect x="27" y="0" width="3" height="28"/><rect x="32" y="0" width="1" height="28"/><rect x="35" y="0" width="4" height="28"/><rect x="41" y="0" width="2" height="28"/><rect x="45" y="0" width="1" height="28"/><rect x="48" y="0" width="3" height="28"/><rect x="53" y="0" width="2" height="28"/><rect x="57" y="0" width="4" height="28"/><rect x="63" y="0" width="1" height="28"/><rect x="66" y="0" width="2" height="28"/><rect x="70" y="0" width="3" height="28"/><rect x="75" y="0" width="1" height="28"/><rect x="78" y="0" width="3" height="28"/><rect x="83" y="0" width="2" height="28"/><rect x="87" y="0" width="4" height="28"/><rect x="93" y="0" width="1" height="28"/><rect x="96" y="0" width="3" height="28"/><rect x="101" y="0" width="2" height="28"/><rect x="105" y="0" width="1" height="28"/><rect x="108" y="0" width="4" height="28"/><rect x="114" y="0" width="2" height="28"/><rect x="118" y="0" width="3" height="28"/><rect x="123" y="0" width="1" height="28"/><rect x="126" y="0" width="3" height="28"/><rect x="131" y="0" width="2" height="28"/>
+              <rect x="3" y="0" width="1.5" height="18"/><rect x="6" y="0" width="1" height="18"/><rect x="9" y="0" width="1.5" height="18"/><rect x="12" y="0" width="1" height="18"/><rect x="15" y="0" width="1.5" height="18"/><rect x="19" y="0" width="1.5" height="18"/><rect x="22" y="0" width="1" height="18"/><rect x="25" y="0" width="1.5" height="18"/><rect x="29" y="0" width="1.5" height="18"/><rect x="32" y="0" width="1" height="18"/><rect x="35" y="0" width="1.5" height="18"/><rect x="39" y="0" width="1.5" height="18"/><rect x="43" y="0" width="1.5" height="18"/><rect x="46" y="0" width="1" height="18"/><rect x="49" y="0" width="1.5" height="18"/><rect x="53" y="0" width="1.5" height="18"/><rect x="56" y="0" width="1" height="18"/><rect x="59" y="0" width="1.5" height="18"/><rect x="63" y="0" width="1.5" height="18"/><rect x="67" y="0" width="1.5" height="18"/><rect x="70" y="0" width="1" height="18"/><rect x="73" y="0" width="1.5" height="18"/><rect x="77" y="0" width="1.5" height="18"/><rect x="80" y="0" width="1" height="18"/><rect x="83" y="0" width="1.5" height="18"/><rect x="87" y="0" width="1.5" height="18"/>
             </g>
           </svg>
-          <div class="text-xs num" style="letter-spacing:0.12em;font-size:8px;">${cleanTxnId ? cleanTxnId.padEnd(14, '0') : "13485572675148"}</div>
+          <div class="text-xs num" style="letter-spacing:0.04em;font-size:5px;">${cleanTxnId ? cleanTxnId.padEnd(14, '0') : "13485572675148"}</div>
         </div>
-        <div class="center bold text-xs footer-msg">${settings.receiptFooter ? Utils.escapeHtml(settings.receiptFooter).toUpperCase() : "THANKS FOR SHOPPING HERE<br>WE WILL SEE YOU SOON"}</div>
-        <!-- (2026-07-13) Straight cut line & 22mm cutter feed; was cut at total -->
+        <div class="center bold text-xs footer-msg" style="font-size:5.5px;line-height:1.1;">${settings.receiptFooter ? Utils.escapeHtml(settings.receiptFooter).toUpperCase() : "THANKS FOR SHOPPING HERE<br>WE WILL SEE YOU SOON"}</div>
         <div class="receipt-cut-line"></div>
         <div style="height:22mm;"></div>
       </div>`;
@@ -1734,7 +1740,19 @@ const POS = (() => {
               }
             } else {
               Utils.Sound.error();
-              Utils.toast(`No product found for "${clean}"`, "error");
+              Modal.confirm({
+                title: "Product Not Found",
+                message: `No product found for "${clean}". Would you like to add a new product?`,
+                confirmText: "Add New Product",
+                cancelText: "Cancel",
+                onConfirm: () => {
+                  if(typeof Inventory !== "undefined" && Inventory.openAddProductModal){
+                    Inventory.openAddProductModal(clean); // Pass search term
+                  } else {
+                    Utils.toast("Navigate to Inventory to add products.", "info");
+                  }
+                }
+              });
             }
           }
           search.value = "";

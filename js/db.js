@@ -14,7 +14,8 @@ const DB = (() => {
     stockLog: NS+"stockLog", restockLogs: NS+"restockLogs", physicalAudits: NS+"physicalAudits", shift: NS+"shift", syncMeta: NS+"syncMeta",
     currentCart: NS+"currentCart", expenses: NS+"expenses", bookings: NS+"bookings",
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
-    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems", dayBalances: NS+"dayBalances"
+    voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems", dayBalances: NS+"dayBalances",
+    deletedSaleIds: NS+"deletedSaleIds" // (2026-09-24) Track deleted sale IDs to prevent re-sync
   };
 
   function read(key, fallback = null){
@@ -327,8 +328,20 @@ const DB = (() => {
     });
     return Array.from(map.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   }
-  const getSales       = () => dedupeSalesList(read(KEYS.sales, []));
+  const getSales       = () => {
+    const allSales = dedupeSalesList(read(KEYS.sales, []));
+    const deletedIds = getDeletedSaleIds();
+    // (2026-09-24) Filter out deleted sales on every read
+    return allSales.filter(s => !deletedIds.has(s.id));
+  };
   const setSales       = (v) => write(KEYS.sales, dedupeSalesList(v));
+  // (2026-09-24) Track deleted sale IDs to prevent cloud re-sync
+  const getDeletedSaleIds = () => new Set(read(KEYS.deletedSaleIds, []));
+  const markSaleDeleted = (saleId) => {
+    const deleted = getDeletedSaleIds();
+    deleted.add(saleId);
+    write(KEYS.deletedSaleIds, Array.from(deleted));
+  };
   const getFuelSales   = () => read(KEYS.fuelSales, []);
   const setFuelSales   = (v) => write(KEYS.fuelSales, v);
   // (2026-07-13) Support custom tanker cost & Regular (Gas) name; was forced 65.00
@@ -865,9 +878,14 @@ const DB = (() => {
     if(snap.categories && snap.categories.length) setCategories(snap.categories);
     if(snap.sales && snap.sales.length){
       const existing = getSales();
+      const deletedIds = getDeletedSaleIds();
       const sMap = new Map();
       existing.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
-      snap.sales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      // (2026-09-24) Filter out deleted sales during merge
+      snap.sales.forEach(s => { 
+        const k = String(s.receiptNo || s.id || '').trim(); 
+        if(k && !deletedIds.has(s.id)) sMap.set(k, s); 
+      });
       const merged = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
       setSales(merged);
     }
@@ -900,7 +918,7 @@ const DB = (() => {
     KEYS, init, categoryIcon, getNextTransactionId,
     getProducts, setProducts, deduplicateProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
     getCategories, setCategories,
-    getSales, setSales, getFuelSales, setFuelSales,
+    getSales, setSales, getDeletedSaleIds, markSaleDeleted, getFuelSales, setFuelSales,
     getFuelConfig, setFuelConfig,
     getSettings, setSettings,
     getUsers, setUsers,

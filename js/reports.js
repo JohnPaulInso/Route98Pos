@@ -492,14 +492,21 @@ const Reports = (() => {
   }
 
   // (2026-07-13) Delete store & fuel sale records with confirmation. Prev: view only
+  // (2026-09-24) Track if confirmation is open to prevent duplicates
+  let deleteConfirmOpen = false;
+
   function deleteSaleRecord(saleId){
+    if(deleteConfirmOpen) return; // Prevent duplicate confirmations
     const sale = DB.getSales().find(x => x.id === saleId);
     if(!sale) return;
+    
+    deleteConfirmOpen = true;
     Modal.confirm({
       title: "Delete Sale Record?",
       message: `Delete transaction ${sale.receiptNo || sale.id} (${Utils.money(sale.total)})? This will log a complete transaction void.`,
       danger: true,
       onConfirm: () => {
+        deleteConfirmOpen = false;
         DB.addVoidLog({
           origTxnId: sale.id,
           itemSummary: (sale.items || []).map(l=>`${l.qty}x ${l.name}`).join(", ") || "Complete transaction void",
@@ -519,14 +526,19 @@ const Reports = (() => {
         });
         DB.setProducts(products);
         DB.setSales(DB.getSales().filter(x => x.id !== saleId));
+        DB.markSaleDeleted(saleId); // Track deletion to prevent re-sync
         Utils.toast("Sale record deleted & logged to Void Audit.", "success");
         render();
+      },
+      onCancel: () => {
+        deleteConfirmOpen = false;
       }
     });
   }
 
   // (2026-07-13) Batch delete receipts with stock restore; was single delete
   function batchDeleteSales(saleIds){
+    if(deleteConfirmOpen) return; // Prevent duplicate confirmations
     if(!saleIds || !saleIds.length) return;
     const idSet = new Set(saleIds);
     const allSales = DB.getSales();
@@ -534,11 +546,13 @@ const Reports = (() => {
     if(!toDelete.length) return;
 
     const executeBatch = () => {
+      deleteConfirmOpen = true;
       Modal.confirm({
         title: `Delete ${toDelete.length} Receipt(s)?`,
         message: `Delete ${toDelete.length} transaction(s)? This will restore inventory stock and log complete voids to Void Audit.`,
         danger: true,
         onConfirm: () => {
+          deleteConfirmOpen = false;
           const products = DB.getProducts();
           toDelete.forEach(sale => {
             DB.addVoidLog({
@@ -559,9 +573,15 @@ const Reports = (() => {
           });
           DB.setProducts(products);
           DB.setSales(allSales.filter(x => !idSet.has(x.id)));
-          toDelete.forEach(s => selectedReceiptIds.delete(s.id));
+          toDelete.forEach(s => {
+            selectedReceiptIds.delete(s.id);
+            DB.markSaleDeleted(s.id); // Track deletion to prevent re-sync
+          });
           Utils.toast(`${toDelete.length} receipt(s) deleted & stock restored.`, "success");
           render();
+        },
+        onCancel: () => {
+          deleteConfirmOpen = false;
         }
       });
     };
@@ -1448,10 +1468,32 @@ const Reports = (() => {
   }
 
   // (2026-07-13) Add pagination & open/close balances; was unpaginated no balances
+  // (2026-09-24) Receipt search state variable
+  let receiptSearchTerm = "";
+
   function historyTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
     let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+    
+    // (2026-09-24) Apply search filter by TXN ID or item names
+    if(receiptSearchTerm && receiptSearchTerm.trim()){
+      const searchLower = receiptSearchTerm.trim().toLowerCase();
+      sales = sales.filter(s => {
+        // Search in TXN ID
+        const txnId = fmtTxnId(s.id).toLowerCase();
+        if(txnId.includes(searchLower)) return true;
+        
+        // Search in item names
+        if(s.items && s.items.length > 0){
+          return s.items.some(item => 
+            (item.name || "").toLowerCase().includes(searchLower)
+          );
+        }
+        return false;
+      });
+    }
+    
     const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(s.id));
     const selectedCount = sales.filter(s => selectedReceiptIds.has(s.id)).length;
 
@@ -1522,6 +1564,8 @@ const Reports = (() => {
         </div>
       </div>
       
+      ${/* (2026-09-24) Receipt search bar - moved to table header */""}
+      
       ${(sales.length && selectedCount > 0) ? `
         <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">
           <div class="text-sm font-bold flex-row" style="gap:8px;align-items:center;">
@@ -1539,6 +1583,33 @@ const Reports = (() => {
         </div>
       ` : ""}
       ${sales.length ? `
+        ${/* (2026-09-24) Search bar in table header */""}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+          <div style="flex:1;"></div>
+          <div style="position:relative;max-width:350px;flex-shrink:0;">
+            <div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none;z-index:2;display:flex;align-items:center;justify-content:center;">
+              ${Icons.get("search",{size:16})}
+            </div>
+            <input 
+              type="text" 
+              id="receipt-search-input" 
+              class="input" 
+              placeholder="Search by TXN ID or item..." 
+              value="${Utils.escapeHtml(receiptSearchTerm)}"
+              style="padding-left:36px;padding-right:36px;border-radius:8px;font-size:0.875rem;height:36px;padding-top:0;padding-bottom:0;width:100%;"
+            />
+            ${receiptSearchTerm ? `
+              <button type="button" id="clear-receipt-search" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--paper-dim);border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;padding:0;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;z-index:2;">
+                ${Icons.get("x",{size:14})}
+              </button>
+            ` : ""}
+          </div>
+        </div>
+        ${receiptSearchTerm ? `
+          <div style="margin-bottom:10px;font-size:0.85rem;color:var(--ink-soft);text-align:right;">
+            <strong style="color:var(--brand-deep);">${sales.length}</strong> result(s) found for "<strong>${Utils.escapeHtml(receiptSearchTerm)}</strong>"
+          </div>
+        ` : ""}
         <div class="table-wrap"><table class="data"><thead><tr>
           <th style="width:38px;text-align:center;"><input type="checkbox" id="receipt-select-all" ${allChecked ? "checked" : ""} title="Select All Receipts" style="cursor:pointer;width:16px;height:16px;vertical-align:middle;"></th>
           <th>#</th><th>Time</th><th>Txn ID</th><th>Source</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th>
@@ -1575,6 +1646,8 @@ const Reports = (() => {
         ${pagedSales.map((s, idx) => {
           const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
           const isChecked = selectedReceiptIds.has(s.id);
+          // (2026-09-24) Format item list with @ symbol and quantity
+          const itemsList = (s.items || []).map(item => `@${item.qty}x ${item.name}`).join(", ");
           return `<tr class="${isChecked ? "selected-row" : ""}" style="${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
           <td style="width:38px;text-align:center;" class="receipt-select-cell">
             <input type="checkbox" class="receipt-select-chk" data-sale-id="${s.id}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
@@ -1583,7 +1656,12 @@ const Reports = (() => {
           <td style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
-          <td style="cursor:pointer;" data-view-receipt="${s.id}"><button class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:var(--fs-xs);">${Icons.get("receipt",{size:12})} ${s.items.length} item(s)</button></td>
+          <td style="cursor:pointer;max-width:300px;" data-view-receipt="${s.id}">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <button class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:var(--fs-xs);align-self:flex-start;">${Icons.get("receipt",{size:12})} ${s.items.length} item(s)</button>
+              <span style="font-size:0.7rem;color:var(--ink-soft);line-height:1.3;display:block;" title="${itemsList}">${itemsList}</span>
+            </div>
+          </td>
           <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
           <td style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier || "Cashier"}</td>
@@ -3565,9 +3643,12 @@ const Reports = (() => {
         const s = DB.getSales().find(x=>x.id===b.dataset.reprint);
         if(s) POS.printByRecord(s);
       });
-      document.querySelectorAll("[data-delete-sale]").forEach(b=>b.onclick=(e)=>{
-        e.stopPropagation();
-        deleteSaleRecord(b.dataset.deleteSale);
+      document.querySelectorAll("[data-delete-sale]").forEach(b=>{
+        b.onclick=(e)=>{
+          e.stopPropagation();
+          const saleId = b.dataset.deleteSale;
+          if(saleId) deleteSaleRecord(saleId);
+        };
       });
       document.querySelectorAll("[data-delete-fuel-sale]").forEach(b=>b.onclick=(e)=>{
         e.stopPropagation();
@@ -3606,13 +3687,15 @@ const Reports = (() => {
         render();
       });
       document.getElementById("btn-delete-selected-receipts")?.addEventListener("click", () => {
-        batchDeleteSales(Array.from(selectedReceiptIds));
+        const ids = Array.from(selectedReceiptIds);
+        if(ids.length > 0) batchDeleteSales(ids);
       });
       document.getElementById("btn-delete-all-receipts")?.addEventListener("click", () => {
         const r = getActiveRange();
         const filterFn = getReportFilterFn();
         const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
-        batchDeleteSales(curSales.map(s => s.id));
+        const ids = curSales.map(s => s.id);
+        if(ids.length > 0) batchDeleteSales(ids);
       });
       // (2026-07-13) Wire receipt pagination controls; was unpaginated
       const prevReceiptBtn = document.getElementById("receipt-pg-prev");
@@ -3658,6 +3741,29 @@ const Reports = (() => {
       document.getElementById("btn-export-sales-report")?.addEventListener("click", () => {
         ImportExport.exportSalesCSV(periodKey);
       });
+      
+      // (2026-09-24) Receipt search input handlers
+      const receiptSearchInput = document.getElementById("receipt-search-input");
+      if(receiptSearchInput){
+        receiptSearchInput.oninput = (e) => {
+          receiptSearchTerm = e.target.value;
+          receiptPage = 1; // Reset to first page when searching
+          render();
+        };
+        receiptSearchInput.onkeydown = (e) => {
+          if(e.key === "Escape"){
+            receiptSearchTerm = "";
+            receiptPage = 1;
+            render();
+          }
+        };
+      }
+      document.getElementById("clear-receipt-search")?.addEventListener("click", () => {
+        receiptSearchTerm = "";
+        receiptPage = 1;
+        render();
+      });
+      
       // (2026-07-13) Save daily starting & ending balance to DB; was shift only
       const startInp = document.getElementById("inp-receipt-starting-cash");
       if(startInp){
