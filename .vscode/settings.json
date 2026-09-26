@@ -1,3 +1,4 @@
 {
-    "liveServer.settings.port": 5501
+    // (2026-07-13) Set live server port to 5512, previously 5501
+    "liveServer.settings.port": 5512
 }

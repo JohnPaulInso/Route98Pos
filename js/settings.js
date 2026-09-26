@@ -434,9 +434,10 @@ const Settings = (() => {
       return;
     }
     const view = document.getElementById("view-root");
+    // (2026-07-13) Remove view-sub subtitle; was subtitle div
     view.innerHTML = `
       <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;padding-bottom:5rem;-webkit-overflow-scrolling:touch;">
-        <div class="view-head"><div><h2>${Icons.get("settings",{size:22})} Settings</h2><div class="view-sub">Admin configuration & system backups</div></div></div>
+        <div class="view-head"><div><h2>${Icons.get("settings",{size:22})} Settings</h2></div></div>
         <div class="category-chips">
           ${[["business","store","Business"],["staff","users","Staff"],["fuel","fuel","Fuel Pumps"],["data","database","Data & Backups"]].map(([k,ic,l])=>`<div class="chip ${tab===k?"active":""}" data-tab="${k}">${Icons.get(ic,{size:13})}${l}</div>`).join("")}
         </div>

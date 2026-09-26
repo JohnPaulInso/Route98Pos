@@ -76,15 +76,31 @@ const Utils = (() => {
     }
   }
 
+  // (2026-07-13) Add tap and swipe-up dismissal to toast; was static timer only
   function toast(msg, type = "info", ms = 3200){
     const stack = document.getElementById("toast-stack");
     if(!stack) return;
     const el = document.createElement("div");
     el.className = `toast ${type}`;
     const iconNames = { success:"check-circle", error:"x-circle", warn:"alert-triangle", info:"info" };
-    el.innerHTML = `${Icons.get(iconNames[type]||iconNames.info, { size:17 })}<span>${msg}</span>`;
+    el.innerHTML = `${Icons.get(iconNames[type]||iconNames.info, { size:17 })}<span>${msg}</span><span style="margin-left:auto;opacity:0.6;font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">×</span>`;
+    let dismissed = false;
+    const dismiss = () => {
+      if(dismissed) return;
+      dismissed = true;
+      el.style.opacity = "0";
+      el.style.transform = "translateY(-14px)";
+      el.style.transition = "all .18s ease-out";
+      setTimeout(() => el.remove(), 200);
+    };
+    el.onclick = dismiss;
+    let startY = 0;
+    el.addEventListener("touchstart", e => { startY = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener("touchend", e => {
+      if(startY - e.changedTouches[0].clientY > 20) dismiss();
+    }, { passive: true });
     stack.appendChild(el);
-    setTimeout(()=>{ el.style.opacity="0"; el.style.transform="translateX(20px)"; el.style.transition="all .18s"; setTimeout(()=>el.remove(),200); }, ms);
+    setTimeout(() => { if(!dismissed && el.parentNode) dismiss(); }, ms);
   }
 
   // (2026-07-13) Add snackbar with interactive Undo action; was toast only

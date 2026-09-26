@@ -337,22 +337,23 @@ const Shift = (() => {
       <div class="view-body shift-view-container" style="overflow-y:auto;flex:1;min-height:0;height:100%;width:100%;box-sizing:border-box;padding:16px;-webkit-overflow-scrolling:touch;">
         
         <!-- Header & Tab Navigation -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;width:100%;">
-          <div>
-            <h2 style="font-size:1.4rem;font-weight:800;margin:0 0 4px;color:var(--ink);display:flex;align-items:center;gap:8px;">
+        <!-- (2026-07-13) Segmented mobile top tab bar; was wrapping buttons -->
+        <div class="shift-page-header">
+          <div class="shift-title-block">
+            <!-- (2026-07-13) Remove shift-page-sub subtitle; was subtitle paragraph -->
+            <h2 class="shift-page-title">
               ${Icons.get("clock",{size:24})} Shift Management
             </h2>
-            <p class="text-sm text-faint" style="margin:0;">Track cashier time-in/out, drawer cash register float, and shift receipt logs.</p>
           </div>
-          <div class="btn-group" style="display:flex;background:var(--paper-dim);padding:3px;border-radius:10px;border:1px solid var(--line);flex-shrink:0;">
-            <button class="btn btn-sm ${activeTab==='active'?'btn-primary':'btn-ghost'}" id="tab-shift-active" style="border-radius:8px;font-weight:700;">
-              ${Icons.get("clock",{size:14})} Active Shift
+          <div class="shift-nav-tabs">
+            <button class="btn btn-sm ${activeTab==='active'?'btn-primary':'btn-ghost'} shift-tab-btn" id="tab-shift-active">
+              ${Icons.get("clock",{size:14})} <span>Active Shift</span>
             </button>
-            <button class="btn btn-sm ${activeTab==='logs'?'btn-primary':'btn-ghost'}" id="tab-shift-logs" style="border-radius:8px;font-weight:700;">
-              ${Icons.get("clipboard",{size:14})} Shift Logs (${shiftLogs.length})
+            <button class="btn btn-sm ${activeTab==='logs'?'btn-primary':'btn-ghost'} shift-tab-btn" id="tab-shift-logs">
+              ${Icons.get("clipboard",{size:14})} <span>Shift Logs (${shiftLogs.length})</span>
             </button>
-            <button class="btn btn-sm ${activeTab==='staff'?'btn-primary':'btn-ghost'}" id="tab-shift-staff" style="border-radius:8px;font-weight:700;">
-              ${Icons.get("user",{size:14})} Staff Status
+            <button class="btn btn-sm ${activeTab==='staff'?'btn-primary':'btn-ghost'} shift-tab-btn" id="tab-shift-staff">
+              ${Icons.get("user",{size:14})} <span>Staff Status</span>
             </button>
           </div>
         </div>
@@ -412,83 +413,102 @@ const Shift = (() => {
 
     return `
       <!-- Active Shift Banner -->
-      <div class="card" style="margin-bottom:18px;padding:18px 24px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);border-left:5px solid #10b981;box-shadow:var(--shadow-sm);">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
-          <div style="display:flex;align-items:center;gap:16px;">
-            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg, #10b981, #059669);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.35rem;box-shadow:0 4px 12px rgba(16,185,129,0.25);">
+      <!-- (2026-07-13) 3-col quick actions and consolidated metrics list; was half-rows -->
+      <!-- Active Shift Banner -->
+      <div class="card shift-active-card">
+        <div class="shift-active-header">
+          <div class="shift-cashier-profile">
+            <div class="shift-cashier-avatar">
               ${(active.cashier || "C").slice(0,1).toUpperCase()}
             </div>
-            <div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <h3 style="margin:0;font-size:1.25rem;font-weight:900;color:var(--ink);letter-spacing:-0.01em;">${Utils.escapeHtml(active.cashier || "Cashier")}</h3>
-                <span class="badge" style="background:rgba(16,185,129,0.12);color:#059669;font-weight:800;font-size:0.72rem;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;border:1px solid rgba(16,185,129,0.25);">
-                  <span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;"></span> ACTIVE ON DUTY
+            <div class="shift-cashier-details">
+              <div class="shift-cashier-row">
+                <h3 class="shift-cashier-name">${Utils.escapeHtml(active.cashier || "Cashier")}</h3>
+                <span class="badge shift-badge-duty">
+                  <span class="shift-duty-dot"></span> ACTIVE ON DUTY
                 </span>
               </div>
-              <div class="text-xs text-faint" style="margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;">
+              <div class="text-xs text-faint shift-cashier-meta">
                 <span>Time In: <strong style="color:var(--ink);">${Utils.fmtDate(active.openedAt)}</strong></span>
-                <span>·</span>
+                <span class="meta-sep">·</span>
                 <span>Active Duration: <strong style="color:var(--brand);">${fmtDuration(active.openedAt)}</strong></span>
               </div>
             </div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-sm btn-outline font-bold" id="btn-shift-open-drawer" style="border-radius:8px;">
-              ${Icons.get("lock",{size:14})} Pop Drawer
+        </div>
+
+        <div class="shift-action-cluster">
+          <div class="shift-quick-actions">
+            <button class="btn btn-outline shift-quick-btn font-bold" id="btn-shift-open-drawer">
+              ${Icons.get("lock",{size:15})}
+              <span>Pop Drawer</span>
             </button>
-            <button class="btn btn-sm btn-outline font-bold" id="btn-shift-pay-in" style="border-radius:8px;">
-              ${Icons.get("plus",{size:14})} Pay In
+            <button class="btn btn-outline shift-quick-btn font-bold" id="btn-shift-pay-in">
+              ${Icons.get("plus",{size:15})}
+              <span>Pay In</span>
             </button>
-            <button class="btn btn-sm btn-outline font-bold" id="btn-shift-pay-out" style="border-radius:8px;">
-              ${Icons.get("minus",{size:14})} Pay Out
-            </button>
-            <button class="btn btn-sm btn-danger font-bold" id="btn-close-active-shift" style="border-radius:8px;box-shadow:0 2px 8px rgba(239,68,68,0.25);">
-              ${Icons.get("lock",{size:14})} Close Shift
+            <button class="btn btn-outline shift-quick-btn font-bold" id="btn-shift-pay-out">
+              ${Icons.get("minus",{size:15})}
+              <span>Pay Out</span>
             </button>
           </div>
+          <button class="btn btn-danger shift-close-btn font-bold" id="btn-close-active-shift">
+            ${Icons.get("lock",{size:15})}
+            <span>Close Shift</span>
+          </button>
         </div>
       </div>
 
       <!-- Register & Drawer Cash Metrics Cards -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));gap:14px;margin-bottom:20px;">
-        <div class="card" style="padding:16px 20px;border-radius:14px;background:var(--paper-raised);border:1px solid var(--line);box-shadow:var(--shadow-xs);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span class="text-xs text-faint font-bold" style="text-transform:uppercase;letter-spacing:0.04em;">Starting Float</span>
-            <span style="color:var(--ink-faint);">${Icons.get("lock",{size:16})}</span>
+      <div class="shift-metrics-container">
+        <!-- Expected Drawer Cash Highlight Card -->
+        <div class="card shift-hero-cash-card">
+          <div class="shift-hero-cash-header">
+            <span class="shift-hero-label">Expected Drawer Cash</span>
+            <span class="shift-hero-icon">${Icons.get("lock",{size:18})}</span>
           </div>
-          <div class="mono font-bold" style="font-size:1.55rem;color:var(--ink);line-height:1.2;">${Utils.money(totals.openingCash)}</div>
-          <div class="text-xs text-faint" style="margin-top:6px;">Counted at Time In</div>
-        </div>
-
-        <div class="card" style="padding:16px 20px;border-radius:14px;background:var(--paper-raised);border:1px solid var(--line);box-shadow:var(--shadow-xs);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span class="text-xs text-faint font-bold" style="text-transform:uppercase;letter-spacing:0.04em;">Cash Sales Inflow</span>
-            <span style="color:var(--brand);">${Icons.get("dollar-sign",{size:16})}</span>
-          </div>
-          <div class="mono font-bold" style="font-size:1.55rem;color:var(--brand-deep);line-height:1.2;">${Utils.money(totals.cashSales)}</div>
-          <div class="text-xs text-faint" style="margin-top:6px;">Physical cash received</div>
-        </div>
-
-        <div class="card" style="padding:16px 20px;border-radius:14px;background:var(--paper-raised);border:1px solid var(--line);box-shadow:var(--shadow-xs);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span class="text-xs text-faint font-bold" style="text-transform:uppercase;letter-spacing:0.04em;">Digital / Non-Cash</span>
-            <span style="color:var(--ink-soft);">${Icons.get("credit-card",{size:16})}</span>
-          </div>
-          <div class="mono font-bold" style="font-size:1.55rem;color:var(--ink);line-height:1.2;">${Utils.money(totals.gcashSales + totals.cardSales + totals.otherSales)}</div>
-          <div class="text-xs text-faint" style="margin-top:6px;">GCash: <strong>${Utils.money(totals.gcashSales)}</strong> · Card: <strong>${Utils.money(totals.cardSales)}</strong></div>
-        </div>
-
-        <div class="card" style="padding:16px 20px;border-radius:14px;background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.14));border:1.5px solid rgba(16,185,129,0.35);box-shadow:0 4px 14px rgba(16,185,129,0.12);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span class="text-xs font-bold" style="color:#059669;text-transform:uppercase;letter-spacing:0.04em;">Expected Drawer Cash</span>
-            <span style="color:#059669;">${Icons.get("lock",{size:16})}</span>
-          </div>
-          <div class="mono font-bold" style="font-size:1.75rem;color:#047857;line-height:1.2;">${Utils.money(totals.expectedCash)}</div>
-          <div class="text-xs font-bold" style="color:#059669;margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;font-size:0.75rem;">
+          <div class="mono font-bold shift-hero-val">${Utils.money(totals.expectedCash)}</div>
+          <div class="shift-hero-breakdown">
             <span>Float ${Utils.money(totals.openingCash)}</span>
             <span>+ Cash ${Utils.money(totals.cashSales)}</span>
             ${totals.cashIn ? `<span>+ In ${Utils.money(totals.cashIn)}</span>` : ""}
             ${totals.cashOut ? `<span>- Out ${Utils.money(totals.cashOut)}</span>` : ""}
+          </div>
+        </div>
+
+        <!-- Consolidated Summary List -->
+        <div class="card shift-metrics-summary">
+          <div class="shift-metric-item">
+            <div class="shift-metric-icon-wrap" style="background:rgba(100,116,139,0.12);color:var(--ink);">
+              ${Icons.get("lock",{size:16})}
+            </div>
+            <div class="shift-metric-info">
+              <span class="shift-metric-title">Starting Float</span>
+              <span class="text-xs text-faint">Counted at Time In</span>
+            </div>
+            <div class="mono font-bold shift-metric-val">${Utils.money(totals.openingCash)}</div>
+          </div>
+
+          <div class="shift-metric-item">
+            <div class="shift-metric-icon-wrap" style="background:rgba(16,185,129,0.12);color:#059669;">
+              ${Icons.get("dollar-sign",{size:16})}
+            </div>
+            <div class="shift-metric-info">
+              <span class="shift-metric-title">Cash Sales Inflow</span>
+              <span class="text-xs text-faint">Physical cash received</span>
+            </div>
+            <div class="mono font-bold shift-metric-val" style="color:#059669;">${Utils.money(totals.cashSales)}</div>
+          </div>
+
+          <div class="shift-metric-item">
+            <div class="shift-metric-icon-wrap" style="background:rgba(59,130,246,0.12);color:#2563EB;">
+              ${Icons.get("credit-card",{size:16})}
+            </div>
+            <div class="shift-metric-info">
+              <span class="shift-metric-title">Digital / Non-Cash</span>
+              <span class="text-xs text-faint">GCash: ${Utils.money(totals.gcashSales)} · Card: ${Utils.money(totals.cardSales)}</span>
+            </div>
+            <div class="mono font-bold shift-metric-val">${Utils.money(totals.gcashSales + totals.cardSales + totals.otherSales)}</div>
           </div>
         </div>
       </div>
@@ -557,7 +577,7 @@ const Shift = (() => {
     `;
   }
 
-  // (2026-07-13) Render shift history logs tab; was missing
+  // (2026-07-13) Add mobile detailed table-card for shift logs; was wide table
   function renderLogsTab(logs){
     if(!logs || !logs.length){
       return `
@@ -568,9 +588,9 @@ const Shift = (() => {
     }
 
     return `
-      <div class="card" style="padding:16px 20px;border-radius:12px;background:var(--paper-raised);">
+      <div class="card shift-logs-wrapper" style="padding:16px 20px;border-radius:12px;background:var(--paper-raised);">
         <h4 style="margin:0 0 12px;font-size:1.05rem;font-weight:800;color:var(--ink);">Shift History & Cashier Time Records</h4>
-        <div class="table-wrap">
+        <div class="table-wrap shift-desktop-table">
           <table class="data" style="width:100%;">
             <thead>
               <tr>
@@ -608,6 +628,60 @@ const Shift = (() => {
               }).join("")}
             </tbody>
           </table>
+        </div>
+
+        <!-- Mobile detailed table cards for shift history -->
+        <div class="shift-mobile-cards">
+          ${logs.map(log => {
+            const diff = Number(log.variance || 0);
+            const diffColor = diff < -0.01 ? "var(--danger)" : diff > 0.01 ? "var(--warning-deep)" : "var(--success-deep)";
+            const openedStr = new Date(log.openedAt).toLocaleDateString("en-PH", {month:"short", day:"numeric", year:"numeric"});
+            const openTimeStr = new Date(log.openedAt).toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit"});
+            const closeTimeStr = log.closedAt ? new Date(log.closedAt).toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit"}) : "Now";
+            return `
+              <div class="shift-log-card">
+                <div class="shift-card-top">
+                  <div>
+                    <div class="shift-card-title">${openedStr}</div>
+                    <div class="shift-card-sub">${openTimeStr} – ${closeTimeStr} · <strong>${log.duration || "—"}</strong></div>
+                  </div>
+                  <span class="badge shift-cashier-badge">
+                    ${Utils.escapeHtml(log.cashier || "Cashier")}
+                  </span>
+                </div>
+                <table class="shift-card-table">
+                  <tbody>
+                    <tr>
+                      <td class="sct-label">Starting Float</td>
+                      <td class="sct-val mono">${Utils.money(log.openingCash || 0)}</td>
+                    </tr>
+                    <tr>
+                      <td class="sct-label">Total Sales</td>
+                      <td class="sct-val mono font-bold" style="color:var(--brand);">${Utils.money(log.totalSales || 0)}</td>
+                    </tr>
+                    <tr>
+                      <td class="sct-label">Expected Cash</td>
+                      <td class="sct-val mono">${Utils.money(log.expectedCash || 0)}</td>
+                    </tr>
+                    <tr>
+                      <td class="sct-label">Actual Cash</td>
+                      <td class="sct-val mono font-bold">${Utils.money(log.actualCash || 0)}</td>
+                    </tr>
+                    <tr class="sct-variance-row">
+                      <td class="sct-label">Variance (Over/Short)</td>
+                      <td class="sct-val mono font-bold" style="color:${diffColor};">${diff >= 0 ? "+" : ""}${Utils.money(diff)}</td>
+                    </tr>
+                    ${log.notes ? `
+                    <tr>
+                      <td class="sct-label">Notes</td>
+                      <td class="sct-val text-soft">${Utils.escapeHtml(log.notes)}</td>
+                    </tr>
+                    ` : ""}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }).join("")}
         </div>
       </div>
     `;

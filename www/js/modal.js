@@ -4,24 +4,30 @@
 // or Escape, and animates in/out.
 // ============================================================
 const Modal = (() => {
+  // (2026-07-13) Modal smooth exit animation timing; was 120ms opacity fade
   function close(){
     const bd = document.querySelector(".modal-backdrop");
-    if(bd){
-      bd.style.opacity = "0";
-      setTimeout(() => bd.remove(), 120);
+    if(bd && !bd.classList.contains("modal-closing")){
+      bd.classList.add("modal-closing");
+      setTimeout(() => {
+        bd.remove();
+        if(!document.querySelector(".modal-backdrop")) document.body.classList.remove("scroll-locked");
+      }, 180);
+    } else if(!bd){
+      document.body.classList.remove("scroll-locked");
     }
-    if(!document.querySelector(".modal-backdrop")) document.body.classList.remove("scroll-locked");
   }
 
-  function open({ title, body, actions = [], wide = false, onClose }){
+  // (2026-07-13) Support modalClass for custom dialog styling; was default only
+  function open({ title, body, actions = [], wide = false, onClose, modalClass = "" }){
     close();
     // (2026-07-13) Close open dropdowns before opening modal; was staying open
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     document.body.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
-    backdrop.className = "modal-backdrop";
+    backdrop.className = `modal-backdrop ${modalClass ? `${modalClass}-backdrop` : ""}`;
     backdrop.innerHTML = `
-      <div class="modal ${wide ? "modal-wide":""}">
+      <div class="modal ${wide ? "modal-wide":""} ${modalClass}">
         <div class="modal-head">
           <h3>${title}</h3>
           <button class="icon-btn" id="modal-x">${Icons.get("x", { size:16 })}</button>
@@ -40,14 +46,16 @@ const Modal = (() => {
     return backdrop;
   }
 
-  function confirm({ title = "Are you sure?", message, danger = false, onConfirm }){
+  // (2026-07-13) Support onCancel and modal dismiss; was confirm only
+  function confirm({ title = "Are you sure?", message, danger = false, onConfirm, onCancel }){
     open({
       title,
       body: `<p>${message}</p>`,
       actions: [
-        { label:"Cancel", cls:"btn-ghost" },
+        { label:"Cancel", cls:"btn-ghost", onClick: () => { close(); onCancel?.(); } },
         { label: danger ? "Yes, delete" : "Confirm", cls: danger ? "btn-danger" : "btn-primary", onClick: () => { close(); onConfirm(); } }
-      ]
+      ],
+      onClose: onCancel
     });
   }
 

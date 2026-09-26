@@ -360,12 +360,12 @@ const Venue = (() => {
     const totalWeekRev = weekBookings.reduce((s,b) => s + (b.fee || 0), 0);
     const totalWeekPaid = weekBookings.reduce((s,b) => s + (b.paid || 0), 0);
 
+    // (2026-07-13) Remove view-sub subtitle; was subtitle div
     view.innerHTML = `
       <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
         <div class="view-head" style="margin-bottom:8px;">
           <div>
             <h2>${Icons.get("party",{size:22})} Route 98 Venue Booking</h2>
-            <div class="view-sub">Hold & drag across hours to reserve · 8:00 AM to 12:00 AM Philippine Time</div>
           </div>
           <div class="input-row" style="width:auto;">
             <button class="btn btn-outline" id="btn-export-bk">${Icons.get("download",{size:15})} Export Bookings</button>

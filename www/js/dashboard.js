@@ -4,9 +4,100 @@
 // ============================================================
 // (2026-07-13) Synchronize dashboard filters, empty states & 4-unit views; was broken
 const Dashboard = (() => {
-  let periodKey = "this_week"; // "today" | "this_week" | "last_week" | "this_month" | "last_month" | "all"
+  // (2026-07-13) Synchronize date stepper state with reports; was static chips
+  const DASH_RANGE_KEY = "r98_reports_range_state";
+  let periodKey = "today";
+  let activeRange = null;
+  let timeFilter = "all";
+  let employeeFilter = "all";
+  try {
+    const rawRng = localStorage.getItem(DASH_RANGE_KEY);
+    if(rawRng){
+      const parsedRng = JSON.parse(rawRng);
+      if(parsedRng.periodKey) periodKey = parsedRng.periodKey;
+      if(parsedRng.activeRange) activeRange = parsedRng.activeRange;
+    }
+  } catch(e){}
+  function persistRangeState(){
+    try {
+      localStorage.setItem(DASH_RANGE_KEY, JSON.stringify({ periodKey, activeRange }));
+    } catch(e){}
+  }
   let scopeKey = "all"; // "all" | "minimart" | "gasoline" | "venue" | "restaurant"
   let charts = {};
+
+  function getActiveRange(){
+    if(activeRange) return activeRange;
+    return Analytics.getPeriodRange(periodKey);
+  }
+
+  function fmtDateRangeLabel(r){
+    if(typeof Reports !== "undefined" && Reports.fmtDateRangeLabel) return Reports.fmtDateRangeLabel(r);
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+    const fmt = (d) => `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    if(!r || r.key === "all" || r.start <= 86400000){
+      return "All Time";
+    }
+    const dStart = new Date(r.start);
+    const dEnd = new Date(r.end);
+    if(fmt(dStart) === fmt(dEnd)) return fmt(dStart);
+    return `${fmt(dStart)} - ${fmt(dEnd)}`;
+  }
+
+  function matchTimeFilter(ts){
+    if(timeFilter === "all") return true;
+    const d = new Date(ts);
+    const min = d.getHours() * 60 + d.getMinutes();
+    if(timeFilter === "morning") return min >= 6 * 60 && min < 14 * 60;
+    if(timeFilter === "afternoon") return min >= 14 * 60 && min < 22 * 60;
+    if(timeFilter === "night") return min >= 22 * 60 || min < 6 * 60;
+    return true;
+  }
+
+  function matchEmployeeFilter(record){
+    if(employeeFilter === "all") return true;
+    const emp = record.cashier || record.attendant || record.cashierName || "Admin";
+    return emp.toLowerCase() === employeeFilter.toLowerCase();
+  }
+
+  function shiftPeriod(dir){
+    const r = getActiveRange();
+    let { start, end, key } = r;
+    const oneDay = 86400000;
+    if(key === "all" || start <= oneDay){
+      const cur = new Date();
+      const s = new Date(cur.getFullYear(), cur.getMonth() + dir, 1, 0, 0, 0, 0).getTime();
+      const e = new Date(cur.getFullYear(), cur.getMonth() + dir + 1, 0, 23, 59, 59, 999).getTime();
+      start = s; end = e;
+    } else {
+      const dur = end - start;
+      if(dur <= oneDay + 1000){
+        start = start + dir * oneDay;
+        end = end + dir * oneDay;
+      } else if(dur <= 7 * oneDay + 1000){
+        start = start + dir * 7 * oneDay;
+        end = end + dir * 7 * oneDay;
+      } else {
+        const dStart = new Date(start);
+        const dEnd = new Date(end);
+        if(dStart.getDate() === 1 && new Date(dEnd.getTime() + 1000).getDate() === 1){
+          const newStart = new Date(dStart.getFullYear(), dStart.getMonth() + dir, 1, 0, 0, 0, 0);
+          const newEnd = new Date(dStart.getFullYear(), dStart.getMonth() + dir + 1, 0, 23, 59, 59, 999);
+          start = newStart.getTime();
+          end = newEnd.getTime();
+        } else {
+          start = start + dir * (dur + 1);
+          end = end + dir * (dur + 1);
+        }
+      }
+    }
+    const label = fmtDateRangeLabel({ start, end });
+    const subtitle = `${new Date(start).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(end).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`;
+    activeRange = { start, end, key: "custom", label, subtitle };
+    periodKey = "custom";
+    persistRangeState();
+    render();
+  }
 
   const BIZ_THEMES = {
     all: { name: "Consolidated Executive", color: "#312E81", bg: "#EEF2FF", border: "#C7D2FE", icon: "bar-chart" },
@@ -40,14 +131,20 @@ const Dashboard = (() => {
     return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
   }
 
-  // Calculate previous period for trend comparisons
+  // (2026-07-13) Previous period stats respecting active range; was hardcoded
   function computePrevPeriodStats(){
+    const r = getActiveRange();
     let prevRange = "last_week";
     if(periodKey === "today") prevRange = 1;
     else if(periodKey === "this_week") prevRange = "last_week";
     else if(periodKey === "this_month") prevRange = "last_month";
     else if(periodKey === "last_week") prevRange = "last_month";
-    return Analytics.computeStats(prevRange);
+    else if(r && r.start > 86400000){
+      const dur = r.end - r.start;
+      prevRange = { start: r.start - dur, end: r.start - 1, key: "prev" };
+    }
+    const filterFn = (s) => matchTimeFilter(s.ts) && matchEmployeeFilter(s);
+    return Analytics.computeStats(prevRange, { filterFn });
   }
 
   function pctDelta(curr, prev){
@@ -63,11 +160,13 @@ const Dashboard = (() => {
     const p = stats.pl;
     const isProfitable = p.netProfit >= 0;
 
+    // (2026-07-13) Mobile info modal bottom sheet & badges; was desktop hover
     const cards = [
       {
         title: "Total Net Revenue",
         icon: "dollar-sign",
         val: Utils.money(p.netRevenue),
+        badge: "Gross Inflow",
         sub: "Minimart, Fuel, Venue & Dining",
         tip: "Total combined earnings collected from Minimart POS, Gasoline pumps, Event bookings, and Restaurant dining.",
         hero: true
@@ -76,6 +175,7 @@ const Dashboard = (() => {
         title: "Cost of Goods (COGS)",
         icon: "shopping-bag",
         val: `−${Utils.money(p.totalCOGS)}`,
+        badge: "Wholesale",
         sub: "Wholesale & supply cost",
         tip: "Direct wholesale cost of store inventory, base fuel tanker deliveries, and food ingredients sold.",
         color: "#DC2626"
@@ -84,6 +184,7 @@ const Dashboard = (() => {
         title: "Operating Expenses (OPEX)",
         icon: "truck",
         val: `−${Utils.money(stats.totalOperatingExpenses)}`,
+        badge: "Expense",
         sub: "Logistics, utilities, staff",
         tip: "Day-to-day business expenses including electricity, water, staff salaries, repairs, and tanker logistics.",
         color: "#D97706"
@@ -92,6 +193,7 @@ const Dashboard = (() => {
         title: "Combined Gross Profit",
         icon: "trending-up",
         val: `+${Utils.money(p.grossProfit)}`,
+        badge: `+${p.margin.toFixed(1)}% Margin`,
         sub: `${p.margin.toFixed(1)}% Gross Margin`,
         tip: "Total revenue minus wholesale product costs, representing gross trading profit before paying bills.",
         color: "#059669"
@@ -100,6 +202,7 @@ const Dashboard = (() => {
         title: "Net Operating Profit",
         icon: isProfitable ? "check-circle" : "alert-triangle",
         val: `${p.netProfit < 0 ? "−" : "+"}${Utils.money(Math.abs(p.netProfit))}`,
+        badge: isProfitable ? "Profitable" : "Operating Loss",
         sub: isProfitable ? "Profitable after all bills" : "Operating at loss this period",
         tip: "True bottom-line money in pocket left after paying for all products, operating expenses, and logistics.",
         color: isProfitable ? "#059669" : "#DC2626",
@@ -109,6 +212,7 @@ const Dashboard = (() => {
         title: "Overall Profit Margin",
         icon: "pie-chart",
         val: `${p.margin >= 0 ? "+" : ""}${p.margin.toFixed(1)}%`,
+        badge: "Efficiency",
         sub: "Gross conversion efficiency",
         tip: "Percentage of total gross revenue retained as profit across all 4 commercial divisions.",
         color: "#312E81"
@@ -125,7 +229,7 @@ const Dashboard = (() => {
                 <span style="flex-shrink:0;margin-top:1px;">${Icons.get(c.icon,{size:14})}</span>
                 <span>${c.title}</span>
               </div>
-              <button class="dash-info-btn" aria-label="Explanation" tabindex="0" style="width:20px;height:20px;font-size:.75rem;flex-shrink:0;">
+              <button class="dash-info-btn" aria-label="Explanation" tabindex="0" data-tip-title="${Utils.escapeHtml(c.title)}" data-tip="${Utils.escapeHtml(c.tip)}" style="width:24px;height:24px;font-size:.75rem;flex-shrink:0;cursor:pointer;">
                 ⓘ
                 <span class="dash-tooltip">${c.tip}</span>
               </button>
@@ -135,13 +239,29 @@ const Dashboard = (() => {
               ${c.val}
             </div>
 
-            <div style="font-size:.72rem;font-weight:600;color:${c.hero ? '#E0E7FF' : '#64748B'};display:flex;align-items:center;gap:4px;line-height:1.25;">
-              ${c.sub}
+            <div style="font-size:.72rem;font-weight:600;color:${c.hero ? '#E0E7FF' : '#64748B'};display:flex;align-items:center;justify-content:space-between;gap:4px;line-height:1.25;flex-wrap:wrap;">
+              <span>${c.sub}</span>
+              ${c.badge ? `<span class="badge ${c.hero ? 'badge-neutral' : c.color === '#059669' ? 'badge-green' : c.color === '#DC2626' ? 'badge-red' : 'badge-neutral'} font-bold" style="font-size:0.65rem;padding:1px 6px;">${c.badge}</span>` : ''}
             </div>
           </div>
         `).join("")}
       </div>
     `;
+
+    wrap.querySelectorAll(".dash-info-btn").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const title = btn.dataset.tipTitle || "Metric Details";
+        const tip = btn.dataset.tip;
+        if(tip && (window.innerWidth <= 768 || 'ontouchstart' in window)){
+          Modal.open({
+            title: `${Icons.get("info",{size:18})} ${title}`,
+            body: `<div style="padding:10px 4px;font-size:0.95rem;line-height:1.5;color:var(--ink);">${tip}</div>`,
+            actions: [{ label: "Close", cls: "btn-primary btn-block" }]
+          });
+        }
+      };
+    });
   }
 
   // B. Business Snapshot Row (4 equal cards, one per business, 3 numbers only)
@@ -264,7 +384,8 @@ const Dashboard = (() => {
       Chart.defaults.font.size = 12;
     }
 
-    const trend = Analytics.computeTrendData(periodKey);
+    // (2026-07-13) Executive trend using active range and filters; was periodKey
+    const trend = Analytics.computeTrendData(getActiveRange(), { filterFn: (s) => matchTimeFilter(s.ts) && matchEmployeeFilter(s) });
     const totalRev = stats.pl.netRevenue;
     const hasData = totalRev > 0;
 
@@ -543,7 +664,8 @@ const Dashboard = (() => {
     const wrap = document.getElementById("dash-scoped-view");
     if(!wrap) return;
     const theme = BIZ_THEMES[scopeKey] || BIZ_THEMES.minimart;
-    const trend = Analytics.computeTrendData(periodKey);
+    // (2026-07-13) Business unit trend with active range; was periodKey
+    const trend = Analytics.computeTrendData(getActiveRange(), { filterFn: (s) => matchTimeFilter(s.ts) && matchEmployeeFilter(s) });
 
     let kpiCards = [];
     let customChartHtml = "";
@@ -1210,6 +1332,15 @@ const Dashboard = (() => {
     const view = document.getElementById("view-root");
     if(!view) return;
 
+    const r = getActiveRange();
+    const dateLabel = fmtDateRangeLabel(r);
+    const timeBtnLabel = timeFilter === "all" ? "All day" : (timeFilter === "morning" ? "Morning" : (timeFilter === "afternoon" ? "Afternoon" : (timeFilter === "night" ? "Night" : "Custom")));
+    const empBtnLabel = employeeFilter === "all" ? "All employees" : employeeFilter;
+
+    const users = DB.getUsers ? DB.getUsers() : [];
+    const salesCashiers = [...new Set([...(DB.getSales ? DB.getSales() : []).map(s => s.cashier), ...(DB.getFuelSales ? DB.getFuelSales() : []).map(s => s.cashier || s.attendant)].filter(Boolean))];
+    const allEmps = [...new Set([...users.map(u => u.name), ...salesCashiers])].filter(Boolean);
+
     view.innerHTML = `
       <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
         <!-- (2026-07-13) Compact header font size & padding for executive dashboard; was large -->
@@ -1224,32 +1355,62 @@ const Dashboard = (() => {
             </div>
           </div>
 
-          <!-- (2026-07-13) Uniform compact pill chips for dashboard; was boxed buttons -->
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;" id="dash-period-chips">
-            <button class="chip ${periodKey==='all'?'active':''}" data-p="all" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">All Time</button>
-            <button class="chip ${periodKey==='today'?'active':''}" data-p="today" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">Today</button>
-            <button class="chip ${periodKey==='this_week'?'active':''}" data-p="this_week" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">This Week</button>
-            <button class="chip ${periodKey==='last_week'?'active':''}" data-p="last_week" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">Last Week</button>
-            <button class="chip ${periodKey==='this_month'?'active':''}" data-p="this_month" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">This Month</button>
-            <button class="chip ${periodKey==='last_month'?'active':''}" data-p="last_month" style="padding:4px 12px;font-size:var(--fs-xs);font-weight:700;border-radius:20px;cursor:pointer;">Last Month</button>
+          <!-- (2026-07-13) Use date stepper toolbar on dashboard; was period chips -->
+          <div class="rpt-toolbar" id="dash-filter-bar" style="margin-bottom:0;">
+            <div class="rpt-date-group rpt-stepper-pill">
+              <button class="rpt-nav-btn rpt-stepper-arrow prev" id="dash-btn-prev" type="button" title="Previous period">${Icons.get("chevron-left", {size:15})}</button>
+              <button class="rpt-date-btn rpt-stepper-label" id="dash-btn-date" type="button" title="Select date range">
+                ${Icons.get("calendar", {size:15})}
+                <span class="btn-text rpt-date-range-text" id="dash-date-display">${dateLabel}</span>
+              </button>
+              <button class="rpt-nav-btn rpt-stepper-arrow next" id="dash-btn-next" type="button" title="Next period">${Icons.get("chevron-right", {size:15})}</button>
+            </div>
+            <div class="rpt-aux-filters">
+              <div class="rpt-dropdown-wrap">
+                <button class="rpt-dropdown-btn" id="dash-btn-time" type="button" title="Filter by time of day">
+                  ${Icons.get("clock", {size:15})}
+                  <span class="btn-text">${timeBtnLabel}</span>
+                  <span class="btn-text chevron-sub">${Icons.get("chevron-down", {size:12})}</span>
+                </button>
+                <div class="rpt-dropdown-menu" id="dash-menu-time">
+                  <div class="rpt-menu-item ${timeFilter === "all" ? "active" : ""}" data-time="all">All day</div>
+                  <div class="rpt-menu-item ${timeFilter === "morning" ? "active" : ""}" data-time="morning">Morning (06:00 - 14:00)</div>
+                  <div class="rpt-menu-item ${timeFilter === "afternoon" ? "active" : ""}" data-time="afternoon">Afternoon (14:00 - 22:00)</div>
+                  <div class="rpt-menu-item ${timeFilter === "night" ? "active" : ""}" data-time="night">Night (22:00 - 06:00)</div>
+                </div>
+              </div>
+              <div class="rpt-dropdown-wrap">
+                <button class="rpt-dropdown-btn" id="dash-btn-emp" type="button" title="Filter by employee">
+                  ${Icons.get("user", {size:15})}
+                  <span class="btn-text">${empBtnLabel}</span>
+                  <span class="btn-text chevron-sub">${Icons.get("chevron-down", {size:12})}</span>
+                </button>
+                <div class="rpt-dropdown-menu" id="dash-menu-emp">
+                  <div class="rpt-menu-item ${employeeFilter === "all" ? "active" : ""}" data-emp="all">All employees</div>
+                  ${allEmps.map(emp => `
+                    <div class="rpt-menu-item ${employeeFilter.toLowerCase() === emp.toLowerCase() ? "active" : ""}" data-emp="${Utils.escapeHtml(emp)}">${Utils.escapeHtml(emp)}</div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Scope Switcher Tabs (All Businesses vs Specific Business Units) -->
-        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;flex-shrink:0;" id="dash-scope-tabs">
-          <button class="chip ${scopeKey==='all'?'active':''}" data-scope="all" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+        <div class="dash-ribbon no-scrollbar" style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;flex-shrink:0;white-space:nowrap;-webkit-overflow-scrolling:touch;" id="dash-scope-tabs">
+          <button class="chip ${scopeKey==='all'?'active':''}" data-scope="all" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0;">
             ${Icons.get("bar-chart",{size:13})} ALL BUSINESSES
           </button>
-          <button class="chip ${scopeKey==='minimart'?'active':''}" data-scope="minimart" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+          <button class="chip ${scopeKey==='minimart'?'active':''}" data-scope="minimart" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0;">
             ${Icons.get("store",{size:13})} MINIMART STORE
           </button>
-          <button class="chip ${scopeKey==='gasoline'?'active':''}" data-scope="gasoline" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+          <button class="chip ${scopeKey==='gasoline'?'active':''}" data-scope="gasoline" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0;">
             ${Icons.get("fuel",{size:13})} GASOLINE STATION
           </button>
-          <button class="chip ${scopeKey==='venue'?'active':''}" data-scope="venue" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+          <button class="chip ${scopeKey==='venue'?'active':''}" data-scope="venue" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0;">
             ${Icons.get("party",{size:13})} EVENT VENUE
           </button>
-          <button class="chip ${scopeKey==='restaurant'?'active':''}" data-scope="restaurant" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;">
+          <button class="chip ${scopeKey==='restaurant'?'active':''}" data-scope="restaurant" style="padding:5px 14px;border-radius:20px;font-size:var(--fs-xs);font-weight:700;display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0;">
             ${Icons.get("utensils",{size:13})} RESTAURANT
           </button>
         </div>
@@ -1340,11 +1501,67 @@ const Dashboard = (() => {
       </div>
     `;
 
-    document.querySelectorAll("#dash-period-chips .chip").forEach(chip => {
-      chip.onclick = () => {
-        periodKey = chip.dataset.p;
-        render();
+    // (2026-07-13) Bind dashboard date stepper and aux filter events; was period chips
+    const prevBtn = document.getElementById("dash-btn-prev");
+    const nextBtn = document.getElementById("dash-btn-next");
+    const dateBtn = document.getElementById("dash-btn-date");
+    const timeBtn = document.getElementById("dash-btn-time");
+    const empBtn = document.getElementById("dash-btn-emp");
+    const menuTime = document.getElementById("dash-menu-time");
+    const menuEmp = document.getElementById("dash-menu-emp");
+
+    if(prevBtn) prevBtn.onclick = () => shiftPeriod(-1);
+    if(nextBtn) nextBtn.onclick = () => shiftPeriod(1);
+    if(dateBtn) dateBtn.onclick = () => {
+      if(typeof Reports !== "undefined" && Reports.openDatePickerModal){
+        Reports.openDatePickerModal({
+          getActiveRange: () => getActiveRange(),
+          periodKey: periodKey,
+          onApply: (newRange, newKey) => {
+            activeRange = newRange;
+            periodKey = newKey;
+            persistRangeState();
+            render();
+          }
+        });
+      }
+    };
+
+    if(timeBtn && menuTime){
+      timeBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(menuEmp) menuEmp.classList.remove("show");
+        menuTime.classList.toggle("show");
       };
+      menuTime.querySelectorAll("[data-time]").forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          timeFilter = item.dataset.time;
+          menuTime.classList.remove("show");
+          render();
+        };
+      });
+    }
+
+    if(empBtn && menuEmp){
+      empBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(menuTime) menuTime.classList.remove("show");
+        menuEmp.classList.toggle("show");
+      };
+      menuEmp.querySelectorAll("[data-emp]").forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          employeeFilter = item.dataset.emp;
+          menuEmp.classList.remove("show");
+          render();
+        };
+      });
+    }
+
+    document.addEventListener("click", () => {
+      if(menuTime) menuTime.classList.remove("show");
+      if(menuEmp) menuEmp.classList.remove("show");
     });
 
     document.querySelectorAll("#dash-scope-tabs .chip").forEach(chip => {
@@ -1358,7 +1575,9 @@ const Dashboard = (() => {
   }
 
   function refresh(){
-    const stats = Analytics.computeStats(periodKey);
+    const range = getActiveRange();
+    const filterFn = (s) => matchTimeFilter(s.ts) && matchEmployeeFilter(s);
+    const stats = Analytics.computeStats(range, { filterFn });
     const prevStats = computePrevPeriodStats();
     renderExecutivePL(stats);
     if(scopeKey === "all"){

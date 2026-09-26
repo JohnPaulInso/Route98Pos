@@ -73,48 +73,51 @@ const Inventory = (() => {
     const draft = !isEdit ? getProductDraft() : null;
     const initial = product || draft;
     const brands = brandList(), distributors = distributorList();
+    // (2026-07-13) Product form mobile single-column flow; was 2-col desktop layout
     const body = `
-      <div class="input-row" style="align-items:flex-start;">
-        <div class="image-preview" id="img-preview">${Utils.productThumb(initial || { category: cats[0] }, { iconSize:30 })}</div>
-        <div style="flex:1;">
-          <div class="field"><label>Product name</label><input class="input" id="f-name" value="${initial?Utils.escapeHtml(initial.name||""):""}" placeholder="e.g. Instant Noodles"></div>
-          <div class="field"><label>Image URL <span class="text-faint" style="text-transform:none;font-weight:500;">(paste a real photo link — optional)</span></label>
-            <input class="input" id="f-image" value="${initial?.imageUrl?Utils.escapeHtml(initial.imageUrl):""}" placeholder="https://…">
-          </div>
+      <div class="prod-form-image-section">
+        <div class="image-preview prod-form-preview" id="img-preview">${Utils.productThumb(initial || { category: cats[0] }, { iconSize:36 })}</div>
+        <div class="field" style="width:100%;">
+          <label>Image URL <span class="text-faint" style="text-transform:none;font-weight:500;">(paste photo link — optional)</span></label>
+          <input class="input" id="f-image" value="${initial?.imageUrl?Utils.escapeHtml(initial.imageUrl):""}" placeholder="https://…">
         </div>
       </div>
-      <div class="input-row">
+      <div class="field">
+        <label>Product name</label>
+        <input class="input" id="f-name" value="${initial?Utils.escapeHtml(initial.name||""):""}" placeholder="e.g. Instant Noodles">
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <div id="f-category-wrap"></div>
+      </div>
+      <div class="field">
+        <label>Barcode / SKU</label>
+        <div class="barcode-input-container">
+          <input class="input scan-target" id="f-barcode" value="${initial?.barcode||""}" placeholder="Scan or type" style="padding-right:42px;">
+          <button type="button" class="btn btn-ghost btn-icon barcode-camera-btn" id="f-scan-btn" title="Scan with camera">${Icons.get("camera",{size:17})}</button>
+        </div>
+      </div>
+      <div class="input-row form-two-col">
+        <div class="field"><label>Cost price</label><input class="input" id="f-cost" type="number" step="0.01" value="${initial?.cost??""}" placeholder="0.00"></div>
+        <div class="field">
+          <label style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Selling price</span>
+            <span id="f-profit-badge" class="badge badge-green" style="display:none;font-size:.70rem;padding:2px 6px;text-transform:none;font-weight:800;"></span>
+          </label>
+          <input class="input" id="f-price" type="number" step="0.01" value="${initial?.price??""}" placeholder="0.00">
+        </div>
+      </div>
+      <div class="input-row form-two-col">
+        <div class="field"><label>Stock quantity</label><input class="input" id="f-stock" type="number" step="1" value="${initial?.stock??""}" placeholder="0"></div>
+        <div class="field"><label>Unit</label><div id="f-unit-wrap"></div></div>
+      </div>
+      <div class="input-row form-two-col">
         <div class="field"><label>Brand</label><input class="input" id="f-brand" list="brand-list" value="${initial?Utils.escapeHtml(initial.brand||""):""}" placeholder="e.g. Lucky Me!"></div>
         <div class="field"><label>Manufacturer / Distributor</label><input class="input" id="f-distributor" list="dist-list" value="${initial?Utils.escapeHtml(initial.distributor||""):""}" placeholder="e.g. Monde Nissin Corp."></div>
       </div>
       <datalist id="brand-list">${brands.map(b=>`<option value="${Utils.escapeHtml(b)}">`).join("")}</datalist>
       <datalist id="dist-list">${distributors.map(d=>`<option value="${Utils.escapeHtml(d)}">`).join("")}</datalist>
-      <div class="input-row">
-        <div class="field"><label>Barcode / SKU</label>
-          <div style="display:flex;gap:6px;">
-            <input class="input scan-target" id="f-barcode" value="${initial?.barcode||""}" placeholder="Scan or type">
-            <button type="button" class="btn btn-ghost btn-icon" id="f-scan-btn" title="Scan with camera">${Icons.get("camera",{size:16})}</button>
-          </div>
-        </div>
-        <div class="field"><label>Category</label><div id="f-category-wrap"></div></div>
-      </div>
-      <div class="input-row">
-        <div class="field"><label>Cost price</label><input class="input" id="f-cost" type="number" step="0.01" value="${initial?.cost??""}"></div>
-        <div class="field">
-          <!-- (2026-07-13) Live profit badge on selling price; was plain label -->
-          <label style="display:flex;justify-content:space-between;align-items:center;">
-            <span>Selling price</span>
-            <span id="f-profit-badge" class="badge badge-green" style="display:none;font-size:.70rem;padding:2px 6px;text-transform:none;font-weight:800;"></span>
-          </label>
-          <input class="input" id="f-price" type="number" step="0.01" value="${initial?.price??""}">
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="field"><label>Stock quantity (total pieces)</label><input class="input" id="f-stock" type="number" step="1" value="${initial?.stock??""}"></div>
-        <div class="field"><label>Unit</label><div id="f-unit-wrap"></div></div>
-      </div>
-      <!-- (2026-07-13) Add dual-unit pack & piece tracking in inventory; was piece only -->
-      <div class="field" style="margin-top:10px;padding:12px;background:var(--paper-dim);border-radius:var(--r-md);border:1px solid var(--line);">
+      <div class="field" style="margin-top:4px;padding:12px;background:var(--paper-dim);border-radius:var(--r-md);border:1px solid var(--line);">
         <label class="switch-row" style="cursor:pointer;margin-bottom:0;">
           <div>
             <strong>Dual-Unit Tracking (Packs & Pieces)</strong>
@@ -126,7 +129,7 @@ const Inventory = (() => {
           </span>
         </label>
         <div id="f-dual-fields" style="display:${(initial?.piecesPerPack > 1 || initial?.hasDual) ? "block" : "none"};margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-strong);">
-          <div class="input-row">
+          <div class="input-row form-two-col">
             <div class="field">
               <label>Pieces per Pack</label>
               <input class="input" id="f-pack-size" type="number" min="2" step="1" value="${initial?.piecesPerPack || 10}" placeholder="e.g. 10">
@@ -136,7 +139,7 @@ const Inventory = (() => {
               <input class="input" id="f-pack-price" type="number" min="0" step="0.01" value="${initial?.packPrice ?? (initial?.price ? initial.price * 10 : "")}" placeholder="e.g. 90.00">
             </div>
           </div>
-          <div class="input-row" style="margin-top:8px;">
+          <div class="input-row form-two-col" style="margin-top:8px;">
             <div class="field">
               <label>Pack Cost Price</label>
               <input class="input" id="f-pack-cost" type="number" min="0" step="0.01" value="${initial?.packCost ?? (initial?.cost ? initial.cost * 10 : "")}" placeholder="e.g. 70.00">
@@ -148,10 +151,10 @@ const Inventory = (() => {
           </div>
         </div>
       </div>
-      <div class="field" style="margin-top:10px;"><label>Low stock alert threshold</label><input class="input" id="f-lowstock" type="number" step="1" value="${initial?.lowStockThreshold??5}"></div>`;
+      <div class="field" style="margin-top:4px;"><label>Low stock alert threshold</label><input class="input" id="f-lowstock" type="number" step="1" value="${initial?.lowStockThreshold??5}"></div>`;
     const modal = Modal.open({
       title: isEdit ? `${Icons.get("edit",{size:17})} Edit Product` : `${Icons.get("plus",{size:17})} Add Product`,
-      body, wide:true,
+      body, wide: true, modalClass: "modal-product-form",
       actions: [
         { label:"Cancel", cls:"btn-ghost" },
         ...(isEdit ? [{ label:"Delete", cls:"btn-danger", onClick: () => { Modal.close(); deleteProduct(product); } }] : []),
@@ -1030,20 +1033,72 @@ const Inventory = (() => {
       document.getElementById("btn-delete-selected").onclick = () => deleteSelectedProducts();
       document.getElementById("btn-cancel-select").onclick = () => toggleSelectMode(false);
     } else {
+      // (2026-07-13) Responsive actions: desktop row & mobile tools dropdown; was full row
       act.innerHTML = `
-        <button class="btn btn-ghost" id="btn-select-mode">${Icons.get("check",{size:15})} Select</button>
-        <button class="btn btn-outline" id="btn-physical-audit" style="border:1.5px solid var(--brand);color:var(--brand);font-weight:700;">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
-        <button class="btn btn-ghost" id="btn-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
-        <button class="btn btn-ghost" id="btn-export-inv">${Icons.get("download",{size:15})} Export</button>
-        <button class="btn btn-ghost" id="btn-import-inv">${Icons.get("upload",{size:15})} Import</button>
-        <button class="btn btn-primary" id="btn-add-product">${Icons.get("plus",{size:15})} Add Product</button>
+        <div class="inv-desktop-actions">
+          <button class="btn btn-ghost" id="btn-select-mode">${Icons.get("check",{size:15})} Select</button>
+          <button class="btn btn-outline" id="btn-physical-audit" style="border:1.5px solid var(--brand);color:var(--brand);font-weight:700;">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
+          <button class="btn btn-ghost" id="btn-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
+          <button class="btn btn-ghost" id="btn-export-inv">${Icons.get("download",{size:15})} Export</button>
+          <button class="btn btn-ghost" id="btn-import-inv">${Icons.get("upload",{size:15})} Import</button>
+          <button class="btn btn-primary" id="btn-add-product">${Icons.get("plus",{size:15})} Add Product</button>
+        </div>
+        <div class="inv-mobile-actions">
+          <div class="dropdown-wrap inv-tools-dropdown-wrap" style="position:relative;">
+            <button class="btn btn-outline btn-inv-tools" id="btn-inv-tools" type="button" aria-haspopup="true" aria-expanded="false">
+              ${Icons.get("more-horizontal",{size:15})} Tools ▾
+            </button>
+            <div class="dropdown-menu inv-tools-menu" id="inv-tools-menu" style="display:none;">
+              <button class="dropdown-item" id="btn-m-physical-audit">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
+              <button class="dropdown-item" id="btn-m-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
+              <button class="dropdown-item" id="btn-m-export-inv">${Icons.get("download",{size:15})} Export CSV</button>
+              <button class="dropdown-item" id="btn-m-import-inv">${Icons.get("upload",{size:15})} Import CSV</button>
+              <button class="dropdown-item" id="btn-m-select-mode">${Icons.get("check",{size:15})} Select Items</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-m-add-product">${Icons.get("plus",{size:15})} Add Product</button>
+        </div>
       `;
-      document.getElementById("btn-select-mode").onclick = () => toggleSelectMode(true);
-      document.getElementById("btn-physical-audit").onclick = openPhysicalCountAudit;
-      document.getElementById("btn-restock-logs").onclick = openRestockLogModal;
-      document.getElementById("btn-export-inv").onclick = ImportExport.exportInventoryCSV;
-      document.getElementById("btn-import-inv").onclick = () => document.getElementById("inv-import-file").click();
-      document.getElementById("btn-add-product").onclick = () => openProductForm();
+      const selBtn = document.getElementById("btn-select-mode");
+      if(selBtn) selBtn.onclick = () => toggleSelectMode(true);
+      const auditBtn = document.getElementById("btn-physical-audit");
+      if(auditBtn) auditBtn.onclick = openPhysicalCountAudit;
+      const rlogBtn = document.getElementById("btn-restock-logs");
+      if(rlogBtn) rlogBtn.onclick = openRestockLogModal;
+      const expBtn = document.getElementById("btn-export-inv");
+      if(expBtn) expBtn.onclick = ImportExport.exportInventoryCSV;
+      const impBtn = document.getElementById("btn-import-inv");
+      if(impBtn) impBtn.onclick = () => document.getElementById("inv-import-file").click();
+      const addBtn = document.getElementById("btn-add-product");
+      if(addBtn) addBtn.onclick = () => openProductForm();
+
+      const mToolsBtn = document.getElementById("btn-inv-tools");
+      const mToolsMenu = document.getElementById("inv-tools-menu");
+      if(mToolsBtn && mToolsMenu){
+        mToolsBtn.onclick = (e) => {
+          e.stopPropagation();
+          const isShown = mToolsMenu.style.display === "flex" || mToolsMenu.style.display === "block";
+          mToolsMenu.style.display = isShown ? "none" : "flex";
+        };
+        const closeMenu = (e) => {
+          if(!mToolsBtn.contains(e.target) && !mToolsMenu.contains(e.target)){
+            mToolsMenu.style.display = "none";
+          }
+        };
+        document.addEventListener("click", closeMenu);
+      }
+      const mAuditBtn = document.getElementById("btn-m-physical-audit");
+      if(mAuditBtn) mAuditBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; openPhysicalCountAudit(); };
+      const mRlogBtn = document.getElementById("btn-m-restock-logs");
+      if(mRlogBtn) mRlogBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; openRestockLogModal(); };
+      const mExpBtn = document.getElementById("btn-m-export-inv");
+      if(mExpBtn) mExpBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; ImportExport.exportInventoryCSV(); };
+      const mImpBtn = document.getElementById("btn-m-import-inv");
+      if(mImpBtn) mImpBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; document.getElementById("inv-import-file").click(); };
+      const mSelBtn = document.getElementById("btn-m-select-mode");
+      if(mSelBtn) mSelBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; toggleSelectMode(true); };
+      const mAddBtn = document.getElementById("btn-m-add-product");
+      if(mAddBtn) mAddBtn.onclick = () => openProductForm();
       
       // Bind icon-only categories button
       const catBtn = document.getElementById("btn-categories-icon");
@@ -1608,10 +1663,52 @@ const Inventory = (() => {
         </tr>`;
     }
 
+    // (2026-07-13) Mobile inventory cards & listeners; was desktop table only
+    const mobileCardsContainer = document.getElementById("inv-mobile-cards");
+    if(mobileCardsContainer){
+      mobileCardsContainer.innerHTML = items.length ? items.map(p => {
+        const low = p.stock <= p.lowStockThreshold;
+        const isSelected = selectedIds.has(p.id);
+        const hasDual = p.piecesPerPack > 1;
+        const packPrice = p.packPrice || (p.price * (p.piecesPerPack || 1));
+        const stockBadgeClass = p.stock <= 0 ? "badge-rust" : low ? "badge-amber" : "badge-green";
+        return `
+        <div class="inv-mobile-card ${p.stock<=0 ? "out-of-stock" : low ? "low-stock" : ""} ${isSelected ? "inv-card-selected" : ""}" data-prod-row="${p.id}" ${selectMode ? `data-select-row="${p.id}"` : ""}>
+          ${selectMode ? `<div class="inv-card-select-wrap"><input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""}></div>` : ""}
+          <div class="inv-card-left">
+            <div class="inv-card-thumb-wrap" data-preview-img="${p.id}" title="Click to view image">
+              ${Utils.productThumb(p, { iconSize: 22 })}
+              <span class="inv-card-stock-badge badge ${stockBadgeClass}">${p.stock} ${p.unit||"pc"}</span>
+            </div>
+          </div>
+          <div class="inv-card-center">
+            <strong class="inv-card-title" data-copy-name="${Utils.escapeHtml(p.name)}" title="Click to copy name">${Utils.escapeHtml(p.name)}</strong>
+            <div class="inv-card-meta">
+              <span class="badge badge-brand inv-card-cat-pill">${Utils.escapeHtml(p.category || "Misc")}</span>
+              <span class="inv-card-barcode mono">${p.barcode ? Utils.escapeHtml(p.barcode) : "—"}</span>
+            </div>
+            ${p.brand ? `<div class="inv-card-brand">${Utils.escapeHtml(p.brand)}${p.distributor ? ` · ${Utils.escapeHtml(p.distributor)}` : ""}</div>` : ""}
+            ${hasDual ? `<div class="inv-card-pack-info">${p.piecesPerPack} pcs/pack</div>` : ""}
+          </div>
+          <div class="inv-card-right">
+            <div class="inv-card-price mono">${Utils.money(p.price)}</div>
+            ${hasDual ? `<div class="inv-card-pack-price mono">${Utils.money(packPrice)}/pk</div>` : ""}
+            <div class="inv-card-actions">
+              <button class="btn btn-sm btn-ghost inv-card-action-btn" data-adj="${p.id}" title="Adjust stock">${Icons.get("package",{size:15})}</button>
+              <button class="btn btn-sm btn-ghost inv-card-action-btn" data-edit="${p.id}" title="Edit product">${Icons.get("edit",{size:15})}</button>
+              <button class="btn btn-sm btn-ghost inv-card-action-btn" data-history="${p.id}" title="Sales history">${Icons.get("clock",{size:15})}</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("") : `<div class="empty">${Icons.get("package",{size:34})}<h3>No products match</h3><p>Try clearing filters or add a new product.</p></div>`;
+    }
+
+    const getInvElements = (selector) => document.querySelectorAll(`#inv-tbody ${selector}, #inv-mobile-cards ${selector}`);
+
     if(selectMode){
-      tbody.querySelectorAll("[data-select-row]").forEach(row => {
+      getInvElements("[data-select-row]").forEach(row => {
         row.onclick = (e) => {
-          if(e.target.closest("button")) return;
+          if(e.target.closest("button, input")) return;
           const id = row.dataset.selectRow;
           if(selectedIds.has(id)){
             selectedIds.delete(id);
@@ -1622,7 +1719,7 @@ const Inventory = (() => {
           renderTable();
         };
       });
-      tbody.querySelectorAll(".inv-item-check").forEach(chk => {
+      getInvElements(".inv-item-check").forEach(chk => {
         chk.onclick = (e) => e.stopPropagation();
         chk.onchange = (e) => {
           const id = chk.dataset.id;
@@ -1634,13 +1731,13 @@ const Inventory = (() => {
       });
     }
 
-    tbody.querySelectorAll("[data-copy-name]").forEach(el => {
+    getInvElements("[data-copy-name]").forEach(el => {
       el.onclick = (e) => {
         e.stopPropagation();
         Utils.copyToClipboard(el.dataset.copyName);
       };
     });
-    tbody.querySelectorAll("[data-preview-img]").forEach(el => {
+    getInvElements("[data-preview-img]").forEach(el => {
       el.onclick = (e) => {
         e.stopPropagation();
         const p = DB.getProducts().find(x => x.id === el.dataset.previewImg);
@@ -1648,8 +1745,7 @@ const Inventory = (() => {
       };
     });
 
-    // (2026-07-13) Long-press table row opens edit modal directly; was click only
-    tbody.querySelectorAll("[data-prod-row]").forEach(row => {
+    getInvElements("[data-prod-row]").forEach(row => {
       let timer = null;
       let startX = 0, startY = 0;
       let isLongPress = false;
@@ -1671,7 +1767,6 @@ const Inventory = (() => {
       });
       row.addEventListener("pointerup", () => clearTimeout(timer));
       row.addEventListener("pointercancel", () => clearTimeout(timer));
-      // (2026-07-13) Click inventory row opens product transaction history; was noop
       row.addEventListener("click", (e) => {
         if(isLongPress){
           e.preventDefault();
@@ -1686,10 +1781,10 @@ const Inventory = (() => {
       }, true);
     });
 
-    tbody.querySelectorAll("[data-history]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductTransactionsModal(DB.getProducts().find(p=>p.id===b.dataset.history)); });
-    tbody.querySelectorAll("[data-edit]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductForm(DB.getProducts().find(p=>p.id===b.dataset.edit)); });
-    tbody.querySelectorAll("[data-adj]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openStockAdjust(DB.getProducts().find(p=>p.id===b.dataset.adj)); });
-    tbody.querySelectorAll("[data-del]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); deleteProduct(DB.getProducts().find(p=>p.id===b.dataset.del)); });
+    getInvElements("[data-history]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductTransactionsModal(DB.getProducts().find(p=>p.id===b.dataset.history)); });
+    getInvElements("[data-edit]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductForm(DB.getProducts().find(p=>p.id===b.dataset.edit)); });
+    getInvElements("[data-adj]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openStockAdjust(DB.getProducts().find(p=>p.id===b.dataset.adj)); });
+    getInvElements("[data-del]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); deleteProduct(DB.getProducts().find(p=>p.id===b.dataset.del)); });
 
     const pag = document.getElementById("inv-pagination");
     if(pag){
@@ -1753,8 +1848,9 @@ const Inventory = (() => {
     view.innerHTML = `
       <div class="view-head">
         <div style="flex:1;min-width:0;">
+          <!-- (2026-07-13) Hide inv-count and remove view-sub; was view-sub div -->
           <h2>${Icons.get("package",{size:22})} Inventory</h2>
-          <div class="view-sub" id="inv-count" style="font-size:.70rem;margin-top:3px;"></div>
+          <div id="inv-count" style="display:none;"></div>
         </div>
         <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
       </div>
@@ -1770,13 +1866,15 @@ const Inventory = (() => {
         <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
       </div>
       <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-bottom:10px;"></div>
-      <div class="table-wrap">
-        <table class="data">
+      <!-- (2026-07-13) Add mobile cards container & table-wrap class; was table only -->
+      <div class="table-wrap inv-table-wrap" id="inv-table-wrap">
+        <table class="data inv-desktop-table">
           <thead id="inv-thead"></thead>
           <tbody id="inv-tbody"></tbody>
           <tfoot id="inv-tfoot"></tfoot>
         </table>
       </div>
+      <div class="inv-mobile-cards" id="inv-mobile-cards"></div>
       <div id="inv-pagination" class="pagination-bar" style="display:none;"></div>
       <input type="file" id="inv-import-file" accept=".csv,.json" class="hidden">`;
 

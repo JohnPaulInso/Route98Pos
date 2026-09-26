@@ -254,72 +254,61 @@ const Gas = (() => {
     const periodOpEx = (DB.getExpenses ? DB.getExpenses() : []).filter(e => (e.ts >= r.start && e.ts <= r.end)).reduce((s,x) => s + (x.amount||0), 0);
     const totalExpenses = deliveryExpense + periodOpEx;
 
-    // (2026-07-13) Responsive fuel KPI grid; was inline repeat(4, 1fr)
+    // (2026-07-13) Fix syntax error in renderTodayStrip; was raw HTML string
     wrap.innerHTML = `
-      <!-- (2026-07-13) Responsive 2x2 fuel KPI cards on mobile; was 1-col tall blocks -->
       <div class="today-fuel-kpis">
         <!-- 1. Revenue Card -->
-        <div class="fuel-kpi-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div class="lbl" style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
-                <span style="color:#9CA3AF;">${Icons.get("dollar-sign",{size:14})}</span> ${r.label} Revenue
-              </div>
-              <div class="val" style="font-size:1.55rem;font-weight:700;color:#111827;margin:8px 0 4px;font-family:var(--font-mono);">${Utils.money(totalRevenue)}</div>
-              <div style="font-size:.75rem;font-weight:500;color:#6B7280;">${sales.length} dispense sales</div>
+        <div class="fuel-kpi-card" style="padding:14px 16px;border-radius:12px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div class="lbl" style="font-size:.72rem;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px;">
+              <span style="color:#9CA3AF;">${Icons.get("dollar-sign",{size:13})}</span> ${r.label} Revenue
             </div>
-            <svg class="fuel-kpi-curve" width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.6;">
-              <path d="M2 24 Q 16 8, 30 18 T 58 4" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            </svg>
+            <div class="val mono font-bold" style="font-size:1.35rem;color:#111827;margin:6px 0 2px;">${Utils.money(totalRevenue)}</div>
+            <div class="text-xs text-faint" style="font-size:.72rem;">${sales.length} dispense sales</div>
           </div>
         </div>
 
         <!-- 2. Gross Fuel Profit Card (Standout Priority Hero) -->
-        <div class="fuel-kpi-card fuel-profit-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #D1FAE5;border-top:2px solid #059669;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div class="lbl" style="font-size:.75rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
-                <span style="color:#059669;">${Icons.get("trending-up",{size:14})}</span> ${r.label} Net Profit
-              </div>
-              <div class="val" style="font-size:1.80rem;font-weight:850;color:#059669;margin:8px 0 4px;font-family:var(--font-mono);">+${Utils.money(totalProfit)}</div>
-              <div style="font-size:.75rem;font-weight:600;color:#059669;">${marginPct.toFixed(1)}% gross margin</div>
+        <div class="fuel-kpi-card fuel-profit-card" style="padding:14px 16px;border-radius:12px;background:#FFFFFF;border:1.5px solid #10B981;border-top:3px solid #059669;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(16,185,129,0.08);display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div class="lbl" style="font-size:.72rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px;">
+              <span style="color:#059669;">${Icons.get("trending-up",{size:13})}</span> ${r.label} Net Profit
             </div>
-            <svg class="fuel-kpi-curve" width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.8;">
-              <path d="M2 22 Q 16 20, 32 10 T 58 3" stroke="#059669" stroke-width="2" stroke-linecap="round" fill="none"/>
-            </svg>
+            <div class="val mono font-bold" style="font-size:1.45rem;color:#059669;margin:6px 0 2px;">+${Utils.money(totalProfit)}</div>
+            <div class="text-xs font-bold" style="font-size:.72rem;color:#059669;">${marginPct.toFixed(1)}% gross margin</div>
           </div>
         </div>
 
         <!-- 3. Expenses Card -->
-        <div class="fuel-kpi-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div class="lbl" style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
-                <span style="color:#9CA3AF;">${Icons.get("truck",{size:14})}</span> ${r.label} Expenses
-              </div>
-              <div class="val" style="font-size:1.55rem;font-weight:700;color:#111827;margin:8px 0 4px;font-family:var(--font-mono);">${Utils.money(totalExpenses)}</div>
-              <div style="font-size:.75rem;font-weight:500;color:#6B7280;">${periodDeliveries.length} bulk tankers logged</div>
+        <div class="fuel-kpi-card" style="padding:14px 16px;border-radius:12px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div class="lbl" style="font-size:.72rem;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px;">
+              <span style="color:#9CA3AF;">${Icons.get("truck",{size:13})}</span> ${r.label} Expenses
             </div>
-            <svg class="fuel-kpi-curve" width="60" height="28" viewBox="0 0 60 28" fill="none" style="opacity:.6;">
-              <path d="M2 26 Q 18 22, 34 12 T 58 6" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            </svg>
+            <div class="val mono font-bold" style="font-size:1.35rem;color:#111827;margin:6px 0 2px;">${Utils.money(totalExpenses)}</div>
+            <div class="text-xs text-faint" style="font-size:.72rem;">${periodDeliveries.length} tankers logged</div>
           </div>
         </div>
 
-        <!-- 4. Total Volume Dispensed Card -->
-        <div class="fuel-kpi-card" style="padding:20px 22px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
+        <!-- 4. Total Volume Dispensed Card with Stacked Bar & Dot Badges -->
+        <div class="fuel-kpi-card" style="padding:14px 16px;border-radius:12px;background:#FFFFFF;border:1px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;gap:6px;">
           <div>
-            <div class="lbl" style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
-                <span style="color:#9CA3AF;">${Icons.get("droplet",{size:14})}</span> Volume (${r.label})
+            <div class="lbl" style="font-size:.72rem;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px;">
+              <span style="color:#9CA3AF;">${Icons.get("droplet",{size:13})}</span> Volume (${r.label})
             </div>
-            <div class="val" style="font-size:1.55rem;font-weight:700;color:#111827;margin:8px 0 4px;font-family:var(--font-mono);">
-              ${totalLiters.toFixed(1)} <span style="font-size:1rem;color:#6B7280;font-weight:500;">L</span>
+            <div class="val mono font-bold" style="font-size:1.35rem;color:#111827;margin:6px 0 2px;">
+              ${totalLiters.toFixed(1)} <span style="font-size:.85rem;color:#6B7280;font-weight:600;">L</span>
             </div>
           </div>
-          <div style="font-size:.74rem;font-weight:500;color:#6B7280;display:flex;align-items:center;gap:10px;">
-            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#10B981;"></span> G: ${byFuel.gasoline.liters.toFixed(0)}L</span>
-            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#F59E0B;"></span> D: ${byFuel.diesel.liters.toFixed(0)}L</span>
-            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#EF4444;"></span> P: ${byFuel.premium.liters.toFixed(0)}L</span>
+          <div class="fuel-vol-stacked-bar" style="height:6px;border-radius:3px;background:#F3F4F6;overflow:hidden;display:flex;width:100%;margin:2px 0 4px;">
+            <div style="width:${totalLiters>0?Math.round((byFuel.gasoline.liters/totalLiters)*100):0}%;background:#10B981;height:100%;" title="Gasoline"></div>
+            <div style="width:${totalLiters>0?Math.round((byFuel.diesel.liters/totalLiters)*100):0}%;background:#F59E0B;height:100%;" title="Diesel"></div>
+            <div style="width:${totalLiters>0?Math.round((byFuel.premium.liters/totalLiters)*100):0}%;background:#EF4444;height:100%;" title="Premium"></div>
+          </div>
+          <div class="fuel-vol-dots" style="font-size:.68rem;font-weight:600;color:#6B7280;display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;">
+            <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#10B981;flex-shrink:0;"></span>G: ${byFuel.gasoline.liters.toFixed(0)}L</span>
+            <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;"></span>D: ${byFuel.diesel.liters.toFixed(0)}L</span>
+            <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:#EF4444;flex-shrink:0;"></span>P: ${byFuel.premium.liters.toFixed(0)}L</span>
           </div>
         </div>
       </div>
@@ -1191,35 +1180,74 @@ const Gas = (() => {
   }
 
   // (2026-07-13) SaaS redesign for telemetry charts and page layout; was colorful
+  // (2026-07-13) Station underground tank horizontal gauges; was plain donut
   function renderTelemetry(){
     const wrap = document.getElementById("fuel-telemetry-wrap");
     if(!wrap) return;
     const cfg = DB.getFuelConfig();
+    const fuels = Object.entries(cfg.fuels);
+    const totalCapacity = fuels.reduce((s, [,f]) => s + (f.capacity || 10000), 0);
+    const totalInTanks = fuels.reduce((s, [,f]) => s + (f.tank || 0), 0);
+    const overallPct = totalCapacity > 0 ? Math.round((totalInTanks / totalCapacity) * 100) : 0;
 
     wrap.innerHTML = `
-      <div class="grid-2" style="gap:16px;margin-bottom:16px;">
-        <!-- Left: Donut Chart with Gray Empty Space -->
-        <div class="card" style="padding:20px 24px;border-radius:10px;border:1px solid #E5E7EB;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-          <div style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
-            <span style="color:#9CA3AF;">${Icons.get("droplet",{size:14})}</span> Station Underground Tanks (3x 10,000L ECC)
+      <div class="card gas-tanks-card" style="padding:16px 20px;border-radius:12px;border:1px solid #E5E7EB;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.03);margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:.78rem;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px;">
+            <span style="color:#059669;">${Icons.get("droplet",{size:15})}</span> Station Underground Tanks (3x 10,000L ECC)
           </div>
-          ${renderDonutChartSvg(cfg)}
+          <span class="badge mono font-bold" style="background:#F3F4F6;color:#111827;font-size:.74rem;padding:3px 8px;border-radius:6px;border:1px solid #E5E7EB;">
+            ${overallPct}% Station Total (${totalInTanks.toLocaleString()} / ${totalCapacity.toLocaleString()} L)
+          </span>
         </div>
 
-        <!-- Right: Volume & Revenue Trends for Selected Period -->
-        <div class="card" style="padding:20px 24px;border-radius:10px;border:1px solid #E5E7EB;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-          <div style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="color:#9CA3AF;">${Icons.get("bar-chart",{size:14})}</span> Dispense Volume Trend
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;font-size:.72rem;font-weight:500;text-transform:none;">
-              <span style="display:flex;align-items:center;gap:5px;color:#4B5563;"><i style="width:6px;height:6px;background:#10B981;border-radius:50%;display:inline-block;"></i> Gas</span>
-              <span style="display:flex;align-items:center;gap:5px;color:#4B5563;"><i style="width:6px;height:6px;background:#F59E0B;border-radius:50%;display:inline-block;"></i> Diesel</span>
-              <span style="display:flex;align-items:center;gap:5px;color:#4B5563;"><i style="width:6px;height:6px;background:#EF4444;border-radius:50%;display:inline-block;"></i> Premium</span>
-            </div>
-          </div>
-          ${renderWeeklyTrends(cfg)}
+        <div class="gas-tank-gauges" style="display:flex;flex-direction:column;gap:12px;">
+          ${fuels.map(([key, f], idx) => {
+            const cap = f.capacity || 10000;
+            const liters = Number(f.tank) || 0;
+            const pct = Math.min(100, Math.max(0, Math.round((liters / cap) * 100)));
+            const color = f.color || (key === "diesel" ? "#F59E0B" : key === "premium" ? "#EF4444" : "#10B981");
+            const isLow = liters <= (f.lowLevel || 2000);
+            const tankLabel = key === "gasoline" ? "Regular (Gasoline 91)" : key === "diesel" ? "Diesel (Euro 4)" : "Premium (95)";
+            return `
+              <div class="gas-tank-gauge-row" style="background:#F9FAFB;padding:10px 14px;border-radius:8px;border:1px solid #E5E7EB;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+                  <div style="display:flex;align-items:center;gap:7px;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span>
+                    <strong style="font-size:.82rem;color:#111827;">Tank ${idx + 1}: ${tankLabel}</strong>
+                    ${isLow ? `<span class="badge badge-rust font-bold" style="font-size:.65rem;padding:1px 5px;border-radius:4px;">LOW</span>` : ""}
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="mono font-bold" style="font-size:.86rem;color:#111827;">${liters.toLocaleString(undefined, {minimumFractionDigits:1, maximumFractionDigits:1})} L</span>
+                    <span class="badge mono font-bold" style="font-size:.74rem;padding:2px 7px;border-radius:5px;background:${color}18;color:${color};border:1px solid ${color}40;">${pct}%</span>
+                  </div>
+                </div>
+                <div class="gas-tank-progress-track" style="height:8px;border-radius:4px;background:#E5E7EB;overflow:hidden;position:relative;">
+                  <div class="gas-tank-progress-fill" style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width .4s ease;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:.70rem;color:#6B7280;margin-top:4px;">
+                  <span>Capacity: ${cap.toLocaleString()} L</span>
+                  <span>Available: <strong>${Math.max(0, cap - liters).toLocaleString(undefined, {minimumFractionDigits:1, maximumFractionDigits:1})} L</strong></span>
+                </div>
+              </div>
+            `;
+          }).join("")}
         </div>
+      </div>
+
+      <!-- Volume & Revenue Trends for Selected Period -->
+      <div class="card" style="padding:16px 20px;border-radius:12px;border:1px solid #E5E7EB;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.03);margin-bottom:16px;">
+        <div style="font-size:.75rem;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:#9CA3AF;">${Icons.get("bar-chart",{size:14})}</span> Dispense Volume Trend
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.70rem;font-weight:500;text-transform:none;">
+            <span style="display:flex;align-items:center;gap:4px;color:#4B5563;"><i style="width:6px;height:6px;background:#10B981;border-radius:50%;display:inline-block;"></i> Gas</span>
+            <span style="display:flex;align-items:center;gap:4px;color:#4B5563;"><i style="width:6px;height:6px;background:#F59E0B;border-radius:50%;display:inline-block;"></i> Diesel</span>
+            <span style="display:flex;align-items:center;gap:4px;color:#4B5563;"><i style="width:6px;height:6px;background:#EF4444;border-radius:50%;display:inline-block;"></i> Premium</span>
+          </div>
+        </div>
+        ${renderWeeklyTrends(cfg)}
       </div>
     `;
   }
@@ -1476,20 +1504,24 @@ const Gas = (() => {
         <!-- (2026-07-13) Responsive gas header classes; was fixed row flex -->
         <div class="view-head gas-view-head" style="margin-bottom:12px;flex-shrink:0;">
           <div class="gas-head-title">
+            <!-- (2026-07-13) Remove view-sub subtitle; was subtitle div -->
             <h2 style="font-size:1.35rem;font-weight:700;color:#111827;display:flex;align-items:center;gap:8px;margin:0 0 2px;">
               <span style="color:#9CA3AF;">${Icons.get("fuel",{size:20})}</span> Gasoline Station Management
             </h2>
-            <div class="view-sub" style="font-size:.80rem;color:#6B7280;font-weight:400;">3 Pumps · 3x 10,000L ECC Tanks (30k L) · 4,000L Bulk Tanker Intake</div>
           </div>
-          <div class="input-row gas-head-actions" style="width:auto;gap:8px;">
-            <button class="btn btn-outline" id="btn-export-fuel" style="background:#FFFFFF;border:1px solid #E5E7EB;color:#374151;border-radius:7px;font-weight:500;">
-              ${Icons.get("download",{size:14})} Export Sales
+          <!-- (2026-07-13) Icon-first 3-column gas quick action bar; was truncated -->
+          <div class="input-row gas-head-actions">
+            <button class="btn btn-outline gas-action-btn font-bold" id="btn-export-fuel" title="Export Sales to CSV">
+              ${Icons.get("download",{size:15})}
+              <span class="gas-btn-text">Export</span>
             </button>
-            <button class="btn btn-outline" id="btn-bulk-delivery" style="background:#FFFFFF;border:1px solid #E5E7EB;color:#374151;border-radius:7px;font-weight:500;">
-              ${Icons.get("truck",{size:14})} 4,000L Tanker Intake
+            <button class="btn btn-outline gas-action-btn font-bold" id="btn-bulk-delivery" title="4,000L Tanker Intake">
+              ${Icons.get("truck",{size:15})}
+              <span class="gas-btn-text">Tanker Intake</span>
             </button>
-            <button class="btn btn-primary" id="btn-daily-price" style="background:#4F46E5;color:#FFFFFF;border:none;border-radius:7px;font-weight:500;">
-              ${Icons.get("tag",{size:14})} Set Daily Prices
+            <button class="btn btn-primary gas-action-btn font-bold" id="btn-daily-price" title="Set Daily Prices">
+              ${Icons.get("tag",{size:15})}
+              <span class="gas-btn-text">Set Prices</span>
             </button>
           </div>
         </div>

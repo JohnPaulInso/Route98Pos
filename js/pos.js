@@ -1270,26 +1270,26 @@ const POS = (() => {
       if(allFiltered.length > CATALOG_PAGE_SIZE){
         const startItem = startIndex + 1;
         const endItem = Math.min(allFiltered.length, startIndex + CATALOG_PAGE_SIZE);
-        let pageBtnsHtml = "";
-        for(let i = 1; i <= totalPages; i++){
-          if(i === 1 || i === totalPages || (i >= catalogPage - 2 && i <= catalogPage + 2)){
-            pageBtnsHtml += `<button class="btn-page ${i===catalogPage?"active":""}" data-pos-page="${i}">${i}</button>`;
-          } else if(i === catalogPage - 3 || i === catalogPage + 3){
-            pageBtnsHtml += `<span style="padding:0 4px;color:var(--ink-faint);">…</span>`;
-          }
-        }
         pag.style.display = "flex";
         pag.innerHTML = `
-          <div style="font-size:.78rem;color:var(--ink-faint);">Showing <strong>${startItem}–${endItem}</strong> of <strong>${allFiltered.length}</strong> items</div>
-          <div class="pagination-controls">
-            <button class="btn-page" id="pos-prev-page" ${catalogPage<=1?"disabled":""} title="Previous">${Icons.get("chevron-left",{size:13})}</button>
-            ${pageBtnsHtml}
-            <button class="btn-page" id="pos-next-page" ${catalogPage>=totalPages?"disabled":""} title="Next"><span style="display:inline-flex;transform:rotate(180deg);">${Icons.get("chevron-left",{size:13})}</span></button>
+          <!-- (2026-07-13) Compact pagination pill; was 13 numbered button tabs -->
+          <div class="pos-pagination-pill">
+            <button class="btn-page-pill" id="pos-prev-page" ${catalogPage<=1?"disabled":""} title="Previous Page">
+              ${Icons.get("chevron-left",{size:15})}
+            </button>
+            <span class="pos-page-info">
+              Page <strong>${catalogPage}</strong> of <strong>${totalPages}</strong>
+              <span class="pos-item-range-lbl">(${startItem}–${endItem} of ${allFiltered.length})</span>
+            </span>
+            <button class="btn-page-pill" id="pos-next-page" ${catalogPage>=totalPages?"disabled":""} title="Next Page">
+              <span style="display:inline-flex;transform:rotate(180deg);">${Icons.get("chevron-left",{size:15})}</span>
+            </button>
           </div>`;
-        pag.querySelector("#pos-prev-page")?.addEventListener("click", () => { if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; } });
-        pag.querySelector("#pos-next-page")?.addEventListener("click", () => { if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; } });
-        pag.querySelectorAll("[data-pos-page]").forEach(btn => {
-          btn.onclick = () => { catalogPage = Number(btn.dataset.posPage); renderCatalog(); grid.scrollTop = 0; };
+        pag.querySelector("#pos-prev-page")?.addEventListener("click", () => {
+          if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; }
+        });
+        pag.querySelector("#pos-next-page")?.addEventListener("click", () => {
+          if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; }
         });
       } else {
         pag.style.display = "none";
@@ -1524,9 +1524,14 @@ const POS = (() => {
       });
     }
     const t = totals();
-    // (2026-07-13) Update mobile cart total and item count; was static 0 items
+    // (2026-07-13) Update mobile cart total and quick checkout; was static text
     const mobileTotal = document.querySelector(".mobile-cart-total");
     if(mobileTotal) mobileTotal.textContent = Utils.money(t.grand);
+    const mobileCheckoutBtn = document.getElementById("btn-mobile-quick-checkout");
+    if(mobileCheckoutBtn){
+      mobileCheckoutBtn.disabled = cart.length === 0;
+      mobileCheckoutBtn.innerHTML = `${Icons.get("credit-card",{size:13})} Charge`;
+    }
     const countEl = document.getElementById("cart-count");
     if(countEl){
       const totalQty = cart.reduce((sum, l) => sum + (l.qty || 0), 0);
@@ -1697,42 +1702,47 @@ const POS = (() => {
   function render(){
     const view = document.getElementById("view-root");
     view.innerHTML = `
-      <div class="view-head">
-        <div>
-          <h2>${Icons.get("cart",{size:22})} Point of Sale</h2>
-          <!-- (2026-07-13) Real-time clock container; was static text -->
-          <div class="view-sub" id="pos-view-sub">${Auth.currentUser()?.name} · ${Utils.fmtDate(Date.now())}</div>
+      <!-- (2026-07-13) Sticky search & scanner header; was crowded view-head -->
+      <div class="pos-sticky-header">
+        <div class="pos-search-scanner-bar">
+          <div class="input-icon-wrap pos-search-wrap">
+            ${Icons.get("search",{size:16})}
+            <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan barcode…" autofocus>
+            <button type="button" class="clear-search-btn" id="btn-clear-pos-search" title="Clear search">${Icons.get("x",{size:15})}</button>
+          </div>
+          <button type="button" class="btn btn-primary pos-scan-btn font-bold" id="btn-scan-mode" title="Barcode Scanner">
+            ${Icons.get("scan",{size:17})} <span class="scan-btn-lbl">Scan Mode</span>
+          </button>
+          <button type="button" class="btn btn-ghost pos-held-btn font-bold" id="btn-held" title="Held transactions">
+            ${Icons.get("pause-circle",{size:16})} <span class="held-btn-lbl">Held</span> (<span id="held-count">0</span>)
+          </button>
         </div>
-        <div class="input-row" style="width:auto;">
-          <!-- (2026-07-13) Remove header custom button; was outline button in bar -->
-          <button class="btn btn-primary" id="btn-scan-mode">${Icons.get("scan",{size:15})} Scan Mode</button>
-          <button class="btn btn-ghost" id="btn-held">${Icons.get("pause-circle",{size:15})} Held (<span id="held-count">0</span>)</button>
-        </div>
+        <div class="category-chips" id="cat-chips"></div>
       </div>
       <div class="pos-layout" id="pos-layout">
         <div class="pos-catalog">
-          <!-- (2026-07-13) Dynamic clear button in POS search bar; was plain input -->
-          <div class="pos-search-row">
-            <div class="input-icon-wrap" style="position:relative;width:100%;">
-              ${Icons.get("search",{size:15})}
-              <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan a barcode…" autofocus>
-              <button type="button" class="clear-search-btn" id="btn-clear-pos-search" title="Clear search">${Icons.get("x",{size:15})}</button>
-            </div>
-          </div>
-          <div class="category-chips" id="cat-chips"></div>
           <div class="product-grid" id="product-grid"></div>
           <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:6px;padding:6px 2px;flex-shrink:0;"></div>
         </div>
-        <!-- (2026-07-13) Add pos-resizer divider line; was 2-column grid -->
         <div class="pos-resizer" id="pos-resizer" title="Drag left/right to resize Current Sale"></div>
         <div class="pos-cart" id="pos-cart">
-          <!-- (2026-07-13) Mobile cart drawer header toggle; was static head -->
-          <div class="cart-head">
-            <h3>${Icons.get("cart",{size:17})} Current Sale</h3>
-            <div class="cart-head-meta" style="display:flex;align-items:center;gap:6px;">
-              <span class="mobile-cart-total mono" style="font-size:.84rem;font-weight:800;color:var(--brand-deep);display:none;">₱0.00</span>
-              <span class="badge badge-neutral" id="cart-count">0 items</span>
-              <button type="button" class="mobile-cart-toggle-btn" id="btn-mobile-cart-toggle" aria-label="Toggle cart" style="display:none;">${Icons.get("chevron-down",{size:14})}</button>
+          <!-- (2026-07-13) Sliding bottom sheet cart with 60px bar; was cut off drawer -->
+          <div class="cart-head" id="cart-head">
+            <div class="cart-head-left">
+              <div class="cart-head-title-wrap">
+                <span class="cart-head-icon">${Icons.get("cart",{size:17})}</span>
+                <strong class="cart-head-title">Current Sale</strong>
+                <span class="badge badge-neutral" id="cart-count">0 items</span>
+              </div>
+            </div>
+            <div class="cart-head-right">
+              <span class="mobile-cart-total mono" id="mobile-cart-total">₱0.00</span>
+              <button type="button" class="btn btn-sm btn-primary mobile-cart-checkout-btn font-bold" id="btn-mobile-quick-checkout">
+                ${Icons.get("credit-card",{size:13})} Charge
+              </button>
+              <button type="button" class="mobile-cart-toggle-btn" id="btn-mobile-cart-toggle" aria-label="Toggle cart">
+                ${Icons.get("chevron-up",{size:16})}
+              </button>
             </div>
           </div>
           <div class="cart-items" id="cart-items"></div>
@@ -1837,14 +1847,37 @@ const POS = (() => {
     renderCart();
     renderHeldButton();
 
-    // (2026-07-13) Support mobile cart drawer toggle; was static layout only
+    // (2026-07-13) Sliding bottom sheet cart toggle & touch gestures; was click toggle
     const cartHead = document.querySelector(".pos-cart .cart-head");
-    if(cartHead){
-      cartHead.onclick = () => {
-        if(window.innerWidth <= 600 || (window.innerWidth <= 860 && window.innerHeight > window.innerWidth)){
-          document.querySelector(".pos-cart")?.classList.toggle("mobile-open");
-        }
+    const posCartEl = document.getElementById("pos-cart");
+    if(cartHead && posCartEl){
+      const toggleCart = (open) => {
+        const willOpen = typeof open === "boolean" ? open : !posCartEl.classList.contains("expanded");
+        posCartEl.classList.toggle("expanded", willOpen);
+        posCartEl.classList.toggle("mobile-open", willOpen);
       };
+
+      cartHead.addEventListener("click", (e) => {
+        if(e.target.closest("#btn-mobile-quick-checkout")) return;
+        if(window.innerWidth <= 768){
+          toggleCart();
+        }
+      });
+
+      document.getElementById("btn-mobile-quick-checkout")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openCheckout();
+      });
+
+      let touchStartY = 0;
+      cartHead.addEventListener("touchstart", (e) => {
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+      cartHead.addEventListener("touchend", (e) => {
+        const diff = touchStartY - e.changedTouches[0].clientY;
+        if(diff > 25) toggleCart(true);
+        else if(diff < -25) toggleCart(false);
+      }, { passive: true });
     }
 
     // (2026-07-13) Draggable cart resizer updating --pos-cart-w; was inline width

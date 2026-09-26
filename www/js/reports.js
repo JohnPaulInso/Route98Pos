@@ -402,6 +402,7 @@ const Reports = (() => {
       wide: true,
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
+        // (2026-07-13) Fix syntax error & restore stock on alteration; was crash
         { label: "Save Alteration & Log Audit", cls: "btn-primary font-bold", onClick: () => {
           if(!items.length){ Utils.toast("Transaction cannot be empty. Delete it instead to void entirely.", "warn"); return; }
           const reason = modal.querySelector("#edit-sale-reason")?.value.trim() || "Admin alteration";
@@ -413,7 +414,24 @@ const Reports = (() => {
             priceDiff,
             reason,
             admin: Auth.currentUser()?.name || "Admin"
-          });n
+          });
+          const products = DB.getProducts();
+          (sale.items || []).forEach(origLine => {
+            const newLine = items.find(x => (x.productId && x.productId === origLine.productId) || (x.name && x.name === origLine.name));
+            const oldQty = origLine.qty || 0;
+            const newQty = newLine ? (newLine.qty || 0) : 0;
+            const diffQty = oldQty - newQty;
+            if(diffQty > 0 && !origLine.isCustom){
+              let p = products.find(x => String(x.id) === String(origLine.productId || origLine.id || ""));
+              if(!p && origLine.name) p = products.find(x => (x.name||"").trim().toLowerCase() === origLine.name.trim().toLowerCase());
+              if(p){
+                const ppp = p.piecesPerPack > 1 ? p.piecesPerPack : 1;
+                const pieces = (origLine.unitType === "pack" && ppp > 1) ? (diffQty * ppp) : diffQty;
+                p.stock = Utils.round2(p.stock + pieces);
+              }
+            }
+          });
+          DB.setProducts(products);
           const sales = DB.getSales();
           const idx = sales.findIndex(x => x.id === sale.id);
           if(idx !== -1){
@@ -493,12 +511,18 @@ const Reports = (() => {
   }
 
   // (2026-07-13) Delete store & fuel sale records with confirmation. Prev: view only
-  // (2026-09-24) Track if confirmation is open to prevent duplicates
+  // (2026-07-13) Robust sale lookup & stock restore on deletion; was strict id
   let deleteConfirmOpen = false;
 
   function deleteSaleRecord(saleId){
-    if(deleteConfirmOpen) return; // Prevent duplicate confirmations
-    const sale = DB.getSales().find(x => x.id === saleId);
+    deleteConfirmOpen = false;
+    const allSales = DB.getSales();
+    const cleanId = String(saleId).replace(/^TXN-/i, "");
+    let sale = allSales.find(x => x.id === saleId || x.receiptNo === saleId || String(x.id).replace(/^TXN-/i, "") === cleanId);
+    if(!sale){
+      const rawSales = JSON.parse(localStorage.getItem(DB.KEYS.sales) || "[]");
+      sale = rawSales.find(x => x.id === saleId || x.receiptNo === saleId || String(x.id).replace(/^TXN-/i, "") === cleanId);
+    }
     if(!sale) return;
     
     deleteConfirmOpen = true;
@@ -515,22 +539,24 @@ const Reports = (() => {
           reason: "Complete Transaction Deletion/Void",
           admin: Auth.currentUser()?.name || "Admin"
         });
-        // (2026-07-13) Restore item stock on sale deletion; was deleted without restore
         const products = DB.getProducts();
         (sale.items || []).forEach(line => {
           if(line.isCustom) return;
-          const p = products.find(x => x.id === line.productId);
+          let p = products.find(x => String(x.id) === String(line.productId || line.id || ""));
+          if(!p && line.name){
+            p = products.find(x => (x.name || "").trim().toLowerCase() === line.name.trim().toLowerCase());
+          }
           if(p){
-            const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? (line.qty * p.piecesPerPack) : line.qty;
+            const ppp = p.piecesPerPack > 1 ? p.piecesPerPack : 1;
+            const pieces = (line.unitType === "pack" && ppp > 1) ? (line.qty * ppp) : line.qty;
             p.stock = Utils.round2(p.stock + pieces);
           }
         });
         DB.setProducts(products);
-        // (2026-07-13) Filter deleted sale by normalized ID & sync cloud; was local id
-        const cleanId = String(saleId).replace(/^TXN-/i, "");
-        DB.setSales(DB.getSales().filter(x => x.id !== saleId && x.id !== cleanId && x.receiptNo !== saleId && x.receiptNo !== cleanId));
-        DB.markSaleDeleted(saleId, sale.receiptNo);
-        if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(saleId);
+        const curSales = DB.getSales();
+        DB.setSales(curSales.filter(x => x.id !== sale.id && x.id !== cleanId && x.receiptNo !== sale.id && x.receiptNo !== cleanId));
+        DB.markSaleDeleted(sale.id, sale.receiptNo);
+        if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(sale.id);
         Utils.toast("Sale record deleted & logged to Void Audit.", "success");
         render();
       },
@@ -542,7 +568,7 @@ const Reports = (() => {
 
   // (2026-07-13) Batch delete receipts with stock restore; was single delete
   function batchDeleteSales(saleIds){
-    if(deleteConfirmOpen) return; // Prevent duplicate confirmations
+    if(deleteConfirmOpen) return;
     if(!saleIds || !saleIds.length) return;
     const idSet = new Set(saleIds);
     const allSales = DB.getSales();
@@ -568,9 +594,13 @@ const Reports = (() => {
             });
             (sale.items || []).forEach(line => {
               if(line.isCustom) return;
-              const p = products.find(x => x.id === line.productId);
+              let p = products.find(x => String(x.id) === String(line.productId || line.id || ""));
+              if(!p && line.name){
+                p = products.find(x => (x.name || "").trim().toLowerCase() === line.name.trim().toLowerCase());
+              }
               if(p){
-                const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? (line.qty * p.piecesPerPack) : line.qty;
+                const ppp = p.piecesPerPack > 1 ? p.piecesPerPack : 1;
+                const pieces = (line.unitType === "pack" && ppp > 1) ? (line.qty * ppp) : line.qty;
                 p.stock = Utils.round2(p.stock + pieces);
               }
             });
@@ -579,7 +609,6 @@ const Reports = (() => {
           DB.setSales(allSales.filter(x => !idSet.has(x.id)));
           toDelete.forEach(s => {
             selectedReceiptIds.delete(s.id);
-            // (2026-07-13) Batch purge deleted sales from Firestore & local; was local id
             DB.markSaleDeleted(s.id, s.receiptNo);
             if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(s.id);
           });
@@ -720,11 +749,12 @@ const Reports = (() => {
     render();
   }
 
-  // (2026-07-13) Match Loyverse custom date range picker; was basic inputs
-  function openDatePickerModal(){
+  // (2026-07-13) Support external options for date picker modal; was internal only
+  function openDatePickerModal(opts){
     // (2026-07-13) Close open UI dropdowns before opening date picker; was open
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
-    const r = getActiveRange();
+    const r = opts?.getActiveRange ? opts.getActiveRange() : getActiveRange();
+    const curPreset = opts?.periodKey !== undefined ? opts.periodKey : periodKey;
     const oneDay = 86400000;
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -736,7 +766,7 @@ const Reports = (() => {
     let viewMonth = new Date(tempEnd).getMonth();
     let viewYear = new Date(tempEnd).getFullYear();
     let selPhase = "done";
-    let selectedPreset = (periodKey && periodKey !== "custom") ? periodKey : (periodKey === "all" ? "all" : null);
+    let selectedPreset = (curPreset && curPreset !== "custom") ? curPreset : (curPreset === "all" ? "all" : null);
 
     const fmtDDMM = (ts) => {
       const d = new Date(ts);
@@ -754,11 +784,20 @@ const Reports = (() => {
       return isNaN(d.getTime()) ? null : d.getTime();
     };
 
+    // (2026-07-13) Date picker bottom sheet & quick-pills; was desktop-only modal
     const modal = Modal.open({
       title: "",
       body: `
+        <div class="loy-sheet-handle"></div>
         <div class="loy-picker-wrap">
           <div class="loy-cal-panel">
+            <div class="loy-quick-pills">
+              <button class="loy-quick-pill ${selectedPreset === 'today' ? 'active' : ''}" type="button" data-loy-preset="today">Today</button>
+              <button class="loy-quick-pill ${selectedPreset === 'yesterday' ? 'active' : ''}" type="button" data-loy-preset="yesterday">Yesterday</button>
+              <button class="loy-quick-pill ${selectedPreset === 'last_7d' ? 'active' : ''}" type="button" data-loy-preset="last_7d">Last 7 Days</button>
+              <button class="loy-quick-pill ${selectedPreset === 'this_month' ? 'active' : ''}" type="button" data-loy-preset="this_month">This Month</button>
+              <button class="loy-quick-pill ${selectedPreset === 'all' ? 'active' : ''}" type="button" data-loy-preset="all">All time</button>
+            </div>
             <div class="loy-cal-header">
               <button class="loy-cal-nav" id="loy-prev-month" type="button">${Icons.get("chevron-left", {size:16})}</button>
               <div class="loy-cal-title" id="loy-month-title"></div>
@@ -974,6 +1013,26 @@ const Reports = (() => {
         selPhase = "done";
         renderGrid();
         
+        // (2026-07-13) Delegate range selection to caller if onApply provided; was reports only
+        if(opts?.onApply){
+          let newRange = null;
+          let newKey = p;
+          if(p !== "all"){
+            const s = new Date(tempStart).setHours(0,0,0,0);
+            const e = new Date(tempEnd).setHours(23,59,59,999);
+            newRange = {
+              start: s,
+              end: e,
+              key: newKey,
+              label: fmtDateRangeLabel({ start: s, end: e }),
+              subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
+            };
+          }
+          Modal.close();
+          opts.onApply(newRange, newKey);
+          return;
+        }
+
         // Auto-apply preset selection and close modal
         if(p === "all"){
           periodKey = "all";
@@ -1000,6 +1059,27 @@ const Reports = (() => {
     modal.querySelector("#loy-cancel-btn").onclick = () => Modal.close();
 
     modal.querySelector("#loy-done-btn").onclick = () => {
+      if(opts?.onApply){
+        let newRange = null;
+        let newKey = selectedPreset || "custom";
+        if(selectedPreset !== "all"){
+          const s = new Date(tempStart).setHours(0,0,0,0);
+          const e = new Date(tempEnd).setHours(23,59,59,999);
+          newRange = {
+            start: s,
+            end: e,
+            key: newKey,
+            label: fmtDateRangeLabel({ start: s, end: e }),
+            subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
+          };
+        } else {
+          newKey = "all";
+        }
+        Modal.close();
+        opts.onApply(newRange, newKey);
+        return;
+      }
+
       if(selectedPreset === "all"){
         periodKey = "all";
         activeRange = null;
@@ -1023,6 +1103,7 @@ const Reports = (() => {
     renderGrid();
   }
 
+  // (2026-07-13) Unified date stepper pill & aux filter toolbar; was split icons
   function reportsToolbarHtml(){
     const r = getActiveRange();
     const dateLabel = fmtDateRangeLabel(r);
@@ -1034,40 +1115,61 @@ const Reports = (() => {
     const allEmps = [...new Set([...users.map(u => u.name), ...salesCashiers])].filter(Boolean);
 
     return `
-      <!-- (2026-07-13) Align filter toolbar for header placement; was margin-bottom:12px -->
+      <!-- (2026-07-13) Unified date stepper pill with visible range; was split boxes -->
       <div class="rpt-toolbar" id="reports-filter-bar" style="margin-bottom:0;">
-        <div class="rpt-date-group">
-          <button class="rpt-nav-btn" id="rpt-btn-prev" title="Previous period">${Icons.get("chevron-left", {size:15})}</button>
-          <button class="rpt-date-btn" id="rpt-btn-date" title="Select date range">
+        <div class="rpt-date-group rpt-stepper-pill">
+          <button class="rpt-nav-btn rpt-stepper-arrow prev" id="rpt-btn-prev" type="button" title="Previous period">${Icons.get("chevron-left", {size:15})}</button>
+          <button class="rpt-date-btn rpt-stepper-label" id="rpt-btn-date" type="button" title="Select date range">
             ${Icons.get("calendar", {size:15})}
-            <span class="btn-text" id="rpt-date-display">${dateLabel}</span>
+            <span class="btn-text rpt-date-range-text" id="rpt-date-display">${dateLabel}</span>
           </button>
-          <button class="rpt-nav-btn" id="rpt-btn-next" title="Next period">${Icons.get("chevron-right", {size:15})}</button>
+          <button class="rpt-nav-btn rpt-stepper-arrow next" id="rpt-btn-next" type="button" title="Next period">${Icons.get("chevron-right", {size:15})}</button>
         </div>
-        <div class="rpt-dropdown-wrap">
-          <button class="rpt-dropdown-btn" id="rpt-btn-time" title="Filter by time of day">
-            ${Icons.get("clock", {size:15})}
-            <span class="btn-text">${timeBtnLabel}</span>
-            <span class="btn-text">${Icons.get("chevron-down", {size:13})}</span>
-          </button>
-          <div class="rpt-dropdown-menu" id="rpt-menu-time">
-            <div class="rpt-menu-item ${timeFilter === "all" ? "active" : ""}" data-time="all">All day</div>
-            <div class="rpt-menu-item ${timeFilter === "morning" ? "active" : ""}" data-time="morning">Morning (06:00 - 14:00)</div>
-            <div class="rpt-menu-item ${timeFilter === "afternoon" ? "active" : ""}" data-time="afternoon">Afternoon (14:00 - 22:00)</div>
-            <div class="rpt-menu-item ${timeFilter === "night" ? "active" : ""}" data-time="night">Night (22:00 - 06:00)</div>
+        <!-- (2026-07-13) Add compact ellipsis menu for export/import; was full-width row -->
+        <div class="rpt-aux-filters">
+          ${tab === "history" ? `
+            <div class="rpt-dropdown-wrap">
+              <button class="rpt-dropdown-btn rpt-more-btn" id="btn-rpt-more-actions" type="button" title="Import / Export">
+                ${Icons.get("more-horizontal", {size:16})}
+              </button>
+              <div class="rpt-dropdown-menu" id="rpt-menu-more-actions">
+                <div class="rpt-menu-item" id="btn-export-sales-report" style="cursor:pointer;gap:8px;display:flex;align-items:center;">
+                  ${Icons.get("download",{size:14})} Export Sales (.csv)
+                </div>
+                ${Auth.isAdmin() ? `
+                  <label class="rpt-menu-item" style="cursor:pointer;margin:0;gap:8px;display:flex;align-items:center;">
+                    ${Icons.get("upload",{size:14})} Import Sales
+                    <input type="file" id="file-sales-import" accept=".csv,.json" style="display:none;">
+                  </label>
+                ` : ""}
+              </div>
+            </div>
+          ` : ""}
+          <div class="rpt-dropdown-wrap">
+            <button class="rpt-dropdown-btn" id="rpt-btn-time" type="button" title="Filter by time of day">
+              ${Icons.get("clock", {size:15})}
+              <span class="btn-text">${timeBtnLabel}</span>
+              <span class="btn-text chevron-sub">${Icons.get("chevron-down", {size:12})}</span>
+            </button>
+            <div class="rpt-dropdown-menu" id="rpt-menu-time">
+              <div class="rpt-menu-item ${timeFilter === "all" ? "active" : ""}" data-time="all">All day</div>
+              <div class="rpt-menu-item ${timeFilter === "morning" ? "active" : ""}" data-time="morning">Morning (06:00 - 14:00)</div>
+              <div class="rpt-menu-item ${timeFilter === "afternoon" ? "active" : ""}" data-time="afternoon">Afternoon (14:00 - 22:00)</div>
+              <div class="rpt-menu-item ${timeFilter === "night" ? "active" : ""}" data-time="night">Night (22:00 - 06:00)</div>
+            </div>
           </div>
-        </div>
-        <div class="rpt-dropdown-wrap">
-          <button class="rpt-dropdown-btn" id="rpt-btn-emp" title="Filter by employee">
-            ${Icons.get("user", {size:15})}
-            <span class="btn-text">${empBtnLabel}</span>
-            <span class="btn-text">${Icons.get("chevron-down", {size:13})}</span>
-          </button>
-          <div class="rpt-dropdown-menu" id="rpt-menu-emp">
-            <div class="rpt-menu-item ${employeeFilter === "all" ? "active" : ""}" data-emp="all">All employees</div>
-            ${allEmps.map(emp => `
-              <div class="rpt-menu-item ${employeeFilter.toLowerCase() === emp.toLowerCase() ? "active" : ""}" data-emp="${Utils.escapeHtml(emp)}">${Utils.escapeHtml(emp)}</div>
-            `).join("")}
+          <div class="rpt-dropdown-wrap">
+            <button class="rpt-dropdown-btn" id="rpt-btn-emp" type="button" title="Filter by employee">
+              ${Icons.get("user", {size:15})}
+              <span class="btn-text">${empBtnLabel}</span>
+              <span class="btn-text chevron-sub">${Icons.get("chevron-down", {size:12})}</span>
+            </button>
+            <div class="rpt-dropdown-menu" id="rpt-menu-emp">
+              <div class="rpt-menu-item ${employeeFilter === "all" ? "active" : ""}" data-emp="all">All employees</div>
+              ${allEmps.map(emp => `
+                <div class="rpt-menu-item ${employeeFilter.toLowerCase() === emp.toLowerCase() ? "active" : ""}" data-emp="${Utils.escapeHtml(emp)}">${Utils.escapeHtml(emp)}</div>
+              `).join("")}
+            </div>
           </div>
         </div>
       </div>`;
@@ -1079,17 +1181,29 @@ const Reports = (() => {
     const dateBtn = document.getElementById("rpt-btn-date");
     const timeBtn = document.getElementById("rpt-btn-time");
     const empBtn = document.getElementById("rpt-btn-emp");
+    const moreBtn = document.getElementById("btn-rpt-more-actions");
     const menuTime = document.getElementById("rpt-menu-time");
     const menuEmp = document.getElementById("rpt-menu-emp");
+    const menuMore = document.getElementById("rpt-menu-more-actions");
 
     if(prevBtn) prevBtn.onclick = () => shiftPeriod(-1);
     if(nextBtn) nextBtn.onclick = () => shiftPeriod(1);
     if(dateBtn) dateBtn.onclick = () => openDatePickerModal();
 
+    if(moreBtn && menuMore){
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(menuTime) menuTime.classList.remove("show");
+        if(menuEmp) menuEmp.classList.remove("show");
+        menuMore.classList.toggle("show");
+      };
+    }
+
     if(timeBtn && menuTime){
       timeBtn.onclick = (e) => {
         e.stopPropagation();
         if(menuEmp) menuEmp.classList.remove("show");
+        if(menuMore) menuMore.classList.remove("show");
         menuTime.classList.toggle("show");
       };
       menuTime.querySelectorAll("[data-time]").forEach(item => {
@@ -1106,6 +1220,7 @@ const Reports = (() => {
       empBtn.onclick = (e) => {
         e.stopPropagation();
         if(menuTime) menuTime.classList.remove("show");
+        if(menuMore) menuMore.classList.remove("show");
         menuEmp.classList.toggle("show");
       };
       menuEmp.querySelectorAll("[data-emp]").forEach(item => {
@@ -1121,6 +1236,7 @@ const Reports = (() => {
     document.addEventListener("click", () => {
       if(menuTime) menuTime.classList.remove("show");
       if(menuEmp) menuEmp.classList.remove("show");
+      if(menuMore) menuMore.classList.remove("show");
     }, { once: true });
   }
 
@@ -1584,20 +1700,21 @@ const Reports = (() => {
     return `
       ${timeframeBarHtml(periodKey)}
       
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="chart-card">
+      // (2026-07-13) Add touch-action & class to receipt chart cards; was rigid div
+      <div class="receipts-charts-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="chart-card" style="touch-action:pan-y;">
           <!-- (2026-07-13) Dynamic chart title hourly vs daily; was daily-only -->
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
             ${Icons.get("trending-up",{size:18})} ${isSingleDay ? "Hourly Sales Trend" : "Daily Sales Trend"}
           </h3>
-          <div style="position:relative;height:200px;width:100%;"><canvas id="receipts-trend-line"></canvas></div>
+          <div class="chart-canvas-container" style="position:relative;height:220px;width:100%;touch-action:pan-y;"><canvas id="receipts-trend-line" style="touch-action:pan-y;"></canvas></div>
         </div>
         
-        <div class="chart-card">
+        <div class="chart-card" style="touch-action:pan-y;">
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:14px;">
             ${Icons.get("pie-chart",{size:18})} Payment Methods
           </h3>
-          <div style="position:relative;height:200px;width:100%;"><canvas id="receipts-payment-pie"></canvas></div>
+          <div class="chart-canvas-container" style="position:relative;height:220px;width:100%;touch-action:pan-y;"><canvas id="receipts-payment-pie" style="touch-action:pan-y;"></canvas></div>
         </div>
       </div>
       
@@ -2002,23 +2119,73 @@ const Reports = (() => {
     Modal.open({ title:`${Icons.get("package",{size:17})} ${Utils.escapeHtml(row.name)}`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
   }
 
+  // (2026-07-13) Cohesive P&L block with hero & breakdown; was 5 stacked cards
   function renderOverviewStats(stats){
     const wrap = document.getElementById("ov-pl");
     if(!wrap) return;
-    const p = stats.pl;
-    // Force recalculation to ensure stats match current date range
-    const cards = [
-      { lbl:"Total Net Revenue", val: p.netRevenue || 0, hero:true },
-      { lbl:"Store Gross Profit", val: p.storeGrossProfit || 0 },
-      { lbl:"Operating Expenses", val: -(stats.totalOperatingExpenses || 0), neg:true },
-      { lbl:"Net Operating Profit", val: p.netProfit || 0, big:true },
-      { lbl:"Profit Margin", val: p.margin || 0, isPct:true }
-    ];
-    wrap.innerHTML = cards.map(c => `
-      <div class="pl-card ${c.hero?"hero":""} ${c.big?"big":""}">
-        <div class="lbl">${c.lbl}</div>
-        <div class="val mono ${c.neg?"neg":""}">${c.isPct ? `${c.val.toFixed(1)}%` : Utils.money(c.val)}</div>
-      </div>`).join("");
+    const p = stats.pl || {};
+    const netRevenue = p.netRevenue || 0;
+    const grossProfit = p.storeGrossProfit ?? p.grossProfit ?? 0;
+    const opex = stats.totalOperatingExpenses || 0;
+    const cogs = p.totalCOGS ?? (netRevenue - grossProfit);
+    const netProfit = p.netProfit || 0;
+    const margin = p.margin || (netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0);
+
+    wrap.innerHTML = `
+      <div class="rpt-pl-overview-card">
+        <div class="rpt-pl-hero">
+          <div class="rpt-pl-hero-main">
+            <div class="rpt-pl-hero-label">Total Net Revenue</div>
+            <div class="rpt-pl-hero-val mono font-bold">${Utils.money(netRevenue)}</div>
+          </div>
+          <button class="btn btn-sm btn-ghost rpt-pl-toggle-btn" id="btn-toggle-pl-breakdown" type="button" aria-expanded="true">
+            <span class="rpt-pl-toggle-text">Breakdown</span>
+            <span class="rpt-pl-chevron">${Icons.get("chevron-down", {size:14})}</span>
+          </button>
+        </div>
+        <div class="rpt-pl-breakdown open" id="rpt-pl-breakdown-body">
+          <div class="rpt-pl-tiles-grid">
+            <div class="rpt-pl-tile">
+              <div class="rpt-pl-tile-label">Store Gross Profit</div>
+              <div class="rpt-pl-tile-val mono font-bold" style="color:var(--success-deep);">${Utils.money(grossProfit)}</div>
+            </div>
+            <div class="rpt-pl-tile">
+              <div class="rpt-pl-tile-label">Cost of Goods (COGS)</div>
+              <div class="rpt-pl-tile-val mono font-bold" style="color:var(--ink-soft);">${Utils.money(cogs)}</div>
+            </div>
+            <div class="rpt-pl-tile">
+              <div class="rpt-pl-tile-label">Operating Expenses</div>
+              <div class="rpt-pl-tile-val mono font-bold" style="color:var(--danger);">${opex > 0 ? `-${Utils.money(opex)}` : Utils.money(0)}</div>
+            </div>
+            <div class="rpt-pl-tile ${netProfit >= 0 ? "profit-pos" : "profit-neg"}">
+              <div class="rpt-pl-tile-label">Net Operating Profit</div>
+              <div class="rpt-pl-tile-val mono font-bold" style="color:${netProfit >= 0 ? "var(--brand-deep)" : "var(--danger)"};">${Utils.money(netProfit)}</div>
+            </div>
+          </div>
+          <div class="rpt-pl-margin-strip">
+            <div class="flex-between" style="align-items:center;margin-bottom:6px;">
+              <span class="rpt-pl-tile-label" style="font-weight:700;">Net Profit Margin</span>
+              <span class="mono font-bold" style="font-size:1.05rem;color:var(--ink);">${margin.toFixed(1)}%</span>
+            </div>
+            <div class="rpt-margin-track">
+              <div class="rpt-margin-fill" style="width:${Math.min(100, Math.max(0, margin))}%;background:${margin >= 20 ? 'var(--success)' : margin > 0 ? 'var(--brand)' : 'var(--danger)'};"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    const toggleBtn = document.getElementById("btn-toggle-pl-breakdown");
+    if(toggleBtn){
+      toggleBtn.onclick = () => {
+        const body = document.getElementById("rpt-pl-breakdown-body");
+        if(body){
+          const isOpen = body.classList.toggle("open");
+          toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+          const chev = toggleBtn.querySelector(".rpt-pl-chevron");
+          if(chev) chev.style.transform = isOpen ? "rotate(180deg)" : "rotate(0deg)";
+        }
+      };
+    }
   }
 
   // (2026-07-13) Store sales summary card modeled after Loyverse; was missing
@@ -3090,14 +3257,16 @@ const Reports = (() => {
     // (2026-07-13) Allow cashiers full view of reports; was admin-restricted
     view.innerHTML = `
       <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:auto;">
+        <!-- (2026-07-13) Remove view-sub subtitle; was subtitle div -->
         <div class="view-head" style="align-items:center;">
-          <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2><div class="view-sub">Sales history, analytics, shift reconciliation & void audit</div></div>
+          <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2></div>
           <div style="display:none;" aria-hidden="true">
             <button class="btn btn-ghost" id="btn-xreport">${Icons.get("clipboard",{size:15})} X Report</button>
             <button class="btn btn-danger" id="btn-zreport">${Icons.get("lock",{size:15})} Z Report</button>
           </div>
         </div>
-        <div class="category-chips" style="margin-bottom:12px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
+        <!-- (2026-07-13) Responsive subnav tabs ribbon for reports; was plain chips -->
+        <div class="category-chips rpt-subnav-tabs" style="margin-bottom:12px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
           <div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>
           <!-- (2026-07-13) Move Receipts chip 2nd after Sales summary; was 6th chip -->
           <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("receipt",{size:13})}Receipts</div>
@@ -3108,24 +3277,9 @@ const Reports = (() => {
           <div class="chip ${tab==="purchases"?"active":""}" data-t="purchases">${Icons.get("truck",{size:13})}Purchases & Restock</div>
           <div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>
         </div>
-        <!-- (2026-07-13) Move export/import to top right in receipts; was in table body -->
-        <div class="flex-between" style="margin-bottom:14px;flex-wrap:wrap;gap:12px;align-items:center;">
+        <!-- (2026-07-13) Move export/import to toolbar ellipsis menu; was bulky full-width -->
+        <div style="margin-bottom:12px;">
           ${reportsToolbarHtml()}
-          ${tab === "history" ? `
-            <div class="input-row" style="width:auto;gap:8px;align-items:center;margin:0;">
-              <button class="btn btn-sm btn-outline" id="btn-export-sales-report" style="font-weight:700;">
-                ${Icons.get("download",{size:13})} Export Sales (.csv)
-              </button>
-              ${Auth.isAdmin() ? `
-                <label class="btn btn-sm btn-outline" style="cursor:pointer;margin:0;font-weight:700;">
-                  ${Icons.get("upload",{size:13})} Import Sales (CSV/JSON)
-                  <input type="file" id="file-sales-import" accept=".csv,.json" style="display:none;">
-                </label>
-              ` : ""}
-            </div>
-          ` : `
-            <div class="text-sm text-faint">Click any chart point or category bar to drill in.</div>
-          `}
         </div>
         <div id="report-body"></div>
       </div>`;
@@ -3517,7 +3671,9 @@ const Reports = (() => {
                 borderColor: '#fff'
               }]
             },
+            // (2026-07-13) Set mouse events on donut to allow touch scroll; was default
             options: {
+              events: ['mousemove', 'mouseout', 'click'],
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
@@ -3628,7 +3784,10 @@ const Reports = (() => {
                 pointHoverBorderWidth: 3
               }]
             },
+            // (2026-07-13) Configure touch scroll & compact X ticks; was touch intercept
             options: {
+              events: ['mousemove', 'mouseout', 'click'],
+              interaction: { mode: 'index', intersect: false },
               responsive: true,
               maintainAspectRatio: false,
               layout: {
@@ -3665,10 +3824,10 @@ const Reports = (() => {
                   ticks: {
                     font: { size: 9, weight: '600', family: 'Poppins' },
                     color: '#94a3b8',
-                    maxRotation: 45,
+                    maxRotation: 0,
                     minRotation: 0,
                     autoSkip: true,
-                    maxTicksLimit: 12
+                    maxTicksLimit: 7
                   }
                 },
                 y: {
@@ -3897,8 +4056,13 @@ const Reports = (() => {
 
   }
 
+  // (2026-07-13) Export date picker modal & range helpers; was private only
   return { 
     render,
+    openDatePickerModal,
+    getActiveRange,
+    fmtDateRangeLabel,
+    shiftPeriod,
     openReceiptModal,
     navigateToReceipts,
     navigateToSalesByItem,

@@ -6,18 +6,21 @@
     radial-gradient(circle at 85% 80%, var(--warning-tint), transparent 45%),
     var(--paper);
 }
-.login-card{ width:100%; max-width:380px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-lg); padding:30px 26px; box-shadow:var(--shadow-lg); }
-.login-card .brand{ justify-content:center; padding-bottom:22px; }
-.role-toggle{ display:flex; gap:8px; margin-bottom:16px; }
-.role-toggle button{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; border-radius:var(--r-md); border:1px solid var(--line-strong); background:var(--paper); font-weight:700; cursor:pointer; font-size:var(--fs-sm); font-family:var(--font-body); color:var(--ink-soft); }
-.role-toggle button.active{ background:var(--brand); border-color:var(--brand); color:#fff; }
-.pin-dots{ display:flex; gap:10px; justify-content:center; margin:16px 0; }
-.pin-dots .d{ width:14px; height:14px; border-radius:50%; border:2px solid var(--line-strong); }
-.pin-dots .d.filled{ background:var(--brand); border-color:var(--brand); }
-.pin-pad{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-.pin-pad button{ padding:16px 0; font-size:1.1rem; font-weight:700; border-radius:var(--r-md); border:1px solid var(--line); background:var(--paper); cursor:pointer; font-family:var(--font-body); display:flex; align-items:center; justify-content:center; }
-.pin-pad button:active{ background:var(--paper-dim); }
-.login-hint{ text-align:center; margin-top:14px; color:var(--ink-faint); font-size:var(--fs-xs); font-weight:600; }
+/* (2026-07-13) Segmented role pill & bouncy PIN dots; was boxy tabs */
+.login-card{ width:100%; max-width:360px; background:var(--paper-raised); border:1px solid var(--line); border-radius:24px; padding:24px 22px; box-shadow:var(--shadow-lg); }
+.login-card .brand{ justify-content:center; padding-bottom:12px; }
+.role-toggle{ display:flex; gap:4px; margin-bottom:12px; background:var(--paper-dim); padding:4px; border-radius:999px; border:1px solid var(--line); }
+.role-toggle button{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; border-radius:999px; border:none; background:transparent; font-weight:700; cursor:pointer; font-size:var(--fs-sm); font-family:var(--font-body); color:var(--ink-soft); transition:all 0.2s ease; }
+.role-toggle button.active{ background:var(--brand); color:#fff; box-shadow:0 2px 8px rgba(47,66,216,0.3); }
+.pin-dots{ display:flex; gap:12px; justify-content:center; margin:10px 0 16px; }
+.pin-dots .d{ width:14px; height:14px; border-radius:50%; border:2px solid var(--line-strong); transition:all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.pin-dots .d.filled{ background:var(--brand); border-color:var(--brand); transform:scale(1.22); box-shadow:0 0 10px rgba(47,66,216,0.35); }
+.pin-pad{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:280px; margin:0 auto; width:100%; }
+.pin-pad button{ height:50px; font-size:1.25rem; font-weight:700; border-radius:14px; border:1px solid var(--line); background:var(--paper); cursor:pointer; font-family:var(--font-body); display:flex; align-items:center; justify-content:center; transition:all 0.15s ease; }
+.pin-pad button:active{ background:var(--paper-dim); transform:scale(0.93); border-color:var(--brand); }
+.pin-pad button[data-k="clear"]{ color:var(--danger); font-weight:800; }
+.pin-pad button[data-k="back"]{ color:var(--ink-soft); }
+.login-hint{ text-align:center; margin-top:12px; color:var(--ink-faint); font-size:var(--fs-xs); font-weight:600; }
 
 /* (2026-07-13) 3-column layout with draggable resizer; was 2-column grid */
 .pos-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 10px var(--pos-cart-w, 350px); gap:6px; flex:1; min-height:0; min-width:0; }
@@ -435,6 +438,23 @@ table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; fo
   border-color:var(--success);
 }
 .pl-card.big .val{ color:var(--success-deep); font-size:1.70rem; }
+
+/* (2026-07-13) Base styles for cohesive P&L overview card; was pl-card only */
+.rpt-pl-overview-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:18px; width:100%; }
+.rpt-pl-hero{ display:flex; align-items:center; justify-content:space-between; padding:18px 24px; background:linear-gradient(135deg, var(--brand-tint), var(--paper-raised)); border-bottom:1px solid var(--line); }
+.rpt-pl-hero-label{ font-size:0.80rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--brand-deep); margin-bottom:4px; }
+.rpt-pl-hero-val{ font-size:2rem; font-weight:900; color:var(--brand-deep); line-height:1.15; }
+.rpt-pl-toggle-btn{ display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:700; padding:6px 14px; border-radius:var(--r-md); background:var(--paper-dim); color:var(--ink-soft); border:1px solid var(--line); cursor:pointer; }
+.rpt-pl-chevron{ display:inline-flex; transition:transform 0.25s ease; transform:rotate(180deg); }
+.rpt-pl-breakdown{ display:block; padding:18px 24px; }
+.rpt-pl-tiles-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:14px; }
+.rpt-pl-tile{ background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--r-md); padding:12px 16px; }
+.rpt-pl-tile-label{ font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-muted); margin-bottom:6px; }
+.rpt-pl-tile-val{ font-size:1.35rem; font-weight:800; }
+.rpt-pl-margin-strip{ background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--r-md); padding:12px 16px; }
+.rpt-margin-track{ width:100%; height:8px; background:var(--line); border-radius:999px; overflow:hidden; }
+.rpt-margin-fill{ height:100%; border-radius:999px; transition:width 0.3s ease; }
+
 .chart-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:18px; margin-bottom:18px; }
 .chart-card{ 
   background:var(--paper-raised); 

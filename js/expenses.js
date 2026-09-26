@@ -555,49 +555,48 @@ const Expenses = (() => {
     const netProfit = grossProfit - totalOpex;
 
     view.innerHTML = `
+      // (2026-07-13) Remove view-sub & responsive OPEX layout; was desktop table
       <div class="view-head">
         <div>
           <h2>${Icons.get("dollar-sign",{size:22})} Operating Expenses (OPEX)</h2>
-          <div class="view-sub">Track utilities, salaries, maintenance, and store overhead · Admin only</div>
         </div>
-        <!-- (2026-07-13) Add Log Purchases button; was Record Expense only -->
-        <div class="input-row" style="width:auto;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline" id="btn-export-exp">${Icons.get("download",{size:15})} Export CSV</button>
-          <button class="btn btn-outline" id="btn-add-exp">${Icons.get("dollar-sign",{size:15})} Log Expense</button>
-          <button class="btn btn-primary" id="btn-add-purchase">${Icons.get("shopping-bag",{size:15})} Log Purchases</button>
+        <div class="input-row exp-action-row" style="width:auto;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;">
+          <button class="btn btn-outline btn-sm" id="btn-export-exp">${Icons.get("download",{size:14})} Export CSV</button>
+          <button class="btn btn-outline btn-sm" id="btn-add-exp">${Icons.get("dollar-sign",{size:14})} Log Expense</button>
+          <button class="btn btn-primary btn-sm" id="btn-add-purchase">${Icons.get("shopping-bag",{size:14})} Log Purchases</button>
         </div>
       </div>
 
-      <div class="grid-4" style="margin-bottom:16px;gap:12px;">
-        <div class="card card-tight" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
-          <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Total OPEX Spent</div>
-          <strong class="mono font-bold" style="font-size:1.65rem;color:var(--danger-deep);">${Utils.money(totalOpex)}</strong>
+      <div class="grid-4 exp-kpi-grid" style="margin-bottom:12px;gap:8px;">
+        <div class="card card-tight exp-kpi-card" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:10px 12px;border-radius:12px;">
+          <div class="text-xs text-faint exp-kpi-lbl" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Total OPEX Spent</div>
+          <strong class="mono font-bold exp-kpi-val" style="font-size:1.18rem;color:var(--danger-deep);">${Utils.money(totalOpex)}</strong>
         </div>
-        <div class="card card-tight" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
-          <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Salaries & Payroll</div>
-          <strong class="mono font-bold" style="font-size:1.65rem;color:var(--ink);">${Utils.money(salaryTotal)}</strong>
+        <div class="card card-tight exp-kpi-card" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:10px 12px;border-radius:12px;">
+          <div class="text-xs text-faint exp-kpi-lbl" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Salaries & Payroll</div>
+          <strong class="mono font-bold exp-kpi-val" style="font-size:1.18rem;color:var(--ink);">${Utils.money(salaryTotal)}</strong>
         </div>
-        <div class="card card-tight" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
-          <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Power & Utilities</div>
-          <strong class="mono font-bold" style="font-size:1.65rem;color:var(--ink);">${Utils.money(utilTotal)}</strong>
+        <div class="card card-tight exp-kpi-card" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:10px 12px;border-radius:12px;">
+          <div class="text-xs text-faint exp-kpi-lbl" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Power & Utilities</div>
+          <strong class="mono font-bold exp-kpi-val" style="font-size:1.18rem;color:var(--ink);">${Utils.money(utilTotal)}</strong>
         </div>
-        <div class="card card-tight" style="border:1.5px solid var(--success-deep);background:var(--success-tint);padding:14px 18px;border-radius:12px;">
-          <div class="text-xs text-faint" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;color:var(--success-deep);">Estimated Net Profit</div>
-          <strong class="mono font-bold" style="font-size:1.65rem;color:var(--success-deep);">${Utils.money(netProfit)}</strong>
+        <div class="card card-tight exp-kpi-card" style="border:1.5px solid var(--success-deep);background:var(--success-tint);padding:10px 12px;border-radius:12px;">
+          <div class="text-xs text-faint exp-kpi-lbl" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;color:var(--success-deep);">Estimated Net Profit</div>
+          <strong class="mono font-bold exp-kpi-val" style="font-size:1.18rem;color:var(--success-deep);">${Utils.money(netProfit)}</strong>
         </div>
       </div>
 
-      <div class="inv-toolbar" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div style="display:flex;gap:6px;" id="exp-period-pills">
+      <div class="inv-toolbar exp-toolbar" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;" id="exp-period-pills">
           <button class="chip ${periodFilter==="all"?"active":""}" data-p="all">All Time</button>
           <button class="chip ${periodFilter==="month"?"active":""}" data-p="month">This Month</button>
           <button class="chip ${periodFilter==="30d"?"active":""}" data-p="30d">Last 30 Days</button>
           <button class="chip ${periodFilter==="today"?"active":""}" data-p="today">Today</button>
         </div>
-        <div style="width:260px;" id="exp-cat-filter-wrap"></div>
+        <div style="width:220px;flex-shrink:0;" id="exp-cat-filter-wrap"></div>
       </div>
 
-      <div class="table-wrap">
+      <div class="table-wrap exp-table-wrap">
         <table class="data" style="font-size:1.02rem;">
           <thead>
             <tr style="font-size:.84rem;text-transform:uppercase;">
@@ -643,6 +642,34 @@ const Expenses = (() => {
             </tfoot>
           ` : ""}
         </table>
+      </div>
+
+      <!-- Mobile Expenses Cards -->
+      <div class="exp-mobile-cards" id="exp-mobile-cards">
+        ${expenses.length ? expenses.map(e => `
+          <div class="exp-mobile-card">
+            <div class="exp-card-row1">
+              <span class="mono exp-card-date">${e.date}</span>
+              <span class="mono font-bold exp-card-amount">${Utils.money(e.amount)}</span>
+            </div>
+            <div class="exp-card-row2">
+              <span class="badge badge-brand exp-card-badge">${Utils.escapeHtml(e.category)}</span>
+              <strong class="exp-card-desc">${Utils.escapeHtml(e.description)}</strong>
+            </div>
+            <div class="exp-card-row3">
+              <div class="exp-card-meta">
+                <span>${Utils.escapeHtml(e.recipient || "—")}</span>
+                <span class="badge badge-neutral" style="font-size:0.68rem;">${e.method || "Cash"}</span>
+              </div>
+              <div class="exp-card-actions">
+                <button class="btn btn-sm btn-ghost" data-edit-exp="${e.id}" title="Edit">${Icons.get("edit",{size:15})}</button>
+                <button class="btn btn-sm btn-ghost" data-del-exp="${e.id}" title="Delete" style="color:var(--danger);">${Icons.get("trash",{size:15})}</button>
+              </div>
+            </div>
+          </div>
+        `).join("") : `
+          <div class="card text-center text-faint" style="padding:28px 16px;">No operating expenses logged for this period. Click "Log Expense" to add.</div>
+        `}
       </div>
     `;
 

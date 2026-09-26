@@ -330,10 +330,25 @@ const DB = (() => {
     });
     return Array.from(map.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   }
-  // (2026-07-13) Filter deleted sales by normalized ID & receiptNo; was exact id only
+  // (2026-07-13) Retain active sales & purge from deletedIds; was suppressing sales
   const getSales = () => {
-    const allSales = dedupeSalesList(read(KEYS.sales, []));
+    const rawSales = read(KEYS.sales, []);
+    const allSales = dedupeSalesList(rawSales);
     const deletedIds = getDeletedSaleIds();
+    let cleaned = false;
+    allSales.forEach(s => {
+      const sId = String(s.id || "").trim();
+      const clean = sId.replace(/^TXN-/i, "");
+      if(deletedIds.has(sId) || deletedIds.has(clean)){
+        deletedIds.delete(sId);
+        deletedIds.delete(sId.toLowerCase());
+        deletedIds.delete(clean);
+        deletedIds.delete(clean.toLowerCase());
+        deletedIds.delete("TXN-" + clean);
+        cleaned = true;
+      }
+    });
+    if(cleaned) write(KEYS.deletedSaleIds, Array.from(deletedIds));
     return allSales.filter(s => {
       const sId = String(s.id || "").trim();
       const rId = String(s.receiptNo || "").trim();
@@ -346,6 +361,19 @@ const DB = (() => {
   const setSales       = (v) => write(KEYS.sales, dedupeSalesList(v));
   // (2026-07-13) Store multi-format deleted keys to prevent reload resync; was single
   const getDeletedSaleIds = () => new Set(read(KEYS.deletedSaleIds, []));
+  const unmarkSaleDeleted = (saleId) => {
+    const deleted = getDeletedSaleIds();
+    if(saleId){
+      const sId = String(saleId).trim();
+      deleted.delete(sId);
+      deleted.delete(sId.toLowerCase());
+      const clean = sId.replace(/^TXN-/i, "");
+      deleted.delete(clean);
+      deleted.delete(clean.toLowerCase());
+      deleted.delete("TXN-" + clean);
+    }
+    write(KEYS.deletedSaleIds, Array.from(deleted));
+  };
   const markSaleDeleted = (saleId, receiptNo = null) => {
     const deleted = getDeletedSaleIds();
     if(saleId){
@@ -479,13 +507,17 @@ const DB = (() => {
       setRestockLogs(logs.filter(l => l.id !== logId));
     }
   }
+  // (2026-07-13) Include voids & deleted in max TXN sequence; was sales only
   function getNextTransactionId(prefix = "TXN"){
     const sales = read(KEYS.sales, []);
     const fuelSales = read(KEYS.fuelSales, []);
+    const voidLogs = read(KEYS.voidLogs, []);
+    const deletedIds = read(KEYS.deletedSaleIds, []);
     let max = 0;
-    const re = new RegExp(`^${prefix}-(\\d+)$`);
-    [...sales, ...fuelSales].forEach(s => {
-      const match = String(s.id || "").match(re);
+    const re = new RegExp(`^${prefix}-(\\d+)$`, "i");
+    [...sales, ...fuelSales, ...voidLogs, ...deletedIds].forEach(item => {
+      const raw = typeof item === "string" ? item : (item?.id || item?.origTxnId || item?.receiptNo || "");
+      const match = String(raw || "").match(re);
       if(match){
         const num = parseInt(match[1], 10);
         if(num > max) max = num;
@@ -959,7 +991,8 @@ const DB = (() => {
     KEYS, init, categoryIcon, getNextTransactionId,
     getProducts, setProducts, deduplicateProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
     getCategories, setCategories,
-    getSales, setSales, getDeletedSaleIds, markSaleDeleted, getFuelSales, setFuelSales,
+    // (2026-07-13) Expose unmarkSaleDeleted API; was internal only
+    getSales, setSales, getDeletedSaleIds, markSaleDeleted, unmarkSaleDeleted, getFuelSales, setFuelSales,
     getFuelConfig, setFuelConfig,
     getSettings, setSettings,
     getUsers, setUsers,
