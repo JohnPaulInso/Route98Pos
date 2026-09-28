@@ -30,32 +30,115 @@ const Settings = (() => {
     document.documentElement.dataset.theme = s.theme;
   }
 
+  // (2026-07-13) Manage staff accounts with add/edit/delete; was edit-only
   function renderStaffTable(){
     const wrap = document.getElementById("staff-table");
     const users = DB.getUsers();
-    wrap.innerHTML = `<div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th></th></tr></thead><tbody>
+    wrap.innerHTML = `<div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
       ${users.map(u => `<tr>
-        <td>${Utils.escapeHtml(u.name)}</td>
-        <td><span class="badge ${u.role==="admin"?"badge-amber":"badge-info"}">${u.role}</span></td>
+        <td><strong>${Utils.escapeHtml(u.name)}</strong></td>
+        <td><span class="badge ${u.role==="admin"?"badge-amber":"badge-info"}">${u.role === "admin" ? "Admin" : "Cashier"}</span></td>
         <td class="mono">••••</td>
-        <td style="text-align:right;"><button class="btn btn-sm btn-ghost" data-edit-user="${u.id}">${Icons.get("edit",{size:13})} Edit</button></td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn btn-sm btn-ghost" data-edit-user="${u.id}">${Icons.get("edit",{size:13})} Edit</button>
+          ${users.length > 1 && !(u.role === "admin" && users.filter(x => x.role === "admin").length <= 1) ? `
+            <button class="btn btn-sm btn-ghost text-danger" data-del-user="${u.id}">${Icons.get("trash",{size:13})}</button>
+          ` : ""}
+        </td>
       </tr>`).join("")}
-    </tbody></table></div>`;
+    </tbody></table></div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary btn-sm" id="btn-add-staff-acct">${Icons.get("plus",{size:13})} Add Staff Account</button>
+    </div>`;
     wrap.querySelectorAll("[data-edit-user]").forEach(b => b.onclick = () => editUser(b.dataset.editUser));
+    wrap.querySelectorAll("[data-del-user]").forEach(b => b.onclick = () => {
+      const u = DB.getUsers().find(x => x.id === b.dataset.delUser);
+      if(!u) return;
+      Modal.confirm({
+        title: "Delete Staff Account?",
+        message: `Are you sure you want to remove "${u.name}" (${u.role})?`,
+        onConfirm: () => {
+          const rem = DB.getUsers().filter(x => x.id !== u.id);
+          DB.setUsers(rem);
+          Utils.toast(`Removed staff member "${u.name}".`, "info");
+          renderStaffTable();
+        }
+      });
+    });
+    wrap.querySelector("#btn-add-staff-acct")?.addEventListener("click", openAddStaffModal);
+  }
+
+  function openAddStaffModal(){
+    const body = `
+      <div class="field"><label>Staff Name</label><input class="input" id="new-staff-name" placeholder="e.g. Maria Clara"></div>
+      <div class="field"><label>Role</label>
+        <select class="input" id="new-staff-role">
+          <option value="cashier" selected>Cashier</option>
+          <option value="admin">Admin / Owner</option>
+        </select>
+      </div>
+      <div class="field"><label>4-digit PIN</label><input class="input" id="new-staff-pin" maxlength="4" placeholder="e.g. 2222" inputmode="numeric"></div>`;
+    Modal.open({
+      title: `${Icons.get("user-plus",{size:17})} Add Staff Account`,
+      body,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost" },
+        {
+          label: "Create Account",
+          cls: "btn-primary",
+          onClick: () => {
+            const name = document.getElementById("new-staff-name").value.trim();
+            const role = document.getElementById("new-staff-role").value;
+            const pin = document.getElementById("new-staff-pin").value.trim();
+            if(!name){ Utils.toast("Staff name is required.", "warn"); return; }
+            if(!/^\d{4}$/.test(pin)){ Utils.toast("PIN must be exactly 4 digits.", "warn"); return; }
+            const users = DB.getUsers();
+            if(users.some(u => u.name.toLowerCase() === name.toLowerCase())){
+              Utils.toast(`A staff account named "${name}" already exists.`, "warn");
+              return;
+            }
+            users.push({ id: Utils.uid("user"), name, role, pin });
+            DB.setUsers(users);
+            if(role === "cashier"){
+              const cashiers = DB.getCashiers();
+              if(!cashiers.some(c => c.toLowerCase() === name.toLowerCase())){
+                cashiers.push(name);
+                DB.setCashiers(cashiers);
+              }
+            }
+            Utils.toast(`Staff account "${name}" created.`, "success");
+            Modal.close();
+            renderStaffTable();
+          }
+        }
+      ]
+    });
   }
 
   function editUser(id){
     const u = DB.getUsers().find(x=>x.id===id);
     const body = `
       <div class="field"><label>Name</label><input class="input" id="u-name" value="${Utils.escapeHtml(u.name)}"></div>
+      <div class="field"><label>Role</label>
+        <select class="input" id="u-role">
+          <option value="cashier" ${u.role==="cashier"?"selected":""}>Cashier</option>
+          <option value="admin" ${u.role==="admin"?"selected":""}>Admin / Owner</option>
+        </select>
+      </div>
       <div class="field"><label>New 4-digit PIN</label><input class="input" id="u-pin" maxlength="4" placeholder="Leave blank to keep current"></div>`;
     Modal.open({
       title:`Edit ${u.role}`, body,
       actions:[{label:"Cancel",cls:"btn-ghost"},{label:"Save",cls:"btn-primary", onClick:()=>{
         const name = document.getElementById("u-name").value.trim();
+        const role = document.getElementById("u-role").value;
         const pin = document.getElementById("u-pin").value.trim();
-        const users = DB.getUsers().map(x => x.id===id ? { ...x, name: name||x.name, pin: pin.length===4 ? pin : x.pin } : x);
+        const oldName = u.name;
+        const users = DB.getUsers().map(x => x.id===id ? { ...x, name: name||x.name, role, pin: pin.length===4 ? pin : x.pin } : x);
         DB.setUsers(users);
+        if(role === "cashier" && name && name !== oldName){
+          const cashiers = DB.getCashiers().map(c => c.toLowerCase() === oldName.toLowerCase() ? name : c);
+          DB.setCashiers(cashiers);
+        }
         Utils.toast("Staff account updated.", "success");
         Modal.close(); renderStaffTable();
       }}]

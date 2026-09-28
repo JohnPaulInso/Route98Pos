@@ -71,7 +71,9 @@ const Shift = (() => {
 
   // (2026-07-13) Open shift modal with cashier selection & drawer cash; was closed
   function openStartShiftModal(){
-    const cashiers = DB.getCashiers ? DB.getCashiers() : ["Rosella", "Cashier 1", "Cashier 2"];
+    // (2026-07-13) Show all users in shift open, not cashiers only; was getCashiers()
+    const allUsers = DB.getUsers ? DB.getUsers().map(u => u.name) : ["Rosella", "Niño"];
+    const cashiers = allUsers.length ? allUsers : ["Rosella", "Niño"];
     const currentUser = Auth.currentUser()?.name || cashiers[0] || "Rosella";
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric" });
@@ -94,9 +96,10 @@ const Shift = (() => {
         </div>
         <div class="field" style="margin-bottom:14px;">
           <label style="font-weight:700;display:block;margin-bottom:6px;">Starting Cash in Drawer (Cash Register Float)</label>
+          <!-- (2026-07-13) Fix currency symbol overlap; was 32px padding-left -->
           <div style="position:relative;display:flex;align-items:center;">
-            <span style="position:absolute;left:12px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);">₱</span>
-            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-start-cash" value="1000.00" placeholder="0.00" style="padding-left:32px;font-size:1.25rem;height:46px;width:100%;">
+            <span style="position:absolute;left:14px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);pointer-events:none;z-index:2;">₱</span>
+            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-start-cash" value="1000.00" placeholder="0.00" style="padding-left:44px !important;font-size:1.25rem;height:46px;width:100%;">
           </div>
           <div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;">
             <span class="text-xs text-faint" style="font-weight:600;">Presets:</span>
@@ -114,9 +117,12 @@ const Shift = (() => {
       title: `${Icons.get("clock",{size:18})} Open Shift (Time In)`,
       body,
       wide: false,
+      // (2026-07-13) Disable btn on click to prevent double-submit; was always enabled
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
-        { label: "Open Shift", cls: "btn-primary font-bold", onClick: () => {
+        { label: "Open Shift", cls: "btn-primary font-bold", onClick: (e) => {
+          const btn = document.querySelector(".modal-foot [data-i='1']");
+          if(btn){ btn.disabled = true; btn.style.opacity = "0.6"; }
           const selCashier = document.getElementById("shift-start-cashier")?.value || currentUser;
           const openingCash = Number(document.getElementById("shift-start-cash")?.value) || 0;
           const shiftRecord = {
@@ -129,7 +135,6 @@ const Shift = (() => {
             cashOut: 0
           };
           DB.setShift(shiftRecord);
-          // Sync with today's starting balance in dayBalances
           const todayKey = new Date().toLocaleDateString("en-CA");
           const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
           dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), startingBalance: openingCash };
@@ -138,7 +143,6 @@ const Shift = (() => {
           Utils.toast(`Shift opened for ${selCashier} with ${Utils.money(openingCash)} float.`, "success");
           Utils.openCashDrawer();
           Modal.close();
-          // (2026-07-13) Refresh topbar shift indicator on open; was render only
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
         }}
@@ -163,9 +167,10 @@ const Shift = (() => {
       <div style="padding:4px 0 10px;">
         <div class="field" style="margin-bottom:14px;">
           <label style="font-weight:700;display:block;margin-bottom:6px;">Amount to ${isPayIn ? "Add (Pay In)" : "Remove (Pay Out)"}</label>
+          <!-- (2026-07-13) Fix currency symbol overlap; was 32px padding-left -->
           <div style="position:relative;display:flex;align-items:center;">
-            <span style="position:absolute;left:12px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);">₱</span>
-            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-adj-amount" placeholder="0.00" autofocus style="padding-left:32px;font-size:1.25rem;height:46px;width:100%;">
+            <span style="position:absolute;left:14px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);pointer-events:none;z-index:2;">₱</span>
+            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-adj-amount" placeholder="0.00" autofocus style="padding-left:44px !important;font-size:1.25rem;height:46px;width:100%;">
           </div>
         </div>
         <div class="field">
@@ -229,9 +234,10 @@ const Shift = (() => {
 
         <div class="field" style="margin-bottom:14px;">
           <label style="font-weight:700;display:block;margin-bottom:6px;">Actual Cash Counted in Drawer (Closing Count)</label>
+          <!-- (2026-07-13) Fix currency symbol overlap; was 32px padding-left -->
           <div style="position:relative;display:flex;align-items:center;">
-            <span style="position:absolute;left:12px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);">₱</span>
-            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-close-actual" placeholder="0.00" autofocus style="padding-left:32px;font-size:1.35rem;height:48px;width:100%;">
+            <span style="position:absolute;left:14px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);pointer-events:none;z-index:2;">₱</span>
+            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-close-actual" placeholder="0.00" autofocus style="padding-left:44px !important;font-size:1.35rem;height:48px;width:100%;">
           </div>
         </div>
 
@@ -253,9 +259,12 @@ const Shift = (() => {
       title: `${Icons.get("lock",{size:18})} Close Shift (Time Out)`,
       body,
       wide: false,
+      // (2026-07-13) Disable confirm btn on click to prevent double-submit; was always enabled
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
         { label: "Confirm & Close Shift", cls: "btn-danger font-bold", onClick: () => {
+          const btn = document.querySelector(".modal-foot [data-i='1']");
+          if(btn){ btn.disabled = true; btn.style.opacity = "0.6"; }
           const actualVal = Number(document.getElementById("shift-close-actual")?.value) || 0;
           const variance = actualVal - expected;
           const notes = document.getElementById("shift-close-notes")?.value.trim() || "";
@@ -283,29 +292,23 @@ const Shift = (() => {
             status: "closed"
           };
 
-          // Save to shift logs
           if(DB.saveShiftLog) DB.saveShiftLog(logRecord);
 
-          // Update dayBalances ending balance
           const todayKey = new Date().toLocaleDateString("en-CA");
           const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
           dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), endingBalance: actualVal };
           if(DB.setDayBalances) DB.setDayBalances(dayBalances);
 
-          // Reset shift state
           DB.setShift({ openedAt: null, openingCash: 0, cashier: null, status: "closed", closedAt });
 
-          // Pop cash drawer
           Utils.openCashDrawer();
 
-          // Auto-backup
           if(typeof Sync !== "undefined" && Sync.createDailyBackup){
             Sync.createDailyBackup("shift_close");
           }
 
           Utils.toast(`Shift for ${logRecord.cashier} closed. Variance: ${variance >= 0 ? "+" : ""}${Utils.money(variance)}`, "success");
           Modal.close();
-          // (2026-07-13) Refresh topbar shift indicator on close; was render only
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
         }}
@@ -329,12 +332,14 @@ const Shift = (() => {
 
     const activeShift = getActiveShift();
     const shiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
-    const allCashiers = DB.getCashiers ? DB.getCashiers() : ["Rosella", "Cashier 1", "Cashier 2"];
+    // (2026-07-13) Cashiers fallback to Rosella & Niño; was Cashier 1 & 2
+    const allCashiers = DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"];
     const totals = activeShift ? calculateShiftTotals(activeShift) : null;
 
     root.innerHTML = `
       <!-- (2026-07-13) Lock shift view full width to stabilize nav tabs; was shifting -->
-      <div class="view-body shift-view-container" style="overflow-y:auto;flex:1;min-height:0;height:100%;width:100%;box-sizing:border-box;padding:16px;-webkit-overflow-scrolling:touch;">
+      <!-- (2026-07-13) Remove top padding from shift view-body; was padding:16px -->
+      <div class="view-body shift-view-container" style="overflow-y:auto;flex:1;min-height:0;height:100%;width:100%;box-sizing:border-box;padding:0 16px 16px;-webkit-overflow-scrolling:touch;">
         
         <!-- Header & Tab Navigation -->
         <!-- (2026-07-13) Segmented mobile top tab bar; was wrapping buttons -->
@@ -380,6 +385,43 @@ const Shift = (() => {
       Utils.openCashDrawer();
       Utils.toast("Cash drawer kicked open.", "info");
     });
+    // (2026-07-13) Allow switching active cashier on duty mid-shift; was static
+    document.getElementById("btn-shift-change-cashier")?.addEventListener("click", () => {
+      // (2026-07-13) Filter cashiers only for shift change; was all users
+      const cashiersList = (DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"]).filter(Boolean);
+      const cur = active?.cashier || localStorage.getItem("pos_cashier") || "Cashier";
+      const body = `
+        <div class="field" style="margin-bottom:12px;">
+          <label style="font-weight:700;display:block;margin-bottom:6px;">Select Cashier on Duty</label>
+          <select class="input" id="change-duty-cashier-select" style="font-size:1rem;height:42px;width:100%;">
+            ${cashiersList.map(c => `<option value="${Utils.escapeHtml(c)}" ${c.toLowerCase() === cur.toLowerCase() ? "selected" : ""}>${Utils.escapeHtml(c)}</option>`).join("")}
+          </select>
+        </div>`;
+      Modal.open({
+        title: `${Icons.get("user",{size:17})} Change Cashier on Duty`,
+        body,
+        actions: [
+          { label: "Cancel", cls: "btn-ghost" },
+          {
+            label: "Switch Cashier",
+            cls: "btn-primary font-bold",
+            onClick: () => {
+              const next = document.getElementById("change-duty-cashier-select")?.value;
+              if(next){
+                if(active){
+                  active.cashier = next;
+                  DB.setShift(active);
+                }
+                localStorage.setItem("pos_cashier", next);
+                Utils.toast(`Cashier on duty switched to ${next}.`, "success");
+                Modal.close();
+                render();
+              }
+            }
+          }
+        ]
+      });
+    });
 
     root.querySelectorAll(".shift-sale-row").forEach(row => {
       row.addEventListener("click", () => {
@@ -390,6 +432,26 @@ const Shift = (() => {
         }
       });
     });
+
+    // (2026-07-13) Wire shift log delete buttons; was no delete handler
+    if(Auth.isAdmin()){
+      root.querySelectorAll("[data-delete-shift-log]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const logId = btn.getAttribute("data-delete-shift-log");
+          Modal.confirm({
+            title: "Delete Shift Log?",
+            message: "This will permanently remove this shift history record. This cannot be undone.",
+            danger: true,
+            onConfirm: () => {
+              if(DB.deleteShiftLog) DB.deleteShiftLog(logId);
+              Utils.toast("Shift log deleted.", "success");
+              render();
+            }
+          });
+        });
+      });
+    }
   }
 
   // (2026-07-13) Render active shift card and drawer metrics; was missing
@@ -427,6 +489,8 @@ const Shift = (() => {
                 <span class="badge shift-badge-duty">
                   <span class="shift-duty-dot"></span> ACTIVE ON DUTY
                 </span>
+                <!-- (2026-07-13) Wrap label for icon-only mobile; was plain text -->
+                <button type="button" class="btn btn-xs btn-outline" id="btn-shift-change-cashier" style="margin-left:6px;padding:2px 8px;font-size:0.72rem;display:inline-flex;align-items:center;gap:3px;" title="Change cashier on duty">${Icons.get("edit",{size:11})} <span class="change-btn-label">Change</span></button>
               </div>
               <div class="text-xs text-faint shift-cashier-meta">
                 <span>Time In: <strong style="color:var(--ink);">${Utils.fmtDate(active.openedAt)}</strong></span>
@@ -603,6 +667,8 @@ const Shift = (() => {
                 <th>Actual Cash</th>
                 <th>Variance (Over/Short)</th>
                 <th>Notes</th>
+                <!-- (2026-07-13) Admin-only delete column; was no delete -->
+                ${Auth.isAdmin() ? `<th style="text-align:center;">Del</th>` : ""}
               </tr>
             </thead>
             <tbody>
@@ -623,6 +689,8 @@ const Shift = (() => {
                     <td class="mono font-bold text-xs">${Utils.money(log.actualCash || 0)}</td>
                     <td class="mono font-bold text-xs" style="color:${diffColor};">${diff >= 0 ? "+" : ""}${Utils.money(diff)}</td>
                     <td class="text-xs text-soft">${Utils.escapeHtml(log.notes || "—")}</td>
+                    <!-- (2026-07-13) Admin delete cell per log row; was no delete -->
+                    ${Auth.isAdmin() ? `<td style="text-align:center;"><button class="btn btn-xs btn-ghost text-danger" data-delete-shift-log="${log.id}" title="Delete shift log">${Icons.get("trash",{size:12})}</button></td>` : ""}
                   </tr>
                 `;
               }).join("")}
@@ -645,9 +713,13 @@ const Shift = (() => {
                     <div class="shift-card-title">${openedStr}</div>
                     <div class="shift-card-sub">${openTimeStr} – ${closeTimeStr} · <strong>${log.duration || "—"}</strong></div>
                   </div>
-                  <span class="badge shift-cashier-badge">
-                    ${Utils.escapeHtml(log.cashier || "Cashier")}
-                  </span>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="badge shift-cashier-badge">
+                      ${Utils.escapeHtml(log.cashier || "Cashier")}
+                    </span>
+                    <!-- (2026-07-13) Admin delete button on mobile card; was no delete -->
+                    ${Auth.isAdmin() ? `<button class="btn btn-xs btn-ghost text-danger" data-delete-shift-log="${log.id}" title="Delete shift log">${Icons.get("trash",{size:13})}</button>` : ""}
+                  </div>
                 </div>
                 <table class="shift-card-table">
                   <tbody>

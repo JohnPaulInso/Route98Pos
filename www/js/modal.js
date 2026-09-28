@@ -4,17 +4,26 @@
 // or Escape, and animates in/out.
 // ============================================================
 const Modal = (() => {
-  // (2026-07-13) Modal smooth exit animation timing; was 120ms opacity fade
-  function close(){
-    const bd = document.querySelector(".modal-backdrop");
-    if(bd && !bd.classList.contains("modal-closing")){
+  let isHandlingHistoryPop = false;
+
+  // (2026-07-13) Universal back button closes all modals; was Escape key only
+  function close(onClosed){
+    const bd = document.querySelector(".modal-backdrop:not(.modal-closing)");
+    if(bd){
       bd.classList.add("modal-closing");
+      if(!isHandlingHistoryPop && window.history.state?.modalOpen){
+        isHandlingHistoryPop = true;
+        window.history.back();
+        setTimeout(() => { isHandlingHistoryPop = false; }, 150);
+      }
       setTimeout(() => {
         bd.remove();
         if(!document.querySelector(".modal-backdrop")) document.body.classList.remove("scroll-locked");
+        if(typeof onClosed === "function") onClosed();
       }, 180);
-    } else if(!bd){
+    } else if(!document.querySelector(".modal-backdrop")){
       document.body.classList.remove("scroll-locked");
+      if(typeof onClosed === "function") onClosed();
     }
   }
 
@@ -24,8 +33,11 @@ const Modal = (() => {
     // (2026-07-13) Close open dropdowns before opening modal; was staying open
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     document.body.classList.add("scroll-locked");
+    // (2026-07-13) Define backdrop element; was missing element declaration
     const backdrop = document.createElement("div");
-    backdrop.className = `modal-backdrop ${modalClass ? `${modalClass}-backdrop` : ""}`;
+    // (2026-07-13) Clean backdrop classes mapping; was leaking dialog classes
+    const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop`).join(" ") : "";
+    backdrop.className = `modal-backdrop ${extraBackdrop}`.trim();
     backdrop.innerHTML = `
       <div class="modal ${wide ? "modal-wide":""} ${modalClass}">
         <div class="modal-head">
@@ -36,12 +48,12 @@ const Modal = (() => {
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
     document.body.appendChild(backdrop);
-    backdrop.addEventListener("mousedown", (e)=>{ if(e.target === backdrop){ close(); onClose?.(); } });
-    backdrop.querySelector("#modal-x").onclick = () => { close(); onClose?.(); };
-    const escHandler = (e) => { if(e.key === "Escape"){ close(); onClose?.(); document.removeEventListener("keydown", escHandler); } };
+    backdrop.addEventListener("mousedown", (e)=>{ if(e.target === backdrop){ close(onClose); } });
+    backdrop.querySelector("#modal-x").onclick = () => { close(onClose); };
+    const escHandler = (e) => { if(e.key === "Escape"){ close(onClose); document.removeEventListener("keydown", escHandler); } };
     document.addEventListener("keydown", escHandler);
     actions.forEach((a,i) => {
-      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => a.onClick ? a.onClick() : close();
+      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => a.onClick ? a.onClick() : close(onClose);
     });
     return backdrop;
   }
@@ -59,5 +71,59 @@ const Modal = (() => {
     });
   }
 
-  return { open, close, confirm };
+  function handleUniversalBack(){
+    const bd = document.querySelector(".modal-backdrop:not(.modal-closing)");
+    if(bd){
+      const xBtn = bd.querySelector("#modal-x");
+      if(xBtn) xBtn.click();
+      else close();
+      return true;
+    }
+    const scanner = document.getElementById("scanner-overlay");
+    if(scanner){
+      const closeScan = scanner.querySelector(".scan-close-btn");
+      if(closeScan) closeScan.click();
+      else if(typeof Scanner !== "undefined" && Scanner.stop) Scanner.stop();
+      return true;
+    }
+    const cartEl = document.querySelector(".pos-cart.expanded");
+    if(cartEl){
+      cartEl.classList.remove("expanded");
+      return true;
+    }
+    if(typeof UISelect !== "undefined" && UISelect.closeAll && document.querySelector(".ui-select-list")){
+      UISelect.closeAll();
+      return true;
+    }
+    return false;
+  }
+
+  window.addEventListener("popstate", () => {
+    if(isHandlingHistoryPop){
+      isHandlingHistoryPop = false;
+      return;
+    }
+    isHandlingHistoryPop = true;
+    handleUniversalBack();
+    setTimeout(() => { isHandlingHistoryPop = false; }, 150);
+  });
+
+  document.addEventListener("backbutton", (e) => {
+    if(handleUniversalBack()){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, false);
+
+  function attachCapacitorBack(){
+    if(window.Capacitor?.Plugins?.App?.addListener){
+      window.Capacitor.Plugins.App.addListener("backButton", () => {
+        handleUniversalBack();
+      }).catch(() => {});
+    }
+  }
+  attachCapacitorBack();
+  document.addEventListener("deviceready", attachCapacitorBack, false);
+
+  return { open, close, confirm, handleUniversalBack };
 })();

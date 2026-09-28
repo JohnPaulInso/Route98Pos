@@ -433,10 +433,10 @@ const Inventory = (() => {
     const totalQtySold = matches.reduce((sum, m) => sum + m.totalQty, 0);
     const totalRev = matches.reduce((sum, m) => sum + m.totalLineAmount, 0);
 
+    // (2026-07-13) Clean white centered thumb in transaction modal; was unclassed
     const body = `
       <div style="padding:4px 0 10px;">
         <div class="card card-tight" style="margin-bottom:14px;background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
-          // (2026-07-13) Clean white centered thumb in transaction modal; was unclassed
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
             <span class="prod-thumb-sm" style="width:40px;height:40px;flex-shrink:0;margin:0;">${Utils.productThumb(product, { iconSize:22 })}</span>
             <div style="min-width:0;flex:1;">
@@ -513,17 +513,20 @@ const Inventory = (() => {
       title: `${Icons.get("clock",{size:18})} Product Transaction History`,
       body,
       wide: true,
+      modalClass: "modal-product-history",
       actions: [
         { label: "Close", cls: "btn-ghost" },
-        { label: "Edit Product", cls: "btn-outline", onClick: () => { Modal.close(); openProductForm(product); } }
+        { label: "Edit Product", cls: "btn-primary", onClick: () => { Modal.close(); openProductForm(product); } }
       ]
     });
 
     if(modal){
-      // (2026-09-24) Use 90vw; was 95vw/1120px causing right-side cut in modal
-      modal.style.maxWidth = "900px";
-      modal.style.width = "90vw";
-      modal.style.overflowX = "hidden";
+      // (2026-07-13) Fix desktop modal width on dialog; was backdrop constrained
+      const dlg = modal.querySelector(".modal");
+      if(dlg){
+        dlg.style.maxWidth = "min(1100px, 92vw)";
+        dlg.style.width = "92vw";
+      }
     }
 
     const showReceiptAndReturn = (saleId) => {
@@ -1865,7 +1868,8 @@ const Inventory = (() => {
         <div id="inv-sort-wrap"></div>
         <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
       </div>
-      <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-bottom:10px;"></div>
+      <!-- (2026-07-13) Zero bottom margin & pad on inv-cat-chips; was 10px -->
+      <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-bottom:0;padding-bottom:0;"></div>
       <!-- (2026-07-13) Add mobile cards container & table-wrap class; was table only -->
       <div class="table-wrap inv-table-wrap" id="inv-table-wrap">
         <table class="data inv-desktop-table">

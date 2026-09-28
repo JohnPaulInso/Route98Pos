@@ -4,6 +4,9 @@
    ============================================================ */
 
 @media (max-width: 767px) {
+  /* (2026-07-13) Sync --topbar-h to new 60px mobile topbar; was 54px */
+  :root { --topbar-h: 60px; }
+
   /* ============ CRITICAL Z-INDEX & MODAL FIX ============ */
   /* Remove any z-index overrides that might block clicks */
   .view, .pos-catalog, .product-grid {
@@ -48,9 +51,77 @@
     z-index: 20 !important;
   }
   
-  /* Bottom nav below cart */
+  /* (2026-07-13) Fixed bottom navbar on all pages; was sticky hidden */
   .bottom-nav {
-    z-index: 30 !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: var(--bottomnav-h, 60px) !important;
+    min-height: var(--bottomnav-h, 60px) !important;
+    display: block !important;
+    z-index: 95 !important;
+    background: color-mix(in srgb, var(--paper-raised, #ffffff) 96%, transparent) !important;
+    backdrop-filter: blur(16px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.6) !important;
+    border-top: 1px solid var(--line, #e2e8f0) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08) !important;
+    padding: 4px 2px max(4px, env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box !important;
+  }
+  .bottom-nav-inner {
+    display: flex !important;
+    height: 100% !important;
+    width: 100% !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+  }
+  .bn-btn {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    background: none !important;
+    border: none !important;
+    color: var(--ink-faint, #64748b) !important;
+    font-size: 0.58rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    position: relative !important;
+    padding: 2px 1px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+  .bn-btn span {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  /* (2026-07-13) Active bottom nav color & inactive gray; was colored */
+  .bn-btn.active {
+    color: var(--brand, #2563eb) !important;
+  }
+  .bn-btn.active[data-nav="dashboard"] { color: #312E81 !important; }
+  .bn-btn.active[data-nav="shift"] { color: #0284C7 !important; }
+  .bn-btn.active[data-nav="pos"] { color: #2563EB !important; }
+  .bn-btn.active[data-nav="gasoline"] { color: #D97706 !important; }
+  .bn-btn.active[data-nav="reports"] { color: var(--brand, #2563eb) !important; }
+  .bn-btn.active[data-nav="inventory"] { color: var(--brand, #2563eb) !important; }
+  [data-theme="dark"] .bn-btn.active[data-nav="dashboard"] { color: #818CF8 !important; }
+  [data-theme="dark"] .bn-btn.active[data-nav="shift"] { color: #38BDF8 !important; }
+  [data-theme="dark"] .bn-btn.active[data-nav="pos"] { color: #60A5FA !important; }
+  [data-theme="dark"] .bn-btn.active[data-nav="gasoline"] { color: #FBBF24 !important; }
+  [data-theme="dark"] .bn-btn.active[data-nav="reports"] { color: var(--brand, #60A5FA) !important; }
+  [data-theme="dark"] .bn-btn.active[data-nav="inventory"] { color: var(--brand, #60A5FA) !important; }
+  .bn-btn:not(.active) .ic {
+    color: var(--ink-faint, #64748b) !important;
   }
 
   /* ============ NUCLEAR OPTION - FORCE SINGLE COLUMN ON ALL GRIDS ============ */
@@ -67,8 +138,8 @@
     gap: 12px !important;
   }
   
-  /* Reset grid-template-columns except for specific grids that need it */
-  *:not(.product-grid):not(.pos-payment-methods):not(.inventory-status-cards):not(.pin-pad):not(.dash-pl-grid):not(.dash-snapshots-grid):not(.shift-quick-actions):not(.shift-metrics-container):not(.today-fuel-kpis):not(.rpt-pl-tiles-grid):not(.loy-cal-grid):not(.loy-cal-weekdays) {
+  /* (2026-07-13) Exclude presets & gas from grid reset; was vertical stack */
+  *:not(.product-grid):not(.gas-head-actions):not(.pos-payment-methods):not(.inventory-status-cards):not(.cash-presets-row):not(.pin-pad):not(.dash-pl-grid):not(.dash-snapshots-grid):not(.shift-quick-actions):not(.shift-metrics-container):not(.today-fuel-kpis):not(.rpt-pl-tiles-grid):not(.loy-cal-grid):not(.loy-cal-weekdays) {
     grid-template-columns: none !important;
   }
   
@@ -104,9 +175,11 @@
     overflow-x: hidden !important;
   }
 
-  /* (2026-07-13) Remove bottom padding & margin on main-col & view-root; was pad */
+  /* (2026-07-13) Zero top/bottom padding on view-root; was padded */
   .main-col,
+  .view,
   #view-root {
+    padding-top: 0 !important;
     padding-bottom: 0 !important;
     margin-bottom: 0 !important;
   }
@@ -122,16 +195,18 @@
     max-width: 100vw !important;
   }
   
+  /* (2026-07-13) Transparent view-head; was var(--paper) & border */
   .view-head {
     margin-left: -10px !important;
     margin-right: -10px !important;
     padding: 6px 12px !important;
     margin-bottom: 6px !important;
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    position: static !important;
     align-items: center !important;
     box-sizing: border-box !important;
   }
@@ -403,21 +478,18 @@
     margin-left: 4px !important;
   }
   
-  /* Show count in parentheses */
-  #btn-held::before {
-    content: '(' !important;
-    font-size: 0.85rem !important;
-    margin-left: 4px !important;
-  }
-  
+  /* (2026-07-13) Drop parentheses around held count; was '(' and ')' pseudo */
+  #btn-held::before,
   #btn-held::after {
-    content: ')' !important;
-    font-size: 0.85rem !important;
+    content: none !important;
+    display: none !important;
   }
+  /* (2026-07-13) Zero pos-layout bottom pad & pos-catalog x-pad; was padded */
   .pos-layout {
     display: flex !important;
     flex-direction: column !important;
     padding: 0 !important;
+    padding-bottom: 0 !important;
     gap: 0 !important;
     height: calc(100vh - var(--topbar-h) - var(--bottomnav-h));
     width: 100% !important;
@@ -425,8 +497,12 @@
     overflow: hidden;
   }
   
+  /* (2026-07-13) Remove top padding from pos-catalog; was 14px */
   .pos-catalog {
-    padding: 14px 16px !important;
+    padding-top: 0 !important;
+    padding-bottom: 14px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -451,7 +527,7 @@
     align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 4px !important;
   }
 
   /* (2026-07-13) Anchor search icon and clear button; was outside bar */
@@ -461,16 +537,20 @@
     position: relative !important;
   }
 
-  .pos-search-wrap .ic-svg {
+  .pos-search-wrap .search-icon-left {
     position: absolute !important;
-    left: 12px !important;
+    left: 14px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     color: var(--ink-faint) !important;
     pointer-events: none !important;
-    z-index: 2 !important;
+    z-index: 3 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
+  /* (2026-07-13) Reduce clear X btn to 22px; was 26px */
   .pos-search-wrap .clear-search-btn {
     position: absolute !important;
     right: 8px !important;
@@ -482,48 +562,64 @@
     cursor: pointer !important;
     padding: 0 !important;
     border-radius: 50% !important;
-    width: 26px !important;
-    height: 26px !important;
+    width: 22px !important;
+    height: 22px !important;
     display: none !important;
     align-items: center !important;
     justify-content: center !important;
-    z-index: 2 !important;
+    z-index: 3 !important;
+  }
+
+  .pos-search-wrap .clear-search-btn svg {
+    width: 12px !important;
+    height: 12px !important;
   }
 
   .pos-search-wrap .clear-search-btn.visible {
     display: flex !important;
   }
 
+  /* (2026-07-13) Reduce POS search bar & buttons height; was 48px */
   .pos-search-wrap .input {
     width: 100% !important;
-    height: 44px !important;
-    min-height: 44px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     border-radius: 12px !important;
-    font-size: 0.88rem !important;
-    padding-left: 38px !important;
-    padding-right: 32px !important;
+    font-size: 0.85rem !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    border: 1.5px solid var(--line-strong) !important;
   }
 
+  .pos-action-buttons {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* (2026-07-13) Reduce scan/held buttons to 32px; was 40px */
   .pos-scan-btn {
-    height: 44px !important;
-    min-height: 44px !important;
-    min-width: 44px !important;
-    padding: 0 12px !important;
-    border-radius: 12px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 6px !important;
     flex-shrink: 0 !important;
-    font-size: 0.84rem !important;
   }
 
+  .pos-scan-btn svg { width: 15px !important; height: 15px !important; }
+
   .pos-held-btn {
-    height: 44px !important;
-    min-height: 44px !important;
-    min-width: 44px !important;
-    padding: 0 10px !important;
-    border-radius: 12px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    min-width: 38px !important;
+    padding: 0 6px !important;
+    border-radius: 8px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -531,7 +627,58 @@
     flex-shrink: 0 !important;
     background: var(--paper-dim) !important;
     border: 1px solid var(--line) !important;
-    font-size: 0.84rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+  }
+
+  .pos-held-btn svg { width: 14px !important; height: 14px !important; }
+
+  /* Hide datalist dropdown arrow on mobile */
+  .custom-cart-name-input::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
+
+  /* Reduce custom item input font size on mobile */
+  .custom-cart-name-input {
+    font-size: 0.72rem !important;
+  }
+
+  /* Align category chips with search bar */
+  .pos-sticky-header {
+    margin-bottom: 8px !important;
+  }
+
+  /* (2026-07-13) Zero category chips bottom pad & margin; was 8px and 6px */
+  .category-chips {
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+    padding: 2px 0 0 0 !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .category-chips .chip {
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 14px !important;
+    border-radius: 9999px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .category-chips::-webkit-scrollbar {
+    display: none;
   }
 
   @media (max-width: 640px) {
@@ -542,19 +689,6 @@
     .view-head:has(#pos-view-sub) {
       display: none !important;
     }
-  }
-
-  .category-chips {
-    margin-bottom: 8px !important;
-    padding-bottom: 4px !important;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    flex-shrink: 0;
-  }
-
-  .category-chips::-webkit-scrollbar {
-    display: none;
   }
   
   /* ============ PRODUCT CARDS 2-COL NO WHITESPACE ============ */
@@ -639,10 +773,23 @@
     margin-top: 2px !important;
   }
   
-  /* Custom item card */
+  /* (2026-07-13) Scale down custom-item-card typography; was default product font */
   .custom-item-card {
     grid-column: span 1 !important;
     min-height: auto !important;
+  }
+  .custom-item-card .brand-lbl {
+    font-size: 0.68rem !important;
+  }
+  .custom-item-card .name {
+    font-size: 0.72rem !important;
+  }
+  .custom-item-card .price {
+    font-size: 0.68rem !important;
+  }
+  .custom-item-card .custom-card-icon {
+    width: 32px !important;
+    height: 32px !important;
   }
 
   /* ============ COMPACT PAGINATION PILL ============ */
@@ -737,11 +884,10 @@
   }
 
   /* ============ CART DRAWER ============ */
-  /* ============ BOTTOM SHEET CART ============ */
-  /* (2026-07-13) 60px bottom sheet cart with checkout bar; was cut off */
+  /* (2026-07-13) Position pos-cart above bottom nav; was bottom 0 covering nav */
   .pos-cart {
     position: fixed !important;
-    bottom: var(--bottomnav-h) !important;
+    bottom: var(--bottomnav-h, 60px) !important;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
@@ -759,11 +905,18 @@
     pointer-events: auto !important;
   }
   
+  /* (2026-07-13) Set expanded cart height above bottom navbar; was 75vh floating */
   .pos-cart.expanded,
   .pos-cart.mobile-open {
-    height: 75vh !important;
-    max-height: 80vh !important;
+    height: calc(100vh - var(--topbar-h, 56px) - var(--bottomnav-h, 60px)) !important;
+    max-height: calc(100vh - var(--topbar-h, 56px) - var(--bottomnav-h, 60px)) !important;
+    bottom: var(--bottomnav-h, 60px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
     box-shadow: 0 -10px 32px rgba(0, 0, 0, 0.28) !important;
+    z-index: 92 !important;
   }
   
   .cart-head {
@@ -773,7 +926,8 @@
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 12px !important;
+    padding: 0 8px !important;
+    gap: 6px !important;
     border-bottom: 1px solid var(--line) !important;
     background: var(--paper-raised) !important;
     cursor: pointer !important;
@@ -796,60 +950,100 @@
     pointer-events: none !important;
   }
 
+  /* (2026-07-13) No wrap and smaller cart-head text; was wrapping 0.9rem */
   .cart-head-left {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 5px !important;
     min-width: 0 !important;
+    flex-shrink: 1 !important;
   }
 
   .cart-head-title-wrap {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+  }
+
+  .cart-head-icon {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cart-head-icon svg,
+  .cart-head-icon .ic-svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .cart-head-title {
-    font-size: 0.90rem !important;
+    font-size: 0.76rem !important;
     color: var(--ink) !important;
     font-weight: 800 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .cart-head #cart-count {
+    font-size: 0.68rem !important;
+    padding: 2px 5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    line-height: 1.1 !important;
   }
 
   .cart-head-right {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 
   .mobile-cart-total {
-    font-size: 0.95rem !important;
+    font-size: 0.82rem !important;
     font-weight: 800 !important;
     color: var(--brand-deep) !important;
     display: inline-block !important;
+    white-space: nowrap !important;
   }
 
   .mobile-cart-checkout-btn {
-    height: 38px !important;
-    min-height: 38px !important;
-    padding: 0 14px !important;
-    font-size: 0.84rem !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 0.74rem !important;
     font-weight: 800 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     /* (2026-07-13) Style charge button with brand blue; was green #10B981 */
     background: #3B5AFB !important;
     color: #fff !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 6px !important;
-    box-shadow: 0 4px 12px rgba(59, 90, 251, 0.35) !important;
+    gap: 4px !important;
+    box-shadow: 0 2px 8px rgba(59, 90, 251, 0.35) !important;
     border: none !important;
     cursor: pointer !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-cart-checkout-btn svg,
+  .mobile-cart-checkout-btn .ic-svg {
+    width: 12px !important;
+    height: 12px !important;
   }
 
   .mobile-cart-toggle-btn {
-    width: 34px !important;
-    height: 34px !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    flex-shrink: 0 !important;
     border-radius: 50% !important;
     background: var(--paper-dim) !important;
     border: 1px solid var(--line) !important;
@@ -859,6 +1053,12 @@
     color: var(--ink-soft) !important;
     transition: transform 0.25s ease !important;
     cursor: pointer !important;
+  }
+
+  .mobile-cart-toggle-btn svg,
+  .mobile-cart-toggle-btn .ic-svg {
+    width: 13px !important;
+    height: 13px !important;
   }
 
   .pos-cart.expanded .mobile-cart-toggle-btn,
@@ -871,13 +1071,14 @@
     display: none !important;
   }
 
+  /* (2026-07-13) Compact cart rows & totals-summary; was large bloated rows */
   .pos-cart.expanded .cart-items,
   .pos-cart.mobile-open .cart-items {
     display: block !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    padding: 10px 14px !important;
+    padding: 4px 8px !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
@@ -886,60 +1087,180 @@
   .pos-cart.mobile-open .cart-foot {
     display: block !important;
     flex-shrink: 0 !important;
-    padding: 10px 14px 14px !important;
+    padding: 6px 10px 8px !important;
   }
   
   .cart-line {
-    padding: 12px 8px !important;
-    margin-bottom: 4px;
+    padding: 4px 4px !important;
+    margin-bottom: 2px !important;
+    gap: 6px !important;
+    min-height: 32px !important;
     pointer-events: auto !important;
   }
   
   .cart-line .thumb-sm {
-    width: 44px !important;
-    height: 44px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
   }
   
   .cart-line .info .n {
-    font-size: 0.9rem !important;
+    font-size: 0.78rem !important;
+    line-height: 1.15 !important;
   }
   
   .cart-line .info .p {
-    font-size: 0.75rem !important;
+    font-size: 0.65rem !important;
+    line-height: 1.1 !important;
   }
   
   .cart-line .lt {
-    font-size: 0.9rem !important;
-    min-width: 60px;
+    font-size: 0.80rem !important;
+    min-width: 48px !important;
+    text-align: right !important;
+  }
+
+  .cart-line .icon-btn.btn-sm {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* (2026-07-13) Reduce custom item font sizes; was 16px input override */
+  .custom-item-slot-dotted {
+    position: relative !important;
+    top: auto !important;
+    z-index: auto !important;
+    padding: 4px 6px !important;
+    margin: 2px 0 4px !important;
+    min-height: 26px !important;
+  }
+  .custom-item-slot-dotted .thumb-sm {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .custom-item-slot-dotted .thumb-sm svg,
+  .custom-item-slot-dotted .thumb-sm .ic-svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .custom-item-slot-dotted .n {
+    font-size: 0.72rem !important;
+    line-height: 1.15 !important;
+  }
+  .custom-item-slot-dotted .p {
+    font-size: 0.60rem !important;
+    line-height: 1.1 !important;
+  }
+  .custom-item-slot-dotted .badge {
+    font-size: 0.58rem !important;
+    padding: 1px 5px !important;
+  }
+
+  /* (2026-07-13) Reduce custom cart item name & price fonts; was 0.70rem & 0.62rem */
+  .cart-line input.custom-cart-name-input,
+  .cart-line .custom-cart-n-wrap input,
+  .pos-cart .custom-cart-name-input,
+  .custom-cart-name-input {
+    font-size: 0.66rem !important;
+    font-weight: 700 !important;
+    height: 16px !important;
+    line-height: 1.15 !important;
+    padding: 0 2px !important;
+    width: auto !important;
+    max-width: 130px !important;
+  }
+
+  .cart-line input.custom-cart-price-input,
+  .pos-cart .custom-cart-price-input,
+  .custom-cart-price-input {
+    font-size: 0.60rem !important;
+    font-weight: 700 !important;
+    height: 15px !important;
+    line-height: 1.1 !important;
+    padding: 0 2px !important;
+    width: 30px !important;
+  }
+
+  .cart-line.custom-cart-line .qty-stepper .qty-input,
+  .cart-line.custom-cart-line .qty-stepper input,
+  .cart-line .qty-stepper input.qty-input,
+  .cart-line .qty-stepper .q {
+    font-size: 0.70rem !important;
+    width: 24px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+  }
+
+  .cart-line.custom-cart-line .qty-stepper button,
+  .cart-line .qty-stepper button {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
   }
   
   .cart-foot {
-    padding: 12px 16px 16px !important;
+    padding: 6px 10px 8px !important;
     background: var(--paper-raised);
   }
   
   .totals-summary {
-    padding: 12px !important;
-    margin-bottom: 10px !important;
+    padding: 6px 10px !important;
+    margin-bottom: 4px !important;
+    gap: 2px !important;
+    border-radius: 8px !important;
   }
   
   .totals-row {
-    font-size: 0.9rem !important;
-    padding: 4px 0;
+    font-size: 0.72rem !important;
+    padding: 1px 0 !important;
+    line-height: 1.25 !important;
   }
   
   .totals-row.grand {
-    font-size: 1.2rem !important;
-    padding-top: 8px !important;
+    font-size: 0.95rem !important;
+    padding-top: 3px !important;
+    margin-top: 2px !important;
+  }
+
+  .discount-type-toggle .dt-btn {
+    padding: 1px 6px !important;
+    font-size: 0.68rem !important;
+    height: 22px !important;
+    min-height: 0 !important;
+    min-width: 22px !important;
+  }
+
+  .discount-input {
+    height: 22px !important;
+    min-height: 0 !important;
+    padding: 1px 4px !important;
+    font-size: 0.75rem !important;
+    width: 44px !important;
   }
   
   .cart-actions-row {
     flex-direction: row !important;
-    gap: 8px !important;
+    gap: 4px !important;
+    margin-bottom: 4px !important;
   }
   
   .cart-actions-row > * {
     flex: 1 !important;
+    padding: 3px 4px !important;
+    font-size: 0.68rem !important;
+    height: 26px !important;
+    min-height: 0 !important;
+  }
+
+  #btn-checkout {
+    margin-top: 4px !important;
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+    height: 38px !important;
+    min-height: 0 !important;
   }
   
   /* Ensure cart is below modals */
@@ -1046,9 +1367,10 @@
     pointer-events: auto !important;
   }
   
+  /* (2026-07-13) Compact modal body padding and side-by-side foot; was 20px pad */
   .modal-body {
-    padding: 20px !important;
-    max-height: calc(95vh - 180px);
+    padding: 12px 14px !important;
+    max-height: calc(95vh - 160px);
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
@@ -1061,10 +1383,10 @@
   }
   
   .modal-foot {
-    padding: 16px 20px 20px !important;
-    flex-direction: column-reverse !important;
-    gap: 10px !important;
-    border-top: 2px solid var(--line);
+    padding: 10px 14px 12px !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    border-top: 1px solid var(--line);
     flex-shrink: 0;
     position: sticky;
     bottom: 0;
@@ -1074,9 +1396,18 @@
   }
   
   .modal-foot .btn {
-    width: 100% !important;
+    flex: 1 !important;
+    width: auto !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
     justify-content: center;
     pointer-events: auto !important;
+  }
+  .modal-foot .btn-primary {
+    flex: 1.6 !important;
   }
   
   /* Ensure all modal interactive elements work */
@@ -1176,60 +1507,207 @@
   }
 
   /* ============ PAYMENT METHODS ============ */
+  /* (2026-07-13) Modern checkout modal styling & 3-col presets; was bulky cards */
+  .checkout-due-card {
+    padding: 10px 14px !important;
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+    background: linear-gradient(135deg, rgba(59,90,251,0.08) 0%, rgba(59,90,251,0.02) 100%) !important;
+    border: 1.5px solid rgba(59,90,251,0.25) !important;
+    text-align: left !important;
+  }
+  .checkout-due-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 2px !important;
+  }
+  .checkout-due-lbl {
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    color: var(--brand) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+  }
+  /* (2026-07-13) Keep cashier pill static on mobile; was absolute positioned */
+  .checkout-cashier-pill {
+    position: static !important;
+    transform: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: var(--paper-raised) !important;
+    border: 1px solid var(--line-strong) !important;
+    border-radius: 20px !important;
+    padding: 2px 8px !important;
+    color: var(--ink-soft) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+  }
+  .checkout-cashier-pill select {
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    color: var(--ink) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  /* (2026-07-13) Left-align checkout amount due on mobile; was center aligned */
+  .checkout-due-val {
+    font-family: var(--font-mono) !important;
+    font-size: 1.85rem !important;
+    font-weight: 900 !important;
+    color: var(--brand-deep) !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.1 !important;
+    text-align: left !important;
+  }
+
   .pos-payment-methods {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+    margin: 6px 0 10px !important;
   }
   
   .pos-payment-methods .chip {
-    padding: 12px !important;
-    min-height: 44px !important;
+    padding: 7px 4px !important;
+    min-height: 36px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+  }
+  .pos-payment-methods .chip svg,
+  .pos-payment-methods .chip .ic-svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   /* ============ CASH PRESETS ============ */
-  .cash-presets-row {
+  /* (2026-07-13) Scale cash input & placeholder font size; was 16px default */
+  #cash-input,
+  input#cash-input {
+    font-size: 1.55rem !important;
+    font-weight: 800 !important;
+    font-family: var(--font-mono) !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 6px 14px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid var(--line-strong) !important;
+    background: var(--paper-raised) !important;
+    color: var(--ink) !important;
+    box-sizing: border-box !important;
+  }
+  #cash-input::placeholder,
+  #cash-input::-webkit-input-placeholder,
+  input#cash-input::placeholder,
+  input#cash-input::-webkit-input-placeholder {
+    font-size: 1.55rem !important;
+    font-weight: 700 !important;
+    font-family: var(--font-mono) !important;
+    color: var(--ink-faint) !important;
+    opacity: 0.6 !important;
+  }
+  #cash-input:focus {
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px var(--brand-tint) !important;
+  }
+
+  /* (2026-07-13) 2-col taller cash preset buttons; was 3-col 36px buttons */
+  .cash-presets-row,
+  .field .cash-presets-row,
+  #cash-presets {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
+    margin-top: 8px !important;
+    width: 100% !important;
   }
   
-  .cash-preset-btn {
-    flex: 1;
-    min-width: 70px !important;
-    padding: 10px 12px !important;
-    min-height: 44px !important;
+  .cash-preset-btn,
+  .cash-presets-row .cash-preset-btn,
+  #cash-presets .cash-preset-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 9px 8px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    font-size: 0.90rem !important;
+    font-weight: 750 !important;
+    font-family: var(--font-mono) !important;
+    border-radius: 8px !important;
+    background: var(--paper-raised) !important;
+    border: 1px solid var(--line-strong) !important;
+    color: var(--ink) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    transition: all 0.15s ease !important;
+  }
+  .cash-preset-btn:active {
+    background: var(--brand-tint) !important;
+    border-color: var(--brand) !important;
+    color: var(--brand-deep) !important;
   }
 
   /* ============ CHECKOUT SCREENS ============ */
   .due-amount-card {
-    padding: 20px !important;
+    padding: 12px 14px !important;
   }
   
-  /* (2026-07-13) Scale down checkout due & change font size; was 2.5rem */
   .due-amount-card .val {
     font-size: 1.65rem !important;
   }
   
   .checkout-change-box {
-    padding: 18px !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    margin-bottom: 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: var(--paper-dim) !important;
+    border: 1.5px solid var(--line) !important;
   }
   
+  .checkout-change-box .lbl {
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
   .checkout-change-box .val {
-    font-size: 1.45rem !important;
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
   }
 
   /* ============ QUANTITY STEPPER ============ */
+  /* (2026-07-13) Compact quantity stepper for mobile cart; was 32px bulky */
   .qty-stepper {
-    padding: 3px !important;
-    gap: 4px !important;
+    padding: 1px !important;
+    gap: 2px !important;
   }
   
   .qty-stepper button {
-    width: 32px !important;
-    height: 32px !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
   }
   
   .qty-stepper .qty-input {
-    width: 48px !important;
-    font-size: 0.95rem !important;
+    width: 28px !important;
+    height: 22px !important;
+    font-size: 0.80rem !important;
   }
 
   /* ============ CHIPS & BADGES ============ */
@@ -1421,31 +1899,37 @@
   }
 
   /* ============ TOASTS ============ */
-  /* (2026-07-13) Anchor toast stack to top safe area; was bottom obscuring cards */
+  /* (2026-07-13) Compact bottom-left toasts; was full-width top toasts */
   #toast-stack {
     position: fixed !important;
-    top: max(16px, env(safe-area-inset-top)) !important;
-    bottom: auto !important;
-    left: 16px !important;
-    right: 16px !important;
-    max-width: none !important;
+    top: auto !important;
+    bottom: calc(var(--bottomnav-h, 56px) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 10px !important;
+    right: auto !important;
+    max-width: min(280px, calc(100vw - 20px)) !important;
     z-index: 999999 !important;
-    pointer-events: auto !important;
+    pointer-events: none !important;
+    align-items: flex-start !important;
   }
   
   .toast {
-    width: 100% !important;
-    padding: 13px 16px !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.18) !important;
+    pointer-events: auto !important;
+    width: auto !important;
+    max-width: 100% !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18) !important;
     cursor: pointer !important;
-    font-size: 0.90rem !important;
-    animation: toast-slide-down 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    font-size: 0.75rem !important;
+    line-height: 1.25 !important;
+    gap: 6px !important;
+    animation: toast-in 0.18s ease !important;
   }
 
-  @keyframes toast-slide-down {
-    from { opacity: 0; transform: translateY(-16px); }
-    to { opacity: 1; transform: translateY(0); }
+  .toast .ic-svg, .toast svg {
+    width: 13px !important;
+    height: 13px !important;
+    flex-shrink: 0 !important;
   }
 
   /* ============ SCAN OVERLAY ============ */
@@ -1498,10 +1982,16 @@
   .view,
   .cart-items,
   .product-grid,
-  .modal-body,
-  .table-wrap {
+  .modal-body {
     -webkit-overflow-scrolling: touch !important;
     overscroll-behavior: contain !important;
+  }
+
+  /* (2026-07-13) Allow vertical scroll chaining on table-wrap; was contain */
+  .table-wrap {
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-x: contain !important;
+    overscroll-behavior-y: auto !important;
   }
 
   /* ============ PREVENT OVERSCROLL BOUNCE ============ */
@@ -1532,8 +2022,10 @@
     padding: 16px !important;
   }
   
+  /* (2026-07-13) Remove 16px side pad on category chips; was 0 16px */
   .category-chips {
-    padding: 0 16px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
   /* ============ DAILY SALES GRID ============ */
@@ -1736,6 +2228,35 @@
   gap: 6px;
 }
 
+/* (2026-07-13) Responsive desktop row for shift card; was stacked buttons */
+@media (min-width: 769px) {
+  .shift-active-card {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    flex-wrap: nowrap !important;
+  }
+  .shift-active-header {
+    flex: 1 1 auto !important;
+    min-width: 260px !important;
+  }
+  .shift-action-cluster {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  .shift-quick-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+}
+
 .shift-active-card {
   margin-bottom: 18px;
   padding: 18px 24px;
@@ -1778,6 +2299,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .shift-cashier-name {
@@ -2032,11 +2554,18 @@
     padding: 12px 16px !important;
   }
 
-  /* Compact topbar elements on mobile so title is not truncated */
+  /* (2026-07-13) Premium mobile topbar; was 48px flat header */
   .topbar {
     gap: 6px !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    background: color-mix(in srgb, var(--paper-raised) 92%, var(--brand) 8%) !important;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--line) 80%, var(--brand) 20%) !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05) !important;
+    backdrop-filter: blur(18px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.6) !important;
   }
 
   .topbar > div:first-of-type {
@@ -2046,46 +2575,152 @@
   }
 
   .topbar h1 {
-    font-size: 0.95rem !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
     min-width: 0 !important;
     flex: 1 1 auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .rpt-header-breadcrumb {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: 0.88rem !important;
+  }
+
+  .rpt-crumb-home {
+    font-size: 0.80rem !important;
+    font-weight: 600 !important;
+    opacity: 0.65 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .rpt-crumb-sep {
+    font-size: 0.74rem !important;
+    opacity: 0.35 !important;
+    flex-shrink: 0 !important;
+    margin: 0 1px !important;
+  }
+
+  .rpt-crumb-curr-btn {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+    max-width: 140px !important;
+  }
+
+  .rpt-crumb-curr-btn span:first-child {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* (2026-07-13) Fix breadcrumb dropdown overflow on mobile; was left:0 only */
+  #rpt-crumb-menu {
+    left: 0 !important;
+    right: auto !important;
+    max-width: min(240px, calc(100vw - 24px)) !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .topbar-shift-badge {
     padding: 4px 8px !important;
-    font-size: 0.72rem !important;
+    font-size: 0.70rem !important;
     gap: 4px !important;
     flex-shrink: 0 !important;
     white-space: nowrap !important;
+  }
+
+  .topbar-shift-badge .shift-text-extra {
+    display: none !important;
+  }
+
+  .icon-btn {
+    width: 36px !important;
+    height: 36px !important;
   }
 
   .user-chip {
     padding: 4px 6px !important;
     gap: 4px !important;
     flex-shrink: 0 !important;
+    border-radius: 20px !important;
   }
 
   .user-chip #user-chip-label {
-    max-width: 55px !important;
+    max-width: 54px !important;
     font-size: 0.72rem !important;
   }
 
-  /* (2026-07-13) Gasoline responsive mobile styling; was desktop only */
+  /* (2026-07-13) Change btn icon-only on mobile; was icon + text */
+  #btn-shift-change-cashier .change-btn-label {
+    display: none !important;
+  }
+  #btn-shift-change-cashier {
+    padding: 4px 8px !important;
+    min-width: 32px !important;
+    width: 32px !important;
+    justify-content: center !important;
+  }
+
+  .rpt-view-head {
+    display: none !important;
+  }
+
+  .rpt-subnav-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 5px !important;
+    padding: 4px 2px 6px 2px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .rpt-subnav-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .rpt-subnav-tabs .chip {
+    height: 30px !important;
+    padding: 4px 10px !important;
+    font-size: 0.70rem !important;
+    font-weight: 700 !important;
+    border-radius: 999px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  /* (2026-07-13) Horizontal flex gas buttons on mobile; was stacking */
   .gas-head-actions {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
     gap: 6px !important;
     width: 100% !important;
     margin-top: 4px !important;
   }
 
   .gas-action-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
     min-height: 42px !important;
     height: auto !important;
-    padding: 8px 6px !important;
+    padding: 8px 4px !important;
     font-size: 0.75rem !important;
     font-weight: 600 !important;
     display: flex !important;
@@ -2156,16 +2791,22 @@
     display: none !important;
   }
 
+  /* (2026-07-13) Compact report navigation chips; was 40px min-height */
   .rpt-subnav-tabs .chip {
-    padding: 8px 14px !important;
-    font-size: 0.82rem !important;
+    padding: 0 11px !important;
+    font-size: 0.72rem !important;
     font-weight: 700 !important;
     border-radius: 999px !important;
     flex-shrink: 0 !important;
-    min-height: 40px !important;
+    height: 30px !important;
+    min-height: 30px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
+  }
+  .rpt-subnav-tabs .chip .ic-svg {
+    width: 13px !important;
+    height: 13px !important;
   }
 
   .rpt-subnav-tabs .chip.active {
@@ -2255,10 +2896,15 @@
     flex-shrink: 0 !important;
   }
 
+  /* (2026-07-13) Match aux filter dropdown btn height to 38px; was 42px */
   .rpt-aux-filters .rpt-dropdown-btn {
-    height: 42px !important;
-    min-width: 42px !important;
-    padding: 0 10px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    width: 38px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     border-radius: 10px !important;
   }
 
@@ -2329,12 +2975,13 @@
     display: block !important;
   }
 
-  /* (2026-07-13) Fix P&L grid columns & box sizing; was 1fr overflow */
   .rpt-pl-tiles-grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
     margin-bottom: 12px !important;
+    margin-left: 2px !important;
+    margin-right: 2px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -2443,15 +3090,13 @@
     display: none !important;
   }
 
+  /* (2026-07-13) Wrap 9 date chips and compact size; was single-row scroll */
   .loy-quick-pills {
     display: flex !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important;
-    gap: 6px !important;
-    margin-bottom: 12px !important;
-    padding: 2px 0 4px 0 !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    margin-bottom: 10px !important;
+    padding: 2px 0 !important;
   }
 
   .loy-quick-pills::-webkit-scrollbar {
@@ -2459,8 +3104,8 @@
   }
 
   .loy-quick-pill {
-    padding: 6px 14px !important;
-    font-size: 0.80rem !important;
+    padding: 4px 10px !important;
+    font-size: 0.72rem !important;
     font-weight: 700 !important;
     border-radius: 999px !important;
     background: var(--paper-dim, #f1f5f9) !important;
@@ -2468,7 +3113,7 @@
     color: var(--ink) !important;
     cursor: pointer !important;
     flex-shrink: 0 !important;
-    min-height: 36px !important;
+    min-height: 28px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2612,8 +3257,13 @@
     pointer-events: auto !important;
   }
 
-  .table-wrap {
-    touch-action: pan-y !important;
+  /* (2026-07-13) Allow pan-x pan-y on table-wrap; was pan-y blocking scroll */
+  .table-wrap,
+  .table-wrap table,
+  .table-wrap th,
+  .table-wrap td {
+    touch-action: pan-x pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .rpt-more-btn {
@@ -3109,21 +3759,240 @@
     max-height: 72vh !important;
     overflow-y: auto !important;
   }
+
+  /* (2026-07-13) Product transaction history desktop modal; was unconstrained */
+  .modal.modal-product-history {
+    max-width: min(1100px, 92vw) !important;
+    width: 92vw !important;
+  }
+  .modal.modal-product-history .modal-body {
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* (2026-07-13) Reduce gap between tabs and filters on PC; was 14px margin */
+  .category-chips.rpt-subnav-tabs,
+  .rpt-subnav-tabs {
+    margin-bottom: 6px !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* (2026-07-13) Harmonize subnav tabs & filter toolbar on PC; was mismatched */
+  .category-chips.rpt-subnav-tabs .chip {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 14px !important;
+    font-size: 0.78rem !important;
+    font-weight: 750 !important;
+    border-radius: 20px !important;
+    border: 1px solid var(--line) !important;
+    background: var(--paper-raised) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+    transition: all 0.15s ease !important;
+  }
+  .category-chips.rpt-subnav-tabs .chip.active {
+    background: var(--brand) !important;
+    color: #fff !important;
+    border-color: var(--brand) !important;
+    box-shadow: 0 2px 8px rgba(59,90,251,0.3) !important;
+  }
+  .rpt-stepper-pill,
+  .rpt-aux-filters .rpt-dropdown-btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    border-radius: 20px !important;
+    border: 1px solid var(--line) !important;
+    background: var(--paper-raised) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+    font-size: 0.78rem !important;
+  }
+  .rpt-stepper-arrow {
+    height: 32px !important;
+    width: 32px !important;
+  }
+  .rpt-stepper-label {
+    height: 32px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* (2026-07-13) Reduce P&L gaps & prevent PC overflow; was 16px pad & 18px */
+  .view-body {
+    overflow-x: hidden !important;
+  }
+  .pl-summary#ov-pl {
+    margin-bottom: 8px !important;
+  }
+  .rpt-pl-overview-card {
+    border-radius: 14px !important;
+    border: 1px solid rgba(226, 232, 240, 0.85) !important;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    padding: 10px 14px !important;
+    background: var(--paper-raised) !important;
+    margin-bottom: 8px !important;
+  }
+  .rpt-pl-tiles-grid {
+    margin-bottom: 0 !important;
+    gap: 10px !important;
+  }
+  .chart-grid {
+    margin-top: 0 !important;
+    gap: 12px !important;
+  }
+  .rpt-pl-tile {
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  }
+  .rpt-pl-tile:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05) !important;
+  }
+  .rpt-pl-tile-gp {
+    background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%) !important;
+    border: 1px solid rgba(16,185,129,0.25) !important;
+  }
+  .rpt-pl-tile-cogs {
+    background: linear-gradient(135deg, rgba(100,116,139,0.07) 0%, rgba(100,116,139,0.02) 100%) !important;
+    border: 1px solid rgba(100,116,139,0.2) !important;
+  }
+  .rpt-pl-tile-opex {
+    background: linear-gradient(135deg, rgba(239,68,68,0.07) 0%, rgba(239,68,68,0.02) 100%) !important;
+    border: 1px solid rgba(239,68,68,0.2) !important;
+  }
+  .rpt-pl-tile-net {
+    background: linear-gradient(135deg, rgba(59,90,251,0.08) 0%, rgba(59,90,251,0.02) 100%) !important;
+    border: 1.5px solid rgba(59,90,251,0.28) !important;
+  }
+  .chart-grid .chart-card {
+    border-radius: 14px !important;
+    border: 1px solid rgba(226, 232, 240, 0.85) !important;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+    padding: 16px 20px !important;
+  }
+
+  /* (2026-07-13) Fix receipts table width & actions; was auto width */
+  .receipt-table-wrap {
+    overflow-x: auto !important;
+    width: 100% !important;
+  }
+  .receipt-table-wrap table.receipt-data-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+  }
+  .receipt-table-wrap .receipt-select-cell {
+    width: 32px !important;
+    max-width: 32px !important;
+    padding: 6px 2px !important;
+    text-align: center !important;
+  }
+  .receipt-table-wrap .receipt-col-txn {
+    width: 70px !important;
+    min-width: 60px !important;
+    max-width: 80px !important;
+    padding: 6px 4px !important;
+    white-space: nowrap !important;
+  }
+  .receipt-table-wrap .receipt-col-time {
+    width: 155px !important;
+    min-width: 140px !important;
+    max-width: 165px !important;
+    white-space: nowrap !important;
+    padding: 6px 6px !important;
+    font-size: 0.80rem !important;
+  }
+  .receipt-table-wrap .receipt-col-txnid {
+    width: 135px !important;
+    min-width: 125px !important;
+    max-width: 145px !important;
+    white-space: nowrap !important;
+    padding: 6px 6px !important;
+    font-size: 0.80rem !important;
+  }
+  .receipt-table-wrap .receipt-col-source {
+    width: 80px !important;
+    min-width: 75px !important;
+    max-width: 88px !important;
+    padding: 6px 4px !important;
+    text-align: center !important;
+  }
+  .receipt-table-wrap .receipt-col-items {
+    width: 220px !important;
+    max-width: 240px !important;
+    min-width: 160px !important;
+    padding: 6px 8px !important;
+    overflow: hidden !important;
+  }
+  .receipt-table-wrap .receipt-col-total {
+    width: 95px !important;
+    min-width: 85px !important;
+    max-width: 105px !important;
+    padding: 6px 6px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+    font-size: 0.85rem !important;
+  }
+  .receipt-table-wrap .receipt-col-method {
+    width: 75px !important;
+    min-width: 70px !important;
+    max-width: 85px !important;
+    padding: 6px 4px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+  .receipt-table-wrap .receipt-col-cashier {
+    width: 85px !important;
+    min-width: 75px !important;
+    max-width: 95px !important;
+    padding: 6px 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .receipt-table-wrap .receipt-col-actions {
+    width: 155px !important;
+    min-width: 150px !important;
+    max-width: 165px !important;
+    padding: 6px 8px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  .receipt-table-wrap .receipt-actions-cluster {
+    display: inline-flex !important;
+    gap: 4px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+  }
+  .receipt-table-wrap .receipt-actions-cluster .btn {
+    padding: 3px 6px !important;
+    font-size: 0.72rem !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    flex-shrink: 0 !important;
+  }
 }
 
-/* (2026-07-13) Zero bottom padding & margin on main-col & view-root; was pad */
+/* (2026-07-13) Zero top/bottom padding on view-root; was padded */
 .main-col,
+.view,
 #view-root {
+  padding-top: 0 !important;
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
 }
 
-/* (2026-07-13) Compact view-head height for mobile and PC; was bulky padded */
+/* (2026-07-13) Transparent view-head; was background color and border */
 .view-head {
+  position: static !important;
   padding: 6px 14px !important;
   margin-bottom: 4px !important;
   min-height: auto !important;
   align-items: center !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .view-head h2 {
@@ -3307,4 +4176,641 @@
   .shift-card-table tr.sct-variance-row {
     background: color-mix(in srgb, var(--paper-raised) 65%, var(--paper-dim));
   }
+}
+
+/* (2026-07-13) Two-way touch scroll on all tables; was touch-action blocked */
+.table-wrap,
+.daily-sales-table-wrap,
+.inv-table-wrap {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x pan-y !important;
+  overscroll-behavior-x: contain !important;
+  overscroll-behavior-y: auto !important;
+}
+
+.table-wrap table,
+.table-wrap thead,
+.table-wrap tbody,
+.table-wrap tr,
+.table-wrap th,
+.table-wrap td,
+.daily-sales-table-wrap table,
+.daily-sales-table-wrap td,
+.daily-sales-table-wrap th {
+  touch-action: pan-x pan-y !important;
+}
+
+@media (max-width: 768px) {
+  table.data th,
+  table.data td,
+  .table-wrap th,
+  .table-wrap td,
+  .daily-sales-table-wrap td,
+  .daily-sales-table-wrap th {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+}
+
+/* (2026-07-13) Swipe left/right modal navigation; was default fade */
+@keyframes modal-swipe-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes modal-swipe-out-right {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+.modal.modal-slide-left {
+  animation: modal-swipe-in-left 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.modal-backdrop.modal-closing .modal.modal-slide-left {
+  animation: modal-swipe-out-right 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+/* (2026-07-13) Pack modal table cells; was 650px wide with horiz scroll */
+.receipt-modal-table-wrap,
+.modal-receipt-dialog .table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+}
+
+.receipt-items-table,
+.receipt-modal-table-wrap table,
+.modal-receipt-dialog table {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+}
+
+/* (2026-07-13) Tighter receipt modal cells spacing; was 45/10/22/23 */
+@media (max-width: 768px) {
+  .receipt-item-product-col {
+    width: 60% !important;
+    padding: 4px 3px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    text-align: left !important;
+  }
+  
+  .receipt-item-product-col div {
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+
+  .receipt-item-qty-col {
+    width: 9% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 4px 2px !important;
+    text-align: center !important;
+    font-size: 0.74rem !important;
+  }
+
+  .receipt-item-price-col {
+    width: 15% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 4px 2px !important;
+    text-align: right !important;
+    font-size: 0.70rem !important;
+    white-space: nowrap !important;
+  }
+
+  .receipt-item-total-col {
+    width: 16% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 4px 3px !important;
+    text-align: right !important;
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+  }
+
+  .receipt-items-table,
+  .receipt-modal-table-wrap table {
+    overflow-x: hidden !important;
+    table-layout: fixed !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  
+  /* Sticky header on mobile */
+  .receipt-items-table thead {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: var(--paper-dim) !important;
+  }
+  
+  .receipt-items-table thead tr {
+    background: var(--paper-dim) !important;
+  }
+  
+  .receipt-items-table thead th {
+    font-size: 0.65rem !important;
+    padding: 6px 0px !important;
+  }
+  
+  .receipt-items-table thead th:nth-child(1),
+  .receipt-items-table thead .receipt-item-product-col {
+    text-align: left !important;
+    padding-left: 3px !important;
+  }
+  
+  .receipt-items-table thead th:nth-child(3),
+  .receipt-items-table thead th:nth-child(4),
+  .receipt-items-table thead .receipt-item-price-col,
+  .receipt-items-table thead .receipt-item-total-col {
+    padding-right: 2px !important;
+  }
+
+  .receipt-item-thumb {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .receipt-item-name {
+    font-size: 0.68rem !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.05 !important;
+    text-align: left !important;
+  }
+  
+  .receipt-item-badge {
+    font-size: 0.52rem !important;
+    padding: 1px 2px !important;
+  }
+}
+
+/* (2026-07-13) Scale up receipt items table on desktop; was small */
+@media (min-width: 769px) {
+  .receipt-items-table {
+    font-size: 0.95rem !important;
+  }
+
+  .receipt-items-table thead th {
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    padding: 10px 14px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .receipt-items-table tbody td {
+    padding: 12px 14px !important;
+  }
+
+  .receipt-item-product-col {
+    width: 45% !important;
+    padding: 12px 14px !important;
+  }
+
+  .receipt-item-qty-col {
+    width: 15% !important;
+    padding: 12px 14px !important;
+    font-size: 1.05rem !important;
+  }
+
+  .receipt-item-price-col {
+    width: 20% !important;
+    padding: 12px 14px !important;
+    font-size: 0.95rem !important;
+  }
+
+  .receipt-item-total-col {
+    width: 20% !important;
+    padding: 12px 14px !important;
+    font-size: 1.05rem !important;
+  }
+
+  .receipt-item-thumb {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 8px !important;
+  }
+
+  .receipt-item-thumb svg,
+  .receipt-item-thumb .ic-svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .receipt-item-name {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+  }
+
+  .receipt-item-badge {
+    font-size: 0.70rem !important;
+    padding: 2px 6px !important;
+  }
+}
+
+.receipt-table td strong {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+/* (2026-07-13) Remove bottom margin & padding on POS, Gas, & Dash; was pad */
+#view-pos,
+#view-pos.view,
+#view-gas,
+#view-dashboard,
+.gas-view-container,
+.dash-view-container,
+.pos-layout,
+#pos-layout {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* (2026-07-13) Remove all paddings for pos-catalog; was padded */
+.pos-catalog {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* (2026-07-13) Tight mobile table for reports receipts; was 620px scrolling */
+.receipt-table-wrap th:first-child,
+.receipt-table-wrap td:first-child,
+.receipt-select-cell {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 34px !important;
+  padding: 6px 3px !important;
+  text-align: center !important;
+}
+
+.receipt-select-chk,
+#receipt-select-all {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  cursor: pointer !important;
+  margin: 0 auto !important;
+  display: block !important;
+  accent-color: var(--brand) !important;
+}
+
+/* (2026-07-13) Fullscreen backdrop & centered wide modal; was 70vw backdrop */
+@media (min-width: 769px) {
+  .modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .modal.modal-wide,
+  .modal.modal-receipt-dialog {
+    max-width: min(860px, 70vw) !important;
+    width: 70vw !important;
+    margin: auto !important;
+  }
+
+  .receipt-table-wrap:not(.receipt-modal-table-wrap) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .receipt-table-wrap:not(.receipt-modal-table-wrap) table:not(.receipt-items-table) {
+    display: table !important;
+    min-width: 650px !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+}
+
+.receipt-table-wrap thead {
+  display: table-header-group !important;
+}
+
+.receipt-table-wrap tbody {
+  display: table-row-group !important;
+}
+
+.receipt-table-wrap tr {
+  display: table-row !important;
+}
+
+.receipt-table-wrap td,
+.receipt-table-wrap th {
+  display: table-cell !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Hide mobile-specific elements on all screens */
+.receipt-mobile-subinfo,
+.receipt-mobile-meta {
+  display: none !important;
+}
+
+/* (2026-07-13) Compact receipt columns on mobile; was 650px wide scrolling */
+@media (max-width: 768px) {
+  .receipt-table-wrap,
+  .receipt-table-wrap:not(.receipt-modal-table-wrap) {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .receipt-table-wrap table,
+  .receipt-table-wrap:not(.receipt-modal-table-wrap) table:not(.receipt-items-table) {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+  
+  /* Hide desktop-only columns on mobile */
+  .receipt-table-wrap .desktop-only {
+    display: none !important;
+  }
+  
+  .receipt-table-wrap {
+    font-size: 0.75rem !important;
+  }
+  
+  .receipt-table-wrap th {
+    font-size: 0.68rem !important;
+    padding: 5px 2px !important;
+  }
+  
+  .receipt-table-wrap td {
+    padding: 5px 2px !important;
+    font-size: 0.72rem !important;
+  }
+  
+  /* (2026-07-13) Reduce items width and give actions room; was 39% items */
+  .receipt-select-cell,
+  .receipt-select-cell th,
+  .receipt-select-cell td {
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 24px !important;
+    padding: 4px 1px !important;
+    box-sizing: border-box !important;
+  }
+  
+  .receipt-col-txn {
+    width: 17% !important;
+    min-width: 52px !important;
+    max-width: none !important;
+    padding: 4px 2px !important;
+    font-size: 0.72rem !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+  
+  .receipt-col-items {
+    width: 33% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 4px 2px !important;
+    box-sizing: border-box !important;
+  }
+  
+  .receipt-col-items div {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .receipt-col-items span {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    font-size: 0.64rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .receipt-col-items .btn {
+    padding: 1px 5px !important;
+    font-size: 0.65rem !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .receipt-col-total {
+    width: 22% !important;
+    min-width: 68px !important;
+    max-width: none !important;
+    padding: 4px 2px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.72rem !important;
+    box-sizing: border-box !important;
+  }
+  
+  .receipt-col-actions {
+    width: 20% !important;
+    min-width: 58px !important;
+    max-width: none !important;
+    padding: 4px 2px !important;
+    text-align: right !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+  
+  .receipt-actions-cluster {
+    display: inline-flex !important;
+    gap: 3px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+  
+  .receipt-col-actions .btn {
+    padding: 3px 5px !important;
+    font-size: 0.65rem !important;
+    min-width: 22px !important;
+    height: 25px !important;
+  }
+  
+  .receipt-table-wrap .badge {
+    font-size: 0.60rem !important;
+    padding: 1px 2px !important;
+  }
+  
+  /* (2026-07-13) Reduce mobile report index column width; was wide first-child */
+  table.data th.rpt-col-idx,
+  table.data td.rpt-col-idx,
+  .rpt-items-table th:first-child,
+  .rpt-items-table td:first-child,
+  .rpt-col-idx,
+  th.rpt-col-idx,
+  td.rpt-col-idx {
+    width: 32px !important;
+    min-width: 28px !important;
+    max-width: 36px !important;
+    padding: 8px 2px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* (2026-07-13) Style report topbar breadcrumb dropdown; was no breadcrumb */
+  .rpt-crumb-item:hover {
+    background: var(--paper-hover, rgba(0,0,0,0.05)) !important;
+  }
+
+  .rpt-items-table td:nth-child(2) {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    padding: 8px 2px !important;
+  }
+
+  .void-table .void-col-time,
+  .void-table th:first-child,
+  .void-table td:first-child {
+    width: 78px !important;
+    min-width: 74px !important;
+    max-width: 82px !important;
+    padding: 8px 4px !important;
+    font-size: 0.74rem !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  .void-table .void-col-txn,
+  .void-table th:nth-child(2),
+  .void-table td:nth-child(2) {
+    width: 78px !important;
+    min-width: 72px !important;
+    max-width: 84px !important;
+    padding: 8px 4px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  .daily-sales-table th:first-child,
+  .daily-sales-table td:first-child,
+  .daily-sales-table .date-col-cell {
+    width: 100px !important;
+    min-width: 95px !important;
+    max-width: 110px !important;
+    padding: 8px 6px !important;
+    white-space: nowrap !important;
+    font-size: 0.82rem !important;
+  }
+
+  #btn-toggle-refunds-col,
+  #btn-toggle-discounts-col {
+    display: none !important;
+  }
+
+  .product-drilldown-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .product-drilldown-table th,
+  .product-drilldown-table td {
+    padding: 8px 4px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .product-drilldown-table .drill-col-time {
+    width: 46% !important;
+    max-width: 140px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    font-size: 0.74rem !important;
+    padding: 8px 4px !important;
+  }
+
+  .product-drilldown-table .drill-col-qty {
+    width: 14% !important;
+    text-align: center !important;
+  }
+
+  .product-drilldown-table .drill-col-amt {
+    width: 24% !important;
+    text-align: right !important;
+    font-weight: 700 !important;
+  }
+
+  .product-drilldown-table .drill-col-method {
+    width: 16% !important;
+    text-align: right !important;
+    font-size: 0.72rem !important;
+  }
+
+  .rpt-aux-filters .rpt-dropdown-btn * {
+    pointer-events: none !important;
+  }
+}
+
+/* (2026-07-13) Remove bottom margin & pad on category-chips; was padded */
+.category-chips {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* (2026-07-13) Compact trend period select on mobile; was 44px min-height */
+#trend-period-select {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 2px 8px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  width: auto !important;
+  max-width: 120px !important;
+  border-radius: 6px !important;
 }

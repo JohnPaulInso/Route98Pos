@@ -26,7 +26,8 @@ const App = (() => {
       views: [
         // (2026-07-13) Sort operations: Reports, Inventory, Expenses (OPEX); was unsorted
         { id:"reports", label:"Reports", ic:"clipboard", mod:Reports, roles:["admin","cashier"], color:"#4B5563" },
-        { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin"], color:"#4B5563" },
+        // (2026-07-13) Inventory now accessible to cashier; was admin only
+        { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin","cashier"], color:"#4B5563" },
         { id:"expenses", label:"Expenses (OPEX)", ic:"dollar-sign", mod:Expenses, roles:["admin"], color:"#DC2626" }
       ]
     },
@@ -36,17 +37,19 @@ const App = (() => {
         { id:"settings", label:"Settings", ic:"gear", mod:Settings, roles:["admin"], color:"#4B5563" }
       ]
     },
-    // (2026-07-13) Group inactive event venue and restaurant together; was separate
+    // (2026-07-13) Hide event venue from cashier; was roles:admin,cashier
     {
       group: "INACTIVE",
       views: [
-        { id:"venue", label:"Event Venue", ic:"party", mod:Venue, roles:["admin","cashier"], color:"#7C3AED" },
+        { id:"venue", label:"Event Venue", ic:"party", mod:Venue, roles:["admin"], color:"#7C3AED" },
         { id:"restaurant", label:"Restaurant", ic:"utensils", mod:Restaurant, roles:["admin"], color:"#059669" }
       ]
     }
   ];
+  // (2026-07-13) Restore VIEWS definition from NAV_SECTIONS; was missing
   const VIEWS = NAV_SECTIONS.flatMap(s => s.views);
-  const BOTTOM_NAV_IDS = ["dashboard","pos","gasoline","venue","shift","inventory"];
+  // (2026-07-13) Add inventory to bottom nav; was pos/shift/reports/dash/gas only
+  const BOTTOM_NAV_IDS = ["pos","inventory","shift","reports","gasoline"];
   let currentView = "dashboard";
 
   function accessibleViews(){
@@ -98,7 +101,7 @@ const App = (() => {
     paintShiftIndicator();
   }
 
-  // (2026-07-13) Topbar shift status indicator: green open, red closed; was none
+  // (2026-07-13) Responsive shift badge with extra text wrap; was static span
   function paintShiftIndicator(){
     const el = document.getElementById("topbar-shift-indicator");
     if(!el) return;
@@ -106,11 +109,11 @@ const App = (() => {
     const isOpen = Boolean(s && s.status === "open");
     if(isOpen){
       el.className = "topbar-shift-badge shift-open";
-      el.innerHTML = `<span class="shift-dot green"></span><span>Open Shift</span>`;
+      el.innerHTML = `<span class="shift-dot green"></span><span>Open<span class="shift-text-extra"> Shift</span></span>`;
       el.title = `Shift is Open (${s.cashier || "Cashier"}) — Click to manage`;
     } else {
       el.className = "topbar-shift-badge shift-closed";
-      el.innerHTML = `<span class="shift-dot red"></span><span>Closed Shift</span>`;
+      el.innerHTML = `<span class="shift-dot red"></span><span>Closed<span class="shift-text-extra"> Shift</span></span>`;
       el.title = "Shift is Closed — Click to open shift";
     }
   }
@@ -234,17 +237,19 @@ const App = (() => {
       </div>
 
       <nav class="bottom-nav">
+        <!-- (2026-07-13) Render 6 bottom nav items; was 5 tabs with more -->
         <div class="bottom-nav-inner">
-          ${views.filter(v=>BOTTOM_NAV_IDS.includes(v.id)).map(v => `
-            <button class="bn-btn" data-nav="${v.id}">
+          ${BOTTOM_NAV_IDS.map(id => {
+            const v = views.find(item => item.id === id);
+            if(!v) return "";
+            const lbl = v.id === "dashboard" ? "Dashboard" : (v.id === "gasoline" ? "Gasoline" : (v.id === "pos" ? "Minimart" : v.label.split(" ")[0]));
+            return `
+            <button class="bn-btn" data-nav="${v.id}" title="${v.label}">
+              <!-- (2026-07-13) Nav icons gray when inactive; was colored -->
               <span class="ic" style="position:relative;">${Icons.get(v.ic,{size:20})}${v.id==="inventory"?`<span id="inv-badge-dot-bn" style="display:none;position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--danger);"></span>`:""}</span>
-              ${v.label.split(" ")[0]}
-            </button>`).join("")}
-          <!-- (2026-07-13) Add More button in mobile bottom nav; was 5 fixed tabs -->
-          <button class="bn-btn" id="btn-bn-more">
-            <span class="ic">${Icons.get("grid",{size:20})}</span>
-            More
-          </button>
+              <span>${lbl}</span>
+            </button>`;
+          }).join("")}
         </div>
       </nav>
 

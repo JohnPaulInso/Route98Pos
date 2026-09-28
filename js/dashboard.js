@@ -1347,12 +1347,10 @@ const Dashboard = (() => {
         <!-- Sticky Header Bar: Business Groups & Time Periods -->
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;flex-shrink:0;">
           <div>
+            <!-- (2026-07-13) Remove dashboard subtitle; was static subtitle div -->
             <h2 style="font-size:1.15rem;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:6px;margin:0 0 2px;">
               <span style="color:#312E81;">${Icons.get("bar-chart",{size:18})}</span> Executive Dashboard
             </h2>
-            <div style="font-size:.74rem;color:#475569;font-weight:600;">
-              Consolidated financial oversight & performance for Route 98 commercial group
-            </div>
           </div>
 
           <!-- (2026-07-13) Use date stepper toolbar on dashboard; was period chips -->
@@ -1415,8 +1413,8 @@ const Dashboard = (() => {
           </button>
         </div>
 
-        <!-- Scrollable Main Content -->
-        <div style="flex:1;min-height:0;overflow-y:auto;padding-right:6px;padding-bottom:50px;">
+        <!-- (2026-07-13) Zero bottom padding in dashboard view; was 50px -->
+        <div style="flex:1;min-height:0;overflow-y:auto;padding-right:6px;padding-bottom:0;">
           <!-- A. Top P&L Strip -->
           <div id="dash-pl-strip"></div>
 

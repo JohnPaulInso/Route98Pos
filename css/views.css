@@ -56,8 +56,23 @@
 }
 .pos-search-row .input-icon-wrap .clear-search-btn:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); transform:translateY(-50%) scale(1.08); }
 .pos-search-row .input-icon-wrap .clear-search-btn.visible{ display:flex; }
-/* (2026-07-13) Style category chips uppercase & thin scrollbar; was plain text */
-.category-chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; flex-shrink:0; min-width:0; }
+
+/* Desktop POS search and action buttons */
+.pos-sticky-header{ flex-shrink:0; margin-bottom:8px; }
+.pos-search-scanner-bar{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.pos-search-wrap{ flex:1; position:relative; min-width:0; }
+.pos-search-wrap .search-icon-left{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
+.pos-search-wrap .input{ padding-left:40px; padding-right:40px; border-radius:24px; border:1.5px solid var(--line-strong); outline:none !important; }
+.pos-search-wrap .input:focus{ border-color:var(--brand); outline:none !important; box-shadow:0 0 0 3px var(--brand-tint); }
+.pos-search-wrap .clear-search-btn{ position:absolute; right:10px; top:50%; transform:translateY(-50%); background:var(--paper-dim); border:1px solid var(--line); color:var(--ink-soft); cursor:pointer; padding:0; border-radius:50%; width:28px; height:28px; display:none; align-items:center; justify-content:center; transition:all .15s ease; z-index:2; }
+.pos-search-wrap .clear-search-btn svg{ display:block; width:16px; height:16px; margin:0; }
+.pos-search-wrap .clear-search-btn:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); transform:translateY(-50%) scale(1.08); }
+.pos-search-wrap .clear-search-btn.visible{ display:flex; }
+.pos-action-buttons{ display:flex; gap:8px; align-items:center; margin-left:auto; }
+.pos-scan-btn, .pos-held-btn{ white-space:nowrap; }
+
+/* (2026-07-13) Zero category chips bottom pad & margin; was pad 6px */
+.category-chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:0; margin-bottom:0; flex-shrink:0; min-width:0; }
 .category-chips .chip{ text-transform:uppercase; letter-spacing:.02em; font-size:.66rem; font-weight:800; }
 .category-chips::-webkit-scrollbar{ height:3px; }
 .category-chips::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:3px; }
@@ -288,9 +303,90 @@
 table.data th.sortable-th{ cursor:pointer; user-select:none; transition:background var(--transition), color var(--transition); }
 table.data th.sortable-th:hover{ background:var(--brand-tint); color:var(--brand-deep); }
 table.data th.sortable-th .sort-arrow{ display:inline-block; margin-left:4px; font-size:.65rem; color:var(--brand); }
+/* (2026-07-13) Center amount due card on PC view; was left-aligned */
+.checkout-due-card{
+  position: relative !important;
+  background: linear-gradient(135deg, rgba(59,90,251,0.08) 0%, rgba(59,90,251,0.02) 100%) !important;
+  border: 1.5px solid rgba(59,90,251,0.25) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 14px 18px !important;
+  text-align: center !important;
+  margin-bottom: 10px !important;
+}
+.checkout-due-head{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  margin-bottom: 2px !important;
+}
+.checkout-due-lbl{
+  font-size: .78rem !important;
+  font-weight: 800 !important;
+  color: var(--brand) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .05em !important;
+  text-align: center !important;
+}
+.checkout-cashier-pill{
+  position: absolute !important;
+  right: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  background: var(--paper-raised) !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 20px !important;
+  padding: 2px 10px !important;
+  color: var(--ink-soft) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+.checkout-cashier-pill select{
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-size: .80rem !important;
+  font-weight: 700 !important;
+  color: var(--ink) !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.checkout-due-val{
+  font-family: var(--font-mono) !important;
+  font-size: 2.2rem !important;
+  font-weight: 900 !important;
+  color: var(--brand-deep) !important;
+  letter-spacing: -.02em !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+}
 /* (2026-07-13) Enlarge payment method buttons & change box; was tiny .74rem */
 .pos-payment-methods{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0 16px; }
 .pos-payment-methods .chip{ justify-content:center; text-align:center; padding:11px 8px; font-size:.92rem; font-weight:700; border-radius:12px; gap:8px; }
+/* (2026-07-13) Scale cash input & placeholder font; was unstyled small font */
+#cash-input,
+input#cash-input{
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  font-family: var(--font-mono) !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 6px 14px !important;
+  box-sizing: border-box !important;
+}
+#cash-input::placeholder,
+#cash-input::-webkit-input-placeholder,
+input#cash-input::placeholder,
+input#cash-input::-webkit-input-placeholder{
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  font-family: var(--font-mono) !important;
+  color: var(--ink-faint) !important;
+  opacity: 0.6 !important;
+}
 .cash-presets-row{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
 .cash-preset-btn{ flex:1; min-width:64px; padding:8px 10px; font-size:.85rem; font-weight:800; font-family:var(--font-mono); border:1px solid var(--line-strong); background:var(--paper-raised); border-radius:8px; cursor:pointer; color:var(--ink-soft); text-align:center; transition:all var(--transition); }
 .cash-preset-btn:hover, .cash-preset-btn:active{ background:var(--brand-tint); color:var(--brand-deep); border-color:var(--brand); }
@@ -828,8 +924,8 @@ table.data th:first-child{
   .fuel-sale-panel{ grid-template-columns:1fr; }
   .grid-2{ grid-template-columns:1fr; }
   /* (2026-07-13) Safe bottom nav padding on mobile; was calc(h + 12px) */
-  .view{ padding:10px 12px; padding-bottom:calc(var(--bottomnav-h) + 36px) !important; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  #view-pos.view{ overflow:hidden; padding:8px 12px; padding-bottom:calc(var(--bottomnav-h) + 4px); height:100%; }
+  .view{ padding:0 12px 10px; padding-bottom:calc(var(--bottomnav-h) + 36px) !important; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #view-pos.view{ overflow:hidden; padding:0 12px 8px; padding-bottom:calc(var(--bottomnav-h) + 4px); height:100%; }
 }
 /* (2026-07-13) 3-column grid with resizer in desktop/tablet; was 2-column */
 @media (min-width: 601px), (orientation: landscape) and (min-width: 480px){
@@ -863,8 +959,8 @@ table.data th:first-child{
 @media (max-height: 540px) and (orientation: landscape){
   :root{ --topbar-h: 42px; --bottomnav-h: 44px; }
   .topbar{ padding: 0 12px; gap: 8px; }
-  .view{ padding: 4px 10px; }
-  #view-pos.view{ padding: 4px 10px; padding-bottom:calc(var(--bottomnav-h) + 4px); }
+  .view{ padding: 0 10px 4px; }
+  #view-pos.view{ padding: 0 10px 4px; padding-bottom:calc(var(--bottomnav-h) + 4px); }
   .view-head{ margin-bottom: 2px; }
   .view-head h2{ font-size: .95rem; }
   .pos-search-row{ margin-bottom: 4px; }
@@ -893,7 +989,8 @@ table.data th:first-child{
     overflow-x:auto !important;
     -webkit-overflow-scrolling:touch !important;
     scrollbar-width:none !important;
-    padding-bottom:6px !important;
+    padding-bottom:0 !important;
+    margin-bottom:0 !important;
     gap:6px !important;
   }
   .category-chips::-webkit-scrollbar{ display:none; }
@@ -1148,7 +1245,8 @@ table.data th:first-child{
     overflow-x:auto !important;
     -webkit-overflow-scrolling:touch !important;
     scrollbar-width:none !important;
-    padding-bottom:4px !important;
+    padding-bottom:0 !important;
+    margin-bottom:0 !important;
   }
   .category-chips::-webkit-scrollbar{ display:none; }
   .category-chips .chip{
@@ -1170,10 +1268,11 @@ table.data th:first-child{
     min-width:620px !important;
     width:100% !important;
   }
-  table.data th:first-child,
-  table.data td:first-child,
-  [data-theme="dark"] table.data th:first-child,
-  [data-theme="dark"] table.data td:first-child{
+  /* (2026-07-13) Exclude rpt-col-idx from wide first col; was th/td:first-child */
+  table.data th:first-child:not(.rpt-col-idx),
+  table.data td:first-child:not(.rpt-col-idx),
+  [data-theme="dark"] table.data th:first-child:not(.rpt-col-idx),
+  [data-theme="dark"] table.data td:first-child:not(.rpt-col-idx){
     position:static !important;
     left:auto !important;
     z-index:auto !important;
@@ -1453,6 +1552,10 @@ table.data th:first-child{
   .gas-view-head{
     flex-direction: column;
     align-items: stretch;
+  }
+  .gas-head-actions{
+    flex-direction: row;
+    justify-content: flex-start;
   }
   .gas-head-actions{
     width: 100% !important;

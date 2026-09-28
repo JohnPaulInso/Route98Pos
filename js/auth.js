@@ -24,15 +24,77 @@ const Auth = (() => {
     }catch(e){ /* ignore */ }
   }
 
-  // (2026-07-13) Add Sound feedback on PIN keypad entry & login; was silent
+  let keydownBound = false;
+  function onLoginKeyDown(e){
+    if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if(document.querySelector(".modal-backdrop") || document.querySelector(".modal")) return;
+    if(e.key >= "0" && e.key <= "9"){
+      e.preventDefault();
+      handleKey(e.key);
+    } else if(e.key === "Backspace"){
+      e.preventDefault();
+      handleKey("back");
+    } else if(e.key === "Escape" || e.key === "Delete" || e.key.toLowerCase() === "c"){
+      e.preventDefault();
+      handleKey("clear");
+    } else if(e.key === "Enter"){
+      if(pinBuffer.length === 4){
+        e.preventDefault();
+        tryLogin();
+      }
+    }
+  }
+
+  function setupKeyboardListener(){
+    if(!keydownBound){
+      window.addEventListener("keydown", onLoginKeyDown);
+      keydownBound = true;
+    }
+  }
+
+  function cleanupKeyboardListener(){
+    if(keydownBound){
+      window.removeEventListener("keydown", onLoginKeyDown);
+      keydownBound = false;
+    }
+  }
+
+  // (2026-07-13) Cashier tab = only cashier role; Admin tab = admin role users; was role match
+  function getProfileSelectOptions(){
+    const users = DB.getUsers().filter(u => u.role === pendingRole);
+    if(!users.length) return `<option value="any">No registered ${pendingRole} accounts</option>`;
+    return users.map(u => `<option value="${u.id}">${Utils.escapeHtml(u.name)}</option>`).join("");
+  }
+
+  // (2026-07-13) Profile-based PIN login & duty cashier assignment; was generic match
   function tryLogin(){
     const users = DB.getUsers().filter(u => u.role === pendingRole);
-    const match = users.find(u => u.pin === pinBuffer);
+    const selEl = document.getElementById("login-user-select");
+    const selId = selEl ? selEl.value : "any";
+    let match = null;
+    if(selId && selId !== "any"){
+      const specific = users.find(u => u.id === selId);
+      if(specific && specific.pin === pinBuffer){
+        match = specific;
+      }
+    } else {
+      match = users.find(u => u.pin === pinBuffer);
+    }
+
     if(match){
       Utils.Sound.cashChime();
       session = { id: match.id, name: match.name, role: match.role };
       sessionStorage.setItem("mm_session", JSON.stringify(session));
+      localStorage.setItem("pos_cashier", match.name);
+      try {
+        const s = DB.getShift ? DB.getShift() : null;
+        if(s && s.status === "open"){
+          s.cashier = match.name;
+          DB.setShift(s);
+        }
+      } catch(e){}
       pinBuffer = "";
+      cleanupKeyboardListener();
       App.boot();
     } else {
       Utils.Sound.error();
@@ -60,6 +122,7 @@ const Auth = (() => {
   }
 
   function render(){
+    setupKeyboardListener();
     const root = document.getElementById("root");
     root.innerHTML = `
       <div class="login-screen">
@@ -73,8 +136,13 @@ const Auth = (() => {
             </div>
           </div>
           <div class="role-toggle">
-            <button id="role-cashier" class="active">${Icons.get("receipt",{size:15})} Cashier</button>
-            <button id="role-admin">${Icons.get("key",{size:15})} Admin</button>
+            <button id="role-cashier" class="${pendingRole==='cashier'?'active':''}">${Icons.get("receipt",{size:15})} Cashier</button>
+            <button id="role-admin" class="${pendingRole==='admin'?'active':''}">${Icons.get("key",{size:15})} Admin</button>
+          </div>
+          <div class="login-profile-select-wrap" style="margin-bottom:10px;">
+            <select class="input" id="login-user-select" style="font-size:0.86rem;font-weight:600;height:38px;width:100%;text-align:center;text-align-last:center;border-radius:8px;background:var(--paper-dim);">
+              ${getProfileSelectOptions()}
+            </select>
           </div>
           <p class="text-sm text-faint" style="text-align:center;margin-bottom:6px;">Enter your 4-digit PIN</p>
           <div class="pin-dots" id="pin-dots"></div>
@@ -161,10 +229,13 @@ const Auth = (() => {
     });
   }
 
+  // (2026-07-13) Update profile select options on role switch; was static tabs
   function setRole(role){
     pendingRole = role; pinBuffer = "";
-    document.getElementById("role-cashier").classList.toggle("active", role==="cashier");
-    document.getElementById("role-admin").classList.toggle("active", role==="admin");
+    document.getElementById("role-cashier")?.classList.toggle("active", role==="cashier");
+    document.getElementById("role-admin")?.classList.toggle("active", role==="admin");
+    const sel = document.getElementById("login-user-select");
+    if(sel) sel.innerHTML = getProfileSelectOptions();
     renderPinDots();
   }
 

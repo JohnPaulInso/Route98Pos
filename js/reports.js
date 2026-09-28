@@ -167,14 +167,15 @@ const Reports = (() => {
         ` : ""}
       </div>
       <h4 style="font-size:var(--fs-sm);margin-bottom:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);">Items Purchased (${sale.items ? sale.items.length : 0})</h4>
-      <div class="table-wrap" style="max-height:280px;overflow-y:auto;margin-bottom:14px;border:1px solid var(--line);border-radius:var(--r-md);">
-        <table class="data" style="font-size:1rem;">
+      <!-- (2026-07-13) Responsive receipt modal table; was small on desktop -->
+      <div class="table-wrap receipt-modal-table-wrap" style="max-height:340px;overflow-y:auto;overflow-x:hidden;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r-md);width:100%;">
+        <table class="receipt-items-table" style="width:100%;min-width:0;max-width:100%;table-layout:fixed;">
           <thead>
-            <tr style="font-size:.84rem;text-transform:uppercase;letter-spacing:.03em;">
-              <th style="padding:10px 12px;">Product</th>
-              <th style="text-align:center;padding:10px 8px;width:70px;">Qty</th>
-              <th style="text-align:right;padding:10px 8px;width:110px;">Price</th>
-              <th style="text-align:right;padding:10px 12px;width:120px;">Total</th>
+            <tr style="text-transform:uppercase;letter-spacing:.02em;">
+              <th class="receipt-item-product-col" style="text-align:left;">Product</th>
+              <th class="receipt-item-qty-col" style="text-align:center;">Qty</th>
+              <th class="receipt-item-price-col" style="text-align:right;">Price</th>
+              <th class="receipt-item-total-col" style="text-align:right;">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -184,48 +185,48 @@ const Reports = (() => {
               const cat = l.category || matched.category;
               return `
               <tr>
-                <td style="padding:10px 12px;">
-                  <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="prod-thumb-sm" style="width:42px;height:42px;border-radius:10px;flex-shrink:0;border:1px solid var(--line);">
-                      ${Utils.productThumb({ ...l, imageUrl: img, category: cat }, { iconSize:22 })}
+                <td class="receipt-item-product-col" style="white-space:normal;word-break:break-word;">
+                  <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                    <div class="prod-thumb-sm receipt-item-thumb" style="border-radius:6px;flex-shrink:0;border:1px solid var(--line);">
+                      ${Utils.productThumb({ ...l, imageUrl: img, category: cat }, { iconSize:18 })}
                     </div>
-                    <div>
-                      <strong style="font-size:1.08rem;line-height:1.25;display:block;">${Utils.escapeHtml(l.name)}</strong>
-                      ${l.unitType==="pack" ? `<span class="badge badge-brand" style="font-size:.70rem;padding:2px 6px;margin-top:3px;">PACK (${l.piecesPerPack||1} pcs)</span>` : l.isCustom ? `<span class="badge badge-neutral" style="font-size:.70rem;padding:2px 6px;margin-top:3px;">Custom Item</span>` : ""}
+                    <div style="min-width:0;flex:1;">
+                      <strong class="receipt-item-name" style="display:block;white-space:normal;word-break:break-word;overflow:visible;">${Utils.escapeHtml(l.name)}</strong>
+                      ${l.unitType==="pack" ? `<span class="badge badge-brand receipt-item-badge" style="margin-top:2px;">PACK (${l.piecesPerPack||1})</span>` : l.isCustom ? `<span class="badge badge-neutral receipt-item-badge" style="margin-top:2px;">Custom</span>` : ""}
                     </div>
                   </div>
                 </td>
-                <td style="text-align:center;font-size:1.25rem;font-weight:850;padding:10px 8px;" class="mono">${l.qty}</td>
-                <td style="text-align:right;font-size:1.05rem;font-weight:700;padding:10px 8px;" class="mono text-faint">${Utils.money(l.price)}</td>
-                <td style="text-align:right;font-size:1.2rem;font-weight:850;color:var(--brand-deep);padding:10px 12px;" class="mono">${Utils.money(l.price * l.qty)}</td>
+                <td class="receipt-item-qty-col mono" style="text-align:center;font-weight:800;">${l.qty}</td>
+                <td class="receipt-item-price-col mono text-faint" style="text-align:right;font-weight:600;white-space:nowrap;">${Utils.money(l.price)}</td>
+                <td class="receipt-item-total-col mono" style="text-align:right;font-weight:800;color:var(--brand-deep);white-space:nowrap;">${Utils.money(l.price * l.qty)}</td>
               </tr>`;
             }).join("")}
           </tbody>
         </table>
       </div>
-      <div class="totals-summary" style="background:var(--paper-raised);border:1.5px solid var(--line-strong);border-radius:var(--r-lg);padding:14px 18px;">
-        <div class="totals-row" style="font-size:1.05rem;margin-bottom:6px;"><span>Subtotal</span><span class="mono" style="font-weight:700;">${Utils.money(sale.subtotal ?? sale.total)}</span></div>
-        ${sale.discountAmt ? `<div class="totals-row" style="font-size:1.05rem;margin-bottom:6px;"><span class="text-faint">Discount</span><span class="mono font-bold" style="color:var(--danger);">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        ${settings.vatEnabled && sale.vat ? `<div class="totals-row" style="font-size:1.02rem;margin-bottom:6px;"><span>VAT incl. (${settings.vatRate}%)</span><span class="mono font-bold">${Utils.money(sale.vat)}</span></div>` : ""}
-        <div class="totals-row grand" style="padding-top:8px;margin-top:6px;border-top:1.5px solid var(--line);">
-          <span style="font-size:1.25rem;font-weight:800;">Total Paid</span>
-          <span class="mono" style="font-size:2.3rem;font-weight:900;color:var(--brand);">${Utils.money(sale.total)}</span>
+      <div class="totals-summary" style="background:var(--paper-raised);border:1.5px solid var(--line-strong);border-radius:var(--r-lg);padding:12px 16px;">
+        <div class="totals-row" style="font-size:0.95rem;margin-bottom:4px;"><span>Subtotal</span><span class="mono" style="font-weight:700;">${Utils.money(sale.subtotal ?? sale.total)}</span></div>
+        ${sale.discountAmt ? `<div class="totals-row" style="font-size:0.95rem;margin-bottom:4px;"><span class="text-faint">Discount</span><span class="mono font-bold" style="color:var(--danger);">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
+        ${settings.vatEnabled && sale.vat ? `<div class="totals-row" style="font-size:0.92rem;margin-bottom:4px;"><span>VAT incl. (${settings.vatRate}%)</span><span class="mono font-bold">${Utils.money(sale.vat)}</span></div>` : ""}
+        <div class="totals-row grand" style="padding-top:6px;margin-top:4px;border-top:1.5px solid var(--line);">
+          <span style="font-size:1.05rem;font-weight:800;">Total Paid</span>
+          <span class="mono" style="font-size:1.35rem;font-weight:900;color:var(--brand);">${Utils.money(sale.total)}</span>
         </div>
         ${sale.method === "Cash" && sale.tendered !== undefined ? `
-          <div class="totals-row" style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;font-size:1.15rem;">
+          <div class="totals-row" style="margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;font-size:0.95rem;">
             <span class="text-faint" style="font-weight:700;">Cash Tendered</span>
-            <span class="mono font-bold" style="font-size:1.35rem;">${Utils.money(sale.tendered)}</span>
+            <span class="mono font-bold" style="font-size:1.05rem;">${Utils.money(sale.tendered)}</span>
           </div>
-          <div class="totals-row" style="margin-top:4px;font-size:1.25rem;">
+          <div class="totals-row" style="margin-top:4px;font-size:1rem;">
             <span style="font-weight:800;color:var(--success-deep);">Change Given</span>
-            <span class="mono font-bold" style="font-size:1.75rem;font-weight:900;color:var(--success-deep);">${Utils.money(sale.change || 0)}</span>
+            <span class="mono font-bold" style="font-size:1.15rem;font-weight:900;color:var(--success-deep);">${Utils.money(sale.change || 0)}</span>
           </div>
         ` : ""}
       </div>`;
 
     // (2026-07-13) Edit sale, void logs & restock rollbacks for Admin; was delete only
     const actions = [
-      { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modal.close(); if(opts.onClose) opts.onClose(); } }
+      { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modal.close(opts.onClose); } }
     ];
     if(Auth.isAdmin()){
       actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modal.close(); openEditSaleModal(sale); } });
@@ -238,6 +239,7 @@ const Reports = (() => {
       body,
       wide: true,
       actions,
+      modalClass: `modal-receipt-dialog ${opts.modalClass || ""}`,
       onClose: opts.onClose
     });
 
@@ -791,12 +793,17 @@ const Reports = (() => {
         <div class="loy-sheet-handle"></div>
         <div class="loy-picker-wrap">
           <div class="loy-cal-panel">
+            <!-- (2026-07-13) Add all preset chips to match desktop panel; was 4 chips -->
             <div class="loy-quick-pills">
+              <button class="loy-quick-pill ${selectedPreset === 'all' ? 'active' : ''}" type="button" data-loy-preset="all">All time</button>
               <button class="loy-quick-pill ${selectedPreset === 'today' ? 'active' : ''}" type="button" data-loy-preset="today">Today</button>
               <button class="loy-quick-pill ${selectedPreset === 'yesterday' ? 'active' : ''}" type="button" data-loy-preset="yesterday">Yesterday</button>
-              <button class="loy-quick-pill ${selectedPreset === 'last_7d' ? 'active' : ''}" type="button" data-loy-preset="last_7d">Last 7 Days</button>
-              <button class="loy-quick-pill ${selectedPreset === 'this_month' ? 'active' : ''}" type="button" data-loy-preset="this_month">This Month</button>
-              <button class="loy-quick-pill ${selectedPreset === 'all' ? 'active' : ''}" type="button" data-loy-preset="all">All time</button>
+              <button class="loy-quick-pill ${selectedPreset === 'this_week' ? 'active' : ''}" type="button" data-loy-preset="this_week">This week</button>
+              <button class="loy-quick-pill ${selectedPreset === 'last_week' ? 'active' : ''}" type="button" data-loy-preset="last_week">Last week</button>
+              <button class="loy-quick-pill ${selectedPreset === 'this_month' ? 'active' : ''}" type="button" data-loy-preset="this_month">This month</button>
+              <button class="loy-quick-pill ${selectedPreset === 'last_month' ? 'active' : ''}" type="button" data-loy-preset="last_month">Last month</button>
+              <button class="loy-quick-pill ${selectedPreset === 'last_7d' ? 'active' : ''}" type="button" data-loy-preset="last_7d">Last 7 days</button>
+              <button class="loy-quick-pill ${selectedPreset === 'last_30d' ? 'active' : ''}" type="button" data-loy-preset="last_30d">Last 30 days</button>
             </div>
             <div class="loy-cal-header">
               <button class="loy-cal-nav" id="loy-prev-month" type="button">${Icons.get("chevron-left", {size:16})}</button>
@@ -926,7 +933,8 @@ const Reports = (() => {
             selPhase = "done";
           }
           selectedPreset = null;
-          modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.remove("active"));
+          // (2026-07-13) Clear loy-quick-pill active states; was loy-preset-btn only
+          modal.querySelectorAll(".loy-preset-btn, .loy-quick-pill").forEach(b => b.classList.remove("active"));
           renderGrid();
         };
       });
@@ -958,7 +966,8 @@ const Reports = (() => {
           viewYear = new Date(tempEnd).getFullYear();
         }
         selectedPreset = null;
-        modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.remove("active"));
+        // (2026-07-13) Clear loy-quick-pill active states; was loy-preset-btn only
+        modal.querySelectorAll(".loy-preset-btn, .loy-quick-pill").forEach(b => b.classList.remove("active"));
         renderGrid();
       }
     };
@@ -974,7 +983,8 @@ const Reports = (() => {
       btn.onclick = () => {
         const p = btn.dataset.loyPreset;
         selectedPreset = p;
-        modal.querySelectorAll(".loy-preset-btn").forEach(b => b.classList.toggle("active", b === btn));
+        // (2026-07-13) Sync loy-quick-pill active states; was loy-preset-btn only
+        modal.querySelectorAll(".loy-preset-btn, .loy-quick-pill").forEach(b => b.classList.toggle("active", b.dataset.loyPreset === p));
         if(p === "all"){
           const allSales = [...(DB.getSales ? DB.getSales() : []), ...(DB.getFuelSales ? DB.getFuelSales() : [])];
           const minTs = allSales.length ? Math.min(...allSales.map(s => s.ts).filter(Boolean)) : new Date(now.getFullYear(), 5, 1).getTime();
@@ -1175,6 +1185,65 @@ const Reports = (() => {
       </div>`;
   }
 
+  // (2026-07-13) Open time/emp modal on mobile toolbar; was clipped dropdown
+  function openTimeFilterModal(){
+    const options = [
+      { id: "all", label: "All day" },
+      { id: "morning", label: "Morning (06:00 - 14:00)" },
+      { id: "afternoon", label: "Afternoon (14:00 - 22:00)" },
+      { id: "night", label: "Night (22:00 - 06:00)" }
+    ];
+    const body = `
+      <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">
+        ${options.map(opt => `
+          <button class="btn ${timeFilter === opt.id ? 'btn-primary' : 'btn-outline'}" data-time-opt="${opt.id}" style="justify-content:flex-start;padding:12px 16px;font-size:0.95rem;text-align:left;width:100%;font-weight:700;">
+            ${opt.label}
+          </button>
+        `).join("")}
+      </div>`;
+    const m = Modal.open({
+      title: `${Icons.get("clock", {size:18})} Filter by Time`,
+      body,
+      actions: [{ label: "Close", cls: "btn-ghost" }]
+    });
+    m.querySelectorAll("[data-time-opt]").forEach(b => {
+      b.onclick = () => {
+        timeFilter = b.dataset.timeOpt;
+        Modal.close();
+        render();
+      };
+    });
+  }
+
+  function openEmployeeFilterModal(){
+    const users = DB.getUsers ? DB.getUsers() : [];
+    const salesCashiers = [...new Set([...(DB.getSales ? DB.getSales() : []).map(s => s.cashier), ...(DB.getFuelSales ? DB.getFuelSales() : []).map(s => s.cashier || s.attendant)].filter(Boolean))];
+    const emps = [...new Set([...users.map(u => u.name), ...salesCashiers])].filter(Boolean);
+    const body = `
+      <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;max-height:60vh;overflow-y:auto;">
+        <button class="btn ${employeeFilter === 'all' ? 'btn-primary' : 'btn-outline'}" data-emp-opt="all" style="justify-content:flex-start;padding:12px 16px;font-size:0.95rem;text-align:left;width:100%;font-weight:700;">
+          All employees
+        </button>
+        ${emps.map(e => `
+          <button class="btn ${employeeFilter === e ? 'btn-primary' : 'btn-outline'}" data-emp-opt="${Utils.escapeHtml(e)}" style="justify-content:flex-start;padding:12px 16px;font-size:0.95rem;text-align:left;width:100%;font-weight:700;">
+            ${Utils.escapeHtml(e)}
+          </button>
+        `).join("")}
+      </div>`;
+    const m = Modal.open({
+      title: `${Icons.get("user", {size:18})} Filter by Employee`,
+      body,
+      actions: [{ label: "Close", cls: "btn-ghost" }]
+    });
+    m.querySelectorAll("[data-emp-opt]").forEach(b => {
+      b.onclick = () => {
+        employeeFilter = b.dataset.empOpt;
+        Modal.close();
+        render();
+      };
+    });
+  }
+
   function bindToolbarEvents(){
     const prevBtn = document.getElementById("rpt-btn-prev");
     const nextBtn = document.getElementById("rpt-btn-next");
@@ -1199,38 +1268,50 @@ const Reports = (() => {
       };
     }
 
-    if(timeBtn && menuTime){
+    if(timeBtn){
       timeBtn.onclick = (e) => {
         e.stopPropagation();
+        if(window.innerWidth <= 768){
+          openTimeFilterModal();
+          return;
+        }
         if(menuEmp) menuEmp.classList.remove("show");
         if(menuMore) menuMore.classList.remove("show");
-        menuTime.classList.toggle("show");
+        if(menuTime) menuTime.classList.toggle("show");
       };
-      menuTime.querySelectorAll("[data-time]").forEach(item => {
-        item.onclick = (e) => {
-          e.stopPropagation();
-          timeFilter = item.dataset.time;
-          menuTime.classList.remove("show");
-          render();
-        };
-      });
+      if(menuTime){
+        menuTime.querySelectorAll("[data-time]").forEach(item => {
+          item.onclick = (e) => {
+            e.stopPropagation();
+            timeFilter = item.dataset.time;
+            menuTime.classList.remove("show");
+            render();
+          };
+        });
+      }
     }
 
-    if(empBtn && menuEmp){
+    if(empBtn){
       empBtn.onclick = (e) => {
         e.stopPropagation();
+        if(window.innerWidth <= 768){
+          openEmployeeFilterModal();
+          return;
+        }
         if(menuTime) menuTime.classList.remove("show");
         if(menuMore) menuMore.classList.remove("show");
-        menuEmp.classList.toggle("show");
+        if(menuEmp) menuEmp.classList.toggle("show");
       };
-      menuEmp.querySelectorAll("[data-emp]").forEach(item => {
-        item.onclick = (e) => {
-          e.stopPropagation();
-          employeeFilter = item.dataset.emp;
-          menuEmp.classList.remove("show");
-          render();
-        };
-      });
+      if(menuEmp){
+        menuEmp.querySelectorAll("[data-emp]").forEach(item => {
+          item.onclick = (e) => {
+            e.stopPropagation();
+            employeeFilter = item.dataset.emp;
+            menuEmp.classList.remove("show");
+            render();
+          };
+        });
+      }
     }
 
     document.addEventListener("click", () => {
@@ -1316,9 +1397,10 @@ const Reports = (() => {
         </div>
       </div>
       ${items.length ? `
-        <div class="table-wrap"><table class="data">
+        <!-- (2026-07-13) Add rpt-items-table & rpt-col-idx; was generic table.data -->
+        <div class="table-wrap"><table class="data rpt-items-table">
           <thead><tr>
-            <th>#</th>
+            <th class="rpt-col-idx">#</th>
             <th colspan="2" class="sortable-header" data-table="items" data-col="name" style="cursor:pointer;">Item ${sortIcon('name')}</th>
             <th class="sortable-header" data-table="items" data-col="category" style="cursor:pointer;">Category ${sortIcon('category')}</th>
             <th class="sortable-header" data-table="items" data-col="units" style="cursor:pointer;">Units Sold ${sortIcon('units')}</th>
@@ -1337,7 +1419,7 @@ const Reports = (() => {
                 name: it.name 
               }, { iconSize: 18 });
               return `<tr class="clickable-row" data-top-prod="${Utils.escapeHtml(it.productId || it.name)}">
-                <td class="text-faint">${idx + 1}</td>
+                <td class="text-faint rpt-col-idx">${idx + 1}</td>
                 <td style="padding:8px 4px;">
                   <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#ffffff;border:1px solid var(--line);">
                     ${thumbHtml}
@@ -1411,15 +1493,16 @@ const Reports = (() => {
       </div>
       
       ${cats.length ? `
+        <!-- (2026-07-13) Add rpt-col-idx to category table; was unclassed # column -->
         <div class="table-wrap"><table class="data">
-          <thead><tr><th>#</th><th>Category</th><th>Net Sales</th><th>Cost</th><th>Gross Profit</th><th>Margin</th><th>Share</th></tr></thead>
+          <thead><tr><th class="rpt-col-idx">#</th><th>Category</th><th>Net Sales</th><th>Cost</th><th>Gross Profit</th><th>Margin</th><th>Share</th></tr></thead>
           <tbody>
             ${cats.map((c, idx) => {
               const cogs = c.cogs ?? (c.revenue - c.profit);
               const margin = c.revenue > 0 ? ((c.profit / c.revenue) * 100) : 0;
               const share = totalRev > 0 ? ((c.revenue / totalRev) * 100) : 0;
               return `<tr>
-                <td class="text-faint">${idx + 1}</td>
+                <td class="text-faint rpt-col-idx">${idx + 1}</td>
                 <td><span class="badge badge-brand" style="font-size:0.85rem;padding:4px 10px;">${Utils.escapeHtml(c.category)}</span></td>
                 <td class="mono font-bold">${Utils.money(c.revenue)}</td>
                 <td class="mono">${Utils.money(cogs)}</td>
@@ -1494,14 +1577,15 @@ const Reports = (() => {
         </div>
       </div>
       ${list.length ? `
+        <!-- (2026-07-13) Add rpt-col-idx to employee table; was unclassed # column -->
         <div class="table-wrap"><table class="data">
-          <thead><tr><th>#</th><th>Employee</th><th>Receipts</th><th>Store Sales</th><th>Fuel Sales</th><th>Total Sales</th><th>Avg Ticket</th><th>Share</th></tr></thead>
+          <thead><tr><th class="rpt-col-idx">#</th><th>Employee</th><th>Receipts</th><th>Store Sales</th><th>Fuel Sales</th><th>Total Sales</th><th>Avg Ticket</th><th>Share</th></tr></thead>
           <tbody>
             ${list.map((e, idx) => {
               const avg = e.receipts > 0 ? (e.total / e.receipts) : 0;
               const share = grandTotal > 0 ? ((e.total / grandTotal) * 100) : 0;
               return `<tr>
-                <td class="text-faint">${idx + 1}</td>
+                <td class="text-faint rpt-col-idx">${idx + 1}</td>
                 <td><strong>${Utils.escapeHtml(e.name)}</strong></td>
                 <td class="mono font-bold">${e.receipts}</td>
                 <td class="mono">${Utils.money(e.storeSales)}</td>
@@ -1563,13 +1647,14 @@ const Reports = (() => {
         </div>
       </div>
       ${list.length ? `
+        <!-- (2026-07-13) Add rpt-col-idx to payment table; was unclassed # column -->
         <div class="table-wrap"><table class="data">
-          <thead><tr><th>#</th><th>Payment Type</th><th>Transactions</th><th>Total Collected</th><th>Share</th></tr></thead>
+          <thead><tr><th class="rpt-col-idx">#</th><th>Payment Type</th><th>Transactions</th><th>Total Collected</th><th>Share</th></tr></thead>
           <tbody>
             ${list.map((p, idx) => {
               const share = totalAmt > 0 ? ((p.amount / totalAmt) * 100) : 0;
               return `<tr>
-                <td class="text-faint">${idx + 1}</td>
+                <td class="text-faint rpt-col-idx">${idx + 1}</td>
                 <td><span class="badge badge-brand" style="font-size:0.85rem;padding:4px 10px;">${Utils.escapeHtml(p.method)}</span></td>
                 <td class="mono font-bold">${p.count}</td>
                 <td class="mono font-bold" style="color:var(--brand-deep);">${Utils.money(p.amount)}</td>
@@ -1700,7 +1785,7 @@ const Reports = (() => {
     return `
       ${timeframeBarHtml(periodKey)}
       
-      // (2026-07-13) Add touch-action & class to receipt chart cards; was rigid div
+      ${/* (2026-07-13) Add touch-action to receipt chart cards; was rigid div */""}
       <div class="receipts-charts-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
         <div class="chart-card" style="touch-action:pan-y;">
           <!-- (2026-07-13) Dynamic chart title hourly vs daily; was daily-only -->
@@ -1745,7 +1830,7 @@ const Reports = (() => {
             </div>
           ` : ""}
         </div>
-        <div style="position:relative;width:100%;max-width:340px;display:flex;align-items:center;">
+        <div style="position:relative;width:100%;display:flex;align-items:center;">
           <span style="position:absolute;left:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-faint);pointer-events:none;z-index:2;">
             ${Icons.get("search",{size:15})}
           </span>
@@ -1763,78 +1848,106 @@ const Reports = (() => {
         </div>
       </div>
       ${sales.length ? `
-        <div class="table-wrap"><table class="data"><thead><tr>
-          <th style="width:38px;text-align:center;"><input type="checkbox" id="receipt-select-all" ${allChecked ? "checked" : ""} title="Select All Receipts" style="cursor:pointer;width:16px;height:16px;vertical-align:middle;"></th>
-          <th>#</th><th>Time</th><th>Txn ID</th><th>Source</th><th>Items</th><th>Total</th><th>Method</th><th>Cashier</th><th style="text-align:right;">Actions</th>
+        <div class="table-wrap receipt-table-wrap"><table class="data receipt-data-table"><thead><tr>
+          <th style="width:32px;text-align:center;" class="receipt-select-cell"><input type="checkbox" id="receipt-select-all" ${allChecked ? "checked" : ""} title="Select All Receipts" style="cursor:pointer;width:16px;height:16px;vertical-align:middle;"></th>
+          <th class="receipt-col-txn">ID</th>
+          <!-- (2026-07-13) Add column classes for PC width tuning; was unclassed th -->
+          <th class="desktop-only receipt-col-time">Time</th>
+          <th class="desktop-only receipt-col-txnid">Txn ID</th>
+          <th class="desktop-only receipt-col-source">Source</th>
+          <th class="receipt-col-items">Items</th>
+          <th class="receipt-col-total">Total</th>
+          <th class="desktop-only receipt-col-method">Method</th>
+          <th class="desktop-only receipt-col-cashier">Cashier</th>
+          <th class="receipt-col-actions" style="text-align:right;">Actions</th>
         </tr></thead><tbody>
         <tr class="receipt-balance-summary-row" style="font-weight:800;background:var(--paper-dim);border-bottom:1.5px solid var(--line);">
-          <td style="text-align:center;">${Icons.get("clock",{size:13})}</td>
-          <td colspan="4" style="padding:6px 12px;vertical-align:middle;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;">Starting Balance:</span>
-              ${isSingleDay ? `
-                <strong class="mono" style="font-size:0.95rem;color:var(--ink);">${Utils.money(openingBalance)}</strong>
-                <span class="badge badge-brand font-bold" style="font-size:0.65rem;padding:2px 6px;text-transform:uppercase;">Shift Float</span>
-              ` : `
-                <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);" title="Starting balance is only configurable for daily range">—</span>
-                <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
-              `}
+          <td colspan="10" style="padding:6px 10px;vertical-align:middle;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:0.75rem;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                ${Icons.get("clock",{size:13})}
+                <span style="font-weight:800;text-transform:uppercase;color:var(--ink-soft);font-size:0.72rem;">Start:</span>
+                ${isSingleDay ? `
+                  <strong class="mono" style="font-size:0.85rem;color:var(--ink);">${Utils.money(openingBalance)}</strong>
+                  <span class="badge badge-brand font-bold" style="font-size:0.62rem;padding:1px 4px;text-transform:uppercase;">Shift Float</span>
+                ` : `
+                  <span class="mono font-bold" style="font-size:0.82rem;color:var(--ink-soft);">—</span>
+                  <span class="text-xs text-faint" style="font-size:0.68rem;">(Daily only)</span>
+                `}
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-weight:800;text-transform:uppercase;color:var(--ink-soft);font-size:0.72rem;">Close:</span>
+                ${isSingleDay ? `
+                  <strong class="mono font-bold text-success" style="font-size:0.85rem;">${Utils.money(closingBalance)}</strong>
+                  <span class="badge badge-green font-bold" style="font-size:0.62rem;padding:1px 4px;text-transform:uppercase;">Shift Drawer</span>
+                ` : `
+                  <span class="mono font-bold" style="font-size:0.82rem;color:var(--ink-soft);">—</span>
+                  <span class="text-xs text-faint" style="font-size:0.68rem;">(Daily only)</span>
+                `}
+              </div>
+              <div class="text-xs text-faint" style="margin-left:auto;">${Utils.fmtDate(r.end, false)}</div>
             </div>
-          </td>
-          <td colspan="2" style="padding:6px 12px;vertical-align:middle;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span style="font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);font-size:0.75rem;margin-right:2px;">Closing Balance:</span>
-              ${isSingleDay ? `
-                <strong class="mono font-bold text-success" style="font-size:0.95rem;">${Utils.money(closingBalance)}</strong>
-                <span class="badge badge-green font-bold" style="font-size:0.65rem;padding:2px 6px;text-transform:uppercase;">Shift Drawer</span>
-              ` : `
-                <span class="mono font-bold" style="font-size:0.85rem;color:var(--ink-soft);">—</span>
-                <span class="text-xs text-faint font-semibold" style="font-size:0.75rem;">(Daily range only)</span>
-              `}
-            </div>
-          </td>
-          <td colspan="3" class="text-xs text-faint" style="vertical-align:middle;text-align:right;padding-right:12px;">
-            ${Utils.fmtDate(r.end, false)}
           </td>
         </tr>
         ${pagedSales.map((s, idx) => {
           const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
           const isChecked = selectedReceiptIds.has(s.id);
-          // (2026-09-24) Format item list with @ symbol and quantity
-          const itemsList = (s.items || []).map(item => `@${item.qty}x ${item.name}`).join(", ");
+          // (2026-07-13) Line-break max 3 items with +N more; was comma-joined text
+          const sItems = s.items || [];
+          const dispItems = sItems.slice(0, 3);
+          const moreCount = sItems.length - 3;
+          const fullTitle = sItems.map(it => `@${it.qty}x ${it.name}`).join("\n");
           return `<tr class="${isChecked ? "selected-row" : ""}" style="${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
-          <td style="width:38px;text-align:center;" class="receipt-select-cell">
+          <td style="width:32px;text-align:center;" class="receipt-select-cell">
             <input type="checkbox" class="receipt-select-chk" data-sale-id="${s.id}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
           </td>
-          <td class="text-faint mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${sales.length - (startIdx + idx)}</td>
-          <td style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
-          <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
-          <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
-          <td style="cursor:pointer;max-width:300px;" data-view-receipt="${s.id}">
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <button class="btn btn-sm btn-outline" style="padding:2px 8px;font-size:var(--fs-xs);align-self:flex-start;">${Icons.get("receipt",{size:12})} ${s.items.length} item(s)</button>
-              <span style="font-size:0.7rem;color:var(--ink-soft);line-height:1.3;display:block;" title="${itemsList}">${itemsList}</span>
+          <!-- (2026-07-13) Show row num & txn id; was row num truncated -->
+          <td class="receipt-col-txn" style="cursor:pointer;" data-view-receipt="${s.id}">
+            <div style="display:flex;flex-direction:column;gap:1px;line-height:1.15;min-width:0;">
+              <span class="mono font-bold receipt-row-num" style="font-size:0.72rem;color:var(--ink);">#${sales.length - (startIdx + idx)}</span>
+              <span class="mono receipt-txn-code" style="font-size:0.62rem;font-weight:700;color:var(--brand-deep);white-space:nowrap;">${s.receiptNo ? `#${s.receiptNo}` : fmtTxnId(s.id)}</span>
             </div>
           </td>
-          <td class="mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
-          <td style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
-          <td style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier || "Cashier"}</td>
-          <td style="text-align:right;white-space:nowrap;">
-            <button class="btn btn-sm btn-outline" data-view-receipt="${s.id}">${Icons.get("receipt",{size:13})} View</button>
-            ${Auth.isAdmin() ? `<button class="btn btn-sm btn-ghost" data-edit-sale-row="${s.id}" style="margin-left:4px;" title="Edit Sale">${Icons.get("edit",{size:13})}</button>` : ""}
-            <button class="btn btn-sm btn-ghost" data-reprint="${s.id}" style="margin-left:4px;">${Icons.get("printer",{size:13})}</button>
-            ${Auth.isAdmin() ? `<button class="btn btn-sm btn-ghost" data-delete-sale="${s.id}" style="margin-left:4px;color:var(--danger);" title="Delete Sale">${Icons.get("trash",{size:13})}</button>` : ""}
+          <!-- (2026-07-13) Add column classes for PC width tuning; was unclassed td -->
+          <td class="desktop-only receipt-col-time" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
+          <td class="desktop-only receipt-col-txnid mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
+          <td class="desktop-only receipt-col-source" style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
+          <td class="receipt-col-items" style="cursor:pointer;" data-view-receipt="${s.id}">
+            <div style="display:flex;flex-direction:column;gap:3px;max-width:100%;">
+              <button class="btn btn-xs btn-outline" style="padding:1px 6px;font-size:0.7rem;align-self:flex-start;">${Icons.get("receipt",{size:11})} ${sItems.length} item(s)</button>
+              <div class="receipt-items-list" style="font-size:0.68rem;color:var(--ink-soft);line-height:1.25;display:flex;flex-direction:column;gap:1px;" title="${Utils.escapeHtml(fullTitle)}">
+                ${dispItems.map(it => `<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">@${it.qty}x ${Utils.escapeHtml(it.name)}</span>`).join("")}
+                ${moreCount > 0 ? `<span style="color:var(--brand-deep);font-weight:700;font-size:0.65rem;display:block;">+${moreCount} more...</span>` : ""}
+              </div>
+              <div class="receipt-mobile-meta text-xs text-faint" style="font-size:0.65rem;margin-top:2px;">
+                <span class="badge badge-neutral" style="font-size:0.6rem;padding:0 3px;">${s.method}</span> · ${s.cashier || "Cashier"}
+              </div>
+            </div>
+          </td>
+          <td class="receipt-col-total mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
+          <td class="desktop-only receipt-col-method" style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
+          <td class="desktop-only receipt-col-cashier" style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier || "Cashier"}</td>
+          <!-- (2026-07-13) Show all action buttons; was admin-gated -->
+          <td class="receipt-col-actions" style="text-align:right;">
+            <div class="receipt-actions-cluster" style="display:inline-flex;gap:4px;align-items:center;">
+              <button class="btn btn-xs btn-outline" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})} <span class="desktop-only">View</span></button>
+              <button class="btn btn-xs btn-ghost desktop-only" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:12})}</button>
+              <button class="btn btn-xs btn-ghost desktop-only" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:12})}</button>
+              <button class="btn btn-xs btn-ghost text-danger desktop-only" data-delete-sale="${s.id}" title="Delete Sale">${Icons.get("trash",{size:12})}</button>
+            </div>
           </td>
         </tr>`;
         }).join("")}
         </tbody>
         <tfoot>
           <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
-            <td></td>
-            <td colspan="4" style="font-weight:900;text-transform:uppercase;">Total (${totalReceipts} receipts) • Start: ${Utils.money(openingBalance)}</td>
-            <td class="mono font-bold">${totalItemsCount} item(s)</td>
-            <td class="mono font-bold" style="font-size:1rem;color:var(--brand-deep);">${Utils.money(totalSalesAmount)}</td>
-            <td colspan="3" class="mono font-bold text-success" style="font-size:0.95rem;text-align:right;padding-right:12px;">Closing: ${Utils.money(closingBalance)}</td>
+            <td colspan="10" style="padding:8px 10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:0.78rem;">
+                <div>Total: <strong>${totalReceipts}</strong> rcpts · <strong>${totalItemsCount}</strong> items</div>
+                <div class="mono font-bold" style="font-size:0.95rem;color:var(--brand-deep);">${Utils.money(totalSalesAmount)}</div>
+                <div class="mono text-success text-xs font-bold">Closing: ${Utils.money(closingBalance)}</div>
+              </div>
+            </td>
           </tr>
         </tfoot>
         </table></div>
@@ -1967,14 +2080,14 @@ const Reports = (() => {
         </div>
         ${logs.length ? `
           <div class="table-wrap" style="${tableStyle}">
-            <!-- (2026-07-13) Scale down void table typography & padding; was large table.data -->
+            <!-- (2026-07-13) Add void-col classes for width control; was generic th/td -->
             <table class="data void-table" style="font-size:0.86rem;">
-              <thead><tr><th style="padding:8px 10px;font-size:0.76rem;">Time</th><th style="padding:8px 10px;font-size:0.76rem;">Txn ID</th><th style="padding:8px 10px;font-size:0.76rem;">Items Altered</th><th style="padding:8px 10px;font-size:0.76rem;">Price Diff</th><th style="padding:8px 10px;font-size:0.76rem;">Admin</th><th style="padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
+              <thead><tr><th class="void-col-time" style="padding:8px 8px;font-size:0.76rem;">Time</th><th class="void-col-txn" style="padding:8px 8px;font-size:0.76rem;">Txn ID</th><th style="padding:8px 10px;font-size:0.76rem;">Items Altered</th><th style="padding:8px 10px;font-size:0.76rem;">Price Diff</th><th style="padding:8px 10px;font-size:0.76rem;">Admin</th><th style="padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
               <tbody>
                 ${pagedLogs.map(l => `
                   <tr style="font-size:0.86rem;">
-                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;">${Utils.fmtDate(l.ts)}</td>
-                    <td class="mono font-bold" style="padding:8px 10px;">${Utils.escapeHtml(l.origTxnId)}</td>
+                    <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 8px;">${Utils.fmtDate(l.ts)}</td>
+                    <td class="mono font-bold void-col-txn" style="padding:8px 8px;">${Utils.escapeHtml(l.origTxnId)}</td>
                     <td style="max-width:240px;padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.itemSummary)}</td>
                     <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
                     <td style="padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.admin || "Admin")}</td>
@@ -2071,14 +2184,18 @@ const Reports = (() => {
       actions:[{label:"Close",cls:"btn-ghost"}] 
     });
     
-    // Add click handlers for store transactions
+    // (2026-07-13) Swipe left opening & return to day modal; was close without back
     modal.querySelectorAll("[data-sale-id]").forEach(row => {
       row.onclick = () => {
         const saleId = row.dataset.saleId;
         const sale = DB.getSales().find(s => s.id === saleId);
         if(sale) {
-          Modal.close(); // Close the day drilldown modal
-          openReceiptModal(sale); // Open the receipt details modal
+          openReceiptModal(sale, {
+            modalClass: "modal-slide-left",
+            onClose: () => {
+              openDayDrilldown(dayStart);
+            }
+          });
         }
       };
     });
@@ -2113,16 +2230,23 @@ const Reports = (() => {
         <div class="card card-tight"><div class="text-faint text-sm">Revenue</div><strong style="font-size:1.15rem;">${Utils.money(row.revenue)}</strong></div>
         <div class="card card-tight"><div class="text-faint text-sm">Profit</div><strong style="font-size:1.15rem;">${Utils.money(row.profit)}</strong></div>
       </div>
-      <div class="table-wrap"><table class="data"><thead><tr><th>Time</th><th>Qty</th><th>Amount</th><th>Method</th></tr></thead><tbody>
-      ${lines.map(l=>`<tr><td>${Utils.fmtDate(l.ts)}</td><td>${l.qty}</td><td class="mono">${Utils.money(l.amount)}</td><td>${l.method}</td></tr>`).join("")}
+      <!-- (2026-07-13) Add product-drilldown-table to drilldown; was generic data -->
+      <div class="table-wrap"><table class="data product-drilldown-table"><thead><tr><th class="drill-col-time">Time</th><th class="drill-col-qty">Qty</th><th class="drill-col-amt">Amount</th><th class="drill-col-method">Method</th></tr></thead><tbody>
+      ${lines.map(l=>`<tr><td class="drill-col-time">${Utils.fmtDate(l.ts)}</td><td class="drill-col-qty">${l.qty}</td><td class="mono drill-col-amt">${Utils.money(l.amount)}</td><td class="drill-col-method">${l.method}</td></tr>`).join("")}
       </tbody></table></div>`;
     Modal.open({ title:`${Icons.get("package",{size:17})} ${Utils.escapeHtml(row.name)}`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
   }
 
-  // (2026-07-13) Cohesive P&L block with hero & breakdown; was 5 stacked cards
+  // (2026-07-13) Show P&L card to admin only; was visible to all roles
   function renderOverviewStats(stats){
     const wrap = document.getElementById("ov-pl");
     if(!wrap) return;
+    if(!Auth.isAdmin()){
+      wrap.innerHTML = "";
+      wrap.style.display = "none";
+      return;
+    }
+    wrap.style.display = "";
     const p = stats.pl || {};
     const netRevenue = p.netRevenue || 0;
     const grossProfit = p.storeGrossProfit ?? p.grossProfit ?? 0;
@@ -2131,61 +2255,47 @@ const Reports = (() => {
     const netProfit = p.netProfit || 0;
     const margin = p.margin || (netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0);
 
+    // (2026-07-13) Remove breakdown dropdown & margin card; was collapsible
     wrap.innerHTML = `
       <div class="rpt-pl-overview-card">
-        <div class="rpt-pl-hero">
-          <div class="rpt-pl-hero-main">
-            <div class="rpt-pl-hero-label">Total Net Revenue</div>
-            <div class="rpt-pl-hero-val mono font-bold">${Utils.money(netRevenue)}</div>
+        <!-- (2026-07-13) Compact inline P&L hero row; was bulky block with extra space -->
+        <div class="rpt-pl-hero" style="margin-bottom:8px;padding:8px 14px;">
+          <div class="rpt-pl-hero-main" style="display:flex;align-items:baseline;gap:10px;">
+            <div class="rpt-pl-hero-label" style="margin-bottom:0;">Total Net Revenue</div>
+            <div class="rpt-pl-hero-val mono font-bold" style="font-size:1.25rem;">${Utils.money(netRevenue)}</div>
           </div>
-          <button class="btn btn-sm btn-ghost rpt-pl-toggle-btn" id="btn-toggle-pl-breakdown" type="button" aria-expanded="true">
-            <span class="rpt-pl-toggle-text">Breakdown</span>
-            <span class="rpt-pl-chevron">${Icons.get("chevron-down", {size:14})}</span>
-          </button>
         </div>
-        <div class="rpt-pl-breakdown open" id="rpt-pl-breakdown-body">
-          <div class="rpt-pl-tiles-grid">
-            <div class="rpt-pl-tile">
-              <div class="rpt-pl-tile-label">Store Gross Profit</div>
-              <div class="rpt-pl-tile-val mono font-bold" style="color:var(--success-deep);">${Utils.money(grossProfit)}</div>
+        <div class="rpt-pl-tiles-grid">
+          <div class="rpt-pl-tile rpt-pl-tile-gp">
+            <div class="rpt-pl-tile-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+              <span class="rpt-pl-tile-label">Store Gross Profit</span>
+              <span style="color:var(--success);opacity:0.85;">${Icons.get("trending-up",{size:13})}</span>
             </div>
-            <div class="rpt-pl-tile">
-              <div class="rpt-pl-tile-label">Cost of Goods (COGS)</div>
-              <div class="rpt-pl-tile-val mono font-bold" style="color:var(--ink-soft);">${Utils.money(cogs)}</div>
-            </div>
-            <div class="rpt-pl-tile">
-              <div class="rpt-pl-tile-label">Operating Expenses</div>
-              <div class="rpt-pl-tile-val mono font-bold" style="color:var(--danger);">${opex > 0 ? `-${Utils.money(opex)}` : Utils.money(0)}</div>
-            </div>
-            <div class="rpt-pl-tile ${netProfit >= 0 ? "profit-pos" : "profit-neg"}">
-              <div class="rpt-pl-tile-label">Net Operating Profit</div>
-              <div class="rpt-pl-tile-val mono font-bold" style="color:${netProfit >= 0 ? "var(--brand-deep)" : "var(--danger)"};">${Utils.money(netProfit)}</div>
-            </div>
+            <div class="rpt-pl-tile-val mono font-bold" style="color:var(--success-deep);">${Utils.money(grossProfit)}</div>
           </div>
-          <div class="rpt-pl-margin-strip">
-            <div class="flex-between" style="align-items:center;margin-bottom:6px;">
-              <span class="rpt-pl-tile-label" style="font-weight:700;">Net Profit Margin</span>
-              <span class="mono font-bold" style="font-size:1.05rem;color:var(--ink);">${margin.toFixed(1)}%</span>
+          <div class="rpt-pl-tile rpt-pl-tile-cogs">
+            <div class="rpt-pl-tile-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+              <span class="rpt-pl-tile-label">Cost of Goods (COGS)</span>
+              <span style="color:var(--ink-soft);opacity:0.85;">${Icons.get("package",{size:13})}</span>
             </div>
-            <div class="rpt-margin-track">
-              <div class="rpt-margin-fill" style="width:${Math.min(100, Math.max(0, margin))}%;background:${margin >= 20 ? 'var(--success)' : margin > 0 ? 'var(--brand)' : 'var(--danger)'};"></div>
+            <div class="rpt-pl-tile-val mono font-bold" style="color:var(--ink-soft);">${Utils.money(cogs)}</div>
+          </div>
+          <div class="rpt-pl-tile rpt-pl-tile-opex">
+            <div class="rpt-pl-tile-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+              <span class="rpt-pl-tile-label">Operating Expenses</span>
+              <span style="color:var(--danger);opacity:0.85;">${Icons.get("credit-card",{size:13})}</span>
             </div>
+            <div class="rpt-pl-tile-val mono font-bold" style="color:var(--danger);">${opex > 0 ? `-${Utils.money(opex)}` : Utils.money(0)}</div>
+          </div>
+          <div class="rpt-pl-tile rpt-pl-tile-net ${netProfit >= 0 ? "profit-pos" : "profit-neg"}">
+            <div class="rpt-pl-tile-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+              <span class="rpt-pl-tile-label">Net Operating Profit</span>
+              <span style="color:${netProfit >= 0 ? "var(--brand)" : "var(--danger)"};opacity:0.9;">${Icons.get("award",{size:13})}</span>
+            </div>
+            <div class="rpt-pl-tile-val mono font-bold" style="color:${netProfit >= 0 ? "var(--brand-deep)" : "var(--danger)"};">${Utils.money(netProfit)}</div>
           </div>
         </div>
       </div>`;
-
-    const toggleBtn = document.getElementById("btn-toggle-pl-breakdown");
-    if(toggleBtn){
-      toggleBtn.onclick = () => {
-        const body = document.getElementById("rpt-pl-breakdown-body");
-        if(body){
-          const isOpen = body.classList.toggle("open");
-          toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-          const chev = toggleBtn.querySelector(".rpt-pl-chevron");
-          if(chev) chev.style.transform = isOpen ? "rotate(180deg)" : "rotate(0deg)";
-        }
-      };
-    }
   }
 
   // (2026-07-13) Store sales summary card modeled after Loyverse; was missing
@@ -2368,10 +2478,11 @@ const Reports = (() => {
             <div class="text-xs font-bold" style="font-size:0.84rem;color:var(--ink-soft);text-transform:uppercase;">
               ${days.length} Day(s) Recorded
             </div>
-            <button class="btn btn-sm btn-outline ${showDailyRefunds ? 'btn-primary' : ''}" id="btn-toggle-refunds-col" type="button" style="font-weight:700;font-size:0.82rem;padding:6px 12px;" title="${showDailyRefunds ? 'Hide' : 'Show'} Refunds column">
+            <!-- (2026-07-13) Hide refunds & discounts buttons; was visible in toolbar -->
+            <button class="btn btn-sm btn-outline ${showDailyRefunds ? 'btn-primary' : ''}" id="btn-toggle-refunds-col" type="button" style="display:none;" title="${showDailyRefunds ? 'Hide' : 'Show'} Refunds column">
               ${Icons.get(showDailyRefunds ? "eye" : "eye-off",{size:14})} Refunds
             </button>
-            <button class="btn btn-sm btn-outline ${showDailyDiscounts ? 'btn-primary' : ''}" id="btn-toggle-discounts-col" type="button" style="font-weight:700;font-size:0.82rem;padding:6px 12px;" title="${showDailyDiscounts ? 'Hide' : 'Show'} Discounts column">
+            <button class="btn btn-sm btn-outline ${showDailyDiscounts ? 'btn-primary' : ''}" id="btn-toggle-discounts-col" type="button" style="display:none;" title="${showDailyDiscounts ? 'Hide' : 'Show'} Discounts column">
               ${Icons.get(showDailyDiscounts ? "eye" : "eye-off",{size:14})} Discounts
             </button>
             <button class="btn btn-sm btn-outline" id="btn-export-daily-sales" style="font-weight:700;font-size:0.82rem;padding:6px 12px;letter-spacing:0.04em;">
@@ -2525,8 +2636,9 @@ const Reports = (() => {
     if(!el) return;
     const top = (stats.topSellers && stats.topSellers.length) ? stats.topSellers : Analytics.topSellers(stats);
     el.innerHTML = top.length ? `
-      <div class="table-wrap"><table class="data">
-        <thead><tr><th>#</th><th colspan="2">Product</th><th>Category</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
+      <!-- (2026-07-13) Add rpt-items-table & col-idx to top sellers; was generic -->
+      <div class="table-wrap"><table class="data rpt-items-table">
+        <thead><tr><th class="rpt-col-idx">#</th><th colspan="2">Product</th><th>Category</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
         <tbody>
           ${top.slice(0, 15).map((r, i) => {
             const product = DB.getProducts().find(p => p.id === r.productId) || {};
@@ -2537,7 +2649,7 @@ const Reports = (() => {
             }, { iconSize: 18 });
             return `
             <tr class="clickable-row" data-top-prod="${Utils.escapeHtml(r.productId || r.name)}">
-              <td class="text-faint">${i+1}</td>
+              <td class="text-faint rpt-col-idx">${i+1}</td>
               <td style="padding:8px 4px;">
                 <div class="prod-thumb-sm" style="width:40px;height:40px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#ffffff;border:1px solid var(--line);">
                   ${thumbHtml}
@@ -2665,7 +2777,10 @@ const Reports = (() => {
 
     const catCtx = document.getElementById("ov-chart-category")?.getContext("2d");
     if(catCtx && typeof Chart !== "undefined"){
-      const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
+      // (2026-07-13) Top 8 active categories to prevent clutter; was all categories
+      const rawCats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
+      const activeCats = rawCats.filter(c => (c.revenue || 0) > 0 || (c.profit || 0) > 0).sort((a,b) => (b.revenue||0) - (a.revenue||0));
+      const cats = activeCats.length ? activeCats.slice(0, 8) : rawCats.slice(0, 6);
       overviewCharts.category = new Chart(catCtx, {
         type: "bar",
         data: {
@@ -2741,7 +2856,7 @@ const Reports = (() => {
               boxHeight: 12,
               usePointStyle: true,
               callbacks: {
-                title: (items) => items[0].label,
+                title: (items) => cats[items[0].dataIndex]?.category || items[0].label,
                 label: (context) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y;
@@ -2756,13 +2871,18 @@ const Reports = (() => {
                 display: false,
                 drawBorder: false
               },
+              // (2026-07-13) Fix category chart label spacing & rotation; was 35deg clipped
               ticks: { 
                 autoSkip: false,
-                maxRotation: 45,
-                minRotation: 25,
+                maxRotation: 0,
+                minRotation: 0,
                 font: { size: 11, weight: '600' },
                 color: '#64748b',
-                padding: 8
+                padding: 6,
+                callback: function(val) {
+                  const lbl = this.getLabelForValue(val) || '';
+                  return lbl.length > 12 ? lbl.slice(0, 11) + '…' : lbl;
+                }
               }
             },
             y: { 
@@ -3137,7 +3257,8 @@ const Reports = (() => {
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
             ${Icons.get("tag",{size:18})} Revenue vs Profit by Category
           </h3>
-          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
+          <!-- (2026-07-13) Expand category chart height to 230px; was 200px clipped -->
+          <div style="position:relative;height:230px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
         </div>
         <div class="chart-card">
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
@@ -3245,9 +3366,82 @@ const Reports = (() => {
     if(btn) btn.remove();
   }
 
+  // (2026-07-13) Topbar reports breadcrumb navigation; was plain static title
+  function updateTopbarBreadcrumb(){
+    const titleEl = document.getElementById("topbar-title-view");
+    if(!titleEl) return;
+    const tabDefs = [
+      { key: "overview", label: "Sales Summary", icon: "bar-chart" },
+      { key: "history", label: "Receipts", icon: "receipt" },
+      { key: "by_item", label: "Sales by Item", icon: "package" },
+      { key: "by_category", label: "Sales by Category", icon: "tag" },
+      { key: "by_employee", label: "Sales by Employee", icon: "user" },
+      { key: "by_payment", label: "Sales by Payment Type", icon: "credit-card" },
+      { key: "purchases", label: "Purchases & Restock", icon: "truck" },
+      { key: "voids", label: "Void Audit", icon: "alert-triangle" }
+    ];
+    const currentDef = tabDefs.find(t => t.key === tab) || tabDefs[0];
+    titleEl.innerHTML = `
+      <span class="rpt-header-breadcrumb" style="position:relative;">
+        <span id="rpt-crumb-reports" class="rpt-crumb-home" style="cursor:pointer;" title="Go to Sales Summary">Reports</span>
+        <span class="rpt-crumb-sep">&gt;</span>
+        <button type="button" id="rpt-crumb-active" class="rpt-crumb-curr-btn" style="background:none;border:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;" title="Switch report view">
+          <span>${currentDef.label}</span>
+          <span style="font-size:0.6em;opacity:0.6;margin-top:1px;flex-shrink:0;">▼</span>
+        </button>
+        <div id="rpt-crumb-menu" class="card card-raised" style="display:none;position:absolute;top:calc(100% + 8px);left:0;min-width:215px;max-width:calc(100vw - 20px);padding:6px;z-index:9999;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25),0 8px 10px -6px rgba(0,0,0,0.15);border:1px solid var(--line);border-radius:10px;background:var(--paper-raised, #ffffff);">
+          ${tabDefs.map(t => `
+            <div class="rpt-crumb-item" data-tab-key="${t.key}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:0.82rem;font-weight:${t.key === tab ? '700' : '500'};color:${t.key === tab ? 'var(--brand-deep)' : 'var(--ink)'};background:${t.key === tab ? 'var(--brand-tint, rgba(47,66,216,0.08))' : 'transparent'};">
+              ${Icons.get(t.icon, {size:14})}
+              <span>${t.label}</span>
+            </div>
+          `).join("")}
+        </div>
+      </span>
+    `;
+
+    const crumbHome = document.getElementById("rpt-crumb-reports");
+    if(crumbHome){
+      crumbHome.onclick = (e) => {
+        e.stopPropagation();
+        tab = "overview";
+        render();
+        const vb = document.querySelector("#view-root .view-body");
+        if(vb) vb.scrollTop = 0;
+      };
+    }
+
+    const crumbActive = document.getElementById("rpt-crumb-active");
+    const crumbMenu = document.getElementById("rpt-crumb-menu");
+    if(crumbActive && crumbMenu){
+      crumbActive.onclick = (e) => {
+        e.stopPropagation();
+        crumbMenu.style.display = crumbMenu.style.display === "block" ? "none" : "block";
+      };
+      crumbMenu.querySelectorAll("[data-tab-key]").forEach(el => {
+        el.onclick = (e) => {
+          e.stopPropagation();
+          crumbMenu.style.display = "none";
+          tab = el.dataset.tabKey;
+          render();
+          const vb = document.querySelector("#view-root .view-body");
+          if(vb) vb.scrollTop = 0;
+        };
+      });
+      const outsideClick = (e) => {
+        if(!crumbMenu.contains(e.target) && e.target !== crumbActive){
+          crumbMenu.style.display = "none";
+          document.removeEventListener("click", outsideClick);
+        }
+      };
+      document.addEventListener("click", outsideClick);
+    }
+  }
+
   // ---------------- shell ----------------
   function render(){
     persistRangeState();
+    updateTopbarBreadcrumb();
     
     // Remove back to top button when switching tabs (will be re-added if needed)
     removeBackToTopButton();
@@ -3257,16 +3451,16 @@ const Reports = (() => {
     // (2026-07-13) Allow cashiers full view of reports; was admin-restricted
     view.innerHTML = `
       <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:auto;">
-        <!-- (2026-07-13) Remove view-sub subtitle; was subtitle div -->
-        <div class="view-head" style="align-items:center;">
+        <!-- (2026-07-13) Add rpt-view-head to hide on mobile; was plain view-head -->
+        <div class="view-head rpt-view-head" style="align-items:center;">
           <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2></div>
           <div style="display:none;" aria-hidden="true">
             <button class="btn btn-ghost" id="btn-xreport">${Icons.get("clipboard",{size:15})} X Report</button>
             <button class="btn btn-danger" id="btn-zreport">${Icons.get("lock",{size:15})} Z Report</button>
           </div>
         </div>
-        <!-- (2026-07-13) Responsive subnav tabs ribbon for reports; was plain chips -->
-        <div class="category-chips rpt-subnav-tabs" style="margin-bottom:12px;overflow-x:auto;display:flex;gap:6px;padding-bottom:4px;">
+        <!-- (2026-07-13) Responsive chips styling on mobile; was gap:2px & pad:0 -->
+        <div class="category-chips rpt-subnav-tabs">
           <div class="chip ${tab==="overview"?"active":""}" data-t="overview">${Icons.get("bar-chart",{size:13})}Sales summary</div>
           <!-- (2026-07-13) Move Receipts chip 2nd after Sales summary; was 6th chip -->
           <div class="chip ${tab==="history"?"active":""}" data-t="history">${Icons.get("receipt",{size:13})}Receipts</div>
@@ -3287,6 +3481,19 @@ const Reports = (() => {
     document.getElementById("btn-zreport").onclick = openZReport;
     document.querySelectorAll("[data-t]").forEach(c=>c.onclick=()=>{ tab=c.dataset.t; render(); });
     bindToolbarEvents();
+    // (2026-07-13) Fix PC view mode scroll offset; was scrollIntoView displacing
+    setTimeout(() => {
+      const viewBody = view.querySelector(".view-body");
+      if(viewBody){
+        viewBody.scrollTop = 0;
+        viewBody.scrollLeft = 0;
+      }
+      const tabsWrap = view.querySelector(".rpt-subnav-tabs");
+      const activeTabChip = view.querySelector(".rpt-subnav-tabs .chip.active");
+      if(tabsWrap && activeTabChip && window.innerWidth <= 768){
+        tabsWrap.scrollLeft = activeTabChip.offsetLeft - 12;
+      }
+    }, 0);
     
     // Bind sortable table headers
     document.querySelectorAll(".sortable-header").forEach(th => {
@@ -3857,10 +4064,13 @@ const Reports = (() => {
         const s = DB.getSales().find(x=>x.id===b.dataset.viewReceipt);
         if(s) openReceiptModal(s);
       });
+      // (2026-07-13) Pin-gate edit & delete actions; was direct call
       document.querySelectorAll("[data-edit-sale-row]").forEach(b=>b.onclick=(e)=>{
         e.stopPropagation();
         const s = DB.getSales().find(x=>x.id===b.dataset.editSaleRow);
-        if(s) openEditSaleModal(s);
+        if(!s) return;
+        if(Auth.isAdmin()) openEditSaleModal(s);
+        else Auth.requireAdminPin(() => openEditSaleModal(s));
       });
       document.querySelectorAll("[data-reprint]").forEach(b=>b.onclick=(e)=>{
         e.stopPropagation();
@@ -3871,7 +4081,9 @@ const Reports = (() => {
         b.onclick=(e)=>{
           e.stopPropagation();
           const saleId = b.dataset.deleteSale;
-          if(saleId) deleteSaleRecord(saleId);
+          if(!saleId) return;
+          if(Auth.isAdmin()) deleteSaleRecord(saleId);
+          else Auth.requireAdminPin(() => deleteSaleRecord(saleId));
         };
       });
       document.querySelectorAll("[data-delete-fuel-sale]").forEach(b=>b.onclick=(e)=>{
@@ -3881,7 +4093,10 @@ const Reports = (() => {
       // (2026-07-13) Wire receipt multi-select & batch delete; was single view only
       const selectAll = document.getElementById("receipt-select-all");
       if(selectAll){
+        selectAll.onclick = (e) => e.stopPropagation();
         selectAll.onchange = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           const r = getActiveRange();
           const filterFn = getReportFilterFn();
           const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
@@ -3894,8 +4109,12 @@ const Reports = (() => {
         };
       }
       document.querySelectorAll(".receipt-select-chk").forEach(chk => {
-        chk.onclick = (e) => e.stopPropagation();
+        chk.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        };
         chk.onchange = (e) => {
+          e.preventDefault();
           e.stopPropagation();
           const id = chk.dataset.saleId;
           if(chk.checked) selectedReceiptIds.add(id);
@@ -4059,6 +4278,8 @@ const Reports = (() => {
   // (2026-07-13) Export date picker modal & range helpers; was private only
   return { 
     render,
+    // (2026-07-13) Expose switchTab method; was not exported
+    switchTab: (t) => { tab = t; render(); },
     openDatePickerModal,
     getActiveRange,
     fmtDateRangeLabel,

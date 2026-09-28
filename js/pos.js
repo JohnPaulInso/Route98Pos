@@ -284,39 +284,39 @@ const POS = (() => {
     const t = totals();
     const cashiers = DB.getCashiers();
     const savedCashier = localStorage.getItem("pos_cashier") || cashiers[0] || "Rosella";
+    // (2026-07-13) Polish checkout modal structure & presets; was crowded layout
     const body = `
-      <!-- (2026-07-13) Dynamic cashier dropdown from DB; was hardcoded 2 names -->
-      <div class="due-amount-card" style="margin-bottom:14px;">
-        <div class="flex-between" style="align-items:center;margin-bottom:4px;">
-          <div class="lbl">Amount Due</div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <label for="checkout-cashier-select" style="font-size:0.75rem;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.04em;">Cashier</label>
-            <select id="checkout-cashier-select" class="input input-sm" style="padding:2px 8px;font-size:0.84rem;font-weight:700;border-radius:6px;width:auto;cursor:pointer;background:var(--paper-card);color:var(--ink);">
+      <div class="due-amount-card checkout-due-card">
+        <div class="checkout-due-head">
+          <span class="checkout-due-lbl">Amount Due</span>
+          <div class="checkout-cashier-pill" title="Active Cashier">
+            <span class="cashier-icon">${Icons.get("user",{size:13})}</span>
+            <select id="checkout-cashier-select" class="checkout-cashier-select" aria-label="Cashier">
               ${cashiers.map(c => `<option value="${Utils.escapeHtml(c)}" ${savedCashier===c?"selected":""}>${Utils.escapeHtml(c)}</option>`).join("")}
             </select>
           </div>
         </div>
-        <div class="val">${Utils.money(t.grand)}</div>
+        <div class="checkout-due-val">${Utils.money(t.grand)}</div>
       </div>
       <div class="pos-payment-methods" id="pay-methods">
-        ${["Cash","Card","GCash","Other"].map((m,i)=>`<div class="chip ${i===0?"active":""}" data-m="${m}">${Icons.get(PAY_ICON[m],{size:16})}${m}</div>`).join("")}
+        ${["Cash","Card","GCash","Other"].map((m,i)=>`<div class="chip ${i===0?"active":""}" data-m="${m}">${Icons.get(PAY_ICON[m],{size:15})}${m}</div>`).join("")}
       </div>
-      <div class="field" id="cash-field" style="margin-bottom:12px;">
-        <div class="flex-between" style="margin-bottom:6px;">
-          <label style="font-size:.85rem;font-weight:800;letter-spacing:.04em;">Cash Tendered (₱)</label>
-          <button type="button" class="btn btn-sm btn-ghost" id="btn-exact-cash" style="font-size:.78rem;font-weight:700;color:var(--brand-deep);padding:2px 8px;">Exact (₱${t.grand.toFixed(2)})</button>
+      <div class="field" id="cash-field" style="margin-bottom:10px;">
+        <div class="flex-between" style="align-items:center;margin-bottom:5px;">
+          <label style="font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);">Cash Tendered (₱)</label>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-exact-cash" style="font-size:.74rem;font-weight:700;color:var(--brand);background:var(--brand-tint);padding:2px 10px;border-radius:20px;border:1px solid rgba(59,90,251,0.2);">Exact (${Utils.money(t.grand)})</button>
         </div>
-        <input class="input" id="cash-input" type="number" min="0" step="0.01" placeholder="0.00" style="font-size:1.75rem;font-weight:800;font-family:var(--font-mono);padding:10px 14px;text-align:center;border-radius:12px;height:auto;">
+        <input class="input" id="cash-input" type="number" min="0" step="0.01" placeholder="0.00">
         <div class="cash-presets-row" id="cash-presets">
-          ${[20, 50, 100, 200, 500, 1000].map(v => `<button type="button" class="cash-preset-btn" data-v="${v}">₱${v}</button>`).join("")}
+          ${[20, 50, 100, 200, 500, 1000].map(v => `<button type="button" class="cash-preset-btn" data-v="${v}">₱${v === 1000 ? '1,000' : v}</button>`).join("")}
         </div>
       </div>
       <!-- (2026-07-13) Simplify checkout reference number field label; was verbose -->
-      <div class="field" id="ref-code-field" style="margin-bottom:12px;display:none;">
-        <label style="font-size:.85rem;font-weight:800;letter-spacing:.03em;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+      <div class="field" id="ref-code-field" style="margin-bottom:10px;display:none;">
+        <label style="font-size:.78rem;font-weight:800;letter-spacing:.03em;margin-bottom:5px;display:flex;align-items:center;gap:6px;text-transform:uppercase;color:var(--ink-soft);">
           ${Icons.get("hash",{size:14})} Reference No.
         </label>
-        <input class="input mono" id="ref-code-input" type="text" placeholder="e.g. 1029 3847 2910" style="font-size:1.1rem;font-weight:700;padding:10px 14px;border-radius:10px;">
+        <input class="input mono" id="ref-code-input" type="text" placeholder="e.g. 1029 3847 2910" style="font-size:1.0rem;font-weight:700;padding:8px 12px;border-radius:8px;">
       </div>
       <div class="checkout-change-box" id="change-box">
         <div>
@@ -329,8 +329,8 @@ const POS = (() => {
       title: `${Icons.get("wallet",{size:18})} Complete Sale`,
       body,
       actions: [
-        { label:"Cancel", cls:"btn-ghost btn-lg" },
-        { label:"Confirm Payment", cls:"btn-primary btn-lg", onClick: () => finalizeSale(modal) }
+        { label:"Cancel", cls:"btn-ghost" },
+        { label:"Confirm Payment", cls:"btn-primary", onClick: () => finalizeSale(modal) }
       ]
     });
     let method = "Cash";
@@ -1149,7 +1149,14 @@ const POS = (() => {
           <span class="name" style="color:var(--ink);font-weight:700;min-height:auto;font-size:.78rem;">Not in catalog?<br>Add it now</span>
         </div>
       </div>` : "";
-    grid.innerHTML = customCardHtml + (items.length ? cardsHtml : `<div class="empty" style="grid-column:${searchTerm.trim()?"3":"2"}/-1;">${Icons.get("search",{size:34})}<h3>No products found</h3><p>Try a different search or category.</p></div>`) + addNewCardHtml;
+    // (2026-07-13) Fix mobile POS search empty layout; was missing closing tag
+    const emptyMsgHtml = items.length ? "" : `
+      <div class="empty" style="grid-column:1/-1;width:100%;padding:24px 12px;text-align:center;">
+        ${Icons.get("search",{size:34})}
+        <h3>No products found</h3>
+        <p>Try a different search or category.</p>
+      </div>`;
+    grid.innerHTML = customCardHtml + addNewCardHtml + (items.length ? cardsHtml : emptyMsgHtml);
 
     // (2026-07-13) Kinetic scroll only on touch; ignore mouse pointers. Prev: all pointers
     let isScrollDragging = false;
@@ -1360,22 +1367,25 @@ const POS = (() => {
         <datalist id="custom-cart-item-datalist">
           ${savedCustomItems.map(ci => `<option value="${Utils.escapeHtml(ci.name)}">${ci.price ? `₱${ci.price}` : ""}</option>`).join("")}
         </datalist>`;
+      // (2026-07-13) Make custom item slot non-sticky in cart; was sticky top
       const dottedBtnHtml = `
         ${customDatalistHtml}
-        <div class="cart-line custom-item-slot-dotted" id="btn-add-custom-dotted" style="position:sticky;top:0;z-index:5;border:1.5px dashed var(--brand);border-radius:var(--r-md);margin:2px 0 6px;padding:6px 8px;cursor:pointer;background:color-mix(in srgb, var(--brand-tint) 40%, var(--paper-raised));display:flex;align-items:center;gap:8px;">
+        <!-- (2026-07-13) Compact custom item font sizes; was .82rem & .70rem -->
+        <div class="cart-line custom-item-slot-dotted" id="btn-add-custom-dotted" style="position:relative;border:1.5px dashed var(--brand);border-radius:var(--r-md);margin:2px 0 6px;padding:6px 8px;cursor:pointer;background:color-mix(in srgb, var(--brand-tint) 40%, var(--paper-raised));display:flex;align-items:center;gap:8px;">
           <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
           <div class="info" style="flex:1;min-width:0;">
-            <div class="n" style="color:var(--brand);font-weight:700;font-size:.82rem;">+ Custom Item</div>
-            <div class="p" style="color:var(--ink-faint);font-size:.70rem;">Tap to add open price item</div>
+            <div class="n" style="color:var(--brand);font-weight:700;font-size:.72rem;">+ Custom Item</div>
+            <div class="p" style="color:var(--ink-faint);font-size:.60rem;">Tap to add open price item</div>
           </div>
-          <span class="badge badge-brand text-xs" style="font-size:.65rem;padding:2px 7px;flex-shrink:0;">+ Add</span>
+          <span class="badge badge-brand text-xs" style="font-size:.58rem;padding:2px 7px;flex-shrink:0;">+ Add</span>
         </div>`;
 
       const linesHtml = sortedIndices.map(idx => {
         const l = cart[idx];
         if(l.isCustom){
           return `
-          <div class="cart-line" data-prod-id="${l.productId}">
+          <!-- (2026-07-13) Add custom-cart-line class for mobile styling; was cart-line -->
+          <div class="cart-line custom-cart-line" data-prod-id="${l.productId}">
             <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
             <div class="info" style="flex:1;min-width:0;overflow:hidden;">
               <!-- (2026-07-13) Align /pc and fix custom item row height; was wrapping -->
@@ -1706,16 +1716,18 @@ const POS = (() => {
       <div class="pos-sticky-header">
         <div class="pos-search-scanner-bar">
           <div class="input-icon-wrap pos-search-wrap">
-            ${Icons.get("search",{size:16})}
+            <span class="search-icon-left">${Icons.get("search",{size:16})}</span>
             <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan barcode…" autofocus>
             <button type="button" class="clear-search-btn" id="btn-clear-pos-search" title="Clear search">${Icons.get("x",{size:15})}</button>
           </div>
-          <button type="button" class="btn btn-primary pos-scan-btn font-bold" id="btn-scan-mode" title="Barcode Scanner">
-            ${Icons.get("scan",{size:17})} <span class="scan-btn-lbl">Scan Mode</span>
-          </button>
-          <button type="button" class="btn btn-ghost pos-held-btn font-bold" id="btn-held" title="Held transactions">
-            ${Icons.get("pause-circle",{size:16})} <span class="held-btn-lbl">Held</span> (<span id="held-count">0</span>)
-          </button>
+          <div class="pos-action-buttons">
+            <button type="button" class="btn btn-primary pos-scan-btn font-bold" id="btn-scan-mode" title="Barcode Scanner">
+              ${Icons.get("scan",{size:17})} <span class="scan-btn-lbl">Scan Mode</span>
+            </button>
+            <button type="button" class="btn btn-ghost pos-held-btn font-bold" id="btn-held" title="Held transactions">
+              ${Icons.get("pause-circle",{size:16})} <span class="held-btn-lbl">Held</span> <span id="held-count">0</span>
+            </button>
+          </div>
         </div>
         <div class="category-chips" id="cat-chips"></div>
       </div>

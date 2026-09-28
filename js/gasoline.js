@@ -268,13 +268,13 @@ const Gas = (() => {
           </div>
         </div>
 
-        <!-- 2. Gross Fuel Profit Card (Standout Priority Hero) -->
-        <div class="fuel-kpi-card fuel-profit-card" style="padding:14px 16px;border-radius:12px;background:#FFFFFF;border:1.5px solid #10B981;border-top:3px solid #059669;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(16,185,129,0.08);display:flex;flex-direction:column;justify-content:space-between;">
+        <!-- (2026-07-13) Match fuel profit card styling; was green outline & border -->
+        <div class="fuel-kpi-card fuel-profit-card" style="padding:14px 16px;border-radius:12px;background:#FFFFFF;border:1px solid #E5E7EB;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);display:flex;flex-direction:column;justify-content:space-between;">
           <div>
             <div class="lbl" style="font-size:.72rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px;">
               <span style="color:#059669;">${Icons.get("trending-up",{size:13})}</span> ${r.label} Net Profit
             </div>
-            <div class="val mono font-bold" style="font-size:1.45rem;color:#059669;margin:6px 0 2px;">+${Utils.money(totalProfit)}</div>
+            <div class="val mono font-bold" style="font-size:1.35rem;color:#059669;margin:6px 0 2px;">${totalProfit > 0 ? "+" : ""}${Utils.money(totalProfit)}</div>
             <div class="text-xs font-bold" style="font-size:.72rem;color:#059669;">${marginPct.toFixed(1)}% gross margin</div>
           </div>
         </div>
@@ -1526,7 +1526,8 @@ const Gas = (() => {
           </div>
         </div>
 
-        <div style="flex:1;min-height:0;overflow-y:auto;padding-right:6px;padding-bottom:80px;">
+        <!-- (2026-07-13) Zero bottom padding in gasoline view; was 80px -->
+        <div style="flex:1;min-height:0;overflow-y:auto;padding-right:6px;padding-bottom:0;">
           <!-- Performance Period Filter Navigation -->
           <!-- (2026-07-13) Responsive fuel period card on mobile; was plain card -->
           <div class="card card-tight fuel-period-card" style="padding:8px 16px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,0.02);">

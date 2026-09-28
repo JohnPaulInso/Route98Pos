@@ -50,12 +50,30 @@
 
   .bn-btn {
     padding: 8px 4px;
-    min-height: 56px;
+    min-height: 48px;
+  }
+
+  /* (2026-07-13) Icon-only bottom nav on mobile; prev: showed text labels */
+  .bn-btn > span:not(.ic) {
+    display: none;
   }
 
   .bn-btn .ic-svg {
     width: 24px;
     height: 24px;
+  }
+
+  /* (2026-07-13) Wrap cashier row so Change btn stays reachable; prev: overflow hidden */
+  .shift-cashier-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  /* (2026-07-13) Ensure Change btn is tappable above any overlay; prev: z-index unset */
+  #btn-shift-change-cashier {
+    position: relative;
+    z-index: 2;
+    touch-action: manipulation;
   }
 
   /* ============ MOBILE APP LAYOUT ============ */
@@ -488,7 +506,7 @@
 
   .pos-search-row .input {
     font-size: 1rem;
-    padding: 12px 14px 12px 40px;
+    padding: 8px 8px 8px 40px;
   }
 
   .pos-search-row .input-icon-wrap {
@@ -634,18 +652,22 @@
     font-size: 0.85rem;
   }
 
-  /* ============ TOAST MOBILE ============ */
+  /* (2026-07-13) Compact bottom-left toasts; was full-width 0.95rem */
   #toast-stack {
-    left: 12px;
-    right: 12px;
-    bottom: calc(var(--bottomnav-h) + 12px + env(safe-area-inset-bottom));
-    max-width: none;
+    left: 10px;
+    right: auto;
+    bottom: calc(var(--bottomnav-h, 56px) + 8px + env(safe-area-inset-bottom, 0px));
+    max-width: min(280px, calc(100vw - 20px));
+    align-items: flex-start;
   }
 
   .toast {
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 0.95rem;
+    width: auto;
+    max-width: 100%;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    gap: 6px;
   }
 
   /* ============ BADGES MOBILE ============ */
@@ -1015,9 +1037,9 @@
    EXTRA FEATURES FOR MOBILE
    ============================================================ */
 @media (max-width: 767px) {
-  /* Prevent zoom on input focus */
-  input[type="text"],
-  input[type="number"],
+  /* (2026-07-13) Exclude cart inputs from 16px rule; was zooming cart inputs */
+  input[type="text"]:not(.custom-cart-name-input),
+  input[type="number"]:not(.qty-input):not(.custom-cart-price-input),
   input[type="email"],
   input[type="tel"],
   input[type="search"],

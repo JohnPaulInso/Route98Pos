@@ -180,9 +180,10 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
 }
 .user-chip span{ font-size:.75rem; font-weight:700; }
 
-/* (2026-07-13) Compact padding & smaller font sizes for view header; was large */
-.view{ padding:8px 14px; flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-.view-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; flex-wrap:wrap; flex-shrink:0; position:sticky; top:0; background:var(--paper); z-index:10; padding-bottom:4px; }
+/* (2026-07-13) Zero top padding on view-root; was padding:8px 14px */
+.view{ padding:0 14px 8px; flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+/* (2026-07-13) Transparent view-head; was background:var(--paper) */
+.view-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; flex-wrap:wrap; flex-shrink:0; position:static; background:transparent !important; background-image:none !important; padding-bottom:4px; }
 .view-head > div:first-child{ flex:1; min-width:0; }
 .view-head h2{ font-size:var(--fs-lg); display:flex; align-items:center; gap:6px; margin:0 0 2px; }
 .view-head h2 .ic-svg{ color:var(--brand); }
@@ -236,11 +237,12 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
   background:var(--paper-raised); color:var(--ink); font-size:var(--fs-sm); width:100%;
   transition:border-color var(--transition); font-family:var(--font-body); font-weight:500;
 }
-/* (2026-07-13) Reduce placeholder font size on search/inputs; was default fs-sm */
+/* (2026-07-13) Inherit input font size on placeholders; was 0.74rem */
 .input::placeholder, input::placeholder, textarea::placeholder{
-  font-size: 0.74rem !important;
+  font-size: inherit;
   color: var(--ink-faint);
   font-weight: 500;
+  opacity: 0.65;
 }
 .input:focus{ border-color:var(--brand); }
 .input-row{ display:flex; gap:10px; }
@@ -379,7 +381,34 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
   from{ opacity:1; transform:scale(1) translateY(0); }
   to{ opacity:0; transform:scale(0.92) translateY(8px); }
 }
-.modal.modal-wide{ max-width:920px; }
+.modal.modal-wide{ max-width:640px; }
+/* Desktop/Tablet: Ensure modal backdrop covers entire viewport and optimize wide modals */
+@media (min-width: 768px){
+  .modal-backdrop{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+  }
+  /* (2026-07-13) Set wide modal to 70vw for desktop; was 100vw - 40px */
+  .modal.modal-wide{ 
+    max-width:min(860px, 70vw) !important; 
+    width:70vw !important; 
+    max-height:calc(100vh - 40px) !important; 
+  }
+  .modal.modal-wide .modal-head{ 
+    padding:12px 18px !important; 
+  }
+  .modal.modal-wide .modal-body{ 
+    padding:12px 18px !important; 
+  }
+  .modal.modal-wide .modal-foot{ 
+    padding:10px 18px !important; 
+  }
+}
 .modal-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1.5px solid var(--line); position:sticky; top:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
 .modal-head h3{ display:flex; align-items:center; gap:10px; font-size:1.35rem; font-weight:850; letter-spacing:-.01em; color:var(--ink); }
 .modal-head h3 .ic-svg{ color:var(--brand); }
@@ -402,14 +431,14 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
 body.scroll-locked{ overflow:hidden; }
 
 /* ============ TOAST ============ */
-/* (2026-07-13) Position toasts on bottom left; was bottom right */
-#toast-stack{ position:fixed; bottom:18px; left:18px; z-index:200; display:flex; flex-direction:column; gap:8px; max-width:320px; align-items:flex-start; pointer-events:none; }
+/* (2026-07-13) Compact bottom-left toasts; was bottom-left 320px */
+#toast-stack{ position:fixed; bottom:12px; left:12px; z-index:999999; display:flex; flex-direction:column; gap:6px; max-width:260px; align-items:flex-start; pointer-events:none; }
 .toast{
-  background:var(--ink); color:var(--paper); padding:10px 14px; border-radius:var(--r-md);
-  font-size:var(--fs-sm); font-weight:600; box-shadow:var(--shadow-lg); animation:toast-in .18s ease;
-  display:inline-flex; gap:9px; align-items:center; line-height:1.25; pointer-events:auto;
+  background:var(--ink); color:var(--paper); padding:6px 10px; border-radius:6px;
+  font-size:0.75rem; font-weight:600; box-shadow:var(--shadow-lg); animation:toast-in .18s ease;
+  display:inline-flex; gap:6px; align-items:center; line-height:1.2; pointer-events:auto;
 }
-.toast .ic-svg{ flex-shrink:0; margin:0; }
+.toast .ic-svg{ flex-shrink:0; margin:0; width:13px; height:13px; }
 .toast.success{ background:var(--success-deep); }
 .toast.error{ background:var(--danger-deep); }
 .toast.warn{ background:var(--warning-deep); color:#1B1F1C; }

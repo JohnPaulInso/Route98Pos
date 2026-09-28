@@ -554,8 +554,8 @@ const Expenses = (() => {
     const grossProfit = Math.max(0, totalGrossRev - totalCogs);
     const netProfit = grossProfit - totalOpex;
 
+    // (2026-07-13) Remove stray text comment from innerHTML; was rendered in UI
     view.innerHTML = `
-      // (2026-07-13) Remove view-sub & responsive OPEX layout; was desktop table
       <div class="view-head">
         <div>
           <h2>${Icons.get("dollar-sign",{size:22})} Operating Expenses (OPEX)</h2>

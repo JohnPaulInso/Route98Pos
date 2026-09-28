@@ -74,9 +74,14 @@ const DB = (() => {
     lastView: "pos"
   };
 
+  // (2026-07-13) Full staff roster: Rosella/Nino cashiers, others admin; was generic Cashier
   const DEFAULT_USERS = [
-    { id:"u_admin", name:"Owner/Admin", role:"admin", pin:"1234" },
-    { id:"u_cashier", name:"Cashier", role:"cashier", pin:"1111" }
+    { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"1234" },
+    { id:"u_jp",      name:"JP",            role:"admin",   pin:"3333" },
+    { id:"u_sharon",  name:"Sharon",        role:"admin",   pin:"4444" },
+    { id:"u_ike",     name:"Elaicka / Ike", role:"admin",   pin:"5555" },
+    { id:"u_rosella", name:"Rosella",       role:"cashier", pin:"1111" },
+    { id:"u_nino",    name:"Niño",          role:"cashier", pin:"2222" }
   ];
 
   // (2026-07-13) Set Regular (Gas) fuel name & changeable tanker cost; was Gasoline
@@ -104,7 +109,35 @@ const DB = (() => {
       curSettings.autoSync = true;
       write(KEYS.settings, curSettings);
     }
-    if(read(KEYS.users) === null) write(KEYS.users, DEFAULT_USERS);
+    // (2026-07-13) Ensure all default staff exist; was wiping non-cashier roles
+    let curUsers = read(KEYS.users);
+    if(curUsers === null){
+      write(KEYS.users, DEFAULT_USERS);
+    } else {
+      let uChanged = false;
+      // Remove generic placeholder
+      if(curUsers.some(u => u.name.toLowerCase() === "cashier")){
+        curUsers = curUsers.filter(u => u.name.toLowerCase() !== "cashier");
+        uChanged = true;
+      }
+      // Add any missing default staff
+      const STAFF_SEEDS = [
+        { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"1234" },
+        { id:"u_jp",      name:"JP",            role:"admin",   pin:"3333" },
+        { id:"u_sharon",  name:"Sharon",        role:"admin",   pin:"4444" },
+        { id:"u_ike",     name:"Elaicka / Ike", role:"admin",   pin:"5555" },
+        { id:"u_rosella", name:"Rosella",       role:"cashier", pin:"1111" },
+        { id:"u_nino",    name:"Niño",          role:"cashier", pin:"2222" }
+      ];
+      STAFF_SEEDS.forEach(seed => {
+        const nm = seed.name.toLowerCase();
+        if(!curUsers.some(u => u.name.toLowerCase() === nm)){
+          curUsers.push(seed);
+          uChanged = true;
+        }
+      });
+      if(uChanged) write(KEYS.users, curUsers);
+    }
     const curFuelCfg = read(KEYS.fuelConfig);
     // (2026-07-13) Fix duplicate premium pump; enforce 3 distinct fuels
     if(curFuelCfg === null || !curFuelCfg.fuels || !curFuelCfg.fuels.premium || (curFuelCfg.pumps && curFuelCfg.pumps.length < 3)){
@@ -436,10 +469,10 @@ const DB = (() => {
   const setSettings    = (v) => write(KEYS.settings, v);
   const getUsers       = () => read(KEYS.users, DEFAULT_USERS);
   const setUsers       = (v) => write(KEYS.users, v);
-  // (2026-07-13) Cashier list persistence for checkout; was hardcoded values
+  // (2026-07-13) Cashier roster fetched from users role=cashier; was raw list
   const getCashiers    = () => {
-    const list = read(KEYS.cashiers, DEFAULT_CASHIERS);
-    return Array.isArray(list) && list.length ? list : DEFAULT_CASHIERS;
+    const cu = getUsers().filter(u => u.role === "cashier").map(u => u.name);
+    return cu.length ? cu : DEFAULT_CASHIERS;
   };
   const setCashiers    = (v) => write(KEYS.cashiers, Array.isArray(v) && v.length ? v : DEFAULT_CASHIERS);
   const getHeldSales   = () => read(KEYS.heldSales, []);
@@ -561,6 +594,11 @@ const DB = (() => {
     logs.unshift(item);
     setShiftLogs(logs);
     return item;
+  };
+  // (2026-07-13) Delete single shift log by id; was no delete function
+  const deleteShiftLog = (id) => {
+    const logs = getShiftLogs().filter(l => l.id !== id);
+    setShiftLogs(logs);
   };
   // (2026-07-13) Store daily starting and ending balances; was transient shift
   const getDayBalances = () => read(KEYS.dayBalances, {});
@@ -1009,7 +1047,7 @@ const DB = (() => {
     getRestaurantBookings, setRestaurantBookings, addRestaurantBooking, updateRestaurantBooking, deleteRestaurantBooking,
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
     getBackups, setBackups, saveBackup, deleteBackup, buildSnapshotAt, populateHistoricalBackups,
-    getShift, setShift, getShiftLogs, setShiftLogs, saveShiftLog,
+    getShift, setShift, getShiftLogs, setShiftLogs, saveShiftLog, deleteShiftLog,
     getDayBalances, setDayBalances,
     getSyncMeta, setSyncMeta,
     getSavedCart, saveCart,
