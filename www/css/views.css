@@ -672,6 +672,15 @@ input#cash-input::-webkit-input-placeholder{
 .inv-toolbar .ui-select{ min-width:150px; flex-shrink:0; }
 .inv-toolbar .btn-icon{ width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center; }
 
+/* (2026-07-13) Fill height & top margin for inventory table; was short */
+.inv-table-wrap{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:calc(100vh - 245px);
+  overflow-y:auto !important;
+  margin-top:10px !important;
+}
+
 /* (2026-08-26) Physical stock confirmation modal styles; was not present */
 .stock-confirm-table{ width:100%; border-collapse:collapse; margin:16px 0; }
 .stock-confirm-table th{ text-align:left; padding:10px 12px; background:var(--paper-dim); font-weight:800; text-transform:uppercase; font-size:.75rem; letter-spacing:.04em; border-bottom:2px solid var(--line-strong); }
@@ -768,8 +777,9 @@ table.data th:first-child{
 .pagination-controls .btn-page{ min-width:32px; height:32px; padding:0 8px; border-radius:var(--r-sm); border:1px solid var(--line-strong); background:var(--paper-raised); font-weight:700; cursor:pointer; font-size:var(--fs-xs); color:var(--ink); font-family:var(--font-body); display:inline-flex; align-items:center; justify-content:center; }
 .pagination-controls .btn-page.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
 .pagination-controls .btn-page:disabled{ opacity:.4; cursor:not-allowed; }
-/* (2026-07-13) Global POS pagination pill styles; was mobile-only in media query */
-.pos-pagination-pill{ display:inline-flex; align-items:center; background:var(--paper-raised); border:1px solid var(--line); border-radius:20px; padding:2px 4px; box-shadow:var(--shadow-xs); margin:6px auto 10px; }
+/* (2026-07-13) Reduce pos-pagination-pill top padding/margin; was 6px 10px */
+.pos-pagination-pill{ display:inline-flex; align-items:center; background:var(--paper-raised); border:1px solid var(--line); border-radius:20px; padding:0 4px; box-shadow:var(--shadow-xs); margin:2px auto 6px; }
+#pos-pagination{ margin-top:2px !important; padding:2px 2px !important; }
 .btn-page-pill{ width:36px; height:34px; border:none; background:transparent; color:var(--ink); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; border-radius:50%; transition:background var(--transition); }
 .btn-page-pill:hover:not(:disabled){ background:var(--paper-dim); }
 .btn-page-pill:disabled{ opacity:0.3; cursor:not-allowed; }

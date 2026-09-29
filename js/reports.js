@@ -1702,8 +1702,10 @@ const Reports = (() => {
       });
     }
     
-    const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(s.id));
-    const selectedCount = sales.filter(s => selectedReceiptIds.has(s.id)).length;
+    // (2026-07-13) Checkbox selection matching string/num; was strict
+    const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id)));
+    const selectedCount = sales.filter(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id))).length;
+    const receiptColSpan = window.innerWidth <= 767 ? 5 : 10;
 
     // (2026-07-13) Daily starting/ending balance DB save; was shift cash all ranges
     const dStart = new Date(r.start);
@@ -1862,8 +1864,9 @@ const Reports = (() => {
           <th class="desktop-only receipt-col-cashier">Cashier</th>
           <th class="receipt-col-actions" style="text-align:right;">Actions</th>
         </tr></thead><tbody>
+        <!-- (2026-07-13) Responsive colSpan for receipts; was hardcoded colspan 10 -->
         <tr class="receipt-balance-summary-row" style="font-weight:800;background:var(--paper-dim);border-bottom:1.5px solid var(--line);">
-          <td colspan="10" style="padding:6px 10px;vertical-align:middle;">
+          <td colspan="${receiptColSpan}" style="padding:6px 10px;vertical-align:middle;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:0.75rem;">
               <div style="display:flex;align-items:center;gap:6px;">
                 ${Icons.get("clock",{size:13})}
@@ -1892,7 +1895,7 @@ const Reports = (() => {
         </tr>
         ${pagedSales.map((s, idx) => {
           const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
-          const isChecked = selectedReceiptIds.has(s.id);
+          const isChecked = selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id));
           // (2026-07-13) Line-break max 3 items with +N more; was comma-joined text
           const sItems = s.items || [];
           const dispItems = sItems.slice(0, 3);
@@ -1931,7 +1934,8 @@ const Reports = (() => {
           <!-- (2026-07-13) Show all action buttons; was admin-gated -->
           <td class="receipt-col-actions" style="text-align:right;">
             <div class="receipt-actions-cluster" style="display:inline-flex;gap:4px;align-items:center;">
-              <button class="btn btn-xs btn-outline" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})} <span class="desktop-only">View</span></button>
+              <!-- (2026-07-13) Inline view receipt button on mobile; was whitespace text node -->
+              <button class="btn btn-xs btn-outline" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})}<span class="desktop-only">&nbsp;View</span></button>
               <button class="btn btn-xs btn-ghost desktop-only" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:12})}</button>
               <button class="btn btn-xs btn-ghost desktop-only" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:12})}</button>
               <!-- (2026-07-13) Show delete button on mobile receipts table; was desktop-only -->
@@ -1943,7 +1947,7 @@ const Reports = (() => {
         </tbody>
         <tfoot>
           <tr style="font-weight:900;border-top:2px solid var(--line);background:var(--paper-raised);color:var(--ink);">
-            <td colspan="10" style="padding:8px 10px;">
+            <td colspan="${receiptColSpan}" style="padding:8px 10px;">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:0.78rem;">
                 <div>Total: <strong>${totalReceipts}</strong> rcpts · <strong>${totalItemsCount}</strong> items</div>
                 <div class="mono font-bold" style="font-size:0.95rem;color:var(--brand-deep);">${Utils.money(totalSalesAmount)}</div>
@@ -2090,10 +2094,11 @@ const Reports = (() => {
                   <tr style="font-size:0.86rem;">
                     <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 8px;">${Utils.fmtDate(l.ts)}</td>
                     <td class="mono font-bold void-col-txn" style="padding:8px 8px;">${Utils.escapeHtml(l.origTxnId)}</td>
-                    <td style="max-width:240px;padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.itemSummary)}</td>
+                    <!-- (2026-07-13) Truncate void audit items cleanly; was overlapping text -->
+                    <td style="max-width:220px;padding:8px 10px;font-size:0.85rem;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}">${Utils.escapeHtml(l.itemSummary)}</div></td>
                     <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
                     <td style="padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.admin || "Admin")}</td>
-                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;">${Utils.escapeHtml(l.reason)}</td>
+                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;word-break:break-word;max-width:140px;">${Utils.escapeHtml(l.reason)}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -4102,24 +4107,30 @@ const Reports = (() => {
           const filterFn = getReportFilterFn();
           const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
           if(e.target.checked){
-            curSales.forEach(s => selectedReceiptIds.add(s.id));
+            curSales.forEach(s => { selectedReceiptIds.add(s.id); selectedReceiptIds.add(String(s.id)); });
           } else {
-            curSales.forEach(s => selectedReceiptIds.delete(s.id));
+            selectedReceiptIds.clear();
           }
           render();
         };
       }
+      // (2026-07-13) Enable multi-select receipt checkboxes; was blocked by prevent
       document.querySelectorAll(".receipt-select-chk").forEach(chk => {
         chk.onclick = (e) => {
-          e.preventDefault();
           e.stopPropagation();
         };
         chk.onchange = (e) => {
-          e.preventDefault();
           e.stopPropagation();
           const id = chk.dataset.saleId;
-          if(chk.checked) selectedReceiptIds.add(id);
-          else selectedReceiptIds.delete(id);
+          if(chk.checked){
+            selectedReceiptIds.add(id);
+            const num = Number(id);
+            if(!isNaN(num)) selectedReceiptIds.add(num);
+          } else {
+            selectedReceiptIds.delete(id);
+            const num = Number(id);
+            if(!isNaN(num)) selectedReceiptIds.delete(num);
+          }
           render();
         };
       });

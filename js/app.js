@@ -72,12 +72,14 @@ const App = (() => {
     Scanner.clearContext();
     POS.resetSearch?.();
     Inventory.resetSearch?.();
+    if(id !== "reports"){ document.getElementById("back-to-top-btn")?.remove(); }
     paintNav();
     view.mod.render();
   }
 
-  // (2026-07-13) Preserve scroll position on sync rerender; was resetting to 0
+  // (2026-07-13) Prevent random sync reload on reports; was full rerender
   function rerenderCurrentView(){
+    if(currentView === "reports") return;
     const active = document.activeElement;
     if(active && ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)){
       if(active.id === "pos-search" && currentView === "pos"){

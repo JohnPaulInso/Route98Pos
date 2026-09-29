@@ -1748,7 +1748,8 @@ const POS = (() => {
       <div class="pos-layout" id="pos-layout">
         <div class="pos-catalog">
           <div class="product-grid" id="product-grid"></div>
-          <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:6px;padding:6px 2px;flex-shrink:0;"></div>
+          <!-- (2026-07-13) Compact pagination bar padding; was 6px -->
+          <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:2px;padding:2px 2px;flex-shrink:0;"></div>
         </div>
         <div class="pos-resizer" id="pos-resizer" title="Drag left/right to resize Current Sale"></div>
         <div class="pos-cart" id="pos-cart">

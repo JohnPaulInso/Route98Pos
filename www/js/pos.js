@@ -1305,11 +1305,12 @@ const POS = (() => {
               <span style="display:inline-flex;transform:rotate(180deg);">${Icons.get("chevron-left",{size:15})}</span>
             </button>
           </div>`;
+        // (2026-07-13) Reset catalog scroll on page switch; was grid only
         pag.querySelector("#pos-prev-page")?.addEventListener("click", () => {
-          if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; }
+          if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; document.querySelector(".pos-catalog")?.scrollTo(0,0); }
         });
         pag.querySelector("#pos-next-page")?.addEventListener("click", () => {
-          if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; }
+          if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; document.querySelector(".pos-catalog")?.scrollTo(0,0); }
         });
       } else {
         pag.style.display = "none";
@@ -1747,7 +1748,8 @@ const POS = (() => {
       <div class="pos-layout" id="pos-layout">
         <div class="pos-catalog">
           <div class="product-grid" id="product-grid"></div>
-          <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:6px;padding:6px 2px;flex-shrink:0;"></div>
+          <!-- (2026-07-13) Compact pagination bar padding; was 6px -->
+          <div class="pagination-bar" id="pos-pagination" style="display:none;margin-top:2px;padding:2px 2px;flex-shrink:0;"></div>
         </div>
         <div class="pos-resizer" id="pos-resizer" title="Drag left/right to resize Current Sale"></div>
         <div class="pos-cart" id="pos-cart">
