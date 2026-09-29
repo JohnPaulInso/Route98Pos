@@ -978,7 +978,22 @@ const DB = (() => {
   // (2026-07-13) Safely merge snapshot sales without wiping local; was setSales
   function restoreSnapshot(snap){
     if(!snap) return;
-    if(snap.products && snap.products.length) setProducts(snap.products);
+    if(snap.products && snap.products.length){
+      // (2026-07-13) Preserve local offline stock in restore; was overwrite
+      const localProds = getProducts();
+      if(!localProds.length){
+        setProducts(snap.products);
+      } else {
+        const prodMap = new Map();
+        localProds.forEach(p => prodMap.set(p.id, p));
+        snap.products.forEach(remoteP => {
+          if(!prodMap.has(remoteP.id)){
+            prodMap.set(remoteP.id, remoteP);
+          }
+        });
+        setProducts(Array.from(prodMap.values()));
+      }
+    }
     if(snap.categories && snap.categories.length) setCategories(snap.categories);
     if(snap.sales && snap.sales.length){
       const existing = getSales();

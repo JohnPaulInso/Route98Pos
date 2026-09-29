@@ -85,14 +85,10 @@ const Auth = (() => {
       Utils.Sound.cashChime();
       session = { id: match.id, name: match.name, role: match.role };
       sessionStorage.setItem("mm_session", JSON.stringify(session));
-      localStorage.setItem("pos_cashier", match.name);
-      try {
-        const s = DB.getShift ? DB.getShift() : null;
-        if(s && s.status === "open"){
-          s.cashier = match.name;
-          DB.setShift(s);
-        }
-      } catch(e){}
+      // (2026-07-13) Do not overwrite shift cashier on admin login; was s.cashier=match
+      if(match.role === "cashier"){
+        localStorage.setItem("pos_cashier", match.name);
+      }
       pinBuffer = "";
       cleanupKeyboardListener();
       App.boot();

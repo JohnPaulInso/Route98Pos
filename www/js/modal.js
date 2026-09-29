@@ -6,36 +6,37 @@
 const Modal = (() => {
   let isHandlingHistoryPop = false;
 
-  // (2026-07-13) Universal back button closes all modals; was Escape key only
-  function close(onClosed){
-    const bd = document.querySelector(".modal-backdrop:not(.modal-closing)");
+  // (2026-07-13) Close topmost modal slowly one by one; was closing first modal
+  function close(targetBd, onClosed){
+    if(typeof targetBd === "function"){ onClosed = targetBd; targetBd = null; }
+    const bds = document.querySelectorAll(".modal-backdrop:not(.modal-closing)");
+    const bd = targetBd || (bds.length ? bds[bds.length - 1] : null);
     if(bd){
       bd.classList.add("modal-closing");
       if(!isHandlingHistoryPop && window.history.state?.modalOpen){
         isHandlingHistoryPop = true;
         window.history.back();
-        setTimeout(() => { isHandlingHistoryPop = false; }, 150);
+        setTimeout(() => { isHandlingHistoryPop = false; }, 260);
       }
       setTimeout(() => {
         bd.remove();
         if(!document.querySelector(".modal-backdrop")) document.body.classList.remove("scroll-locked");
         if(typeof onClosed === "function") onClosed();
-      }, 180);
+        else if(typeof bd._onClose === "function") bd._onClose();
+      }, 240);
     } else if(!document.querySelector(".modal-backdrop")){
       document.body.classList.remove("scroll-locked");
       if(typeof onClosed === "function") onClosed();
     }
   }
 
-  // (2026-07-13) Support modalClass for custom dialog styling; was default only
+  // (2026-07-13) Push history state & preserve modal stack; was close() wiping
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "" }){
-    close();
-    // (2026-07-13) Close open dropdowns before opening modal; was staying open
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
+    try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
     document.body.classList.add("scroll-locked");
-    // (2026-07-13) Define backdrop element; was missing element declaration
     const backdrop = document.createElement("div");
-    // (2026-07-13) Clean backdrop classes mapping; was leaking dialog classes
+    backdrop._onClose = onClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop`).join(" ") : "";
     backdrop.className = `modal-backdrop ${extraBackdrop}`.trim();
     backdrop.innerHTML = `
@@ -48,12 +49,12 @@ const Modal = (() => {
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
     document.body.appendChild(backdrop);
-    backdrop.addEventListener("mousedown", (e)=>{ if(e.target === backdrop){ close(onClose); } });
-    backdrop.querySelector("#modal-x").onclick = () => { close(onClose); };
-    const escHandler = (e) => { if(e.key === "Escape"){ close(onClose); document.removeEventListener("keydown", escHandler); } };
+    backdrop.addEventListener("mousedown", (e)=>{ if(e.target === backdrop){ close(backdrop, onClose); } });
+    backdrop.querySelector("#modal-x").onclick = () => { close(backdrop, onClose); };
+    const escHandler = (e) => { if(e.key === "Escape"){ close(backdrop, onClose); document.removeEventListener("keydown", escHandler); } };
     document.addEventListener("keydown", escHandler);
     actions.forEach((a,i) => {
-      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => a.onClick ? a.onClick() : close(onClose);
+      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => a.onClick ? a.onClick() : close(backdrop, onClose);
     });
     return backdrop;
   }
@@ -71,12 +72,18 @@ const Modal = (() => {
     });
   }
 
+  let lastBackTs = 0;
+  // (2026-07-13) Universal back throttled one by one; was closing first modal
   function handleUniversalBack(){
-    const bd = document.querySelector(".modal-backdrop:not(.modal-closing)");
-    if(bd){
+    const now = Date.now();
+    if(now - lastBackTs < 320) return true;
+    lastBackTs = now;
+    const bds = document.querySelectorAll(".modal-backdrop:not(.modal-closing)");
+    if(bds.length){
+      const bd = bds[bds.length - 1];
       const xBtn = bd.querySelector("#modal-x");
       if(xBtn) xBtn.click();
-      else close();
+      else close(bd, bd._onClose);
       return true;
     }
     const scanner = document.getElementById("scanner-overlay");
@@ -105,7 +112,7 @@ const Modal = (() => {
     }
     isHandlingHistoryPop = true;
     handleUniversalBack();
-    setTimeout(() => { isHandlingHistoryPop = false; }, 150);
+    setTimeout(() => { isHandlingHistoryPop = false; }, 260);
   });
 
   document.addEventListener("backbutton", (e) => {

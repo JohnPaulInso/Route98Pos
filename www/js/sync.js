@@ -441,15 +441,17 @@ const Sync = (() => {
       if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds) return;
       scheduleAutoSync();
     });
-    window.addEventListener("online", () => {
+    // (2026-07-13) Pull cloud first then push offline updates; was push first
+    window.addEventListener("online", async () => {
       paintStatus();
-      syncOfflineQueue();
-      const localProducts = DB.getProducts();
-      if(localProducts.length > 0 || DB.getSales().length > 0){
-        pushSnapshot();
-      } else {
-        pullSnapshot();
+      try {
+        await pullSnapshot();
+        await syncOfflineQueue();
+        await pushSnapshot(true);
+      } catch(e) {
+        console.warn("Reconnection sync error:", e);
       }
+      paintStatus();
     });
     window.addEventListener("offline", paintStatus);
     paintStatus();

@@ -460,26 +460,28 @@ const Inventory = (() => {
           ${matches.length ? `<span class="text-xs text-faint">Sorted newest first</span>` : ""}
         </div>
 
-        <!-- (2026-07-13) Scoped compact font styling for product history modal; was oversized -->
+        <!-- (2026-07-13) Align Action header & button in prod history; was unaligned -->
         <style>
           .prod-history-modal .data th{ font-size:0.75rem !important; padding:7px 10px !important; letter-spacing:0.03em; }
           .prod-history-modal .data td{ font-size:0.82rem !important; padding:7px 10px !important; }
           .prod-history-modal tr.history-row-clickable{ cursor:pointer; transition:background 0.15s ease; }
           .prod-history-modal tr.history-row-clickable:hover{ background:var(--brand-tint) !important; }
+          .prod-history-modal th.hist-col-act, .prod-history-modal td.hist-col-act{ width:115px !important; min-width:115px !important; text-align:center !important; padding:6px 6px !important; }
+          .prod-history-modal .btn-view-hist-rcpt{ width:100% !important; max-width:105px !important; padding:4px 6px !important; font-size:0.75rem !important; white-space:nowrap !important; box-sizing:border-box !important; }
         </style>
 
         ${matches.length ? `
           <div class="table-wrap prod-history-modal" style="max-height:420px;overflow-y:auto;overflow-x:auto;border:1px solid var(--line);border-radius:8px;">
-            <table class="data" style="width:100%;min-width:580px;font-size:0.82rem;table-layout:fixed;">
+            <table class="data" style="width:100%;min-width:600px;font-size:0.82rem;table-layout:fixed;">
               <thead>
                 <tr>
-                  <th style="width:140px;">Date & Time</th>
-                  <th style="width:100px;">Receipt #</th>
-                  <th style="width:90px;">Cashier</th>
+                  <th style="width:130px;">Date & Time</th>
+                  <th style="width:95px;">Receipt #</th>
+                  <th style="width:85px;">Cashier</th>
                   <th style="width:70px;">Quantity</th>
-                  <th style="width:80px;">Unit Price</th>
-                  <th style="text-align:right;">Subtotal</th>
-                  <th style="text-align:center;">Action</th>
+                  <th style="width:75px;">Unit Price</th>
+                  <th style="width:85px;text-align:right;">Subtotal</th>
+                  <th class="hist-col-act">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -491,8 +493,8 @@ const Inventory = (() => {
                     <td class="mono font-bold" style="font-size:0.82rem;color:var(--brand-deep);">${m.totalQty} ${m.items[0]?.unitType === "pack" ? "pk" : "pc"}</td>
                     <td class="mono" style="font-size:0.82rem;">${Utils.money(m.items[0]?.price || 0)}</td>
                     <td class="mono font-bold" style="font-size:0.84rem;text-align:right;">${Utils.money(m.totalLineAmount)}</td>
-                    <td style="text-align:center;">
-                      <button class="btn btn-xs btn-outline font-bold" data-view-receipt="${Utils.escapeHtml(m.sale.id)}" style="padding:2px 8px;font-size:0.74rem;">
+                    <td class="hist-col-act">
+                      <button class="btn btn-xs btn-outline font-bold btn-view-hist-rcpt" data-view-receipt="${Utils.escapeHtml(m.sale.id)}">
                         View Receipt
                       </button>
                     </td>

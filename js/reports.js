@@ -232,7 +232,8 @@ const Reports = (() => {
       actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modal.close(); openEditSaleModal(sale); } });
       actions.push({ label: "Delete Sale", cls: "btn-danger btn-lg", onClick: () => { Modal.close(); deleteSaleRecord(sale.id); } });
     }
-    actions.push({ label: "Print Receipt", cls: "btn-primary btn-lg", onClick: () => { POS.printByRecord(sale); } });
+    // (2026-07-13) Line break print receipt button on mobile; was standard button
+    actions.push({ label: "Print Receipt", cls: "btn-primary btn-lg btn-print-receipt", onClick: () => { POS.printByRecord(sale); } });
 
     const modal = Modal.open({
       title: `${Icons.get("receipt",{size:18})} Receipt & Transaction Details`,
@@ -1933,7 +1934,8 @@ const Reports = (() => {
               <button class="btn btn-xs btn-outline" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})} <span class="desktop-only">View</span></button>
               <button class="btn btn-xs btn-ghost desktop-only" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:12})}</button>
               <button class="btn btn-xs btn-ghost desktop-only" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:12})}</button>
-              <button class="btn btn-xs btn-ghost text-danger desktop-only" data-delete-sale="${s.id}" title="Delete Sale">${Icons.get("trash",{size:12})}</button>
+              <!-- (2026-07-13) Show delete button on mobile receipts table; was desktop-only -->
+              <button class="btn btn-xs btn-ghost text-danger" data-delete-sale="${s.id}" title="Delete Sale">${Icons.get("trash",{size:12})}</button>
             </div>
           </td>
         </tr>`;
@@ -2068,8 +2070,8 @@ const Reports = (() => {
     const startIdx = (voidLogsPage - 1) * voidLogsRPP;
     const pagedLogs = logs.slice(startIdx, startIdx + voidLogsRPP);
 
-    const cardStyle = "margin-top:16px;margin-bottom:20px;";
-    const tableStyle = "overflow-x:auto;overflow-y:visible;";
+    const cardStyle = "margin-top:16px;margin-bottom:20px;overflow:hidden;";
+    const tableStyle = "overflow-x:auto;overflow-y:visible;width:100%;";
     return `
       <div class="card" style="${cardStyle}">
         <div class="flex-between" style="margin-bottom:10px;flex-shrink:0;">
@@ -2080,9 +2082,9 @@ const Reports = (() => {
         </div>
         ${logs.length ? `
           <div class="table-wrap" style="${tableStyle}">
-            <!-- (2026-07-13) Add void-col classes for width control; was generic th/td -->
-            <table class="data void-table" style="font-size:0.86rem;">
-              <thead><tr><th class="void-col-time" style="padding:8px 8px;font-size:0.76rem;">Time</th><th class="void-col-txn" style="padding:8px 8px;font-size:0.76rem;">Txn ID</th><th style="padding:8px 10px;font-size:0.76rem;">Items Altered</th><th style="padding:8px 10px;font-size:0.76rem;">Price Diff</th><th style="padding:8px 10px;font-size:0.76rem;">Admin</th><th style="padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
+            <!-- (2026-07-13) Fix void audit table width; was leaving right side blank -->
+            <table class="data void-table" style="width:100%;min-width:600px;font-size:0.86rem;">
+              <thead><tr><th class="void-col-time" style="width:90px;padding:8px 8px;font-size:0.76rem;">Time</th><th class="void-col-txn" style="width:85px;padding:8px 8px;font-size:0.76rem;">Txn ID</th><th style="min-width:140px;padding:8px 10px;font-size:0.76rem;">Items Altered</th><th style="width:85px;padding:8px 10px;font-size:0.76rem;">Price Diff</th><th style="width:80px;padding:8px 10px;font-size:0.76rem;">Admin</th><th style="min-width:120px;padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
               <tbody>
                 ${pagedLogs.map(l => `
                   <tr style="font-size:0.86rem;">
@@ -2871,17 +2873,17 @@ const Reports = (() => {
                 display: false,
                 drawBorder: false
               },
-              // (2026-07-13) Fix category chart label spacing & rotation; was 35deg clipped
+              // (2026-07-13) Rotate labels 45deg to prevent overlap; was 0deg overlapping
               ticks: { 
                 autoSkip: false,
-                maxRotation: 0,
-                minRotation: 0,
-                font: { size: 11, weight: '600' },
+                maxRotation: 45,
+                minRotation: 45,
+                font: { size: 10, weight: '600' },
                 color: '#64748b',
-                padding: 6,
+                padding: 4,
                 callback: function(val) {
                   const lbl = this.getLabelForValue(val) || '';
-                  return lbl.length > 12 ? lbl.slice(0, 11) + '…' : lbl;
+                  return lbl.length > 10 ? lbl.slice(0, 9) + '…' : lbl;
                 }
               }
             },
@@ -3236,10 +3238,8 @@ const Reports = (() => {
 
   function renderOverview(){
     const wrap = document.getElementById("report-body");
-    const r = getActiveRange();
-    // (2026-07-13) Remove redundant All Time header banner; was subtitle row
+    // (2026-07-13) Remove ov-pl summary container; was pl-summary id=ov-pl
     wrap.innerHTML = `
-      <div class="pl-summary" id="ov-pl"></div>
       <div class="chart-grid">
         <div class="chart-card">
           <!-- (2026-07-13) Place period dropdown in revenue trend header; was outer banner -->
@@ -3257,8 +3257,8 @@ const Reports = (() => {
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
             ${Icons.get("tag",{size:18})} Revenue vs Profit by Category
           </h3>
-          <!-- (2026-07-13) Expand category chart height to 230px; was 200px clipped -->
-          <div style="position:relative;height:230px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
+          <!-- (2026-07-13) Set category chart height to 250px; was 230px -->
+          <div style="position:relative;height:250px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
         </div>
         <div class="chart-card">
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
@@ -3448,9 +3448,9 @@ const Reports = (() => {
     
     const view = document.getElementById("view-root");
     const admin = Auth.isAdmin();
-    // (2026-07-13) Allow cashiers full view of reports; was admin-restricted
+    // (2026-07-13) Add top margin and container class to reports; was plain view-body
     view.innerHTML = `
-      <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;height:100%;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:auto;">
+      <div class="view-body rpt-view-container" style="overflow-y:auto;flex:1;min-height:0;height:100%;margin-top:6px;padding-top:6px;padding-bottom:6rem;-webkit-overflow-scrolling:touch;overscroll-behavior:auto;">
         <!-- (2026-07-13) Add rpt-view-head to hide on mobile; was plain view-head -->
         <div class="view-head rpt-view-head" style="align-items:center;">
           <div><h2>${Icons.get("clipboard",{size:22})} Reports</h2></div>
@@ -3471,8 +3471,8 @@ const Reports = (() => {
           <div class="chip ${tab==="purchases"?"active":""}" data-t="purchases">${Icons.get("truck",{size:13})}Purchases & Restock</div>
           <div class="chip ${tab==="voids"?"active":""}" data-t="voids">${Icons.get("alert-triangle",{size:13})}Void Audit</div>
         </div>
-        <!-- (2026-07-13) Move export/import to toolbar ellipsis menu; was bulky full-width -->
-        <div style="margin-bottom:12px;">
+        <!-- (2026-07-13) Reduce toolbar wrapper bottom margin; was 12px -->
+        <div class="rpt-toolbar-wrap" style="margin-bottom:4px;">
           ${reportsToolbarHtml()}
         </div>
         <div id="report-body"></div>
@@ -3481,7 +3481,7 @@ const Reports = (() => {
     document.getElementById("btn-zreport").onclick = openZReport;
     document.querySelectorAll("[data-t]").forEach(c=>c.onclick=()=>{ tab=c.dataset.t; render(); });
     bindToolbarEvents();
-    // (2026-07-13) Fix PC view mode scroll offset; was scrollIntoView displacing
+    // (2026-07-13) Align active subnav chip cleanly without clipping; was offset - 12
     setTimeout(() => {
       const viewBody = view.querySelector(".view-body");
       if(viewBody){
@@ -3491,7 +3491,8 @@ const Reports = (() => {
       const tabsWrap = view.querySelector(".rpt-subnav-tabs");
       const activeTabChip = view.querySelector(".rpt-subnav-tabs .chip.active");
       if(tabsWrap && activeTabChip && window.innerWidth <= 768){
-        tabsWrap.scrollLeft = activeTabChip.offsetLeft - 12;
+        const padLeft = (parseFloat(getComputedStyle(tabsWrap).paddingLeft) || 14) + 6;
+        tabsWrap.scrollLeft = Math.max(0, activeTabChip.offsetLeft - padLeft);
       }
     }, 0);
     

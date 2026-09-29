@@ -76,7 +76,7 @@ const App = (() => {
     view.mod.render();
   }
 
-  // (2026-07-13) Preserve active search/inputs during background rerender; was wiped
+  // (2026-07-13) Preserve scroll position on sync rerender; was resetting to 0
   function rerenderCurrentView(){
     const active = document.activeElement;
     if(active && ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)){
@@ -85,8 +85,20 @@ const App = (() => {
       }
       return;
     }
+    if(currentView === "pos" && document.getElementById("product-grid")){
+      POS.renderCatalog?.();
+      return;
+    }
+    const winY = window.scrollY || document.documentElement.scrollTop;
+    const vb = document.querySelector(".view-body");
+    const vbScroll = vb ? vb.scrollTop : 0;
     const view = VIEWS.find(v => v.id === currentView);
     view?.mod.render();
+    if(winY > 0) window.scrollTo(0, winY);
+    if(vbScroll > 0){
+      const newVb = document.querySelector(".view-body");
+      if(newVb) newVb.scrollTop = vbScroll;
+    }
   }
 
   function paintNav(){

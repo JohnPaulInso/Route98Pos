@@ -180,8 +180,8 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
 }
 .user-chip span{ font-size:.75rem; font-weight:700; }
 
-/* (2026-07-13) Zero top padding on view-root; was padding:8px 14px */
-.view{ padding:0 14px 8px; flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+/* (2026-07-13) Subtle 8px padding on view; was padding:0 0 8px */
+.view{ padding:0 8px 8px; flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
 /* (2026-07-13) Transparent view-head; was background:var(--paper) */
 .view-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; flex-wrap:wrap; flex-shrink:0; position:static; background:transparent !important; background-image:none !important; padding-bottom:4px; }
 .view-head > div:first-child{ flex:1; min-width:0; }

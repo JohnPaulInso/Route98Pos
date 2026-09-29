@@ -184,15 +184,22 @@
     margin-bottom: 0 !important;
   }
 
-  /* (2026-07-13) 10px mobile side padding & margin bounds; was 0 zero padding */
+  /* (2026-07-13) Subtle 8px pad for view-root, scrollbar on edge; was 0 pad */
   .view,
-  .view-body,
   #view-root {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
     box-sizing: border-box !important;
     width: 100% !important;
     max-width: 100vw !important;
+  }
+  .view-body {
+    margin-right: -8px !important;
+    padding-left: 0 !important;
+    padding-right: 8px !important;
+    box-sizing: border-box !important;
+    width: calc(100% + 8px) !important;
+    max-width: calc(100% + 8px) !important;
   }
   
   /* (2026-07-13) Transparent view-head; was var(--paper) & border */
@@ -274,16 +281,20 @@
     box-sizing: border-box !important;
   }
   
-  /* Toolbars */
+  /* (2026-07-13) Reduce bottom margin on rpt-toolbar; was 8px */
   .view > .rpt-toolbar,
   .view .rpt-toolbar,
-  .rpt-toolbar {
+  .rpt-toolbar,
+  #reports-filter-bar {
     padding: 2px 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 3px !important;
     width: 100% !important;
     box-sizing: border-box !important;
+  }
+  .rpt-toolbar-wrap {
+    margin-bottom: 3px !important;
   }
   
   /* Tables - full width with no side borders */
@@ -484,29 +495,34 @@
     content: none !important;
     display: none !important;
   }
-  /* (2026-07-13) Zero pos-layout bottom pad & pos-catalog x-pad; was padded */
+  /* (2026-07-13) Flex pos-layout; was 100vh calc hiding pagination */
   .pos-layout {
     display: flex !important;
     flex-direction: column !important;
     padding: 0 !important;
     padding-bottom: 0 !important;
     gap: 0 !important;
-    height: calc(100vh - var(--topbar-h) - var(--bottomnav-h));
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
     width: 100% !important;
     max-width: 100vw !important;
     overflow: hidden;
   }
   
-  /* (2026-07-13) Remove top padding from pos-catalog; was 14px */
+  /* (2026-07-13) Scroll pos-catalog on mobile; was hidden overflow */
   .pos-catalog {
     padding-top: 0 !important;
-    padding-bottom: 14px !important;
+    padding-bottom: 95px !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    overflow: hidden;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     width: 100%;
     box-sizing: border-box;
   }
@@ -692,20 +708,20 @@
   }
   
   /* ============ PRODUCT CARDS 2-COL NO WHITESPACE ============ */
-  /* (2026-07-13) Eliminate awkward card vertical whitespace; was stretched */
+  /* (2026-07-13) Flow product-grid in scroll catalog; was overflow auto */
   .product-grid {
     display: grid !important;
     padding: 0 !important;
     margin: 0 !important;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    flex: 1;
+    overflow: visible !important;
+    flex: none !important;
+    min-height: auto !important;
+    height: auto !important;
     align-content: start;
     width: 100%;
-    box-sizing: border-box;
-    padding-bottom: 96px !important;
+    padding-bottom: 0 !important;
   }
   
   .product-card {
@@ -841,11 +857,14 @@
     opacity: 0.7 !important;
   }
   
-  /* ============ PAGINATION MOBILE ============ */
+  /* (2026-07-13) Non-sticky pagination below items; was fixed bar */
   .pagination-bar {
-    margin-top: 12px !important;
-    padding: 8px 0 !important;
+    margin-top: 14px !important;
+    margin-bottom: 14px !important;
+    padding: 4px 0 !important;
     flex-shrink: 0 !important;
+    width: 100% !important;
+    position: static !important;
   }
   
   .pagination-controls {
@@ -3362,12 +3381,14 @@
   .inv-table-wrap {
     display: none !important;
   }
+  /* (2026-07-13) Extra bottom pad & margin for inv mobile cards; was 16px */
   .inv-mobile-cards {
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
     width: 100% !important;
-    padding: 2px 0 16px !important;
+    padding: 2px 0 85px !important;
+    margin-bottom: 25px !important;
   }
 
   .inv-mobile-card {
@@ -4655,11 +4676,12 @@
     box-sizing: border-box !important;
   }
   
+  /* (2026-07-13) Expand receipt action cluster for delete btn; was 58px cut off */
   .receipt-col-actions {
-    width: 20% !important;
-    min-width: 58px !important;
+    width: auto !important;
+    min-width: 82px !important;
     max-width: none !important;
-    padding: 4px 2px !important;
+    padding: 4px 4px !important;
     text-align: right !important;
     overflow: visible !important;
     text-overflow: clip !important;
@@ -4669,16 +4691,20 @@
   
   .receipt-actions-cluster {
     display: inline-flex !important;
-    gap: 3px !important;
+    gap: 4px !important;
     align-items: center !important;
     justify-content: flex-end !important;
+    min-width: 76px !important;
   }
   
   .receipt-col-actions .btn {
     padding: 3px 5px !important;
-    font-size: 0.65rem !important;
-    min-width: 22px !important;
-    height: 25px !important;
+    font-size: 0.68rem !important;
+    min-width: 24px !important;
+    height: 26px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
   .receipt-table-wrap .badge {
@@ -4813,4 +4839,62 @@
   width: auto !important;
   max-width: 120px !important;
   border-radius: 6px !important;
+}
+
+/* (2026-07-13) Line break print receipt button on mobile; was single row */
+.modal-receipt-dialog .modal-foot,
+.modal-foot:has(.btn-print-receipt) {
+  flex-wrap: wrap !important;
+}
+.modal-foot .btn-print-receipt {
+  flex: 1 0 100% !important;
+  width: 100% !important;
+  order: 10 !important;
+}
+
+/* (2026-07-13) Reduce reports side padding & add top margin; was 10px pad */
+.rpt-view-container {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+  margin-top: 6px !important;
+  padding-top: 4px !important;
+}
+/* (2026-07-13) Subtle 8px pad on view-root, scrollbar on edge; was 0 pad */
+.view,
+#view-root {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  box-sizing: border-box !important;
+}
+#view-root > .view-body,
+#view-root .view-body,
+#view-root > .pos-layout,
+#view-root #pos-layout {
+  margin-right: -8px !important;
+  padding-right: 8px !important;
+  padding-left: 0 !important;
+  width: calc(100% + 8px) !important;
+  max-width: calc(100% + 8px) !important;
+  box-sizing: border-box !important;
+}
+
+/* (2026-07-13) Add top margin on shift page; was 0 top padding */
+.shift-view-container {
+  margin-top: 8px !important;
+  padding-top: 10px !important;
+}
+
+/* (2026-07-13) Void audit table spans full width without blank gap; was narrow */
+.void-table {
+  width: 100% !important;
+  min-width: 100% !important;
+  box-sizing: border-box !important;
+}
+.void-table th, .void-table td {
+  box-sizing: border-box !important;
+}
+
+/* (2026-07-13) Extra bottom margin for inventory pagination bar; was 0 */
+#inv-pagination {
+  margin-bottom: 75px !important;
 }

@@ -71,19 +71,20 @@ const POS = (() => {
     Utils.toast("Redone.", "info", 1000);
   }
 
-  // (2026-07-13) Clamp flying target within visible cart bounds; was unconstrained
+  // (2026-07-13) Fly cart animation curves downward on mobile; was upward arc
   function animateFlyToCart(fromEl, product){
     if(!fromEl) return;
     const startRect = (fromEl.querySelector(".thumb") || fromEl).getBoundingClientRect();
-    const cartEl = document.getElementById("cart-items");
+    const isMobile = window.innerWidth <= 768;
+    const cartEl = isMobile ? (document.querySelector(".pos-cart") || document.getElementById("cart-items")) : document.getElementById("cart-items");
     if(!cartEl) return;
     const cartBox = cartEl.getBoundingClientRect();
     const targetRow = document.querySelector(`.cart-line[data-prod-id="${product.id || product.productId}"]`);
 
-    let targetX = cartBox.left + 16;
-    let targetY = cartBox.top + Math.max(20, Math.min(cartBox.height / 2, cartBox.height - 30));
+    let targetX = isMobile ? (window.innerWidth / 2 - 25) : (cartBox.left + 16);
+    let targetY = isMobile ? (cartBox.top + 20) : (cartBox.top + Math.max(20, Math.min(cartBox.height / 2, cartBox.height - 30)));
 
-    if(targetRow){
+    if(targetRow && !isMobile){
       const rowBox = targetRow.getBoundingClientRect();
       targetX = rowBox.left + 8;
       targetY = Math.max(cartBox.top + 16, Math.min(cartBox.bottom - 24, rowBox.top + (rowBox.height / 2) - 14));
@@ -101,12 +102,16 @@ const POS = (() => {
     const dx = targetX - startRect.left;
     const dy = targetY - startRect.top;
 
+    const midKeyframe = isMobile
+      ? { transform: `translate3d(${dx * 0.35}px, ${dy * 0.5 + 15}px, 0) scale(0.78) rotate(-4deg)`, opacity: 0.95, offset: 0.45 }
+      : { transform: `translate3d(${dx * 0.45}px, ${dy * 0.3 - 40}px, 0) scale(0.82) rotate(-8deg)`, opacity: 0.95, offset: 0.4 };
+
     const anim = ghost.animate([
       { transform: "translate3d(0,0,0) scale(1) rotate(0deg)", opacity: 1 },
-      { transform: `translate3d(${dx * 0.45}px, ${dy * 0.3 - 40}px, 0) scale(0.82) rotate(-8deg)`, opacity: 0.95, offset: 0.4 },
-      { transform: `translate3d(${dx}px, ${dy}px, 0) scale(0.35) rotate(4deg)`, opacity: 0.4 }
+      midKeyframe,
+      { transform: `translate3d(${dx}px, ${dy}px, 0) scale(0.3) rotate(3deg)`, opacity: 0.3 }
     ], {
-      duration: 580,
+      duration: isMobile ? 480 : 580,
       easing: "cubic-bezier(0.22, 1, 0.36, 1)",
       fill: "forwards"
     });
@@ -280,9 +285,11 @@ const POS = (() => {
   // (2026-07-13) Prioritize checkout typography and change display; was plain
   function openCheckout(){
     if(!cart.length){ Utils.toast("Cart is empty.", "warn"); return; }
-    // (2026-07-13) Compute totals t in openCheckout; was ReferenceError on t
+    // (2026-07-13) Define totals t in openCheckout; was ReferenceError t
     const t = totals();
-    const cashiers = DB.getCashiers();
+    // (2026-07-13) Include all staff in checkout cashier select; was cashiers only
+    const allStaff = (DB.getUsers ? DB.getUsers().map(u => u.name) : []).filter(Boolean);
+    const cashiers = allStaff.length ? allStaff : (DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"]);
     const savedCashier = localStorage.getItem("pos_cashier") || cashiers[0] || "Rosella";
     // (2026-07-13) Polish checkout modal structure & presets; was crowded layout
     const body = `
@@ -762,7 +769,8 @@ const POS = (() => {
       wide: true,
       actions: [
         { label: "Open Drawer", cls: "btn-outline btn-lg", onClick: () => { Utils.openCashDrawer(); } },
-        { label: "Print Receipt (JK580H)", cls: "btn-outline btn-lg", onClick: () => { printReceipt(sale); } },
+        // (2026-07-13) Line break print receipt button on mobile; was standard button
+        { label: "Print Receipt (JK580H)", cls: "btn-outline btn-lg btn-print-receipt", onClick: () => { printReceipt(sale); } },
         { label: "Start Next Sale", cls: "btn-primary btn-lg", onClick: Modal.close }
       ]
     });
@@ -808,10 +816,12 @@ const POS = (() => {
       id: txnId, ts: Date.now(), items: cart.map(l=>({...l})),
       subtotal:t.subtotal, discountType:discount.type, discountValue:discount.value, discountAmt:t.discountAmt, vat:t.vat, total:t.grand,
       method, refCode, tendered, change: Utils.round2(tendered - t.grand),
-      // (2026-07-13) Record cashier with dynamic DB fallback; was hardcoded default
-      cashier: modal.querySelector("#checkout-cashier-select")?.value || localStorage.getItem("pos_cashier") || (DB.getCashiers()[0] || "Rosella")
+      // (2026-07-13) Support all staff as cashier in sale; was cashier role only
+      cashier: modal.querySelector("#checkout-cashier-select")?.value || localStorage.getItem("pos_cashier") || ((DB.getUsers ? DB.getUsers()[0]?.name : null) || "Rosella")
     };
     const sales = DB.getSales(); sales.unshift(sale); DB.setSales(sales);
+    // (2026-07-13) Queue sale for offline syncing; was local sales only
+    if(DB.queueOfflineTransaction) DB.queueOfflineTransaction(sale);
     if(activeHeldId){
       DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== activeHeldId));
       activeHeldId = null;
@@ -1156,7 +1166,10 @@ const POS = (() => {
         <h3>No products found</h3>
         <p>Try a different search or category.</p>
       </div>`;
+    // (2026-07-13) Preserve catalog grid scroll position; was resetting to 0
+    const prevGridScroll = grid.scrollTop;
     grid.innerHTML = customCardHtml + addNewCardHtml + (items.length ? cardsHtml : emptyMsgHtml);
+    if(prevGridScroll > 0) grid.scrollTop = prevGridScroll;
 
     // (2026-07-13) Kinetic scroll only on touch; ignore mouse pointers. Prev: all pointers
     let isScrollDragging = false;
@@ -1292,11 +1305,12 @@ const POS = (() => {
               <span style="display:inline-flex;transform:rotate(180deg);">${Icons.get("chevron-left",{size:15})}</span>
             </button>
           </div>`;
+        // (2026-07-13) Reset catalog scroll on page switch; was grid only
         pag.querySelector("#pos-prev-page")?.addEventListener("click", () => {
-          if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; }
+          if(catalogPage > 1){ catalogPage--; renderCatalog(); grid.scrollTop = 0; document.querySelector(".pos-catalog")?.scrollTo(0,0); }
         });
         pag.querySelector("#pos-next-page")?.addEventListener("click", () => {
-          if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; }
+          if(catalogPage < totalPages){ catalogPage++; renderCatalog(); grid.scrollTop = 0; document.querySelector(".pos-catalog")?.scrollTo(0,0); }
         });
       } else {
         pag.style.display = "none";

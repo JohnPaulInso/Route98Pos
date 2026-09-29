@@ -71,8 +71,8 @@
 .pos-action-buttons{ display:flex; gap:8px; align-items:center; margin-left:auto; }
 .pos-scan-btn, .pos-held-btn{ white-space:nowrap; }
 
-/* (2026-07-13) Zero category chips bottom pad & margin; was pad 6px */
-.category-chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:0; margin-bottom:0; flex-shrink:0; min-width:0; }
+/* (2026-07-13) Add 4px y-padding on category-chips; was padding-bottom 0 */
+.category-chips{ display:flex; gap:6px; overflow-x:auto; padding:4px 0; margin-bottom:0; flex-shrink:0; min-width:0; }
 .category-chips .chip{ text-transform:uppercase; letter-spacing:.02em; font-size:.66rem; font-weight:800; }
 .category-chips::-webkit-scrollbar{ height:3px; }
 .category-chips::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:3px; }
@@ -652,8 +652,8 @@ input#cash-input::-webkit-input-placeholder{
 .card-pagination .pg-select{ border:none; border-bottom:1px solid var(--line); border-radius:0; background:transparent; color:var(--ink); font-weight:600; font-size:0.88rem; padding:2px 6px; cursor:pointer; outline:none; }
 .card-pagination .pg-select:focus{ border-bottom-color:var(--brand); }
 
-/* ============ INVENTORY ============ */
-.inv-toolbar{ display:flex; gap:10px; margin-bottom:14px; align-items:center; flex-wrap:wrap; }
+/* (2026-07-13) Reduce inv-toolbar bottom margin to 6px; was 14px */
+.inv-toolbar{ display:flex; gap:10px; margin-bottom:6px; align-items:center; flex-wrap:wrap; }
 .inv-toolbar .input-icon-wrap{ position:relative; flex-shrink:0; }
 .inv-toolbar .input-icon-wrap .ic-svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
 .inv-toolbar .input-icon-wrap .input{ padding-left:36px; padding-right:36px; }
@@ -768,6 +768,13 @@ table.data th:first-child{
 .pagination-controls .btn-page{ min-width:32px; height:32px; padding:0 8px; border-radius:var(--r-sm); border:1px solid var(--line-strong); background:var(--paper-raised); font-weight:700; cursor:pointer; font-size:var(--fs-xs); color:var(--ink); font-family:var(--font-body); display:inline-flex; align-items:center; justify-content:center; }
 .pagination-controls .btn-page.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
 .pagination-controls .btn-page:disabled{ opacity:.4; cursor:not-allowed; }
+/* (2026-07-13) Global POS pagination pill styles; was mobile-only in media query */
+.pos-pagination-pill{ display:inline-flex; align-items:center; background:var(--paper-raised); border:1px solid var(--line); border-radius:20px; padding:2px 4px; box-shadow:var(--shadow-xs); margin:6px auto 10px; }
+.btn-page-pill{ width:36px; height:34px; border:none; background:transparent; color:var(--ink); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; border-radius:50%; transition:background var(--transition); }
+.btn-page-pill:hover:not(:disabled){ background:var(--paper-dim); }
+.btn-page-pill:disabled{ opacity:0.3; cursor:not-allowed; }
+.pos-page-info{ padding:0 10px; font-size:0.82rem; color:var(--ink-soft); white-space:nowrap; }
+.pos-item-range-lbl{ font-size:0.78rem; color:var(--ink-faint); margin-left:4px; }
 
 /* ============ VENUE COMING SOON ============ */
 .venue-hero{
@@ -923,9 +930,9 @@ table.data th:first-child{
   .mobile-menu-btn{ display:inline-flex !important; }
   .fuel-sale-panel{ grid-template-columns:1fr; }
   .grid-2{ grid-template-columns:1fr; }
-  /* (2026-07-13) Safe bottom nav padding on mobile; was calc(h + 12px) */
-  .view{ padding:0 12px 10px; padding-bottom:calc(var(--bottomnav-h) + 36px) !important; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  #view-pos.view{ overflow:hidden; padding:0 12px 8px; padding-bottom:calc(var(--bottomnav-h) + 4px); height:100%; }
+  /* (2026-07-13) Zero left and right padding on mobile view; was 12px padding */
+  .view{ padding:0 0 10px; padding-bottom:calc(var(--bottomnav-h) + 36px) !important; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #view-pos.view{ overflow:hidden; padding:0 0 8px; padding-bottom:calc(var(--bottomnav-h) + 4px); height:100%; }
 }
 /* (2026-07-13) 3-column grid with resizer in desktop/tablet; was 2-column */
 @media (min-width: 601px), (orientation: landscape) and (min-width: 480px){
@@ -959,8 +966,9 @@ table.data th:first-child{
 @media (max-height: 540px) and (orientation: landscape){
   :root{ --topbar-h: 42px; --bottomnav-h: 44px; }
   .topbar{ padding: 0 12px; gap: 8px; }
-  .view{ padding: 0 10px 4px; }
-  #view-pos.view{ padding: 0 10px 4px; padding-bottom:calc(var(--bottomnav-h) + 4px); }
+  /* (2026-07-13) Zero left and right padding on landscape view; was 10px pad */
+  .view{ padding: 0 0 4px; }
+  #view-pos.view{ padding: 0 0 4px; padding-bottom:calc(var(--bottomnav-h) + 4px); }
   .view-head{ margin-bottom: 2px; }
   .view-head h2{ font-size: .95rem; }
   .pos-search-row{ margin-bottom: 4px; }

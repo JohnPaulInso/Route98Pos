@@ -69,12 +69,18 @@ const Shift = (() => {
     return `${mins}m`;
   }
 
-  // (2026-07-13) Open shift modal with cashier selection & drawer cash; was closed
+  // (2026-07-13) Allow everyone to open shift and admin selection; was cashiers only
   function openStartShiftModal(){
-    // (2026-07-13) Show all users in shift open, not cashiers only; was getCashiers()
-    const allUsers = DB.getUsers ? DB.getUsers().map(u => u.name) : ["Rosella", "Niño"];
-    const cashiers = allUsers.length ? allUsers : ["Rosella", "Niño"];
-    const currentUser = Auth.currentUser()?.name || cashiers[0] || "Rosella";
+    const allUsers = DB.getUsers ? DB.getUsers() : [];
+    const currentUser = Auth.currentUser()?.name || "Rosella";
+    const isAdmin = Auth.isAdmin ? Auth.isAdmin() : false;
+    // (2026-07-13) Default shift cashier to cashier roster; was defaulting admin
+    const cashiers = allUsers.filter(u => u.role !== "admin").map(u => u.name);
+    const admins = allUsers.filter(u => u.role === "admin").map(u => u.name);
+    let roster = [...cashiers, ...admins];
+    if(!roster.length) roster = ["Rosella", "Niño", "Owner/Admin"];
+    const savedCashier = localStorage.getItem("pos_cashier") || cashiers[0] || "Rosella";
+    const defaultDuty = isAdmin ? savedCashier : currentUser;
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric" });
     const timeStr = now.toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" });
@@ -89,9 +95,9 @@ const Shift = (() => {
         </div>
 
         <div class="field" style="margin-bottom:14px;">
-          <label style="font-weight:700;display:block;margin-bottom:6px;">Select On-Duty Cashier</label>
+          <label style="font-weight:700;display:block;margin-bottom:6px;">Select ${isAdmin ? "Admin / Staff" : "Cashier"} on Duty</label>
           <select class="input" id="shift-start-cashier" style="font-size:1rem;height:42px;width:100%;">
-            ${cashiers.map(c => `<option value="${Utils.escapeHtml(c)}" ${c===currentUser?"selected":""}>${Utils.escapeHtml(c)}</option>`).join("")}
+            ${roster.map(c => `<option value="${Utils.escapeHtml(c)}" ${c.toLowerCase()===defaultDuty.toLowerCase()?"selected":""}>${Utils.escapeHtml(c)}</option>`).join("")}
           </select>
         </div>
         <div class="field" style="margin-bottom:14px;">
@@ -338,8 +344,8 @@ const Shift = (() => {
 
     root.innerHTML = `
       <!-- (2026-07-13) Lock shift view full width to stabilize nav tabs; was shifting -->
-      <!-- (2026-07-13) Remove top padding from shift view-body; was padding:16px -->
-      <div class="view-body shift-view-container" style="overflow-y:auto;flex:1;min-height:0;height:100%;width:100%;box-sizing:border-box;padding:0 16px 16px;-webkit-overflow-scrolling:touch;">
+      <!-- (2026-07-13) Add top margin and padding to shift page; was zero top padding -->
+      <div class="view-body shift-view-container" style="overflow-y:auto;flex:1;min-height:0;height:100%;width:100%;box-sizing:border-box;padding:12px 16px 16px;margin-top:6px;-webkit-overflow-scrolling:touch;">
         
         <!-- Header & Tab Navigation -->
         <!-- (2026-07-13) Segmented mobile top tab bar; was wrapping buttons -->
@@ -489,8 +495,7 @@ const Shift = (() => {
                 <span class="badge shift-badge-duty">
                   <span class="shift-duty-dot"></span> ACTIVE ON DUTY
                 </span>
-                <!-- (2026-07-13) Wrap label for icon-only mobile; was plain text -->
-                <button type="button" class="btn btn-xs btn-outline" id="btn-shift-change-cashier" style="margin-left:6px;padding:2px 8px;font-size:0.72rem;display:inline-flex;align-items:center;gap:3px;" title="Change cashier on duty">${Icons.get("edit",{size:11})} <span class="change-btn-label">Change</span></button>
+                <!-- (2026-07-13) Remove change cashier button during active shift; was button -->
               </div>
               <div class="text-xs text-faint shift-cashier-meta">
                 <span>Time In: <strong style="color:var(--ink);">${Utils.fmtDate(active.openedAt)}</strong></span>
