@@ -3,9 +3,63 @@
 // ============================================================
 const Shift = (() => {
   let activeTab = "active"; // "active" | "logs" | "staff"
+  let isRecovering = false;
+
+  // (2026-07-13) Recover shifts via Firestore and RTDB; was RTDB-only gate
+  async function recoverShiftFromCloud(){
+    if(isRecovering) return;
+    isRecovering = true;
+    
+    try {
+      console.log("[Shift] Attempting to recover shift data from cloud...");
+
+      if(typeof Sync !== "undefined" && Sync.pullSnapshot){
+        await Sync.pullSnapshot(true);
+      }
+      
+      if(typeof RealtimeSync !== 'undefined' && RealtimeSync.init){
+        await RealtimeSync.init();
+        if(RealtimeSync.getShiftFromCloud){
+          const cloudShift = await RealtimeSync.getShiftFromCloud();
+          if(cloudShift && cloudShift.status === 'open'){
+            DB.setShift(cloudShift);
+          }
+        }
+        if(RealtimeSync.getShiftLogsFromCloud){
+          const cloudLogs = await RealtimeSync.getShiftLogsFromCloud();
+          if(cloudLogs && cloudLogs.length > 0){
+            DB.setShiftLogs(cloudLogs);
+          }
+        }
+      }
+
+      const logs = DB.getShiftLogs ? DB.getShiftLogs() : [];
+      if(logs.length > 0){
+        Utils.toast(`Recovered ${logs.length} shift logs from cloud`, "success");
+      }
+      return DB.getShift ? DB.getShift() : null;
+    } catch(err){
+      console.error("[Shift] Failed to recover from cloud:", err);
+      Utils.toast("Failed to recover shift data from cloud", "error");
+    } finally {
+      isRecovering = false;
+    }
+    return null;
+  }
 
   function getActiveShift(){
     const s = DB.getShift ? DB.getShift() : null;
+    
+    // If no shift found and not already recovering, try to recover from cloud
+    if(!s && !isRecovering){
+      recoverShiftFromCloud().then(recovered => {
+        if(recovered){
+          // Re-render the shift view with recovered data
+          render();
+        }
+      });
+    }
+    
     return s && s.status === "open" ? s : null;
   }
 
@@ -123,6 +177,7 @@ const Shift = (() => {
       title: `${Icons.get("clock",{size:18})} Open Shift (Time In)`,
       body,
       wide: false,
+      preventBackdropClose: true,
       // (2026-07-13) Disable btn on click to prevent double-submit; was always enabled
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
@@ -140,7 +195,10 @@ const Shift = (() => {
             cashIn: 0,
             cashOut: 0
           };
+          
+          // Save locally first for instant response
           DB.setShift(shiftRecord);
+          
           const todayKey = new Date().toLocaleDateString("en-CA");
           const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
           dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), startingBalance: openingCash };
@@ -151,6 +209,12 @@ const Shift = (() => {
           Modal.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
+          
+          // (2026-07-13) Push opened shift to cloud snapshot; was RTDB-only
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
+          RealtimeSync.openShift(shiftRecord).catch(err => {
+            console.warn("Background sync failed:", err);
+          });
         }}
       ]
     });
@@ -190,6 +254,7 @@ const Shift = (() => {
       title: `${Icons.get("dollar-sign",{size:18})} ${isPayIn ? "Pay In (Add Drawer Cash)" : "Pay Out (Remove Drawer Cash)"}`,
       body,
       wide: false,
+      preventBackdropClose: true,
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
         { label: isPayIn ? "Add Cash" : "Remove Cash", cls: isPayIn ? "btn-primary font-bold" : "btn-danger font-bold", onClick: () => {
@@ -204,7 +269,12 @@ const Shift = (() => {
           }
           active.adjustments = active.adjustments || [];
           active.adjustments.push({ type, amount: amt, reason, ts: Date.now(), by: Auth.currentUser()?.name || active.cashier });
+          active.updatedAt = Date.now();
+          
+          // Update both local and cloud
           DB.setShift(active);
+          RealtimeSync.openShift(active); // Sync the updated shift state
+          
           Utils.openCashDrawer();
           Utils.toast(`Recorded ${isPayIn ? 'Pay In' : 'Pay Out'} of ${Utils.money(amt)}.`, "success");
           Modal.close();
@@ -265,6 +335,7 @@ const Shift = (() => {
       title: `${Icons.get("lock",{size:18})} Close Shift (Time Out)`,
       body,
       wide: false,
+      preventBackdropClose: true,
       // (2026-07-13) Disable confirm btn on click to prevent double-submit; was always enabled
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
@@ -300,11 +371,20 @@ const Shift = (() => {
 
           if(DB.saveShiftLog) DB.saveShiftLog(logRecord);
 
+          // (2026-07-13) Save shift log to Firestore & RTDB; was RTDB-only
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
+          if(typeof RealtimeSync !== 'undefined' && RealtimeSync.saveShiftLogToCloud){
+            RealtimeSync.saveShiftLogToCloud(logRecord).catch(err => {
+              console.warn("Failed to sync shift log to cloud:", err);
+            });
+          }
+
           const todayKey = new Date().toLocaleDateString("en-CA");
           const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
           dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), endingBalance: actualVal };
           if(DB.setDayBalances) DB.setDayBalances(dayBalances);
 
+          // Close shift locally first for instant response
           DB.setShift({ openedAt: null, openingCash: 0, cashier: null, status: "closed", closedAt });
 
           Utils.openCashDrawer();
@@ -317,6 +397,11 @@ const Shift = (() => {
           Modal.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
+          
+          // Sync to cloud in background (non-blocking)
+          RealtimeSync.closeShift(logRecord).catch(err => {
+            console.warn("Background sync failed:", err);
+          });
         }}
       ]
     });
@@ -337,10 +422,21 @@ const Shift = (() => {
     if(!root) return;
 
     const activeShift = getActiveShift();
-    const shiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
+    let shiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
     // (2026-07-13) Cashiers fallback to Rosella & Niño; was Cashier 1 & 2
     const allCashiers = DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"];
     const totals = activeShift ? calculateShiftTotals(activeShift) : null;
+
+    // (2026-10-01) Auto-recover shift logs from cloud if empty
+    if(shiftLogs.length === 0 && !isRecovering){
+      recoverShiftFromCloud().then(() => {
+        // Re-render after recovery attempt
+        const logs = DB.getShiftLogs ? DB.getShiftLogs() : [];
+        if(logs.length > 0){
+          render();
+        }
+      });
+    }
 
     root.innerHTML = `
       <!-- (2026-07-13) Lock shift view full width to stabilize nav tabs; was shifting -->
@@ -380,6 +476,17 @@ const Shift = (() => {
     document.getElementById("tab-shift-active")?.addEventListener("click", () => { activeTab = "active"; render(); });
     document.getElementById("tab-shift-logs")?.addEventListener("click", () => { activeTab = "logs"; render(); });
     document.getElementById("tab-shift-staff")?.addEventListener("click", () => { activeTab = "staff"; render(); });
+
+    // (2026-10-01) Manual recovery button for shift logs
+    document.getElementById("recover-shifts-btn")?.addEventListener("click", async () => {
+      const btn = document.getElementById("recover-shifts-btn");
+      if(btn){
+        btn.disabled = true;
+        btn.innerHTML = `${Icons.get("loader",{size:16})} Recovering...`;
+      }
+      await recoverShiftFromCloud();
+      render();
+    });
 
     // Action button listeners
     document.getElementById("btn-open-new-shift")?.addEventListener("click", openStartShiftModal);
@@ -651,7 +758,10 @@ const Shift = (() => {
     if(!logs || !logs.length){
       return `
         <div class="card" style="padding:48px 24px;text-align:center;background:var(--paper-dim);border:2px dashed var(--line);border-radius:16px;">
-          <p class="text-faint text-sm">No past shift logs archived yet. Closed shifts will appear here with drawer balances & variances.</p>
+          <p class="text-faint text-sm" style="margin-bottom:16px;">No past shift logs archived yet. Closed shifts will appear here with drawer balances & variances.</p>
+          <button class="btn btn-primary" id="recover-shifts-btn" style="display:inline-flex;align-items:center;gap:6px;">
+            ${Icons.get("cloud-download",{size:16})} Recover from Cloud
+          </button>
         </div>
       `;
     }

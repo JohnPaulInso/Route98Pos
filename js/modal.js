@@ -31,12 +31,13 @@ const Modal = (() => {
   }
 
   // (2026-07-13) Push history state & preserve modal stack; was close() wiping
-  function open({ title, body, actions = [], wide = false, onClose, modalClass = "" }){
+  function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
     document.body.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
+    backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop`).join(" ") : "";
     backdrop.className = `modal-backdrop ${extraBackdrop}`.trim();
     backdrop.innerHTML = `
@@ -49,7 +50,11 @@ const Modal = (() => {
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
     document.body.appendChild(backdrop);
-    backdrop.addEventListener("mousedown", (e)=>{ if(e.target === backdrop){ close(backdrop, onClose); } });
+    backdrop.addEventListener("mousedown", (e)=>{ 
+      if(e.target === backdrop && !preventBackdropClose){ 
+        close(backdrop, onClose); 
+      } 
+    });
     backdrop.querySelector("#modal-x").onclick = () => { close(backdrop, onClose); };
     const escHandler = (e) => { if(e.key === "Escape"){ close(backdrop, onClose); document.removeEventListener("keydown", escHandler); } };
     document.addEventListener("keydown", escHandler);

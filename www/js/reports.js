@@ -122,19 +122,71 @@ const Reports = (() => {
     });
   }
   function closeShift(modal){
+    const currentShift = DB.getShift();
+    if(!currentShift || currentShift.status !== "open"){
+      Utils.toast("No active open shift to close.", "warn");
+      return;
+    }
     Modal.confirm({
       title:"Close and Reset Shift?",
       message:"This archives the current shift, locks the drawer, and resets shift sales counters. Sales history remains safely in database.",
       danger: true,
       onConfirm: () => {
         const actual = document.querySelector("#actual-cash")?.value;
-        DB.setShift({ openedAt: Date.now(), openingCash: Number(actual)||0, closedAt: Date.now() });
+        const actualCash = Number(actual)||0;
+        const { store, fuel } = shiftSales();
+        const totals = paymentTotals(store, fuel);
+        const cashIn = totals["Cash"]||0;
+        const expected = (currentShift.openingCash || 0) + cashIn;
+        const variance = actualCash - expected;
+        const closedAt = Date.now();
+
+        // Save shift log
+        if(DB.saveShiftLog){
+          DB.saveShiftLog({
+            id: currentShift.id || Utils.uid("shift"),
+            openedAt: currentShift.openedAt,
+            closedAt,
+            duration: (() => {
+              const diff = Math.max(0, closedAt - currentShift.openedAt);
+              const hrs = Math.floor(diff / 3600000);
+              const mins = Math.floor((diff % 3600000) / 60000);
+              return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+            })(),
+            cashier: currentShift.cashier || "Cashier",
+            openingCash: currentShift.openingCash || 0,
+            cashSales: totals["Cash"] || 0,
+            gcashSales: totals["GCash"] || 0,
+            cardSales: totals["Card"] || 0,
+            otherSales: totals["Other"] || 0,
+            totalSales: store.reduce((s,x)=>s+x.total,0) + fuel.reduce((s,x)=>s+x.amount,0),
+            totalCount: store.length + fuel.length,
+            cashIn: currentShift.cashIn || 0,
+            cashOut: currentShift.cashOut || 0,
+            expectedCash: expected,
+            actualCash,
+            variance,
+            notes: "Z Report close",
+            status: "closed"
+          });
+        }
+
+        // Update day balances
+        const todayKey = new Date().toLocaleDateString("en-CA");
+        const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
+        dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), endingBalance: actualCash };
+        if(DB.setDayBalances) DB.setDayBalances(dayBalances);
+
+        // Clear shift
+        DB.setShift({ openedAt: null, openingCash: 0, cashier: null, status: "closed", closedAt });
+
         // (2026-07-13) Auto-create daily backup on shift close; was unbacked
         if(typeof Sync !== "undefined" && Sync.createDailyBackup){
           Sync.createDailyBackup("automatic_daily");
         }
         Modal.close();
         Utils.toast("Shift archived and reset successfully.", "success");
+        if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
         render();
       }
     });
@@ -405,20 +457,14 @@ const Reports = (() => {
       wide: true,
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
-        // (2026-07-13) Fix syntax error & restore stock on alteration; was crash
+        // (2026-07-13) Log before/after stock on alteration; was qty & name only
         { label: "Save Alteration & Log Audit", cls: "btn-primary font-bold", onClick: () => {
           if(!items.length){ Utils.toast("Transaction cannot be empty. Delete it instead to void entirely.", "warn"); return; }
           const reason = modal.querySelector("#edit-sale-reason")?.value.trim() || "Admin alteration";
           const newTotal = items.reduce((s,x)=>s + (x.price * x.qty), 0);
           const priceDiff = newTotal - sale.total;
-          DB.addVoidLog({
-            origTxnId: sale.id,
-            itemSummary: items.map(l=>`${l.qty}x ${l.name}`).join(", "),
-            priceDiff,
-            reason,
-            admin: Auth.currentUser()?.name || "Admin"
-          });
           const products = DB.getProducts();
+          const stockChanges = [];
           (sale.items || []).forEach(origLine => {
             const newLine = items.find(x => (x.productId && x.productId === origLine.productId) || (x.name && x.name === origLine.name));
             const oldQty = origLine.qty || 0;
@@ -430,11 +476,32 @@ const Reports = (() => {
               if(p){
                 const ppp = p.piecesPerPack > 1 ? p.piecesPerPack : 1;
                 const pieces = (origLine.unitType === "pack" && ppp > 1) ? (diffQty * ppp) : diffQty;
-                p.stock = Utils.round2(p.stock + pieces);
+                const beforeStock = p.stock || 0;
+                const afterStock = Utils.round2(beforeStock + pieces);
+                p.stock = afterStock;
+                stockChanges.push(`${diffQty}x ${p.name || origLine.name} (Stock: ${beforeStock} → ${afterStock})`);
+              } else {
+                stockChanges.push(`${diffQty}x ${origLine.name}`);
               }
+            } else if(diffQty > 0) {
+              stockChanges.push(`${diffQty}x ${origLine.name} (Custom)`);
             }
           });
           DB.setProducts(products);
+
+          const displayTxnId = sale.receiptNo 
+            ? (String(sale.receiptNo).toUpperCase().startsWith("TXN-") ? sale.receiptNo : `TXN-${sale.receiptNo}`) 
+            : (String(sale.id).toUpperCase().startsWith("TXN-") ? sale.id : `TXN-${sale.id}`);
+
+          const voidEntry = DB.addVoidLog({
+            origTxnId: displayTxnId,
+            itemSummary: stockChanges.join(", ") || items.map(l=>`${l.qty}x ${l.name}`).join(", "),
+            priceDiff,
+            reason,
+            admin: Auth.currentUser()?.name || "Admin"
+          });
+          if(typeof Sync !== "undefined" && Sync.pushVoidDoc) Sync.pushVoidDoc(voidEntry);
+          voidLogsPage = 1;
           const sales = DB.getSales();
           const idx = sales.findIndex(x => x.id === sale.id);
           if(idx !== -1){
@@ -515,13 +582,16 @@ const Reports = (() => {
 
   // (2026-07-13) Delete store & fuel sale records with confirmation. Prev: view only
   // (2026-07-13) Robust sale lookup & stock restore on deletion; was strict id
-  let deleteConfirmOpen = false;
-
-  function deleteSaleRecord(saleId){
+  // (2026-07-13) Support object or string id in deleteSaleRecord; was id only
+  function deleteSaleRecord(saleParam){
     deleteConfirmOpen = false;
     const allSales = DB.getSales();
-    const cleanId = String(saleId).replace(/^TXN-/i, "");
+    const saleId = (typeof saleParam === "object" && saleParam) ? (saleParam.id || saleParam.receiptNo) : saleParam;
+    const cleanId = String(saleId || "").replace(/^TXN-/i, "");
     let sale = allSales.find(x => x.id === saleId || x.receiptNo === saleId || String(x.id).replace(/^TXN-/i, "") === cleanId);
+    if(!sale && typeof saleParam === "object" && saleParam && saleParam.items){
+      sale = saleParam;
+    }
     if(!sale){
       const rawSales = JSON.parse(localStorage.getItem(DB.KEYS.sales) || "[]");
       sale = rawSales.find(x => x.id === saleId || x.receiptNo === saleId || String(x.id).replace(/^TXN-/i, "") === cleanId);
@@ -535,16 +605,13 @@ const Reports = (() => {
       danger: true,
       onConfirm: () => {
         deleteConfirmOpen = false;
-        DB.addVoidLog({
-          origTxnId: sale.id,
-          itemSummary: (sale.items || []).map(l=>`${l.qty}x ${l.name}`).join(", ") || "Complete transaction void",
-          priceDiff: -sale.total,
-          reason: "Complete Transaction Deletion/Void",
-          admin: Auth.currentUser()?.name || "Admin"
-        });
         const products = DB.getProducts();
+        const stockChanges = [];
         (sale.items || []).forEach(line => {
-          if(line.isCustom) return;
+          if(line.isCustom){
+            stockChanges.push(`${line.qty}x ${line.name} (Custom)`);
+            return;
+          }
           let p = products.find(x => String(x.id) === String(line.productId || line.id || ""));
           if(!p && line.name){
             p = products.find(x => (x.name || "").trim().toLowerCase() === line.name.trim().toLowerCase());
@@ -552,12 +619,40 @@ const Reports = (() => {
           if(p){
             const ppp = p.piecesPerPack > 1 ? p.piecesPerPack : 1;
             const pieces = (line.unitType === "pack" && ppp > 1) ? (line.qty * ppp) : line.qty;
-            p.stock = Utils.round2(p.stock + pieces);
+            const beforeStock = p.stock || 0;
+            const afterStock = Utils.round2(beforeStock + pieces);
+            p.stock = afterStock;
+            stockChanges.push(`${line.qty}x ${p.name || line.name} (Stock: ${beforeStock} → ${afterStock})`);
+          } else {
+            stockChanges.push(`${line.qty}x ${line.name}`);
           }
         });
         DB.setProducts(products);
+
+        const cleanRcpt = String(sale.receiptNo || "").replace(/^TXN-/i, "");
+        const displayTxnId = sale.receiptNo 
+          ? (String(sale.receiptNo).toUpperCase().startsWith("TXN-") ? sale.receiptNo : `TXN-${sale.receiptNo}`) 
+          : (String(sale.id).toUpperCase().startsWith("TXN-") ? sale.id : `TXN-${sale.id}`);
+
+        const voidEntry = DB.addVoidLog({
+          origTxnId: displayTxnId,
+          itemSummary: stockChanges.join(", ") || "Complete transaction void",
+          priceDiff: -sale.total,
+          reason: "Complete Transaction Deletion/Void",
+          admin: Auth.currentUser()?.name || "Admin"
+        });
+        if(typeof Sync !== "undefined" && Sync.pushVoidDoc) Sync.pushVoidDoc(voidEntry);
+        voidLogsPage = 1;
+
         const curSales = DB.getSales();
-        DB.setSales(curSales.filter(x => x.id !== sale.id && x.id !== cleanId && x.receiptNo !== sale.id && x.receiptNo !== cleanId));
+        DB.setSales(curSales.filter(x => {
+          const xCleanId = String(x.id || "").replace(/^TXN-/i, "");
+          const xCleanRcpt = String(x.receiptNo || "").replace(/^TXN-/i, "");
+          if (x.id === sale.id || x.receiptNo === sale.receiptNo) return false;
+          if (cleanId && (xCleanId === cleanId || xCleanRcpt === cleanId)) return false;
+          if (cleanRcpt && (xCleanId === cleanRcpt || xCleanRcpt === cleanRcpt)) return false;
+          return true;
+        }));
         DB.markSaleDeleted(sale.id, sale.receiptNo);
         if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(sale.id);
         Utils.toast("Sale record deleted & logged to Void Audit.", "success");
@@ -569,7 +664,7 @@ const Reports = (() => {
     });
   }
 
-  // (2026-07-13) Batch delete receipts with stock restore; was single delete
+  // (2026-07-13) Log stock before/after on batch deletion; was qty & name only
   function batchDeleteSales(saleIds){
     if(deleteConfirmOpen) return;
     if(!saleIds || !saleIds.length) return;
@@ -588,15 +683,12 @@ const Reports = (() => {
           deleteConfirmOpen = false;
           const products = DB.getProducts();
           toDelete.forEach(sale => {
-            DB.addVoidLog({
-              origTxnId: sale.id,
-              itemSummary: (sale.items || []).map(l=>`${l.qty}x ${l.name}`).join(", ") || "Batch transaction void",
-              priceDiff: -sale.total,
-              reason: "Batch Receipt Deletion/Void",
-              admin: Auth.currentUser()?.name || "Admin"
-            });
+            const stockChanges = [];
             (sale.items || []).forEach(line => {
-              if(line.isCustom) return;
+              if(line.isCustom){
+                stockChanges.push(`${line.qty}x ${line.name} (Custom)`);
+                return;
+              }
               let p = products.find(x => String(x.id) === String(line.productId || line.id || ""));
               if(!p && line.name){
                 p = products.find(x => (x.name || "").trim().toLowerCase() === line.name.trim().toLowerCase());
@@ -604,11 +696,28 @@ const Reports = (() => {
               if(p){
                 const ppp = p.piecesPerPack > 1 ? p.piecesPerPack : 1;
                 const pieces = (line.unitType === "pack" && ppp > 1) ? (line.qty * ppp) : line.qty;
-                p.stock = Utils.round2(p.stock + pieces);
+                const beforeStock = p.stock || 0;
+                const afterStock = Utils.round2(beforeStock + pieces);
+                p.stock = afterStock;
+                stockChanges.push(`${line.qty}x ${p.name || line.name} (Stock: ${beforeStock} → ${afterStock})`);
+              } else {
+                stockChanges.push(`${line.qty}x ${line.name}`);
               }
             });
+            const displayTxnId = sale.receiptNo 
+              ? (String(sale.receiptNo).toUpperCase().startsWith("TXN-") ? sale.receiptNo : `TXN-${sale.receiptNo}`) 
+              : (String(sale.id).toUpperCase().startsWith("TXN-") ? sale.id : `TXN-${sale.id}`);
+            const voidEntry = DB.addVoidLog({
+              origTxnId: displayTxnId,
+              itemSummary: stockChanges.join(", ") || "Batch transaction void",
+              priceDiff: -sale.total,
+              reason: "Batch Receipt Deletion/Void",
+              admin: Auth.currentUser()?.name || "Admin"
+            });
+            if(typeof Sync !== "undefined" && Sync.pushVoidDoc) Sync.pushVoidDoc(voidEntry);
           });
           DB.setProducts(products);
+          voidLogsPage = 1;
           DB.setSales(allSales.filter(x => !idSet.has(x.id)));
           toDelete.forEach(s => {
             selectedReceiptIds.delete(s.id);
@@ -637,13 +746,16 @@ const Reports = (() => {
       message: `Delete fuel sale ${sale.pumpLabel || ""} (${Utils.money(sale.amount)})? This will log a void record.`,
       danger: true,
       onConfirm: () => {
-        DB.addVoidLog({
+        // (2026-07-13) Push fuel void & reset page on delete; was local & page unchanged
+        const voidEntry = DB.addVoidLog({
           origTxnId: sale.id || fuelId,
           itemSummary: `${sale.pumpLabel || "Pump"} · ${sale.fuelName || "Fuel"} (${sale.liters?.toFixed(2)||0} L)`,
           priceDiff: -sale.amount,
           reason: "Fuel Sale Deletion/Void",
           admin: Auth.currentUser()?.name || "Admin"
         });
+        if(typeof Sync !== "undefined" && Sync.pushVoidDoc) Sync.pushVoidDoc(voidEntry);
+        voidLogsPage = 1;
         DB.setFuelSales(DB.getFuelSales().filter(x => x.id !== fuelId));
         Utils.toast("Fuel sale record deleted & logged to Void Audit.", "success");
         render();
@@ -1934,8 +2046,8 @@ const Reports = (() => {
           <!-- (2026-07-13) Show all action buttons; was admin-gated -->
           <td class="receipt-col-actions" style="text-align:right;">
             <div class="receipt-actions-cluster" style="display:inline-flex;gap:4px;align-items:center;">
-              <!-- (2026-07-13) Inline view receipt button on mobile; was whitespace text node -->
-              <button class="btn btn-xs btn-outline" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})}<span class="desktop-only">&nbsp;View</span></button>
+              <!-- (2026-07-13) Hide view button on desktop receipts; was visible button -->
+              <button class="btn btn-xs btn-outline mobile-only" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})}</button>
               <button class="btn btn-xs btn-ghost desktop-only" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:12})}</button>
               <button class="btn btn-xs btn-ghost desktop-only" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:12})}</button>
               <!-- (2026-07-13) Show delete button on mobile receipts table; was desktop-only -->
@@ -2079,7 +2191,7 @@ const Reports = (() => {
     return `
       <div class="card" style="${cardStyle}">
         <div class="flex-between" style="margin-bottom:10px;flex-shrink:0;">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--danger-deep);margin:0;${isDedicated ? '' : 'cursor:pointer;user-select:none;" onclick="Reports.navigateToVoidAudit()" title="Click to view full void audit'}">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--danger-deep);margin:0;${isDedicated ? '' : 'cursor:pointer;user-select:none;'}" ${isDedicated ? '' : 'onclick="Reports.navigateToVoidAudit()" title="Click to view full void audit"'}>
             ${Icons.get("alert-triangle",{size:18})} Voided & Altered Items Audit Log (${logs.length})
             ${isDedicated ? '' : '<span style="font-size:0.85rem;color:var(--danger);margin-left:4px;">→</span>'}
           </h3>
@@ -2092,13 +2204,13 @@ const Reports = (() => {
               <tbody>
                 ${pagedLogs.map(l => `
                   <tr style="font-size:0.86rem;">
-                    <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 8px;">${Utils.fmtDate(l.ts)}</td>
-                    <td class="mono font-bold void-col-txn" style="padding:8px 8px;">${Utils.escapeHtml(l.origTxnId)}</td>
-                    <!-- (2026-07-13) Truncate void audit items cleanly; was overlapping text -->
-                    <td style="max-width:220px;padding:8px 10px;font-size:0.85rem;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}">${Utils.escapeHtml(l.itemSummary)}</div></td>
-                    <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
-                    <td style="padding:8px 10px;font-size:0.85rem;">${Utils.escapeHtml(l.admin || "Admin")}</td>
-                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;word-break:break-word;max-width:140px;">${Utils.escapeHtml(l.reason)}</td>
+                    <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 8px;white-space:nowrap;">${Utils.fmtDate(l.ts)}</td>
+                    <td class="mono font-bold void-col-txn" style="padding:8px 8px;word-break:break-all;max-width:120px;line-height:1.3;white-space:normal;">${Utils.escapeHtml(l.origTxnId)}</td>
+                    <!-- (2026-07-13) Render formatted stock changes in void summary; was plain text -->
+                    <td style="max-width:280px;padding:8px 10px;font-size:0.85rem;word-wrap:break-word;white-space:normal;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}" style="display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical;overflow:hidden;word-wrap:break-word;line-height:1.4;max-height:9em;">${Utils.escapeHtml(l.itemSummary).replace(/\(Stock:\s*([0-9.]+)\s*→\s*([0-9.]+)\)/g, '<span style="display:inline-block;padding:2px 6px;margin:2px 0;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.80rem;">Stock: $1 → $2</span>')}</div></td>
+                    <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};white-space:nowrap;">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
+                    <td style="padding:8px 10px;font-size:0.85rem;word-break:break-word;">${Utils.escapeHtml(l.admin || "Admin")}</td>
+                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;word-break:break-word;max-width:140px;white-space:normal;">${Utils.escapeHtml(l.reason)}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -2165,8 +2277,17 @@ const Reports = (() => {
     }
   }
 
-  // ---------------- Overview (admin only): stats, clickable charts, top sellers ----------------
-  function destroyOverviewCharts(){ Object.values(overviewCharts).forEach(c=>c?.destroy()); overviewCharts = {}; }
+  // (2026-07-13) Safely destroy charts by ID; was destroy overviewCharts only
+  function destroyOverviewCharts(){
+    Object.values(overviewCharts).forEach(c => { try { c?.destroy(); } catch(e){} });
+    overviewCharts = {};
+    ["ov-chart-trend", "ov-chart-category", "ov-chart-revenue-bar", "ov-chart-category-pie", "ov-chart-top-products"].forEach(id => {
+      try {
+        const c = typeof Chart !== "undefined" ? Chart.getChart(id) : null;
+        if(c) c.destroy();
+      } catch(e){}
+    });
+  }
 
   function openDayDrilldown(dayStart){
     const { store, fuel } = Analytics.transactionsOnDay(dayStart);
@@ -2679,565 +2800,483 @@ const Reports = (() => {
     });
   }
 
-  // (2026-07-13) Guard trend and category charts with safe fallbacks; was crashing
+  // (2026-07-13) Safe chart builder with ready poll & reflow wait; was 0x0 blank
   function buildOverviewCharts(stats){
     destroyOverviewCharts();
-    const trendCtx = document.getElementById("ov-chart-trend")?.getContext("2d");
-    if(trendCtx && typeof Chart !== "undefined"){
-      const trendData = stats.trend || Analytics.computeTrendData(periodKey);
-      const store = trendData.store || trendData.storeData || [];
-      const labels = trendData.labels || [];
-      const timestamps = trendData.timestamps || trendData.dayStarts || [];
-      overviewCharts.trend = new Chart(trendCtx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            { 
-              label: "Revenue", 
-              data: store, 
-              borderColor: "#3B82F6", 
-              backgroundColor: (context) => {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return 'rgba(59,130,246,0.1)';
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                gradient.addColorStop(0, 'rgba(59,130,246,0.35)');
-                gradient.addColorStop(0.5, 'rgba(96,165,250,0.20)');
-                gradient.addColorStop(1, 'rgba(147,197,253,0.02)');
-                return gradient;
-              },
-              fill: true, 
-              tension: 0.4,
-              borderWidth: 3,
-              pointRadius: 0,
-              pointHoverRadius: 6,
-              pointHoverBackgroundColor: "#3B82F6",
-              pointHoverBorderColor: "#fff",
-              pointHoverBorderWidth: 2
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
-          plugins: { 
-            legend: { 
-              display: false
-            },
-            tooltip: {
-              enabled: true,
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#fff',
-              bodyColor: '#e2e8f0',
-              padding: 14,
-              cornerRadius: 10,
-              titleFont: { size: 14, weight: 'bold' },
-              bodyFont: { size: 13, weight: '600' },
-              bodySpacing: 8,
-              displayColors: false,
-              callbacks: {
-                label: (context) => {
-                  const value = context.parsed.y;
-                  return `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { 
-                display: false,
-                drawBorder: false
-              },
-              ticks: {
-                font: { size: 11, weight: '600' },
-                color: '#64748b',
-                padding: 8
-              }
-            },
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(148, 163, 184, 0.1)',
-                drawBorder: false
-              },
-              ticks: {
-                font: { size: 11, weight: '600' },
-                color: '#64748b',
-                padding: 8,
-                callback: (value) => '₱' + value.toLocaleString()
-              }
-            }
-          },
-          onClick: (e, elements) => {
-            if(elements.length > 0){
-              const idx = elements[0].index;
-              const dayStart = timestamps[idx];
-              if(dayStart) openDayDrilldown(dayStart);
-            }
-          }
-        }
-      });
+    if(typeof Chart === "undefined"){
+      setTimeout(() => { if(typeof Chart !== "undefined") buildOverviewCharts(stats); }, 100);
+      return;
+    }
+    const trendEl = document.getElementById("ov-chart-trend");
+    if(trendEl && trendEl.offsetWidth === 0){
+      setTimeout(() => buildOverviewCharts(stats), 60);
+      return;
     }
 
-    const catCtx = document.getElementById("ov-chart-category")?.getContext("2d");
-    if(catCtx && typeof Chart !== "undefined"){
-      // (2026-07-13) Top 8 active categories to prevent clutter; was all categories
-      const rawCats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
-      const activeCats = rawCats.filter(c => (c.revenue || 0) > 0 || (c.profit || 0) > 0).sort((a,b) => (b.revenue||0) - (a.revenue||0));
-      const cats = activeCats.length ? activeCats.slice(0, 8) : rawCats.slice(0, 6);
-      overviewCharts.category = new Chart(catCtx, {
-        type: "bar",
-        data: {
-          labels: cats.map(c => c.category),
-          datasets: [
-            { 
-              label: "Revenue", 
-              data: cats.map(c => c.revenue), 
-              backgroundColor: (context) => {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return '#6366F1';
-                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                gradient.addColorStop(0, '#6366F1');
-                gradient.addColorStop(1, '#8B5CF6');
-                return gradient;
-              },
-              borderRadius: 8,
-              borderSkipped: false,
-              barPercentage: 0.7,
-              categoryPercentage: 0.8
-            },
-            { 
-              label: "Profit", 
-              data: cats.map(c => c.profit), 
-              backgroundColor: (context) => {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return '#10B981';
-                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                gradient.addColorStop(0, '#10B981');
-                gradient.addColorStop(1, '#34D399');
-                return gradient;
-              },
-              borderRadius: 8,
-              borderSkipped: false,
-              barPercentage: 0.7,
-              categoryPercentage: 0.8
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
-          plugins: { 
-            legend: { 
-              position: "top",
-              labels: {
-                usePointStyle: true,
-                pointStyle: 'rectRounded',
-                padding: 16,
-                font: { size: 13, weight: '600' }
+    // 1. Trend Line Chart
+    try {
+      const trendCtx = document.getElementById("ov-chart-trend")?.getContext("2d");
+      if(trendCtx){
+        const trendData = stats?.trend || Analytics.computeTrendData(periodKey);
+        const store = trendData?.store || trendData?.storeData || [];
+        const labels = trendData?.labels || [];
+        const timestamps = trendData?.timestamps || trendData?.dayStarts || [];
+        overviewCharts.trend = new Chart(trendCtx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              { 
+                label: "Revenue", 
+                data: store, 
+                borderColor: "#3B82F6", 
+                backgroundColor: (context) => {
+                  const chart = context.chart;
+                  const {ctx, chartArea} = chart;
+                  if (!chartArea || !isFinite(chartArea.top) || !isFinite(chartArea.bottom) || chartArea.bottom <= chartArea.top) return 'rgba(59,130,246,0.1)';
+                  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                  gradient.addColorStop(0, 'rgba(59,130,246,0.35)');
+                  gradient.addColorStop(0.5, 'rgba(96,165,250,0.20)');
+                  gradient.addColorStop(1, 'rgba(147,197,253,0.02)');
+                  return gradient;
+                },
+                fill: true, 
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: "#3B82F6",
+                pointHoverBorderColor: "#fff",
+                pointHoverBorderWidth: 2
               }
-            },
-            tooltip: {
-              enabled: true,
-              position: 'nearest',
-              yAlign: 'bottom',
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#fff',
-              bodyColor: '#e2e8f0',
-              padding: 14,
-              titleFont: { size: 14, weight: 'bold' },
-              bodyFont: { size: 13, weight: '600' },
-              bodySpacing: 8,
-              cornerRadius: 10,
-              displayColors: true,
-              boxWidth: 12,
-              boxHeight: 12,
-              usePointStyle: true,
-              callbacks: {
-                title: (items) => cats[items[0].dataIndex]?.category || items[0].label,
-                label: (context) => {
-                  const label = context.dataset.label || '';
-                  const value = context.parsed.y;
-                  return ` ${label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                }
-              }
-            }
+            ]
           },
-          scales: {
-            x: { 
-              grid: { 
-                display: false,
-                drawBorder: false
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: { 
+              legend: { 
+                display: false
               },
-              // (2026-07-13) Rotate labels 45deg to prevent overlap; was 0deg overlapping
-              ticks: { 
-                autoSkip: false,
-                maxRotation: 45,
-                minRotation: 45,
-                font: { size: 10, weight: '600' },
-                color: '#64748b',
-                padding: 4,
-                callback: function(val) {
-                  const lbl = this.getLabelForValue(val) || '';
-                  return lbl.length > 10 ? lbl.slice(0, 9) + '…' : lbl;
+              tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13, weight: '600' },
+                bodySpacing: 8,
+                displayColors: false,
+                callbacks: {
+                  label: (context) => {
+                    const value = context.parsed.y || 0;
+                    return `₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                  }
                 }
               }
             },
-            y: { 
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(148, 163, 184, 0.1)',
-                drawBorder: false
+            scales: {
+              x: {
+                grid: { 
+                  display: false,
+                  drawBorder: false
+                },
+                ticks: {
+                  font: { size: 11, weight: '600' },
+                  color: '#64748b',
+                  padding: 8
+                }
               },
-              ticks: {
-                font: { size: 11, weight: '600' },
-                color: '#64748b',
-                padding: 8,
-                callback: (value) => '₱' + value.toLocaleString()
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(148, 163, 184, 0.1)',
+                  drawBorder: false
+                },
+                ticks: {
+                  font: { size: 11, weight: '600' },
+                  color: '#64748b',
+                  padding: 8,
+                  callback: (value) => '₱' + (value || 0).toLocaleString()
+                }
+              }
+            },
+            onClick: (e, elements) => {
+              if(elements && elements.length > 0){
+                const idx = elements[0].index;
+                const dayStart = timestamps[idx];
+                if(dayStart) openDayDrilldown(dayStart);
               }
             }
           }
-        }
-      });
+        });
+      }
+    } catch(err) {
+      console.warn("Overview trend chart error:", err);
     }
-    
-    // Revenue Distribution Bar Chart (Store vs Fuel) - Horizontal Bar
-    const revBarCtx = document.getElementById("ov-chart-revenue-bar")?.getContext("2d");
-    if(revBarCtx && typeof Chart !== "undefined"){
-      const r = getActiveRange();
-      const filterFn = getReportFilterFn();
-      const stats = Analytics.computeStats(r, { filterFn });
-      
-      overviewCharts.revenueBar = new Chart(revBarCtx, {
-        type: "bar",
-        data: {
-          labels: ["Minimart Store", "Gasoline Station"],
-          datasets: [{
-            label: "Revenue",
-            data: [stats.storeTotal || 0, stats.fuelTotal || 0],
-            backgroundColor: (context) => {
-              const chart = context.chart;
-              const {ctx, chartArea} = chart;
-              if (!chartArea) return context.dataIndex === 0 ? '#3B82F6' : '#F59E0B';
-              
-              // Create gradient for each bar
-              if(context.dataIndex === 0) {
-                // Blue gradient for Store
-                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                gradient.addColorStop(0, '#3B82F6');
-                gradient.addColorStop(1, '#60A5FA');
-                return gradient;
-              } else {
-                // Yellow/Orange gradient for Fuel
-                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                gradient.addColorStop(0, '#F59E0B');
-                gradient.addColorStop(1, '#FBBF24');
-                return gradient;
+
+    // 2. Revenue vs Profit by Category
+    try {
+      const catCtx = document.getElementById("ov-chart-category")?.getContext("2d");
+      if(catCtx){
+        const rawCats = (stats?.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats || {});
+        const activeCats = (rawCats || []).filter(c => (c.revenue || 0) > 0 || (c.profit || 0) > 0).sort((a,b) => (b.revenue||0) - (a.revenue||0));
+        const cats = activeCats.length ? activeCats.slice(0, 8) : (rawCats || []).slice(0, 6);
+        overviewCharts.category = new Chart(catCtx, {
+          type: "bar",
+          data: {
+            labels: cats.length ? cats.map(c => c.category) : ["No data"],
+            datasets: [
+              { 
+                label: "Revenue", 
+                data: cats.length ? cats.map(c => c.revenue) : [0], 
+                backgroundColor: (context) => {
+                  const chart = context.chart;
+                  const {ctx, chartArea} = chart;
+                  if (!chartArea || !isFinite(chartArea.top) || !isFinite(chartArea.bottom) || chartArea.bottom <= chartArea.top) return '#6366F1';
+                  const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                  gradient.addColorStop(0, '#6366F1');
+                  gradient.addColorStop(1, '#8B5CF6');
+                  return gradient;
+                },
+                borderRadius: 8,
+                borderSkipped: false,
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
+              },
+              { 
+                label: "Profit", 
+                data: cats.length ? cats.map(c => c.profit) : [0], 
+                backgroundColor: (context) => {
+                  const chart = context.chart;
+                  const {ctx, chartArea} = chart;
+                  if (!chartArea || !isFinite(chartArea.top) || !isFinite(chartArea.bottom) || chartArea.bottom <= chartArea.top) return '#10B981';
+                  const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                  gradient.addColorStop(0, '#10B981');
+                  gradient.addColorStop(1, '#34D399');
+                  return gradient;
+                },
+                borderRadius: 8,
+                borderSkipped: false,
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
               }
-            },
-            borderRadius: 10,
-            borderSkipped: false,
-            barThickness: 40
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: {
-            padding: {
-              right: 20
-            }
+            ]
           },
-          plugins: {
-            legend: { 
-              display: false
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false
             },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#fff',
-              bodyColor: '#e2e8f0',
-              padding: 14,
-              cornerRadius: 10,
-              titleFont: { size: 13, weight: 'bold' },
-              bodyFont: { size: 13, weight: '600' },
-              callbacks: {
-                label: (context) => {
-                  const value = context.parsed.x;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                  return ` Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+            plugins: { 
+              legend: { 
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  pointStyle: 'rectRounded',
+                  padding: 16,
+                  font: { size: 13, weight: '600' }
                 }
-              }
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(148, 163, 184, 0.12)',
-                drawBorder: false,
-                lineWidth: 1
               },
-              ticks: {
-                font: { size: 11, weight: '600', family: 'Poppins' },
-                color: '#64748b',
-                padding: 8,
-                callback: (value) => '₱' + value.toLocaleString()
-              }
-            },
-            y: {
-              grid: { 
-                display: false,
-                drawBorder: false
-              },
-              ticks: {
-                font: { size: 13, weight: '700', family: 'Poppins' },
-                color: '#1e293b',
-                padding: 16,
-                crossAlign: 'far'
-              }
-            }
-          }
-        }
-      });
-    }
-    
-    // Category Breakdown Pie Chart
-    const catPieCtx = document.getElementById("ov-chart-category-pie")?.getContext("2d");
-    if(catPieCtx && typeof Chart !== "undefined"){
-      const cats = (stats.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats);
-      const topCategories = cats.slice(0, 8); // Top 8 categories
-      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
-      
-      overviewCharts.categoryPie = new Chart(catPieCtx, {
-        type: "doughnut",
-        data: {
-          labels: topCategories.map(c => c.category),
-          datasets: [{
-            data: topCategories.map(c => c.revenue),
-            backgroundColor: colors.slice(0, topCategories.length),
-            borderWidth: 3,
-            borderColor: '#fff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              position: "right",
-              labels: {
-                padding: 10,
-                font: { size: 11, weight: '600' },
+              tooltip: {
+                enabled: true,
+                position: 'nearest',
+                yAlign: 'bottom',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 14,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13, weight: '600' },
+                bodySpacing: 8,
+                cornerRadius: 10,
+                displayColors: true,
                 boxWidth: 12,
                 boxHeight: 12,
                 usePointStyle: true,
-                pointStyle: 'circle'
+                callbacks: {
+                  title: (items) => cats[items[0].dataIndex]?.category || items[0].label,
+                  label: (context) => {
+                    const label = context.dataset.label || '';
+                    const value = context.parsed.y || 0;
+                    return ` ${label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                  }
+                }
               }
             },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#fff',
-              bodyColor: '#e2e8f0',
-              padding: 14,
-              cornerRadius: 10,
-              titleFont: { size: 13, weight: 'bold' },
-              bodyFont: { size: 12, weight: '600' },
-              callbacks: {
-                label: (context) => {
-                  const value = context.parsed;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                  return ` ${context.label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
+            scales: {
+              x: { 
+                grid: { 
+                  display: false,
+                  drawBorder: false
+                },
+                ticks: { 
+                  autoSkip: false,
+                  maxRotation: 45,
+                  minRotation: 45,
+                  font: { size: 10, weight: '600' },
+                  color: '#64748b',
+                  padding: 4,
+                  callback: function(val) {
+                    const lbl = this.getLabelForValue(val) || '';
+                    return lbl.length > 10 ? lbl.slice(0, 9) + '…' : lbl;
+                  }
+                }
+              },
+              y: { 
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(148, 163, 184, 0.1)',
+                  drawBorder: false
+                },
+                ticks: {
+                  font: { size: 11, weight: '600' },
+                  color: '#64748b',
+                  padding: 8,
+                  callback: (value) => '₱' + (value || 0).toLocaleString()
                 }
               }
             }
-          },
-          cutout: '65%'
-        }
-      });
+          }
+        });
+      }
+    } catch(err) {
+      console.warn("Overview category chart error:", err);
     }
     
-    // Top Products Horizontal Bar Chart
-    const topProdsCtx = document.getElementById("ov-chart-top-products")?.getContext("2d");
-    if(topProdsCtx && typeof Chart !== "undefined"){
-      const allSales = DB.getSales().filter(s => {
-        const r = getActiveRange();
-        const filterFn = getReportFilterFn();
-        if (r && (s.ts < r.start || s.ts > r.end)) return false;
-        if (filterFn && !filterFn(s)) return false;
-        return true;
-      });
-      
-      // Aggregate sales by product
-      const productMap = {};
-      allSales.forEach(sale => {
-        (sale.items || []).forEach(item => {
-          const key = item.productId || item.name;
-          if (!productMap[key]) {
-            productMap[key] = {
-              name: item.name,
-              revenue: 0,
-              quantity: 0
-            };
-          }
-          productMap[key].revenue += (item.price * item.qty);
-          productMap[key].quantity += item.qty;
-        });
-      });
-      
-      // Sort by revenue and get top 8
-      const topProducts = Object.values(productMap)
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 8);
-      
-      overviewCharts.topProducts = new Chart(topProdsCtx, {
-        type: "bar",
-        data: {
-          labels: topProducts.map(p => p.name),
-          datasets: [{
-            label: "Revenue",
-            data: topProducts.map(p => p.revenue),
-            backgroundColor: (context) => {
-              const chart = context.chart;
-              const {ctx, chartArea} = chart;
-              if (!chartArea) return '#3B82F6';
-              
-              // Create vibrant blue to purple gradient
-              const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-              gradient.addColorStop(0, '#3B82F6');
-              gradient.addColorStop(0.5, '#6366F1');
-              gradient.addColorStop(1, '#8B5CF6');
-              return gradient;
-            },
-            borderRadius: 10,
-            borderSkipped: false,
-            barThickness: 26,
-            // Add shadow effect
-            borderWidth: 0,
-            hoverBackgroundColor: (context) => {
-              const chart = context.chart;
-              const {ctx, chartArea} = chart;
-              if (!chartArea) return '#2563EB';
-              const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-              gradient.addColorStop(0, '#2563EB');
-              gradient.addColorStop(0.5, '#4F46E5');
-              gradient.addColorStop(1, '#7C3AED');
-              return gradient;
-            }
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: {
-            padding: {
-              top: 15,
-              right: 30,
-              bottom: 15,
-              left: 15
-            }
+    // 3. Category Breakdown Doughnut Chart
+    try {
+      const catPieCtx = document.getElementById("ov-chart-category-pie")?.getContext("2d");
+      if(catPieCtx){
+        const cats = (stats?.categoryBreakdown && stats.categoryBreakdown.length) ? stats.categoryBreakdown : Analytics.categoryPL(stats || {});
+        const topCategories = (cats || []).slice(0, 8);
+        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+        
+        overviewCharts.categoryPie = new Chart(catPieCtx, {
+          type: "doughnut",
+          data: {
+            labels: topCategories.length ? topCategories.map(c => c.category) : ["No data"],
+            datasets: [{
+              data: topCategories.length ? topCategories.map(c => c.revenue) : [1],
+              backgroundColor: topCategories.length ? colors.slice(0, topCategories.length) : ['#cbd5e1'],
+              borderWidth: 3,
+              borderColor: '#fff'
+            }]
           },
-          plugins: {
-            legend: { 
-              display: false
-            },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.96)',
-              titleColor: '#fff',
-              bodyColor: '#e2e8f0',
-              padding: 16,
-              cornerRadius: 12,
-              titleFont: { size: 14, weight: 'bold', family: 'Poppins' },
-              bodyFont: { size: 13, weight: '600', family: 'Poppins' },
-              displayColors: false,
-              borderColor: 'rgba(59, 130, 246, 0.5)',
-              borderWidth: 1,
-              callbacks: {
-                title: (items) => {
-                  const label = items[0].label;
-                  // Show full name in tooltip
-                  return label;
-                },
-                label: (context) => {
-                  const value = context.parsed.x;
-                  const idx = context.dataIndex;
-                  const qty = topProducts[idx].quantity;
-                  const avgPrice = value / qty;
-                  return [
-                    `Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                    `Units Sold: ${qty.toLocaleString()} units`,
-                    `Avg. Price: ₱${avgPrice.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  ];
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { 
+                position: "right",
+                labels: {
+                  padding: 10,
+                  font: { size: 11, weight: '600' },
+                  boxWidth: 12,
+                  boxHeight: 12,
+                  usePointStyle: true,
+                  pointStyle: 'circle'
                 }
-              }
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(148, 163, 184, 0.08)',
-                drawBorder: false,
-                lineWidth: 1
               },
-              border: {
-                display: false
-              },
-              ticks: {
-                font: { size: 11, weight: '600', family: 'Poppins' },
-                color: '#64748b',
-                padding: 10,
-                maxRotation: 0,
-                callback: (value) => {
-                  if (value >= 1000000) return '₱' + (value/1000000).toFixed(1) + 'M';
-                  if (value >= 1000) return '₱' + (value/1000).toFixed(0) + 'k';
-                  return '₱' + value.toLocaleString();
-                }
-              }
-            },
-            y: {
-              grid: { 
-                display: false,
-                drawBorder: false
-              },
-              border: {
-                display: false
-              },
-              ticks: {
-                font: { size: 12, weight: '700', family: 'Poppins' },
-                color: '#1e293b',
-                padding: 16,
-                crossAlign: 'far',
-                autoSkip: false,
-                callback: function(value, index) {
-                  const label = this.getLabelForValue(value);
-                  // Better truncation with ellipsis
-                  if (label.length > 22) {
-                    return label.substring(0, 20) + '...';
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12, weight: '600' },
+                callbacks: {
+                  label: (context) => {
+                    const value = context.parsed || 0;
+                    const total = (context.dataset.data || []).reduce((a, b) => a + b, 0);
+                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return ` ${context.label}: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percentage}%)`;
                   }
-                  return label;
                 }
               }
-            }
-          },
-          animation: {
-            duration: 800,
-            easing: 'easeOutQuart'
+            },
+            cutout: '65%'
           }
-        }
-      });
+        });
+      }
+    } catch(err) {
+      console.warn("Overview category doughnut chart error:", err);
+    }
+    
+    // 4. Top Products Horizontal Bar Chart
+    try {
+      const topProdsCtx = document.getElementById("ov-chart-top-products")?.getContext("2d");
+      if(topProdsCtx){
+        const allSales = (DB.getSales ? DB.getSales() : []).filter(s => {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          if (r && (s.ts < r.start || s.ts > r.end)) return false;
+          if (filterFn && !filterFn(s)) return false;
+          return true;
+        });
+        
+        const productMap = {};
+        allSales.forEach(sale => {
+          (sale.items || []).forEach(item => {
+            const key = item.productId || item.name;
+            if (!productMap[key]) {
+              productMap[key] = {
+                name: item.name,
+                revenue: 0,
+                quantity: 0
+              };
+            }
+            productMap[key].revenue += ((item.price || 0) * (item.qty || 1));
+            productMap[key].quantity += (item.qty || 1);
+          });
+        });
+        
+        const topProducts = Object.values(productMap)
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 8);
+        
+        overviewCharts.topProducts = new Chart(topProdsCtx, {
+          type: "bar",
+          data: {
+            labels: topProducts.length ? topProducts.map(p => p.name) : ["No data"],
+            datasets: [{
+              label: "Revenue",
+              data: topProducts.length ? topProducts.map(p => p.revenue) : [0],
+              backgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea || !isFinite(chartArea.left) || !isFinite(chartArea.right) || chartArea.right <= chartArea.left) return '#3B82F6';
+                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+                gradient.addColorStop(0, '#3B82F6');
+                gradient.addColorStop(0.5, '#6366F1');
+                gradient.addColorStop(1, '#8B5CF6');
+                return gradient;
+              },
+              borderRadius: 10,
+              borderSkipped: false,
+              barThickness: 26,
+              borderWidth: 0,
+              hoverBackgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea || !isFinite(chartArea.left) || !isFinite(chartArea.right) || chartArea.right <= chartArea.left) return '#2563EB';
+                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+                gradient.addColorStop(0, '#2563EB');
+                gradient.addColorStop(0.5, '#4F46E5');
+                gradient.addColorStop(1, '#7C3AED');
+                return gradient;
+              }
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+              padding: {
+                top: 15,
+                right: 30,
+                bottom: 15,
+                left: 15
+              }
+            },
+            plugins: {
+              legend: { 
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                titleColor: '#fff',
+                bodyColor: '#e2e8f0',
+                padding: 16,
+                cornerRadius: 12,
+                titleFont: { size: 14, weight: 'bold', family: 'Poppins' },
+                bodyFont: { size: 13, weight: '600', family: 'Poppins' },
+                displayColors: false,
+                borderColor: 'rgba(59, 130, 246, 0.5)',
+                borderWidth: 1,
+                callbacks: {
+                  title: (items) => {
+                    const label = items[0]?.label || '';
+                    return label;
+                  },
+                  label: (context) => {
+                    const value = context.parsed.x || 0;
+                    const idx = context.dataIndex;
+                    const prod = topProducts[idx];
+                    const qty = prod?.quantity || 1;
+                    const avgPrice = value / qty;
+                    return [
+                      `Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                      `Units Sold: ${qty.toLocaleString()} units`,
+                      `Avg. Price: ₱${avgPrice.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(148, 163, 184, 0.08)',
+                  drawBorder: false,
+                  lineWidth: 1
+                },
+                border: {
+                  display: false
+                },
+                ticks: {
+                  font: { size: 11, weight: '600', family: 'Poppins' },
+                  color: '#64748b',
+                  padding: 10,
+                  maxRotation: 0,
+                  callback: (value) => {
+                    if (value >= 1000000) return '₱' + (value/1000000).toFixed(1) + 'M';
+                    if (value >= 1000) return '₱' + (value/1000).toFixed(0) + 'k';
+                    return '₱' + (value || 0).toLocaleString();
+                  }
+                }
+              },
+              y: {
+                grid: { 
+                  display: false,
+                  drawBorder: false
+                },
+                border: {
+                  display: false
+                },
+                ticks: {
+                  font: { size: 12, weight: '700', family: 'Poppins' },
+                  color: '#1e293b',
+                  padding: 16,
+                  crossAlign: 'far',
+                  autoSkip: false,
+                  callback: function(value, index) {
+                    const label = this.getLabelForValue(value) || '';
+                    if (label.length > 22) {
+                      return label.substring(0, 20) + '...';
+                    }
+                    return label;
+                  }
+                }
+              }
+            },
+            animation: {
+              duration: 800,
+              easing: 'easeOutQuart'
+            }
+          }
+        });
+      }
+    } catch(err) {
+      console.warn("Overview top products chart error:", err);
     }
   }
 
@@ -3263,7 +3302,7 @@ const Reports = (() => {
             ${Icons.get("tag",{size:18})} Revenue vs Profit by Category
           </h3>
           <!-- (2026-07-13) Set category chart height to 250px; was 230px -->
-          <div style="position:relative;height:250px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
+          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-category"></canvas></div>
         </div>
         <div class="chart-card">
           <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
@@ -3318,8 +3357,10 @@ const Reports = (() => {
     const stats = Analytics.computeStats(r, { filterFn });
     renderOverviewStats(stats);
     renderStoreSalesCard(stats);
-    renderDailySalesTable(stats);
-    buildOverviewCharts(stats);
+    // (2026-07-13) Defer chart render after layout reflow; was synchronous 0x0
+    requestAnimationFrame(() => {
+      buildOverviewCharts(stats);
+    });
     renderTopSellersTable(stats);
     const trendSel = document.getElementById("trend-period-select");
     if(trendSel) trendSel.value = periodKey;
@@ -3419,26 +3460,38 @@ const Reports = (() => {
     const crumbActive = document.getElementById("rpt-crumb-active");
     const crumbMenu = document.getElementById("rpt-crumb-menu");
     if(crumbActive && crumbMenu){
-      crumbActive.onclick = (e) => {
+      // Remove any existing listeners
+      crumbActive.replaceWith(crumbActive.cloneNode(true));
+      const newCrumbActive = document.getElementById("rpt-crumb-active");
+      const newCrumbMenu = document.getElementById("rpt-crumb-menu");
+      
+      newCrumbActive.addEventListener("click", (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        crumbMenu.style.display = crumbMenu.style.display === "block" ? "none" : "block";
-      };
-      crumbMenu.querySelectorAll("[data-tab-key]").forEach(el => {
-        el.onclick = (e) => {
+        const isShown = newCrumbMenu.style.display === "block";
+        
+        newCrumbMenu.style.display = isShown ? "none" : "block";
+        newCrumbMenu.style.zIndex = "2147483647";
+      });
+      
+      newCrumbMenu.querySelectorAll("[data-tab-key]").forEach(el => {
+        el.addEventListener("click", (e) => {
           e.stopPropagation();
-          crumbMenu.style.display = "none";
+          newCrumbMenu.style.display = "none";
           tab = el.dataset.tabKey;
           render();
           const vb = document.querySelector("#view-root .view-body");
           if(vb) vb.scrollTop = 0;
-        };
+        });
       });
+      
+      // Close menu on outside click
       const outsideClick = (e) => {
-        if(!crumbMenu.contains(e.target) && e.target !== crumbActive){
-          crumbMenu.style.display = "none";
-          document.removeEventListener("click", outsideClick);
+        if(!newCrumbMenu.contains(e.target) && !newCrumbActive.contains(e.target)){
+          newCrumbMenu.style.display = "none";
         }
       };
+      
       document.addEventListener("click", outsideClick);
     }
   }
@@ -3756,7 +3809,8 @@ const Reports = (() => {
               backgroundColor: (context) => {
                 const chart = context.chart;
                 const {ctx, chartArea} = chart;
-                if (!chartArea) return '#10B981';
+                // (2026-07-13) Check finite chartArea bounds for margin gradient; was null-only
+                if (!chartArea || !isFinite(chartArea.top) || !isFinite(chartArea.bottom) || chartArea.bottom <= chartArea.top) return '#10B981';
                 const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
                 gradient.addColorStop(0, '#10B981');
                 gradient.addColorStop(1, '#34D399');
@@ -3980,7 +4034,8 @@ const Reports = (() => {
                 backgroundColor: (context) => {
                   const chart = context.chart;
                   const {ctx, chartArea} = chart;
-                  if (!chartArea) return 'rgba(59,130,246,0.05)';
+                  // (2026-07-13) Check finite chartArea bounds on receipts chart; was null-only
+                  if (!chartArea || !isFinite(chartArea.top) || !isFinite(chartArea.bottom) || chartArea.bottom <= chartArea.top) return 'rgba(59,130,246,0.05)';
                   const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
                   gradient.addColorStop(0, 'rgba(59,130,246,0.15)');
                   gradient.addColorStop(0.5, 'rgba(59,130,246,0.08)');
@@ -4299,6 +4354,8 @@ const Reports = (() => {
     openReceiptModal,
     navigateToReceipts,
     navigateToSalesByItem,
-    navigateToVoidAudit
+    navigateToVoidAudit,
+    // (2026-07-13) Expose deleteSaleRecord in Reports API; was private only
+    deleteSaleRecord
   };
 })();

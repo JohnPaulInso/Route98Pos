@@ -381,12 +381,11 @@ const Gas = (() => {
                   </button>
                 </div>
 
-                <!-- Cost & SRP Guidance Bar -->
-                <!-- (2026-07-13) Editable tanker cost input & save button; was static label -->
+                <!-- (2026-07-13) Sized tanker input & wrap tank stats; was clipped 68px -->
                 <div style="display:flex;align-items:center;justify-content:space-between;font-size:.76rem;border-top:1px dashed #E5E7EB;padding-top:8px;flex-wrap:wrap;gap:6px;">
                   <div style="color:#6B7280;font-weight:500;display:flex;align-items:center;gap:4px;">
                     <span>Tanker Cost: ₱</span>
-                    <input class="input font-bold live-tanker-cost-input" data-fuel-key="${pump.fuelType}" type="number" step="0.05" min="0" value="${(tankerCost||65).toFixed(2)}" style="width:68px;font-size:.80rem;font-weight:700;padding:2px 4px;border-radius:5px;border:1px solid #D1D5DB;color:#111827;background:#FFFFFF;text-align:center;" title="Change tanker wholesale cost">
+                    <input class="input font-bold live-tanker-cost-input" data-fuel-key="${pump.fuelType}" type="number" step="0.05" min="0" value="${(tankerCost||65).toFixed(2)}" style="width:62px;min-width:58px;font-size:.80rem;font-weight:700;padding:2px 3px;border-radius:5px;border:1px solid #D1D5DB;color:#111827;background:#FFFFFF;text-align:center;box-sizing:border-box;-moz-appearance:textfield;" title="Change tanker wholesale cost">
                     <span>/L</span>
                     <button class="btn btn-xs btn-save-tanker-cost" data-fuel-key="${pump.fuelType}" style="padding:3px 7px;font-size:.70rem;border-radius:5px;background:#4F46E5;color:#FFFFFF;border:none;cursor:pointer;line-height:1;" title="Save tanker cost">
                       ${Icons.get("check",{size:11})}
@@ -431,7 +430,7 @@ const Gas = (() => {
 
           <!-- Bottom Continuous ECC Tank Level Bar (Neutral Indigo, Alerts on Low) -->
           <div style="margin-top:4px;">
-            <div style="display:flex;justify-content:space-between;font-size:.76rem;font-weight:500;margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-weight:500;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
               <span style="color:#6B7280;">ECC Tank (10k L):</span>
               <strong style="font-weight:600;color:${pct <= 15 || low ? "#DC2626" : pct <= 25 ? "#D97706" : "#111827"};font-family:var(--font-mono);">${fuel.tank.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} / ${(fuel.capacity||10000).toLocaleString()} L (${pct}%)</strong>
             </div>

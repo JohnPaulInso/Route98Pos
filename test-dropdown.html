@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dropdown Test</title>
+    <style>
+        .btn-inv-tools {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #ccc;
+            cursor: pointer;
+        }
+        .inv-tools-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            z-index: 9999;
+        }
+        .inv-tools-menu.show {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dropdown Test</h1>
+    <div style="position: relative;">
+        <button id="btn-inv-tools" class="btn-inv-tools">Tools ▾</button>
+        <div id="inv-tools-menu" class="inv-tools-menu">
+            <button>Option 1</button>
+            <button>Option 2</button>
+            <button>Option 3</button>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('btn-inv-tools');
+        const menu = document.getElementById('inv-tools-menu');
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('Button clicked');
+            const isShown = menu.style.display === 'flex';
+            menu.style.display = isShown ? 'none' : 'flex';
+            console.log('Menu display:', menu.style.display);
+        });
+        
+        document.addEventListener('click', () => {
+            menu.style.display = 'none';
+        });
+        
+        console.log('Script loaded');
+    </script>
+</body>
+</html>

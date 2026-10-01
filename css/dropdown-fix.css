@@ -1,0 +1,117 @@
+/* Emergency dropdown fix for mobile */
+@media (max-width: 767px) {
+  /* Force all potential blocking elements to lower z-index */
+  .topbar {
+    z-index: 10 !important;
+  }
+  
+  .view,
+  .view-body,
+  #view-root,
+  .main-col {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* (2026-07-13) Set view-head & dropdown above search toolbar; was z-index 1 */
+  .view-head,
+  .rpt-view-head {
+    position: relative !important;
+    z-index: 50 !important;
+  }
+
+  /* Inventory Tools Dropdown */
+  #btn-inv-tools {
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: rgba(47, 66, 216, 0.1) !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 100 !important;
+  }
+  
+  .inv-tools-dropdown-wrap {
+    position: relative !important;
+    z-index: 100 !important;
+  }
+  
+  #inv-tools-menu {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    left: 0 !important;
+    right: auto !important;
+    min-width: 210px !important;
+    z-index: 999999999 !important;
+    pointer-events: auto !important;
+    background: var(--paper-raised, #ffffff) !important;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15) !important;
+    border: 1px solid var(--line, #e2e8f0) !important;
+    border-radius: var(--r-md, 10px) !important;
+  }
+  
+  #inv-tools-menu[style*="display: flex"],
+  #inv-tools-menu[style*="display: block"] {
+    display: flex !important;
+  }
+  
+  /* Reports Breadcrumb Dropdown */
+  #rpt-crumb-active {
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: rgba(47, 66, 216, 0.1) !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 100 !important;
+  }
+  
+  .rpt-header-breadcrumb {
+    position: relative !important;
+    z-index: 100 !important;
+  }
+  
+  #rpt-crumb-menu {
+    position: fixed !important;
+    top: 60px !important;
+    left: 20px !important;
+    right: 20px !important;
+    z-index: 999999999 !important;
+    pointer-events: auto !important;
+    background: white !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+    border: 2px solid var(--brand) !important;
+    isolation: isolate !important;
+  }
+  
+  #rpt-crumb-menu[style*="display: block"] {
+    display: block !important;
+  }
+  
+  /* Backdrop removed - now created in JavaScript as real DOM element */
+  
+  /* (2026-07-13) Absolute position for inv-tools-menu; was fixed */
+  #inv-tools-menu {
+    z-index: 2147483647 !important;
+    position: absolute !important;
+  }
+  #rpt-crumb-menu {
+    z-index: 2147483647 !important;
+    position: fixed !important;
+  }
+  
+  /* Lower z-index for search icons and input elements */
+  .input-icon-wrap,
+  .input-icon-wrap .ic,
+  .input-icon-wrap .input,
+  #inv-search,
+  .inv-toolbar .input-icon-wrap {
+    z-index: 1 !important;
+    position: relative !important;
+  }
+  
+  /* Make Add Product button wider */
+  #btn-m-add-product {
+    flex: 2 1 0 !important;
+  }
+  
+  .inv-tools-dropdown-wrap {
+    flex: 1 1 0 !important;
+  }
+}

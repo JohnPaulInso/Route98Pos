@@ -59,21 +59,113 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  // (2026-07-13) Sync manual & recent sales to keep snapshot under 1MB; was >1MB
+  // (2026-07-13) 3-way merge sync pull before push for offline; was blind write
+  function mergeArray3Way(baseArr = [], localArr = [], remoteArr = [], idKey = "id", tsKey = "updatedAt"){
+    const baseMap = new Map();
+    (baseArr || []).forEach(item => { if(item && item[idKey]) baseMap.set(String(item[idKey]), item); });
+    const localMap = new Map();
+    (localArr || []).forEach(item => { if(item && item[idKey]) localMap.set(String(item[idKey]), item); });
+    const remoteMap = new Map();
+    (remoteArr || []).forEach(item => { if(item && item[idKey]) remoteMap.set(String(item[idKey]), item); });
+
+    const allKeys = new Set([...baseMap.keys(), ...localMap.keys(), ...remoteMap.keys()]);
+    const merged = [];
+
+    allKeys.forEach(k => {
+      const baseItem = baseMap.get(k);
+      const localItem = localMap.get(k);
+      const remoteItem = remoteMap.get(k);
+
+      if(localItem && remoteItem){
+        if(!baseItem){
+          const localTs = localItem[tsKey] || localItem.ts || localItem.openedAt || localItem.createdAt || 0;
+          const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.openedAt || remoteItem.createdAt || 0;
+          merged.push(remoteTs > localTs ? remoteItem : localItem);
+        } else {
+          const localChanged = JSON.stringify(localItem) !== JSON.stringify(baseItem);
+          const remoteChanged = JSON.stringify(remoteItem) !== JSON.stringify(baseItem);
+          if(!localChanged && !remoteChanged) merged.push(localItem);
+          else if(localChanged && !remoteChanged) merged.push(localItem);
+          else if(!localChanged && remoteChanged) merged.push(remoteItem);
+          else {
+            const localTs = localItem[tsKey] || localItem.ts || localItem.openedAt || localItem.createdAt || 0;
+            const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.openedAt || remoteItem.createdAt || 0;
+            merged.push(remoteTs > localTs ? remoteItem : localItem);
+          }
+        }
+      } else if(localItem && !remoteItem){
+        if(baseItem){
+          if(JSON.stringify(localItem) !== JSON.stringify(baseItem)){
+            merged.push(localItem);
+          }
+        } else {
+          merged.push(localItem);
+        }
+      } else if(!localItem && remoteItem){
+        if(baseItem){
+          if(JSON.stringify(remoteItem) !== JSON.stringify(baseItem)){
+            merged.push(remoteItem);
+          }
+        } else {
+          merged.push(remoteItem);
+        }
+      }
+    });
+
+    return merged;
+  }
+
+  function threeWayMerge(baseline, local, remote){
+    if(!remote) return local;
+    if(!local) return remote;
+    const base = baseline || {};
+    const merged = { ...remote, ...local };
+
+    merged.products = mergeArray3Way(base.products, local.products, remote.products, "id", "updatedAt");
+    merged.sales = mergeArray3Way(base.sales, local.sales, remote.sales, "receiptNo", "ts");
+    merged.shiftLogs = mergeArray3Way(base.shiftLogs, local.shiftLogs, remote.shiftLogs, "id", "openedAt");
+    merged.fuelSales = mergeArray3Way(base.fuelSales, local.fuelSales, remote.fuelSales, "id", "ts");
+    merged.expenses = mergeArray3Way(base.expenses, local.expenses, remote.expenses, "id", "ts");
+    merged.voidLogs = mergeArray3Way(base.voidLogs, local.voidLogs, remote.voidLogs, "id", "ts");
+    merged.users = mergeArray3Way(base.users, local.users, remote.users, "id", "id");
+
+    const catSet = new Set([...(remote.categories || []), ...(local.categories || [])]);
+    merged.categories = Array.from(catSet);
+
+    const localShift = local.shift;
+    const remoteShift = remote.shift;
+    if(localShift && remoteShift){
+      const localTs = localShift.updatedAt || localShift.closedAt || localShift.openedAt || 0;
+      const remoteTs = remoteShift.updatedAt || remoteShift.closedAt || remoteShift.openedAt || 0;
+      merged.shift = remoteTs >= localTs ? remoteShift : localShift;
+    } else {
+      merged.shift = remoteShift || localShift || null;
+    }
+
+    merged.dayBalances = { ...(remote.dayBalances || {}), ...(local.dayBalances || {}) };
+    merged.exportedAt = Math.max(remote.exportedAt || 0, local.exportedAt || 0, Date.now());
+    return merged;
+  }
+
   async function pushSnapshot(force = false){
     const meta = DB.getSyncMeta();
-    if(meta.status === "quota") return; // Prevent spamming when quota exceeded
-    const snap = DB.snapshot();
-    const localProducts = snap.products || [];
-    const localSales = snap.sales || [];
-    if(!force && localProducts.length === 0 && localSales.length === 0){
-      return;
-    }
+    if(meta.status === "quota") return;
     try{
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
-      // Only sync manual POS sales & last 100 sales to stay well under 1MB limit
+      // Read remote snapshot first to pull/sync before pushing
+      const snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
+      let finalSnap = DB.snapshot();
+      if(snapDoc.exists()){
+        const remoteData = snapDoc.data();
+        const baseline = DB.getSyncBaseline();
+        finalSnap = threeWayMerge(baseline, finalSnap, remoteData);
+        DB.restoreSnapshot(finalSnap);
+      }
+      DB.setSyncBaseline(finalSnap);
+
+      const localSales = finalSnap.sales || [];
       const manualSales = localSales.filter(s => !s.isImported && s.source !== "imported");
       const recentSales = localSales.slice(0, 100);
       const sMap = new Map();
@@ -82,9 +174,10 @@ const Sync = (() => {
       const liveSyncSales = Array.from(sMap.values());
 
       const cloudSnap = {
-        ...snap,
+        ...finalSnap,
         sales: liveSyncSales,
-        isPartialSalesSync: true
+        isPartialSalesSync: true,
+        exportedAt: Date.now()
       };
 
       await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), cloudSnap, { merge:false });
@@ -101,31 +194,24 @@ const Sync = (() => {
     paintStatus();
   }
 
-  // (2026-07-13) Auto-pull Firestore cloud snapshot & backups into client; was partial
   async function pullSnapshot(force = false){
     try{
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
-      // Check master snapshot first
+      // Check master snapshot first and apply 3-way merge
       const snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
       if(snapDoc.exists()){
         const remoteData = snapDoc.data();
-        const localMeta = DB.getSyncMeta();
-        const remoteTimestamp = remoteData.exportedAt || 0;
-        const localTimestamp = localMeta.lastSynced || 0;
-        const localProducts = DB.getProducts();
-        const localSales = DB.getSales();
-        const isLocalEmpty = localProducts.length === 0 && localSales.length === 0;
-        
-        // Restore if forced, local is empty, or remote is newer
-        if(force || isLocalEmpty || remoteTimestamp > localTimestamp){
-          DB.restoreSnapshot(remoteData);
-          DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-        } else {
-          DB.setSyncMeta({ ...localMeta, status:"idle" });
-        }
+        const baseline = DB.getSyncBaseline();
+        const localSnap = DB.snapshot();
+        const merged = threeWayMerge(baseline, localSnap, remoteData);
+        DB.restoreSnapshot(merged);
+        DB.setSyncBaseline(merged);
+        DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+      // (2026-07-13) Fix fallback block syntax in pullSnapshot; was premature brace
       } else {
+        DB.setSyncMeta({ ...DB.getSyncMeta(), status:"idle" });
         // Fallback: Read individual collections (only on first-time setup)
         const productsSnap = await mod.getDocs(mod.collection(database, "products"));
         if(!productsSnap.empty){
@@ -372,26 +458,21 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      // (2026-07-13) Ignore local write echo in onSnapshot; was false remote reload
+      // (2026-07-13) 3-way merge on snapshot change without data loss; was skipped
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
         if(docSnap.metadata?.hasPendingWrites) return;
         if(docSnap.exists()){
           const remoteData = docSnap.data();
-          const localMeta = DB.getSyncMeta();
-          const remoteTimestamp = remoteData.exportedAt || 0;
-          const localTimestamp = localMeta.lastSynced || 0;
-          const localProducts = DB.getProducts();
-          const isLocalEmpty = localProducts.length === 0 && DB.getSales().length === 0;
-
-          // Only update if local is empty or remote is genuinely newer
-          if(isLocalEmpty || remoteTimestamp > localTimestamp + 2000){
-            const remoteProds = remoteData.products || [];
-            if(isLocalEmpty || remoteProds.length !== localProducts.length || JSON.stringify(localProducts) !== JSON.stringify(remoteProds)){
-              DB.restoreSnapshot(remoteData);
-              DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-              paintStatus();
-              App.rerenderCurrentView?.();
-            }
+          const baseline = DB.getSyncBaseline();
+          const localSnap = DB.snapshot();
+          const merged = threeWayMerge(baseline, localSnap, remoteData);
+          DB.restoreSnapshot(merged);
+          DB.setSyncBaseline(merged);
+          DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+          paintStatus();
+          App.rerenderCurrentView?.();
+          if(typeof Shift !== "undefined" && Shift.render && App.currentView === "shift"){
+            Shift.render();
           }
         }
       }, (err) => {
@@ -419,6 +500,19 @@ const Sync = (() => {
     }
   }
 
+  // (2026-07-13) Push void audit doc to Firestore voidLogs; was local-only
+  async function pushVoidDoc(voidItem){
+    try {
+      const settings = DB.getSettings();
+      if(!settings.firebaseConfig || !voidItem) return;
+      const { db: database, mod } = await ensureFirebase();
+      const docId = String(voidItem.id || Utils.uid("void"));
+      await mod.setDoc(mod.doc(database, "voidLogs", docId), voidItem, { merge:true }).catch(()=>{});
+    } catch(e){
+      console.warn("Could not push void doc to Firestore:", e);
+    }
+  }
+
   // (2026-07-13) Auto-drain offline queue when reconnecting; was disconnected
   async function syncOfflineQueue(){
     const queue = DB.getOfflineQueue ? DB.getOfflineQueue() : [];
@@ -437,8 +531,8 @@ const Sync = (() => {
 
   function init(){
     document.addEventListener("mm:dirty", (e) => {
-      // (2026-07-13) Skip auto-sync on local cart typing & deletions; was reload spam
-      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds) return;
+      // (2026-07-13) Skip auto-sync on internal sync keys; was reload spam
+      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.syncBaseline || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds) return;
       scheduleAutoSync();
     });
     // (2026-07-13) Pull cloud first then push offline updates; was push first
@@ -460,18 +554,13 @@ const Sync = (() => {
     setInterval(checkDailyBackup, 30 * 60 * 1000);
     startRealtimeListener();
 
-    // Auto-pull on launch if local DB is empty to populate from cloud
-    const localProducts = DB.getProducts();
-    const localSales = DB.getSales();
-    if(localProducts.length === 0 && localSales.length === 0){
-      setTimeout(() => pullSnapshot(), 600);
-    } else {
-      console.log("Local data exists, skipping auto-pull. Use manual sync to refresh.");
-    }
+    // (2026-07-13) Auto-pull cloud snapshot on launch; was skipped if local exists
+    pullSnapshot();
   }
 
   return {
-    init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue, deleteSaleDoc,
+    // (2026-07-13) Export pushVoidDoc in Sync API; was unexported
+    init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue, deleteSaleDoc, pushVoidDoc,
     createDailyBackup, checkDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();

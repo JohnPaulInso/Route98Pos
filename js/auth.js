@@ -91,6 +91,8 @@ const Auth = (() => {
       }
       pinBuffer = "";
       cleanupKeyboardListener();
+      // (2026-07-13) Pull cloud snapshot immediately on login; was none
+      if(typeof Sync !== "undefined" && Sync.pullSnapshot) Sync.pullSnapshot();
       App.boot();
     } else {
       Utils.Sound.error();

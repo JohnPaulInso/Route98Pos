@@ -810,10 +810,14 @@ const POS = (() => {
     });
     DB.setProducts(products);
 
-    // (2026-07-13) Use sequential TXN-0001 IDs & auto-persist held sales; was uid
+    // Use local receipt number generation for instant response
     const txnId = DB.getNextTransactionId ? DB.getNextTransactionId("TXN") : `TXN-${String(DB.getSales().length + 1).padStart(4, "0")}`;
+    
     const sale = {
-      id: txnId, ts: Date.now(), items: cart.map(l=>({...l})),
+      id: txnId,
+      receiptNo: txnId.replace('TXN-', ''),
+      ts: Date.now(),
+      items: cart.map(l=>({...l})),
       subtotal:t.subtotal, discountType:discount.type, discountValue:discount.value, discountAmt:t.discountAmt, vat:t.vat, total:t.grand,
       method, refCode, tendered, change: Utils.round2(tendered - t.grand),
       // (2026-07-13) Support all staff as cashier in sale; was cashier role only

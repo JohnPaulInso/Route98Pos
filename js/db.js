@@ -16,8 +16,8 @@ const DB = (() => {
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
     voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems", dayBalances: NS+"dayBalances",
     deletedSaleIds: NS+"deletedSaleIds", // (2026-09-24) Track deleted sale IDs to prevent re-sync
-    // (2026-07-13) Persistent cashier shift history log storage; was shift only
-    shiftLogs: NS+"shiftLogs"
+    // (2026-07-13) Store baseline snapshot for 3-way merge; was shiftLogs only
+    shiftLogs: NS+"shiftLogs", syncBaseline: NS+"syncBaseline"
   };
 
   function read(key, fallback = null){
@@ -584,7 +584,12 @@ const DB = (() => {
     q.push({ ...txn, queuedAt: Date.now() });
     setOfflineQueue(q);
   }
-  const getShift       = () => read(KEYS.shift, { openedAt:Date.now(), openingCash:0, cashier:"Rosella", status:"open" });
+  const getShift       = () => {
+    const shift = read(KEYS.shift, null);
+    // Never auto-open a shift - only return if explicitly open
+    if(!shift || shift.status === 'closed') return null;
+    return shift;
+  };
   const setShift       = (v) => write(KEYS.shift, v);
   // (2026-07-13) Manage shift logs history & cash drawer balance; was transient
   const getShiftLogs   = () => read(KEYS.shiftLogs, []);
@@ -605,6 +610,9 @@ const DB = (() => {
   const setDayBalances = (v) => write(KEYS.dayBalances, v || {});
   const getSyncMeta    = () => read(KEYS.syncMeta, { lastSynced:null, status:"idle" });
   const setSyncMeta    = (v) => write(KEYS.syncMeta, v);
+  // (2026-07-13) Baseline snapshot accessors for 3-way merge; was none
+  const getSyncBaseline = () => read(KEYS.syncBaseline, null);
+  const setSyncBaseline = (v) => write(KEYS.syncBaseline, v);
   // (2026-07-13) Add current cart persistence methods; was in-memory only
   const getSavedCart   = () => read(KEYS.currentCart, { cart: [], discount: { type:"percent", value:0 } });
   const saveCart       = (v) => write(KEYS.currentCart, v);
@@ -970,8 +978,8 @@ const DB = (() => {
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
       stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
-      // (2026-07-13) Include dayBalances in snapshot; was omitted
-      dayBalances:getDayBalances(), backups:[], voidLogs:getVoidLogs(), shift:getShift(), cashiers:getCashiers(),
+      // (2026-07-13) Include shiftLogs and raw shift in snapshot; was omitted
+      dayBalances:getDayBalances(), backups:[], voidLogs:getVoidLogs(), shift:read(KEYS.shift, null), shiftLogs:getShiftLogs(), cashiers:getCashiers(),
       exportedAt: Date.now(), version:3
     };
   }
@@ -1030,8 +1038,20 @@ const DB = (() => {
     if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
     if(snap.backups) setBackups(snap.backups);
     if(snap.voidLogs) setVoidLogs(snap.voidLogs);
-    if(snap.shift) setShift(snap.shift);
-    if(snap.shiftLogs) setShiftLogs(snap.shiftLogs);
+    // (2026-07-13) Safely merge shift and shiftLogs without wipe; was overwrite
+    if(snap.shift){
+      const curShift = read(KEYS.shift, null);
+      if(!curShift || (snap.shift.updatedAt || snap.shift.closedAt || snap.shift.openedAt || 0) >= (curShift.updatedAt || curShift.closedAt || curShift.openedAt || 0)){
+        setShift(snap.shift);
+      }
+    }
+    if(snap.shiftLogs && Array.isArray(snap.shiftLogs)){
+      const localLogs = getShiftLogs();
+      const logMap = new Map();
+      localLogs.forEach(l => { if(l?.id) logMap.set(String(l.id), l); });
+      snap.shiftLogs.forEach(l => { if(l?.id && !logMap.has(String(l.id))) logMap.set(String(l.id), l); });
+      setShiftLogs(Array.from(logMap.values()).sort((a, b) => (b.openedAt || 0) - (a.openedAt || 0)));
+    }
     // (2026-07-13) Restore dayBalances from snapshot; was omitted
     if(snap.dayBalances) setDayBalances(snap.dayBalances);
   }
@@ -1065,6 +1085,8 @@ const DB = (() => {
     getShift, setShift, getShiftLogs, setShiftLogs, saveShiftLog, deleteShiftLog,
     getDayBalances, setDayBalances,
     getSyncMeta, setSyncMeta,
+    // (2026-07-13) Export sync baseline methods; was omitted from return
+    getSyncBaseline, setSyncBaseline,
     getSavedCart, saveCart,
     getCustomItems, setCustomItems, saveCustomItem,
     snapshot, restoreSnapshot, wipeAll

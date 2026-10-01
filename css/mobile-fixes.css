@@ -138,8 +138,8 @@
     gap: 12px !important;
   }
   
-  /* (2026-07-13) Exclude presets & gas from grid reset; was vertical stack */
-  *:not(.product-grid):not(.gas-head-actions):not(.pos-payment-methods):not(.inventory-status-cards):not(.cash-presets-row):not(.pin-pad):not(.dash-pl-grid):not(.dash-snapshots-grid):not(.shift-quick-actions):not(.shift-metrics-container):not(.today-fuel-kpis):not(.rpt-pl-tiles-grid):not(.loy-cal-grid):not(.loy-cal-weekdays) {
+  /* (2026-07-13) Exclude pump-metrics from grid reset; was vertical stack */
+  *:not(.product-grid):not(.gas-head-actions):not(.pos-payment-methods):not(.inventory-status-cards):not(.cash-presets-row):not(.pin-pad):not(.dash-pl-grid):not(.dash-snapshots-grid):not(.shift-quick-actions):not(.shift-metrics-container):not(.today-fuel-kpis):not(.rpt-pl-tiles-grid):not(.loy-cal-grid):not(.loy-cal-weekdays):not(.pump-metrics-strip) {
     grid-template-columns: none !important;
   }
   
@@ -208,6 +208,7 @@
     margin-right: -10px !important;
     padding: 6px 12px !important;
     margin-bottom: 6px !important;
+    margin-top: 8px !important;
     background: transparent !important;
     background-image: none !important;
     border: none !important;
@@ -309,19 +310,15 @@
   /* ============ REPORTS TOOLBAR ============ */
   .rpt-toolbar {
     flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible !important;
     gap: 10px !important;
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  .rpt-toolbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
   }
   
   .rpt-date-group,
   .rpt-dropdown-wrap {
     flex-shrink: 0 !important;
+    position: relative !important;
+    z-index: 200 !important;
   }
   
   .rpt-nav-btn {
@@ -2639,6 +2636,41 @@
   .rpt-crumb-sep {
     font-size: 0.74rem !important;
     opacity: 0.35 !important;
+    margin: 0 4px !important;
+  }
+  
+  /* Make breadcrumb clickable on mobile */
+  .rpt-header-breadcrumb {
+    position: relative !important;
+    z-index: 70 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  
+  #rpt-crumb-active,
+  .rpt-crumb-curr-btn {
+    position: relative !important;
+    z-index: 70 !important;
+    touch-action: manipulation !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 10px 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  
+  #rpt-crumb-menu {
+    z-index: 9999 !important;
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+  }
+  
+  .rpt-crumb-item {
+    min-height: 44px !important;
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
     flex-shrink: 0 !important;
     margin: 0 1px !important;
   }
@@ -2651,6 +2683,16 @@
     gap: 3px !important;
     min-width: 0 !important;
     max-width: 140px !important;
+    position: relative !important;
+    z-index: 70 !important;
+    touch-action: manipulation !important;
+    min-height: 44px !important;
+    padding: 10px 14px !important;
+    pointer-events: auto !important;
+  }
+  
+  .rpt-crumb-curr-btn * {
+    pointer-events: none !important;
   }
 
   .rpt-crumb-curr-btn span:first-child {
@@ -2687,15 +2729,25 @@
   }
 
   .user-chip {
-    padding: 4px 6px !important;
-    gap: 4px !important;
+    padding: 6px !important;
+    gap: 0 !important;
     flex-shrink: 0 !important;
-    border-radius: 20px !important;
+    border-radius: 50% !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .user-chip #user-chip-label {
-    max-width: 54px !important;
-    font-size: 0.72rem !important;
+    display: none !important;
+  }
+
+  .user-chip .av {
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 !important;
   }
 
   /* (2026-07-13) Change btn icon-only on mobile; was icon + text */
@@ -2809,6 +2861,38 @@
     height: 100% !important;
     border-radius: 999px !important;
     transition: width 0.3s ease !important;
+  }
+
+  /* (2026-07-13) Responsive pump card & 3-col metrics; was stacked 1-col */
+  .pump-terminal-card {
+    padding: 14px 12px !important;
+  }
+  .pump-metrics-strip {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+  .pump-metrics-strip > div {
+    padding: 8px 4px !important;
+    border-radius: 8px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-align: center !important;
+  }
+  .pump-metrics-strip .mono {
+    font-size: 0.88rem !important;
+  }
+  .live-tanker-cost-input::-webkit-outer-spin-button,
+  .live-tanker-cost-input::-webkit-inner-spin-button,
+  .live-pump-price-input::-webkit-outer-spin-button,
+  .live-pump-price-input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+  .live-tanker-cost-input,
+  .live-pump-price-input {
+    -moz-appearance: textfield !important;
   }
 
   /* (2026-07-13) Sales summary mobile stepper & P&L card; was stacked cards */
@@ -3125,17 +3209,20 @@
     display: none !important;
   }
 
-  /* (2026-07-13) Wrap 9 date chips and compact size; was single-row scroll */
-  .loy-quick-pills {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 5px !important;
-    margin-bottom: 10px !important;
-    padding: 2px 0 !important;
-  }
+  /* Mobile only - show quick pills on mobile/tablet */
+  @media (max-width: 768px) {
+    /* (2026-07-13) Wrap 9 date chips and compact size; was single-row scroll */
+    .loy-quick-pills {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+      margin-bottom: 10px !important;
+      padding: 2px 0 !important;
+    }
 
-  .loy-quick-pills::-webkit-scrollbar {
-    display: none !important;
+    .loy-quick-pills::-webkit-scrollbar {
+      display: none !important;
+    }
   }
 
   .loy-quick-pill {
@@ -3346,10 +3433,15 @@
   .inv-tools-dropdown-wrap {
     flex: 1 1 0 !important;
     position: relative !important;
+    z-index: 60 !important;
   }
   .inv-tools-dropdown-wrap .btn-inv-tools {
     width: 100% !important;
     min-height: 42px !important;
+    z-index: 60 !important;
+    position: relative !important;
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
     height: 42px !important;
     padding: 0 12px !important;
     font-size: 0.85rem !important;
@@ -3363,6 +3455,46 @@
     border: 1.5px solid var(--line-strong) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     color: var(--ink) !important;
+  }
+  .inv-tools-dropdown-wrap .btn-inv-tools * {
+    pointer-events: none !important;
+  }
+  
+  /* (2026-07-13) Fix tools dropdown z-index over search field; was lower */
+  .view-head {
+    position: relative !important;
+    z-index: 50 !important;
+  }
+  .inv-tools-dropdown-wrap {
+    position: relative !important;
+    z-index: 100 !important;
+  }
+  .inv-tools-menu,
+  #inv-tools-menu {
+    position: absolute !important;
+    top: calc(100% + 6px) !important;
+    z-index: 99999 !important;
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    left: 0 !important;
+    right: auto !important;
+    min-width: 210px !important;
+    background: var(--paper-raised, #ffffff) !important;
+    border: 1px solid var(--line, #e2e8f0) !important;
+    border-radius: var(--r-md, 10px) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    padding: 6px !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  .inv-tools-menu[style*="display: flex"],
+  .inv-tools-menu[style*="display: block"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .inv-tools-menu[style*="display: none"] {
+    display: none !important;
   }
   #btn-m-add-product {
     flex: 1.3 1 0 !important;
@@ -3378,25 +3510,24 @@
     gap: 6px !important;
     box-shadow: 0 2px 8px rgba(47, 66, 216, 0.28) !important;
   }
-  .inv-tools-menu {
-    position: absolute !important;
-    top: calc(100% + 6px) !important;
-    left: 0 !important;
-    right: auto !important;
-    z-index: 100 !important;
-    min-width: 210px !important;
-    background: var(--paper-raised, #ffffff) !important;
-    border: 1px solid var(--line, #e2e8f0) !important;
-    border-radius: var(--r-md, 10px) !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-    padding: 6px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 4px !important;
+  .inv-toolbar {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  .inv-toolbar .input-icon-wrap,
+  #inv-search {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  .inv-tools-menu * {
+    pointer-events: auto !important;
   }
   .inv-tools-menu .dropdown-item {
     display: flex !important;
     align-items: center !important;
+    min-height: 44px !important;
+    padding: 12px 14px !important;
+    touch-action: manipulation !important;
     gap: 10px !important;
     width: 100% !important;
     padding: 9px 12px !important;
@@ -3414,36 +3545,39 @@
     background: var(--paper-dim, #f1f5f9) !important;
   }
 
-  .inv-table-wrap,
-  .view > .inv-table-wrap {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    touch-action: pan-x pan-y !important;
-  }
-  .inv-table-wrap table.data th:first-child,
-  .inv-table-wrap table.data td:first-child {
-    position: sticky !important;
-    left: 0 !important;
-    z-index: 4 !important;
-    background: var(--paper-raised, #ffffff) !important;
-    border-right: 2px solid var(--line, #e2e8f0) !important;
-  }
-  [data-theme="dark"] .inv-table-wrap table.data th:first-child,
-  [data-theme="dark"] .inv-table-wrap table.data td:first-child {
-    background: var(--paper-raised, #1e293b) !important;
-  }
+  /* Mobile only: hide table, show cards */
+  @media (max-width: 767px) {
+    .inv-table-wrap,
+    .view > .inv-table-wrap {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-x pan-y !important;
+    }
+    .inv-table-wrap table.data th:first-child,
+    .inv-table-wrap table.data td:first-child {
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 4 !important;
+      background: var(--paper-raised, #ffffff) !important;
+      border-right: 2px solid var(--line, #e2e8f0) !important;
+    }
+    [data-theme="dark"] .inv-table-wrap table.data th:first-child,
+    [data-theme="dark"] .inv-table-wrap table.data td:first-child {
+      background: var(--paper-raised, #1e293b) !important;
+    }
 
-  .inv-table-wrap {
-    display: none !important;
-  }
-  /* (2026-07-13) Extra bottom pad & margin for inv mobile cards; was 16px */
-  .inv-mobile-cards {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    width: 100% !important;
-    padding: 2px 0 85px !important;
-    margin-bottom: 25px !important;
+    .inv-table-wrap {
+      display: none !important;
+    }
+    /* (2026-07-13) Extra bottom pad & margin for inv mobile cards; was 16px */
+    .inv-mobile-cards {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      width: 100% !important;
+      padding: 2px 0 20px !important;
+      margin-bottom: 10px !important;
+    }
   }
 
   .inv-mobile-card {
@@ -3792,15 +3926,7 @@
   }
 }
 
-@media (max-width: 420px) {
-  .user-chip #user-chip-label {
-    display: none !important;
-  }
-  .user-chip {
-    padding: 4px !important;
-    border-radius: 50% !important;
-  }
-}
+/* Removed redundant @media (max-width: 420px) user-chip rule - now handled in main mobile query */
 
 /* (2026-07-13) Hide mobile quick checkout and toggle on desktop; was none */
 @media (min-width: 769px) {
@@ -3818,12 +3944,136 @@
     gap: 8px !important;
     flex-wrap: wrap !important;
   }
+  
+  /* Hide mobile-only elements on desktop */
   .inv-mobile-actions,
-  .inv-mobile-cards {
+  .inv-mobile-cards,
+  #inv-mobile-cards,
+  .inv-tools-dropdown-wrap {
     display: none !important;
   }
-  .inv-table-wrap {
+  
+  /* Show table on desktop */
+  .inv-table-wrap,
+  .view > .inv-table-wrap {
     display: block !important;
+  }
+  
+  .inv-table-wrap table.data {
+    display: table !important;
+  }
+  
+  .inv-table-wrap table.data thead,
+  .inv-table-wrap table.data tbody,
+  .inv-table-wrap table.data tfoot {
+    display: table-row-group !important;
+  }
+  
+  .inv-table-wrap table.data tr {
+    display: table-row !important;
+  }
+  
+  .inv-table-wrap table.data th,
+  .inv-table-wrap table.data td {
+    display: table-cell !important;
+  }
+
+  /* ============================================================
+     RECEIPTS TABLE - ALWAYS VISIBLE ACTIONS COLUMN
+     ============================================================ */
+  /* (2026-10-01) Make Actions column sticky on desktop; was scrollable */
+  .receipt-table-wrap {
+    position: relative !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+  }
+
+  .receipt-table-wrap table.data {
+    min-width: 100% !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  /* Make Actions column always visible with fixed width */
+  .receipt-table-wrap .receipt-col-actions {
+    position: sticky !important;
+    right: 0 !important;
+    background: var(--paper) !important;
+    box-shadow: -2px 0 4px rgba(0,0,0,0.05) !important;
+    z-index: 10 !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+    text-align: right !important;
+    padding: 8px 10px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+
+  .receipt-table-wrap tbody tr:hover .receipt-col-actions {
+    background: var(--brand-tint) !important;
+  }
+
+  .receipt-table-wrap .receipt-actions-cluster {
+    display: inline-flex !important;
+    gap: 4px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+  }
+
+  .receipt-table-wrap .receipt-actions-cluster .btn {
+    padding: 5px 7px !important;
+    font-size: 0.7rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    line-height: 1 !important;
+  }
+
+  /* Ensure all action buttons are visible */
+  .receipt-table-wrap .receipt-col-actions .btn {
+    display: inline-flex !important;
+    visibility: visible !important;
+  }
+  /* (2026-07-13) Hide view button on desktop receipts; was visible with text */
+  .receipt-table-wrap .receipt-col-actions .btn[data-view-receipt],
+  .receipt-table-wrap .receipt-col-actions .btn.mobile-only {
+    display: none !important;
+  }
+
+  /* Show desktop-only buttons on desktop */
+  .receipt-table-wrap .desktop-only {
+    display: table-cell !important;
+  }
+  .receipt-table-wrap .receipt-actions-cluster .btn.desktop-only {
+    display: inline-flex !important;
+  }
+  .receipt-table-wrap th.desktop-only,
+  .receipt-table-wrap td.desktop-only {
+    display: table-cell !important;
+  }
+
+  /* Ensure other columns have proper widths on desktop only */
+  .receipt-table-wrap .receipt-select-cell { width: 28px !important; max-width: 28px !important; }
+  .receipt-table-wrap .receipt-col-txn { width: 55px !important; }
+  .receipt-table-wrap .receipt-col-time { width: 95px !important; }
+  .receipt-table-wrap .receipt-col-txnid { width: 80px !important; }
+  .receipt-table-wrap .receipt-col-source { width: 60px !important; }
+  .receipt-table-wrap .receipt-col-items { width: auto !important; min-width: 130px !important; }
+  .receipt-table-wrap .receipt-col-total { width: 70px !important; }
+  .receipt-table-wrap .receipt-col-method { width: 55px !important; }
+  .receipt-table-wrap .receipt-col-cashier { width: 70px !important; }
+
+  /* Ensure proper padding for all cells */
+  .receipt-table-wrap table.data th,
+  .receipt-table-wrap table.data td {
+    padding: 8px 8px !important;
+  }
+
+  /* Add top margin to reports toolbar */
+  .rpt-toolbar {
+    margin-top: 12px !important;
   }
 
   /* (2026-07-13) Desktop modal-product-form dimensions; was unconstrained */
@@ -4941,6 +5191,18 @@
 .shift-view-container {
   margin-top: 8px !important;
   padding-top: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevent shift page elements from causing horizontal scroll */
+.shift-page-header,
+.shift-nav-tabs,
+.shift-active-card,
+.shift-metrics-container {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
 }
 
 /* (2026-07-13) Line-break long void audit items; was overlapping */
@@ -4961,6 +5223,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+  overflow-wrap: anywhere;
   max-width: 220px;
   line-height: 1.25;
 }
@@ -4978,6 +5241,210 @@
 }
 
 /* (2026-07-13) Extra bottom margin for inventory pagination bar; was 0 */
-#inv-pagination {
-  margin-bottom: 75px !important;
+@media (max-width: 767px) {
+  #inv-pagination {
+    margin-bottom: 80px !important;
+  }
+}
+
+/* ============================================================
+   DESKTOP INVENTORY TABLE FIX - FINAL OVERRIDE
+   Force table display on desktop, hide mobile elements
+   ============================================================ */
+@media (min-width: 768px) {
+  /* Show desktop table and actions */
+  .inv-table-wrap,
+  .view > .inv-table-wrap {
+    display: block !important;
+  }
+  
+  .inv-table-wrap table.data {
+    display: table !important;
+  }
+  
+  .inv-desktop-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  
+  /* Hide ALL mobile-only elements */
+  .inv-mobile-actions,
+  .inv-mobile-cards,
+  #inv-mobile-cards,
+  .inv-tools-dropdown-wrap,
+  #btn-inv-tools,
+  #inv-tools-menu {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   INVENTORY PAGINATION SPACING FOR DESKTOP/TABLET
+   ============================================================ */
+@media (min-width: 768px) {
+  #inv-pagination {
+    margin-bottom: 30px !important;
+  }
+}
+
+/* ============================================================
+   INTERACTIVE HOVER & TAP EFFECTS
+   Make the app feel responsive and interactive
+   ============================================================ */
+
+/* Buttons - scale down on active/press */
+.btn:active,
+button:active,
+.chip:active,
+.product-card:active,
+.inv-mobile-card:active,
+.dropdown-item:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* Bottom nav - only scale, no background */
+.bn-btn:active {
+  transform: scale(1.05) !important;
+  transition: transform 0.1s ease !important;
+}
+
+@media (min-width: 768px) {
+  .bn-btn:hover {
+    transform: scale(1.05) !important;
+    transition: transform 0.15s ease !important;
+  }
+}
+
+/* Hover effects for desktop */
+@media (min-width: 768px) {
+  .btn:hover,
+  button:hover,
+  .chip:hover,
+  .dropdown-item:hover,
+  .product-card:hover,
+  .inv-mobile-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .btn-primary:hover {
+    background: var(--brand-deep) !important;
+  }
+  
+  .btn-ghost:hover {
+    background: var(--paper-dim) !important;
+  }
+  
+  table.data tbody tr:hover {
+    background: var(--brand-tint) !important;
+    transition: background 0.15s ease !important;
+  }
+}
+
+/* Ripple effect on tap (mobile) */
+@media (max-width: 767px) {
+  .btn,
+  button,
+  .chip,
+  .product-card,
+  .inv-mobile-card,
+  .dropdown-item {
+    -webkit-tap-highlight-color: rgba(59, 90, 251, 0.1) !important;
+  }
+}
+
+/* ============================================================
+   MODAL ANIMATIONS
+   Smooth 0.3s animations for opening/closing modals
+   ============================================================ */
+
+/* Modal backdrop fade in/out */
+.modal-backdrop {
+  animation: fadeIn 0.3s ease !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal slide up on mobile */
+@media (max-width: 767px) {
+  .modal {
+    animation: slideUp 0.3s ease !important;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* Modal scale on desktop */
+@media (min-width: 768px) {
+  .modal {
+    animation: scaleIn 0.3s ease !important;
+  }
+  
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+/* Dropdown menus slide down */
+.dropdown-menu,
+#inv-tools-menu,
+#rpt-crumb-menu {
+  animation: slideDown 0.2s ease !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+.btn,
+button,
+.chip,
+.card,
+.product-card,
+.inv-mobile-card,
+input,
+select,
+textarea {
+  transition: all 0.2s ease !important;
+}
+
+/* Focus states for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--brand) !important;
+  outline-offset: 2px !important;
+  transition: outline 0.2s ease !important;
 }

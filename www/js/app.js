@@ -328,4 +328,106 @@ document.addEventListener("wheel", (e) => {
   }
 }, { passive: false, capture: true });
 
+// (2026-10-01) Drag-to-scroll for category-chips; was wheel only
+(function initCategoryChipsDragScroll(){
+  let isDragging = false;
+  let startX = 0;
+  let scrollLeft = 0;
+  let targetChips = null;
+  let hasDragged = false;
+
+  document.addEventListener("mousedown", (e) => {
+    const chips = e.target.closest(".category-chips");
+    if(!chips) return;
+    
+    isDragging = true;
+    hasDragged = false;
+    targetChips = chips;
+    startX = e.pageX - chips.offsetLeft;
+    scrollLeft = chips.scrollLeft;
+    chips.style.scrollBehavior = "auto";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if(!isDragging || !targetChips) return;
+    e.preventDefault();
+    const x = e.pageX - targetChips.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    
+    // If moved more than 5px, consider it a drag
+    if(Math.abs(walk) > 5){
+      hasDragged = true;
+    }
+    
+    targetChips.scrollLeft = scrollLeft - walk;
+  });
+
+  document.addEventListener("mouseup", (e) => {
+    if(isDragging && targetChips){
+      targetChips.style.scrollBehavior = "";
+      
+      // Prevent chip click if we dragged
+      if(hasDragged){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+    isDragging = false;
+    targetChips = null;
+    hasDragged = false;
+  }, true);
+
+  document.addEventListener("click", (e) => {
+    // Block clicks on chips if we just dragged
+    if(hasDragged && e.target.closest(".category-chips .chip")){
+      e.preventDefault();
+      e.stopPropagation();
+      hasDragged = false;
+      return false;
+    }
+  }, true);
+
+  document.addEventListener("mouseleave", () => {
+    if(isDragging && targetChips){
+      targetChips.style.scrollBehavior = "";
+    }
+    isDragging = false;
+    targetChips = null;
+    hasDragged = false;
+  });
+
+  // Update gradient fade visibility on scroll
+  function updateGradientFade(chips){
+    if(!chips) return;
+    const isAtEnd = chips.scrollLeft + chips.clientWidth >= chips.scrollWidth - 5;
+    chips.classList.toggle("scrolled-end", isAtEnd);
+  }
+
+  // (2026-07-13) Watch rpt-subnav-tabs for gradient fade; was chips only
+  const observer = new MutationObserver(() => {
+    document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
+      if(chips.dataset.dragScrollInit) return;
+      chips.dataset.dragScrollInit = "true";
+      
+      // Initial check
+      updateGradientFade(chips);
+      
+      // Update on scroll
+      chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
+      
+      // Update on resize
+      const resizeObserver = new ResizeObserver(() => updateGradientFade(chips));
+      resizeObserver.observe(chips);
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+  
+  // Initial setup for existing chips
+  document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
+    updateGradientFade(chips);
+    chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
+  });
+})();
+
 document.addEventListener("DOMContentLoaded", App.init);

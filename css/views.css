@@ -72,11 +72,37 @@
 .pos-scan-btn, .pos-held-btn{ white-space:nowrap; }
 
 /* (2026-07-13) Add 4px y-padding on category-chips; was padding-bottom 0 */
-.category-chips{ display:flex; gap:6px; overflow-x:auto; padding:4px 0; margin-bottom:0; flex-shrink:0; min-width:0; }
+/* (2026-10-01) Add drag-to-scroll & gradient fade; was scrollbar visible */
+.category-chips{ 
+  display:flex; 
+  gap:6px; 
+  overflow-x:auto; 
+  padding:4px 0; 
+  margin-bottom:4px; 
+  flex-shrink:0; 
+  min-width:0; 
+  cursor:grab;
+  position:relative;
+  scrollbar-width:none;
+}
+.category-chips:active{ cursor:grabbing; }
 .category-chips .chip{ text-transform:uppercase; letter-spacing:.02em; font-size:.66rem; font-weight:800; }
-.category-chips::-webkit-scrollbar{ height:3px; }
-.category-chips::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:3px; }
-.category-chips::-webkit-scrollbar-track{ background:transparent; }
+.category-chips::-webkit-scrollbar{ display:none; }
+/* (2026-07-13) Sticky right gradient for chips; was scrolling absolute */
+.category-chips,
+.rpt-subnav-tabs{
+  -webkit-mask-image:linear-gradient(to right, #000 0%, #000 calc(100% - 40px), transparent 100%);
+  mask-image:linear-gradient(to right, #000 0%, #000 calc(100% - 40px), transparent 100%);
+}
+.category-chips.scrolled-end,
+.rpt-subnav-tabs.scrolled-end{
+  -webkit-mask-image:none !important;
+  mask-image:none !important;
+}
+.category-chips::after,
+.rpt-subnav-tabs::after{
+  display:none !important;
+}
 /* (2026-07-13) Fix touch scroll & set white image bg; was janky & dim bg */
 .product-grid{
   display:grid;
@@ -586,6 +612,8 @@ input#cash-input::-webkit-input-placeholder{
 
 /* (2026-07-13) Add Loyverse-style reports toolbar CSS; was missing */
 .rpt-toolbar{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+/* (2026-10-01) Add top margin for rpt-toolbar-wrap on desktop; was no spacing */
+@media (min-width:769px){ .rpt-toolbar-wrap{ margin-top:6px; } }
 .rpt-date-group{ display:inline-flex; align-items:stretch; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--r-md); box-shadow:0 1px 2px rgba(0,0,0,0.05); height:36px; overflow:hidden; }
 .rpt-nav-btn{ border:none; background:transparent; padding:0 12px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; color:var(--ink-muted); font-size:var(--fs-sm); font-weight:700; transition:background var(--transition), color var(--transition); }
 .rpt-nav-btn:hover{ background:var(--paper-dim); color:var(--ink); }
@@ -608,6 +636,12 @@ input#cash-input::-webkit-input-placeholder{
 .loy-picker-wrap{ display:flex; min-width:430px; }
 @media (max-width:520px){ .loy-picker-wrap{ flex-direction:column; min-width:0; } }
 .loy-cal-panel{ flex:1; padding:16px 18px 14px 18px; border-right:1px solid var(--line); }
+/* (2026-10-01) Hide duplicate preset pills on desktop; was visible on both sides */
+.loy-quick-pills{ display:none; }
+@media (max-width:768px){ .loy-quick-pills{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; } }
+.loy-quick-pill{ padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink-soft); font-size:0.85rem; font-weight:600; cursor:pointer; transition:all var(--transition); }
+.loy-quick-pill:hover{ background:var(--paper-dim); border-color:var(--brand); color:var(--brand); }
+.loy-quick-pill.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
 .loy-presets-panel{ width:140px; padding:10px 0; display:flex; flex-direction:column; flex-shrink:0; }
 .loy-cal-header{ display:flex; align-items:center; position:relative; margin-bottom:12px; height:32px; }
 .loy-cal-title{ position:absolute; left:0; right:0; text-align:center; font-weight:600; font-size:0.95rem; color:var(--ink); pointer-events:none; }
@@ -676,9 +710,30 @@ input#cash-input::-webkit-input-placeholder{
 .inv-table-wrap{
   flex:1 1 auto;
   min-height:0;
-  max-height:calc(100vh - 245px);
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+  overflow-x: auto;
+  display: block;
+  max-height:calc(100vh - 180px);
   overflow-y:auto !important;
   margin-top:10px !important;
+}
+
+/* Default: show table, hide mobile cards */
+.inv-table-wrap {
+  display: block !important;
+}
+
+.inv-mobile-cards {
+  display: none !important;
+}
+
+.inv-desktop-actions {
+  display: flex !important;
+}
+
+.inv-mobile-actions {
+  display: none !important;
 }
 
 /* (2026-08-26) Physical stock confirmation modal styles; was not present */

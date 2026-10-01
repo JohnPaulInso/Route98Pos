@@ -322,16 +322,23 @@ const Inventory = (() => {
       title:`${Icons.get("package",{size:17})} Adjust Stock — ${Utils.escapeHtml(product.name)}`, body,
       actions:[
         { label:"Cancel", cls:"btn-ghost" },
-        { label:"Apply Adjustment", cls:"btn-primary font-bold", onClick:()=>{
+        { label:"Apply Adjustment", cls:"btn-primary font-bold", onClick: ()=>{
           const rawQty = Number(document.getElementById("adj-qty").value)||0;
           if(rawQty === 0){ Utils.toast("Enter a non-zero adjustment quantity.","warn"); return; }
           const adjUnit = hasDual ? UISelect.getValue("adj-unit") : "piece";
           const mult = (adjUnit === "pack" ? product.piecesPerPack : 1);
           const totalDeltaPieces = rawQty * mult;
           const reason = UISelect.getValue("adj-reason");
+          
+          // Apply locally first for instant response
           DB.adjustStock(product.id, totalDeltaPieces, reason);
           Utils.toast(`Stock adjusted by ${totalDeltaPieces > 0 ? "+" + totalDeltaPieces : totalDeltaPieces} pcs.`,"success");
           Modal.close(); renderTable();
+          
+          // Sync to cloud in background (non-blocking)
+          RealtimeSync.adjustStockAtomic(product.id, totalDeltaPieces, reason).catch(err => {
+            console.warn("Background sync failed:", err);
+          });
         }}
       ]
     });
@@ -1048,12 +1055,13 @@ const Inventory = (() => {
           <button class="btn btn-ghost" id="btn-import-inv">${Icons.get("upload",{size:15})} Import</button>
           <button class="btn btn-primary" id="btn-add-product">${Icons.get("plus",{size:15})} Add Product</button>
         </div>
-        <div class="inv-mobile-actions">
-          <div class="dropdown-wrap inv-tools-dropdown-wrap" style="position:relative;">
+        <!-- (2026-07-13) Set higher z-index on tools dropdown over search; was unassigned -->
+        <div class="inv-mobile-actions" style="position:relative;z-index:100;">
+          <div class="dropdown-wrap inv-tools-dropdown-wrap" style="position:relative;z-index:100;">
             <button class="btn btn-outline btn-inv-tools" id="btn-inv-tools" type="button" aria-haspopup="true" aria-expanded="false">
               ${Icons.get("more-horizontal",{size:15})} Tools ▾
             </button>
-            <div class="dropdown-menu inv-tools-menu" id="inv-tools-menu" style="display:none;">
+            <div class="dropdown-menu inv-tools-menu" id="inv-tools-menu" style="display:none;position:absolute;z-index:99999;">
               <button class="dropdown-item" id="btn-m-physical-audit">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
               <button class="dropdown-item" id="btn-m-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
               <button class="dropdown-item" id="btn-m-export-inv">${Icons.get("download",{size:15})} Export CSV</button>
@@ -1080,28 +1088,59 @@ const Inventory = (() => {
       const mToolsBtn = document.getElementById("btn-inv-tools");
       const mToolsMenu = document.getElementById("inv-tools-menu");
       if(mToolsBtn && mToolsMenu){
-        mToolsBtn.onclick = (e) => {
+        // Remove any existing listeners
+        mToolsBtn.replaceWith(mToolsBtn.cloneNode(true));
+        const newToolsBtn = document.getElementById("btn-inv-tools");
+        const newToolsMenu = document.getElementById("inv-tools-menu");
+        
+        newToolsBtn.addEventListener("click", (e) => {
+          e.preventDefault();
           e.stopPropagation();
-          const isShown = mToolsMenu.style.display === "flex" || mToolsMenu.style.display === "block";
-          mToolsMenu.style.display = isShown ? "none" : "flex";
-        };
+          const isShown = newToolsMenu.style.display === "flex" || newToolsMenu.style.display === "block";
+          
+          newToolsMenu.style.display = isShown ? "none" : "flex";
+          newToolsMenu.style.zIndex = "2147483647";
+        });
+        
+        // Close menu on outside click
         const closeMenu = (e) => {
-          if(!mToolsBtn.contains(e.target) && !mToolsMenu.contains(e.target)){
-            mToolsMenu.style.display = "none";
+          if(!newToolsBtn.contains(e.target) && !newToolsMenu.contains(e.target)){
+            newToolsMenu.style.display = "none";
           }
         };
+        
         document.addEventListener("click", closeMenu);
       }
       const mAuditBtn = document.getElementById("btn-m-physical-audit");
-      if(mAuditBtn) mAuditBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; openPhysicalCountAudit(); };
+      if(mAuditBtn) mAuditBtn.onclick = () => { 
+        if(mToolsMenu) mToolsMenu.style.display = "none"; 
+        document.body.classList.remove("dropdown-active");
+        openPhysicalCountAudit(); 
+      };
       const mRlogBtn = document.getElementById("btn-m-restock-logs");
-      if(mRlogBtn) mRlogBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; openRestockLogModal(); };
+      if(mRlogBtn) mRlogBtn.onclick = () => { 
+        if(mToolsMenu) mToolsMenu.style.display = "none"; 
+        document.body.classList.remove("dropdown-active");
+        openRestockLogModal(); 
+      };
       const mExpBtn = document.getElementById("btn-m-export-inv");
-      if(mExpBtn) mExpBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; ImportExport.exportInventoryCSV(); };
+      if(mExpBtn) mExpBtn.onclick = () => { 
+        if(mToolsMenu) mToolsMenu.style.display = "none"; 
+        document.body.classList.remove("dropdown-active");
+        ImportExport.exportInventoryCSV(); 
+      };
       const mImpBtn = document.getElementById("btn-m-import-inv");
-      if(mImpBtn) mImpBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; document.getElementById("inv-import-file").click(); };
+      if(mImpBtn) mImpBtn.onclick = () => { 
+        if(mToolsMenu) mToolsMenu.style.display = "none"; 
+        document.body.classList.remove("dropdown-active");
+        document.getElementById("inv-import-file").click(); 
+      };
       const mSelBtn = document.getElementById("btn-m-select-mode");
-      if(mSelBtn) mSelBtn.onclick = () => { if(mToolsMenu) mToolsMenu.style.display = "none"; toggleSelectMode(true); };
+      if(mSelBtn) mSelBtn.onclick = () => { 
+        if(mToolsMenu) mToolsMenu.style.display = "none"; 
+        document.body.classList.remove("dropdown-active");
+        toggleSelectMode(true); 
+      };
       const mAddBtn = document.getElementById("btn-m-add-product");
       if(mAddBtn) mAddBtn.onclick = () => openProductForm();
       
@@ -1851,7 +1890,8 @@ const Inventory = (() => {
     });
 
     view.innerHTML = `
-      <div class="view-head">
+      <!-- (2026-07-13) Set relative z-index order on view-head and toolbar -->
+      <div class="view-head" style="position:relative;z-index:50;">
         <div style="flex:1;min-width:0;">
           <!-- (2026-07-13) Hide inv-count and remove view-sub; was view-sub div -->
           <h2>${Icons.get("package",{size:22})} Inventory</h2>
@@ -1859,8 +1899,8 @@ const Inventory = (() => {
         </div>
         <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
       </div>
-      <div class="inv-toolbar">
-        <div class="input-icon-wrap" style="position:relative;width:320px;">
+      <div class="inv-toolbar" style="position:relative;z-index:1;">
+        <div class="input-icon-wrap" style="position:relative;width:320px;z-index:1;">
           ${Icons.get("search",{size:15})}
           <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
           <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:15})}</button>

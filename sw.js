@@ -1,12 +1,13 @@
 // ============================================================
 // sw.js — app-shell cache for Route 98 POS (Cache-first images/assets)
 // ============================================================
-// (2026-07-13) Cache-first for images/assets with v9 shell; was network-first v8
-const CACHE_NAME = "route98-pos-v9";
+// (2026-07-13) Add chart.js to shell cache & bump to v10; was missing & v9
+const CACHE_NAME = "route98-pos-v10";
 const SHELL_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
+  "./js/chart.umd.min.js",
   "./js/icons.js",
   "./js/uiselect.js",
   "./icon.svg",

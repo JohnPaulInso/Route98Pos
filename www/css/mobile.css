@@ -147,6 +147,7 @@
 
   .view-head {
     margin-bottom: 14px;
+    margin-top: 8px;
     gap: 10px;
   }
 
@@ -716,6 +717,100 @@
     margin-bottom: 12px;
     padding-bottom: 4px;
   }
+  
+  /* Void audit mobile improvements */
+  @media (max-width: 767px) {
+    .void-table {
+      display: block !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      width: 100% !important;
+    }
+    
+    .void-table thead,
+    .void-table tbody,
+    .void-table tr {
+      display: table !important;
+      width: 100% !important;
+    }
+    
+    .void-table td {
+      font-size: 0.75rem !important;
+      padding: 6px 4px !important;
+    }
+    
+    .void-col-time {
+      font-size: 0.70rem !important;
+      white-space: nowrap !important;
+      min-width: 75px !important;
+    }
+    
+    .void-col-txn {
+      font-size: 0.72rem !important;
+      word-break: break-all !important;
+      max-width: 80px !important;
+      line-height: 1.3 !important;
+      white-space: normal !important;
+      min-width: 75px !important;
+    }
+    
+    .void-item-summary {
+      font-size: 0.72rem !important;
+      line-height: 1.3 !important;
+      word-wrap: break-word !important;
+      white-space: normal !important;
+      overflow-wrap: break-word !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 8 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+      max-height: 9em !important;
+      min-width: 120px !important;
+    }
+    
+    /* Make all void table columns visible */
+    .void-table th,
+    .void-table td {
+      display: table-cell !important;
+      vertical-align: top !important;
+    }
+    
+    /* Ensure table wrapper has scroll */
+    .table-wrap:has(.void-table) {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      max-width: 100% !important;
+    }
+    
+    /* Ensure all dropdowns are accessible */
+    .rpt-dropdown-menu,
+    .inv-tools-menu,
+    .ui-select-list {
+      position: fixed !important;
+      z-index: 200 !important;
+      touch-action: manipulation !important;
+    }
+    
+    .dropdown-item {
+      min-height: 44px !important;
+      padding: 12px 14px !important;
+      touch-action: manipulation !important;
+    }
+    
+    /* Fix report breadcrumb button clickability */
+    .rpt-crumb-curr-btn {
+      position: relative !important;
+      z-index: 50 !important;
+      touch-action: manipulation !important;
+      min-height: 44px !important;
+      padding: 10px 14px !important;
+      pointer-events: auto !important;
+    }
+    
+    .rpt-crumb-curr-btn * {
+      pointer-events: none !important;
+    }
+  }
 
   .rpt-date-group {
     flex-shrink: 0;
@@ -751,6 +846,9 @@
     height: 44px;
     padding: 0 12px;
     min-width: 44px;
+    position: relative;
+    z-index: 50;
+    touch-action: manipulation;
   }
   
   /* Show only icons on mobile for dropdowns */
@@ -760,6 +858,18 @@
   
   .rpt-dropdown-btn .ic-svg {
     margin: 0;
+  }
+  
+  /* Ensure dropdown menus are clickable */
+  .rpt-dropdown-menu {
+    z-index: 100 !important;
+    touch-action: manipulation;
+  }
+  
+  .rpt-dropdown-menu .dropdown-item {
+    min-height: 44px;
+    padding: 10px 14px;
+    touch-action: manipulation;
   }
 
   /* ============ DAILY SALES TABLE MOBILE ============ */
