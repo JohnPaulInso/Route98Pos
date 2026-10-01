@@ -1,5 +1,346 @@
 [
   {
+    "importId": "import_1790866646167",
+    "timestamp": "2026-10-01T14:57:19.831Z",
+    "source": "Loyverse AI prompt CSV export (Receipts, Receipts by Item, Inventory, Daily Sales)",
+    "summary": {
+      "inventoryRowsProcessed": 703,
+      "inventoryNewAdded": 55,
+      "inventoryStockUpdated": 274,
+      "inventoryPriceOrCostUpdated": 39,
+      "inventoryImagesPreserved": 646,
+      "salesSummariesProcessed": 1662,
+      "salesLineItemsProcessed": 3203,
+      "salesNewImported": 0,
+      "salesExistingDuplicatesPreserved": 1635,
+      "salesCancelledIgnored": 27,
+      "totalSalesInDatabase": 1635
+    },
+    "newSalesTransactions": [],
+    "inventoryHighlights": [
+      {
+        "name": "#StyroCups w/ stirrer",
+        "sku": "9800170",
+        "changes": {
+          "stock": {
+            "old": 71,
+            "new": 68
+          }
+        }
+      },
+      {
+        "name": "555 SARDINES 155G",
+        "sku": "10261",
+        "changes": {
+          "stock": {
+            "old": 9,
+            "new": 8
+          }
+        }
+      },
+      {
+        "name": "ABSOLUTE 6000ML",
+        "sku": "10277",
+        "changes": {
+          "stock": {
+            "old": 2,
+            "new": 1
+          }
+        }
+      },
+      {
+        "name": "AJINOMOTO SEASONING",
+        "sku": "10045",
+        "changes": {
+          "stock": {
+            "old": 444,
+            "new": 440
+          }
+        }
+      },
+      {
+        "name": "ALASKA CONDENSADA 300ML",
+        "sku": "10471",
+        "changes": {
+          "stock": {
+            "old": 3,
+            "new": 2
+          }
+        }
+      },
+      {
+        "name": "ARIEL TWIN JUMBO POWDER SUNRISE FRESH 66G",
+        "sku": "98000003",
+        "changes": {
+          "stock": {
+            "old": 59,
+            "new": 54
+          }
+        }
+      },
+      {
+        "name": "BEAR BRAND SWAK",
+        "sku": "10169",
+        "changes": {
+          "stock": {
+            "old": 15,
+            "new": 14
+          }
+        }
+      },
+      {
+        "name": "BLACK CHILI BBQ 7G",
+        "sku": "10180",
+        "changes": {
+          "stock": {
+            "old": 5,
+            "new": 35
+          }
+        }
+      },
+      {
+        "name": "BLACK CHILI CORN CHIPS BBQ",
+        "sku": "10187",
+        "changes": {
+          "stock": {
+            "old": 4,
+            "new": 1
+          }
+        }
+      },
+      {
+        "name": "BLUEBERRIES/PLANET (3/5)",
+        "sku": "10533",
+        "isNew": true,
+        "stock": 120,
+        "price": 5,
+        "cost": 2.45
+      },
+      {
+        "name": "C2 GREEN TEA APPLE 1L",
+        "sku": "98000054",
+        "changes": {
+          "stock": {
+            "old": 0,
+            "new": 33
+          },
+          "price": {
+            "old": 57.75,
+            "new": 58
+          }
+        }
+      },
+      {
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "sku": "98000051",
+        "changes": {
+          "stock": {
+            "old": 13,
+            "new": -5
+          },
+          "price": {
+            "old": 28.75,
+            "new": 29
+          }
+        }
+      },
+      {
+        "name": "C2 GREEN TEA LEMON 1L",
+        "sku": "980000055",
+        "changes": {
+          "stock": {
+            "old": 8,
+            "new": 7
+          },
+          "price": {
+            "old": 57.75,
+            "new": 58
+          }
+        }
+      },
+      {
+        "name": "C2 GREEN TEA LEMON 335ML",
+        "sku": "98000052",
+        "changes": {
+          "stock": {
+            "old": 13,
+            "new": 36
+          },
+          "price": {
+            "old": 28.75,
+            "new": 29
+          }
+        }
+      },
+      {
+        "name": "C2 GREEN TEA LEMON 335ML",
+        "sku": "10534",
+        "changes": {
+          "stock": {
+            "old": 13,
+            "new": 24
+          },
+          "price": {
+            "old": 28.75,
+            "new": 34
+          },
+          "cost": {
+            "old": 22.09,
+            "new": 26.65
+          },
+          "barcode": {
+            "old": "4800016052057",
+            "new": "4800016052132"
+          }
+        }
+      },
+      {
+        "name": "C2 SOLO APPLE 230ML",
+        "sku": "10129",
+        "changes": {
+          "stock": {
+            "old": 22,
+            "new": 41
+          }
+        }
+      },
+      {
+        "name": "C2 SOLO LEMON 230ML",
+        "sku": "98000053",
+        "changes": {
+          "stock": {
+            "old": 12,
+            "new": 9
+          }
+        }
+      },
+      {
+        "name": "CAMEL PREMIUM TABACCOS STICK",
+        "sku": "98000114",
+        "changes": {
+          "stock": {
+            "old": 14,
+            "new": 6
+          }
+        }
+      },
+      {
+        "name": "CDO HOMESTYLE CORNED BEEF 150G",
+        "sku": "10479",
+        "changes": {
+          "stock": {
+            "old": 6,
+            "new": 4
+          }
+        }
+      },
+      {
+        "name": "CHEEZ IT",
+        "sku": "10138",
+        "changes": {
+          "stock": {
+            "old": 16,
+            "new": 14
+          }
+        }
+      },
+      {
+        "name": "CHICK BOY ONION & GARLIC 30G",
+        "sku": "10198",
+        "changes": {
+          "stock": {
+            "old": 45,
+            "new": 44
+          }
+        }
+      },
+      {
+        "name": "CHICK BOY TEXAS BBQ 30G",
+        "sku": "10197",
+        "changes": {
+          "stock": {
+            "old": 43,
+            "new": 41
+          }
+        }
+      },
+      {
+        "name": "CHIPPY BBQ 108G",
+        "sku": "10217",
+        "changes": {
+          "stock": {
+            "old": 7,
+            "new": 4
+          }
+        }
+      },
+      {
+        "name": "CHIPPY BBQ 25G",
+        "sku": "10143",
+        "changes": {
+          "stock": {
+            "old": 20,
+            "new": 17
+          }
+        }
+      },
+      {
+        "name": "CHIPPY CHILI & CHEESE 108G",
+        "sku": "98000065",
+        "changes": {
+          "stock": {
+            "old": 8,
+            "new": 6
+          }
+        }
+      },
+      {
+        "name": "CHIPPY CHILI CHEESE 25G",
+        "sku": "10144",
+        "changes": {
+          "stock": {
+            "old": 22,
+            "new": 20
+          }
+        }
+      },
+      {
+        "name": "CHIZ CURLS 18G",
+        "sku": "10266",
+        "changes": {
+          "stock": {
+            "old": 1,
+            "new": 3
+          }
+        }
+      },
+      {
+        "name": "CHOCOMUCHO COKIES & CREAM",
+        "sku": "98000148",
+        "isNew": true,
+        "stock": 9,
+        "price": 15,
+        "cost": 9.4
+      },
+      {
+        "name": "CHOCOMUCHO RED",
+        "sku": "98000149",
+        "isNew": true,
+        "stock": 9,
+        "price": 15,
+        "cost": 9.4
+      },
+      {
+        "name": "CHOCOMUCHO WHITE CARAMEL",
+        "sku": "98000147",
+        "isNew": true,
+        "stock": 8,
+        "price": 15,
+        "cost": 9.4
+      }
+    ]
+  },
+  {
     "importId": "import_1790266240358",
     "timestamp": "2026-09-24T16:10:40.358Z",
     "source": "Loyverse AI prompt CSV export (Receipts, Receipts by Item, Inventory, Daily Sales)",

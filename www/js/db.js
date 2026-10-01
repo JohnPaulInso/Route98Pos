@@ -20,20 +20,33 @@ const DB = (() => {
     shiftLogs: NS+"shiftLogs", syncBaseline: NS+"syncBaseline"
   };
 
+  const memCache = new Map();
+  let cachedProcessedSales = null;
+  let cachedProducts = null;
+  let cachedCategories = null;
+  let isSyncRestoring = false;
+
   function read(key, fallback = null){
+    if(memCache.has(key)) return memCache.get(key);
     try{
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
+      const val = raw ? JSON.parse(raw) : fallback;
+      memCache.set(key, val);
+      return val;
     }catch(e){ console.warn("DB read failed", key, e); return fallback; }
   }
-  // (2026-07-13) Safe localStorage write with try/catch; was uncaught throw
-  function write(key, value){
+  // (2026-07-13) Cache in-memory & flag silent sync writes; was uncached write
+  function write(key, value, silent = false){
+    memCache.set(key, value);
+    if(key === KEYS.sales) cachedProcessedSales = null;
+    if(key === KEYS.products) cachedProducts = null;
+    if(key === KEYS.categories) cachedCategories = null;
     try{
       localStorage.setItem(key, JSON.stringify(value));
     }catch(e){
       console.warn("DB write failed for key:", key, e);
     }
-    document.dispatchEvent(new CustomEvent("mm:dirty", { detail:{ key } }));
+    document.dispatchEvent(new CustomEvent("mm:dirty", { detail:{ key, silent: silent || isSyncRestoring } }));
     return value;
   }
 
@@ -168,14 +181,26 @@ const DB = (() => {
     const seedCatalog = (typeof CATALOG_SEED !== "undefined" && CATALOG_SEED.products) ? CATALOG_SEED : null;
     // (2026-07-13) Restore seedSales variable in DB init; was accidentally removed
     const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
-    // (2026-09-25) Sync Loyverse import v18 Sept 21-24; was v17
-    const syncFlagKey = NS + "loyverse_sync_20260925_v18";
+    // (2026-07-13) Sync Loyverse merge v19; was v18
+    const syncFlagKey = NS + "loyverse_sync_20261001_v19";
 
     if(!localStorage.getItem(syncFlagKey)){
       if(seedCatalog){
-        write(KEYS.products, seedCatalog.products);
+        const curProds = read(KEYS.products) || [];
+        const pMap = new Map();
+        curProds.forEach(p => { if(p && p.id) pMap.set(p.id, p); });
+        seedCatalog.products.forEach(p => {
+          if(pMap.has(p.id)){
+            const ex = pMap.get(p.id);
+            pMap.set(p.id, { ...ex, ...p, imageUrl: p.imageUrl || ex.imageUrl });
+          } else {
+            pMap.set(p.id, p);
+          }
+        });
+        write(KEYS.products, Array.from(pMap.values()));
         if(seedCatalog.categories && seedCatalog.categories.length){
-          write(KEYS.categories, seedCatalog.categories);
+          const curCats = new Set([...(read(KEYS.categories) || []), ...seedCatalog.categories]);
+          write(KEYS.categories, Array.from(curCats));
         }
       }
       const existingSales = read(KEYS.sales) || [];
@@ -189,7 +214,7 @@ const DB = (() => {
         if(k){
           const existing = sMap.get(k);
           if(existing){
-            sMap.set(k, { ...existing, ...s, id: s.id || existing.id });
+            sMap.set(k, { ...existing, ...s, items: (s.items && s.items.length) ? s.items : existing.items, id: s.id || existing.id });
           } else {
             sMap.set(k, s);
           }
@@ -325,9 +350,12 @@ const DB = (() => {
     return Array.from(new Set(Array.from(map.values())));
   }
 
-  // ---------- generic getters/setters ----------
-  const getProducts   = () => read(KEYS.products, []);
-  const setProducts   = (v) => write(KEYS.products, dedupeProductList(v));
+  // (2026-07-13) Cache getProducts and getCategories in-memory; was parsed per read
+  const getProducts   = () => {
+    if(!cachedProducts) cachedProducts = read(KEYS.products, []);
+    return cachedProducts;
+  };
+  const setProducts   = (v) => { cachedProducts = null; return write(KEYS.products, dedupeProductList(v)); };
   function deduplicateProducts(){
     const current = getProducts();
     const deduped = dedupeProductList(current);
@@ -345,8 +373,11 @@ const DB = (() => {
     });
     return [...set];
   };
-  const getCategories = () => dedupeCats(read(KEYS.categories, []));
-  const setCategories = (v) => write(KEYS.categories, dedupeCats(v));
+  const getCategories = () => {
+    if(!cachedCategories) cachedCategories = dedupeCats(read(KEYS.categories, []));
+    return cachedCategories;
+  };
+  const setCategories = (v) => { cachedCategories = null; return write(KEYS.categories, dedupeCats(v)); };
   // (2026-07-13) Auto-deduplicate sales by receipt number and id; was raw array
   function dedupeSalesList(list){
     if(!Array.isArray(list) || list.length <= 1) return list || [];
@@ -363,8 +394,9 @@ const DB = (() => {
     });
     return Array.from(map.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   }
-  // (2026-07-13) Retain active sales & purge from deletedIds; was suppressing sales
+  // (2026-07-13) Memoize getSales output to eliminate lag; was parsing 1.8MB per call
   const getSales = () => {
+    if(cachedProcessedSales) return cachedProcessedSales;
     const rawSales = read(KEYS.sales, []);
     const allSales = dedupeSalesList(rawSales);
     const deletedIds = getDeletedSaleIds();
@@ -381,8 +413,8 @@ const DB = (() => {
         cleaned = true;
       }
     });
-    if(cleaned) write(KEYS.deletedSaleIds, Array.from(deletedIds));
-    return allSales.filter(s => {
+    if(cleaned) write(KEYS.deletedSaleIds, Array.from(deletedIds), true);
+    cachedProcessedSales = allSales.filter(s => {
       const sId = String(s.id || "").trim();
       const rId = String(s.receiptNo || "").trim();
       const clean = sId.replace(/^TXN-/i, "");
@@ -390,11 +422,13 @@ const DB = (() => {
              !deletedIds.has(rId) && !deletedIds.has(rId.toLowerCase()) &&
              !deletedIds.has(clean) && !deletedIds.has(clean.toLowerCase());
     });
+    return cachedProcessedSales;
   };
-  const setSales       = (v) => write(KEYS.sales, dedupeSalesList(v));
+  const setSales       = (v) => { cachedProcessedSales = null; return write(KEYS.sales, dedupeSalesList(v)); };
   // (2026-07-13) Store multi-format deleted keys to prevent reload resync; was single
   const getDeletedSaleIds = () => new Set(read(KEYS.deletedSaleIds, []));
   const unmarkSaleDeleted = (saleId) => {
+    cachedProcessedSales = null;
     const deleted = getDeletedSaleIds();
     if(saleId){
       const sId = String(saleId).trim();
@@ -405,9 +439,10 @@ const DB = (() => {
       deleted.delete(clean.toLowerCase());
       deleted.delete("TXN-" + clean);
     }
-    write(KEYS.deletedSaleIds, Array.from(deleted));
+    write(KEYS.deletedSaleIds, Array.from(deleted), true);
   };
   const markSaleDeleted = (saleId, receiptNo = null) => {
+    cachedProcessedSales = null;
     const deleted = getDeletedSaleIds();
     if(saleId){
       const sId = String(saleId).trim();
@@ -426,7 +461,7 @@ const DB = (() => {
       deleted.add(cleanR);
       deleted.add(cleanR.toLowerCase());
     }
-    write(KEYS.deletedSaleIds, Array.from(deleted));
+    write(KEYS.deletedSaleIds, Array.from(deleted), true);
   };
   const getFuelSales   = () => read(KEYS.fuelSales, []);
   const setFuelSales   = (v) => write(KEYS.fuelSales, v);
@@ -559,7 +594,8 @@ const DB = (() => {
     if(max === 0) max = sales.length + fuelSales.length;
     return `${prefix}-${String(max + 1).padStart(4, "0")}`;
   }
-  const getVoidLogs    = () => read(KEYS.voidLogs, []);
+  // (2026-07-13) Sort void logs descending; was unsorted array
+  const getVoidLogs    = () => read(KEYS.voidLogs, []).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const setVoidLogs    = (v) => write(KEYS.voidLogs, v);
   function addVoidLog(entry){
     const logs = getVoidLogs();
@@ -983,9 +1019,11 @@ const DB = (() => {
       exportedAt: Date.now(), version:3
     };
   }
-  // (2026-07-13) Safely merge snapshot sales without wiping local; was setSales
+  // (2026-07-13) Set isSyncRestoring during restore to stop loop; was unflagged
   function restoreSnapshot(snap){
     if(!snap) return;
+    isSyncRestoring = true;
+    try{
     if(snap.products && snap.products.length){
       // (2026-07-13) Preserve local offline stock in restore; was overwrite
       const localProds = getProducts();
@@ -1037,7 +1075,14 @@ const DB = (() => {
     if(snap.restockLogs) setRestockLogs(snap.restockLogs);
     if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
     if(snap.backups) setBackups(snap.backups);
-    if(snap.voidLogs) setVoidLogs(snap.voidLogs);
+    // (2026-07-13) Safely merge voidLogs; was overwriting array
+    if(snap.voidLogs && Array.isArray(snap.voidLogs)){
+      const localVoids = getVoidLogs();
+      const vMap = new Map();
+      localVoids.forEach(v => { if(v && v.id) vMap.set(String(v.id), v); });
+      snap.voidLogs.forEach(v => { if(v && v.id && !vMap.has(String(v.id))) vMap.set(String(v.id), v); });
+      setVoidLogs(Array.from(vMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)));
+    }
     // (2026-07-13) Safely merge shift and shiftLogs without wipe; was overwrite
     if(snap.shift){
       const curShift = read(KEYS.shift, null);
@@ -1054,8 +1099,15 @@ const DB = (() => {
     }
     // (2026-07-13) Restore dayBalances from snapshot; was omitted
     if(snap.dayBalances) setDayBalances(snap.dayBalances);
+    } finally {
+      isSyncRestoring = false;
+    }
   }
   function wipeAll(){
+    memCache.clear();
+    cachedProcessedSales = null;
+    cachedProducts = null;
+    cachedCategories = null;
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
     init();
   }

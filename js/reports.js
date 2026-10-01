@@ -511,6 +511,7 @@ const Reports = (() => {
             sales[idx].alteredAt = Date.now();
             sales[idx].alteredBy = Auth.currentUser()?.name || "Admin";
             DB.setSales(sales);
+            if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
           }
           Utils.toast("Transaction updated & logged to Void Audit.", "success");
           Modal.close();
@@ -655,6 +656,7 @@ const Reports = (() => {
         }));
         DB.markSaleDeleted(sale.id, sale.receiptNo);
         if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(sale.id);
+        if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
         Utils.toast("Sale record deleted & logged to Void Audit.", "success");
         render();
       },
@@ -668,9 +670,18 @@ const Reports = (() => {
   function batchDeleteSales(saleIds){
     if(deleteConfirmOpen) return;
     if(!saleIds || !saleIds.length) return;
-    const idSet = new Set(saleIds);
+    // (2026-07-13) Fix batch receipt matching & direct Firestore sync; was partial
+    const idSet = new Set(saleIds.flatMap(id => [String(id), Number(id)].filter(v => v !== "" && (!isNaN(v) || typeof v === "string"))));
     const allSales = DB.getSales();
-    const toDelete = allSales.filter(x => idSet.has(x.id));
+    const toDelete = allSales.filter(x => {
+      const sid = String(x.id || "");
+      const snum = Number(x.id);
+      const rnum = Number(x.receiptNo);
+      const cleanId = sid.replace(/^TXN-/i, "");
+      const rId = String(x.receiptNo || "");
+      const cleanRc = rId.replace(/^TXN-/i, "");
+      return idSet.has(x.id) || idSet.has(sid) || (!isNaN(snum) && idSet.has(snum)) || (!isNaN(rnum) && idSet.has(rnum)) || idSet.has(cleanId) || idSet.has(rId) || idSet.has(cleanRc);
+    });
     if(!toDelete.length) return;
 
     const executeBatch = () => {
@@ -718,12 +729,31 @@ const Reports = (() => {
           });
           DB.setProducts(products);
           voidLogsPage = 1;
-          DB.setSales(allSales.filter(x => !idSet.has(x.id)));
+          const deleteKeySet = new Set();
+          toDelete.forEach(s => {
+            if(s.id != null){ deleteKeySet.add(String(s.id)); deleteKeySet.add(s.id); }
+            if(s.receiptNo != null){ deleteKeySet.add(String(s.receiptNo)); deleteKeySet.add(s.receiptNo); }
+            const cId = String(s.id || "").replace(/^TXN-/i, "");
+            const cRc = String(s.receiptNo || "").replace(/^TXN-/i, "");
+            if(cId) deleteKeySet.add(cId);
+            if(cRc) deleteKeySet.add(cRc);
+          });
+          DB.setSales(allSales.filter(x => {
+            const sid = String(x.id || "");
+            const snum = Number(x.id);
+            const rId = String(x.receiptNo || "");
+            const cId = sid.replace(/^TXN-/i, "");
+            const cRc = rId.replace(/^TXN-/i, "");
+            return !deleteKeySet.has(x.id) && !deleteKeySet.has(sid) && (!isNaN(snum) ? !deleteKeySet.has(snum) : true) &&
+                   !deleteKeySet.has(x.receiptNo) && !deleteKeySet.has(rId) && !deleteKeySet.has(cId) && !deleteKeySet.has(cRc);
+          }));
           toDelete.forEach(s => {
             selectedReceiptIds.delete(s.id);
+            selectedReceiptIds.delete(String(s.id));
             DB.markSaleDeleted(s.id, s.receiptNo);
             if(typeof Sync !== "undefined" && Sync.deleteSaleDoc) Sync.deleteSaleDoc(s.id);
           });
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
           Utils.toast(`${toDelete.length} receipt(s) deleted & stock restored.`, "success");
           render();
         },
@@ -2043,15 +2073,13 @@ const Reports = (() => {
           <td class="receipt-col-total mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
           <td class="desktop-only receipt-col-method" style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
           <td class="desktop-only receipt-col-cashier" style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier || "Cashier"}</td>
-          <!-- (2026-07-13) Show all action buttons; was admin-gated -->
+          <!-- (2026-07-13) Larger tinted action buttons on PC; was small ghost -->
           <td class="receipt-col-actions" style="text-align:right;">
-            <div class="receipt-actions-cluster" style="display:inline-flex;gap:4px;align-items:center;">
-              <!-- (2026-07-13) Hide view button on desktop receipts; was visible button -->
-              <button class="btn btn-xs btn-outline mobile-only" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:12})}</button>
-              <button class="btn btn-xs btn-ghost desktop-only" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:12})}</button>
-              <button class="btn btn-xs btn-ghost desktop-only" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:12})}</button>
-              <!-- (2026-07-13) Show delete button on mobile receipts table; was desktop-only -->
-              <button class="btn btn-xs btn-ghost text-danger" data-delete-sale="${s.id}" title="Delete Sale">${Icons.get("trash",{size:12})}</button>
+            <div class="receipt-actions-cluster" style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end;">
+              <button class="btn btn-xs btn-outline mobile-only" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:13})}</button>
+              <button class="btn btn-sm desktop-only receipt-btn-edit" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:15})}</button>
+              <button class="btn btn-sm desktop-only receipt-btn-reprint" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:15})}</button>
+              <button class="btn btn-sm receipt-btn-delete" data-delete-sale="${s.id}" title="Delete Sale">${Icons.get("trash",{size:15})}</button>
             </div>
           </td>
         </tr>`;

@@ -61,17 +61,37 @@ const RealtimeSync = (() => {
         if (localShift && localShift.status === 'open') {
           realtimeMod.set(shiftRef, {
             ...localShift,
+            openedAt: localShift.openedAt || Date.now(),
             updatedAt: Date.now(),
-            deviceId: getDeviceId()
+            deviceId: getDeviceId(),
+            cashier: localShift.cashier,
+            openingCash: localShift.openingCash || 0,
+            cashIn: localShift.cashIn || 0,
+            cashOut: localShift.cashOut || 0,
+            adjustments: localShift.adjustments || []
           });
         }
         return;
       }
       
-      // Update local with cloud data
+      // Update local with cloud data - preserve all timing data
       if (!localShift || cloudShift.updatedAt > (localShift.updatedAt || 0)) {
-        DB.setShift(cloudShift);
-        if (callback) callback(cloudShift);
+        const fullShiftData = {
+          ...cloudShift,
+          openedAt: cloudShift.openedAt,
+          updatedAt: cloudShift.updatedAt,
+          status: cloudShift.status,
+          cashier: cloudShift.cashier,
+          openingCash: cloudShift.openingCash || 0,
+          cashIn: cloudShift.cashIn || 0,
+          cashOut: cloudShift.cashOut || 0,
+          adjustments: cloudShift.adjustments || []
+        };
+        
+        DB.setShift(fullShiftData);
+        if (callback) callback(fullShiftData);
+        
+        console.log('[RealtimeSync] Shift synced from cloud:', fullShiftData);
         
         // Show notification if changed by another device
         const deviceId = getDeviceId();
@@ -85,6 +105,9 @@ const RealtimeSync = (() => {
         
         // Refresh UI
         if (typeof App !== 'undefined' && App.paintTopbar) App.paintTopbar();
+        if (typeof Shift !== 'undefined' && Shift.render && App.currentView === 'shift') {
+          Shift.render();
+        }
       }
     });
     
@@ -103,6 +126,21 @@ const RealtimeSync = (() => {
     const shiftRef = realtimeMod.ref(realtimeDB, 'shift/current');
     
     try {
+      // Ensure timestamp is preserved
+      const timestampedShift = {
+        ...shiftData,
+        status: 'open',
+        openedAt: shiftData.openedAt || Date.now(),
+        updatedAt: Date.now(),
+        deviceId: getDeviceId(),
+        openedBy: Auth.currentUser()?.name || 'Unknown',
+        cashier: shiftData.cashier,
+        openingCash: shiftData.openingCash || 0,
+        cashIn: shiftData.cashIn || 0,
+        cashOut: shiftData.cashOut || 0,
+        adjustments: shiftData.adjustments || []
+      };
+      
       // Use transaction to prevent race conditions
       await realtimeMod.runTransaction(shiftRef, (currentShift) => {
         if (currentShift && currentShift.status === 'open') {
@@ -110,18 +148,13 @@ const RealtimeSync = (() => {
           return undefined;
         }
         
-        // Open new shift
-        return {
-          ...shiftData,
-          status: 'open',
-          updatedAt: Date.now(),
-          deviceId: getDeviceId(),
-          openedBy: Auth.currentUser()?.name || 'Unknown'
-        };
+        // Open new shift with preserved timestamp
+        return timestampedShift;
       });
       
-      // Also update local
-      DB.setShift({ ...shiftData, status: 'open', updatedAt: Date.now() });
+      // Also update local with same timestamp
+      DB.setShift(timestampedShift);
+      console.log('[RealtimeSync] Shift opened and saved with timestamp:', timestampedShift.openedAt);
       return true;
     } catch (error) {
       console.error("Failed to open shift:", error);

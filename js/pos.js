@@ -200,6 +200,13 @@ const POS = (() => {
     const product = DB.findByBarcode(clean);
     if(!product){
       Utils.Sound.error();
+      // (2026-07-13) Disallow adding products on scan for cashier; was confirm modal
+      const user = Auth.currentUser ? Auth.currentUser() : null;
+      if(user?.role !== "admin"){
+        Utils.toast(`No product found for barcode "${code}".`, "warn");
+        renderCatalog();
+        return;
+      }
       Modal.confirm({
         title: "Product Not Found",
         message: `No product found for barcode "${code}". Would you like to add a new product with this barcode?`,
@@ -1150,8 +1157,9 @@ const POS = (() => {
       </div>`;
     }).join("");
 
-    // (2026-09-24) Show Add New Product card when search finds nothing; was empty msg only
-    const addNewCardHtml = !items.length && searchTerm.trim() ? `
+    // (2026-07-13) Show Add Product card only for admin when search empty; was all users
+    const userRole = Auth.currentUser ? Auth.currentUser()?.role : "cashier";
+    const addNewCardHtml = (!items.length && searchTerm.trim() && userRole === "admin") ? `
       <div class="product-card add-new-product-card" id="btn-grid-add-new-product" role="button" style="border:2px dashed var(--brand);background:var(--brand-tint);">
         <div class="thumb" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
           <div class="custom-card-icon" style="background:var(--brand-tint);color:var(--brand-deep);">
@@ -1247,9 +1255,14 @@ const POS = (() => {
         }
         return;
       }
-      // (2026-09-24) Add New Product card click — opens inventory form; was missing
+      // (2026-07-13) Restrict add new product card click to admin; was unverified
       const addNewBtn = e.target.closest("#btn-grid-add-new-product");
       if(addNewBtn){
+        const user = Auth.currentUser ? Auth.currentUser() : null;
+        if(user?.role !== "admin"){
+          Utils.toast("Cashiers cannot add products.", "warn");
+          return;
+        }
         const prefill = searchTerm.trim() || "";
         if(typeof Inventory !== "undefined" && Inventory.openAddProductModal){
           Inventory.openAddProductModal(prefill);
@@ -1839,6 +1852,14 @@ const POS = (() => {
               }
             } else {
               Utils.Sound.error();
+              // (2026-07-13) Disallow adding products on search for cashier; was confirm modal
+              const user = Auth.currentUser ? Auth.currentUser() : null;
+              if(user?.role !== "admin"){
+                Utils.toast(`No product found for "${clean}".`, "warn");
+                search.value = "";
+                onSearchChange("");
+                return;
+              }
               Modal.confirm({
                 title: "Product Not Found",
                 message: `No product found for "${clean}". Would you like to add a new product?`,

@@ -335,17 +335,18 @@ table.data tr.clickable-row:active{ background:var(--brand-tint); }
 table.data tr.out-of-stock td{ background:var(--danger-tint); }
 table.data tr.low-stock td{ background:var(--warning-tint); }
 
-/* (2026-07-13) Wrap hover in media query & add active states; was bare hover */
+/* (2026-07-13) Fix white hover effect with brand tint; was paper-dim */
 @media (hover: hover){
-  .nav-btn:hover{ background:var(--paper-dim); color:var(--ink); }
+  .nav-btn:hover{ background:var(--brand-tint); color:var(--brand-deep); }
   .icon-btn:hover{ background:var(--brand-tint); color:var(--brand-deep); border-color:var(--brand-bright); }
   .user-chip:hover{ border-color:var(--brand-bright); box-shadow:var(--shadow-sm); }
   .btn:hover{ box-shadow:var(--shadow-sm); }
+  .btn:not(.btn-primary):not(.btn-danger):not(.btn-amber):hover{ background:var(--brand-tint); color:var(--brand-deep); border-color:var(--brand-bright); }
   .btn-primary:hover{ background:linear-gradient(135deg, var(--brand), var(--brand-deep)); box-shadow:0 10px 24px rgba(47,66,216,.35); }
-  .btn-ghost:hover{ background:var(--paper-dim); }
+  .btn-ghost:hover{ background:var(--brand-tint); color:var(--brand-deep); }
   .ui-select-btn:hover{ border-color:var(--brand); }
-  .ui-select-opt:hover{ background:var(--paper-dim); color:var(--ink); }
-  table.data tbody tr:hover{ background:var(--paper-dim); }
+  .ui-select-opt:hover{ background:var(--brand-tint); color:var(--brand-deep); }
+  table.data tbody tr:hover{ background:var(--brand-tint); }
   table.data tr.clickable-row:hover{ background:var(--brand-tint); }
   table.data tr.out-of-stock:hover td{ background:var(--danger-tint); filter:brightness(.97); }
   table.data tr.low-stock:hover td{ background:var(--warning-tint); filter:brightness(.97); }

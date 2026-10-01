@@ -977,11 +977,11 @@ const Inventory = (() => {
     });
   }
 
-  // (2026-07-13) Add 100/page pagination & category badges; was unpaginated text
+  // (2026-07-13) Set 50/page pagination for snappy DOM rendering; was 100/page
   let selectMode = false;
   let selectedIds = new Set();
   let currentPage = 1;
-  const PAGE_SIZE = 100;
+  const PAGE_SIZE = 50;
 
   function toggleSelectMode(enable){
     selectMode = typeof enable === "boolean" ? enable : !selectMode;
@@ -1622,9 +1622,15 @@ const Inventory = (() => {
         }
       }
     }
-    const totalStockPcs = allItems.reduce((s,p)=>s + (p.stock||0), 0);
-    const totalCostVal = allItems.reduce((s,p)=>s + (p.cost||0)*(p.stock||0), 0);
-    const totalPotentialRev = allItems.reduce((s,p)=>s + (p.price||0)*(p.stock||0), 0);
+    // (2026-07-13) Single-pass valuation calculation; was multiple reduces
+    let totalStockPcs = 0, totalCostVal = 0, totalPotentialRev = 0;
+    for(let i = 0; i < allItems.length; i++){
+      const p = allItems[i];
+      const s = p.stock || 0;
+      totalStockPcs += s;
+      totalCostVal += (p.cost || 0) * s;
+      totalPotentialRev += (p.price || 0) * s;
+    }
     const totalPotentialProfit = Math.max(0, totalPotentialRev - totalCostVal);
     const avgMargin = totalPotentialRev > 0 ? (totalPotentialProfit / totalPotentialRev) * 100 : 0;
 
@@ -1866,7 +1872,14 @@ const Inventory = (() => {
     }
   }
 
+  // (2026-07-13) Guard inventory view for admin only; was cashier accessible
   function render(){
+    const user = Auth.currentUser ? Auth.currentUser() : null;
+    if(!user || user.role !== "admin"){
+      Utils.toast("Cashiers are not allowed to view Inventory.", "warn");
+      if(typeof App !== "undefined" && App.navigate) App.navigate("pos");
+      return;
+    }
     selectMode = false;
     // (2026-09-16) Deduplicate stored products on render; was never cleaned up
     DB.deduplicateProducts();
@@ -2001,8 +2014,13 @@ const Inventory = (() => {
 
   function resetSearch(){ searchTerm = ""; }
 
-  // (2026-09-24) Wrapper to open add product modal with pre-filled barcode or name
+  // (2026-07-13) Restrict openAddProductModal to admin role; was unrestricted
   function openAddProductModal(prefillValue = null){
+    const user = Auth.currentUser ? Auth.currentUser() : null;
+    if(!user || user.role !== "admin"){
+      Utils.toast("Only admin can add products.", "warn");
+      return;
+    }
     // First switch to inventory view
     if(typeof App !== "undefined" && App.navigate){
       App.navigate("inventory");

@@ -4014,9 +4014,10 @@
     background: var(--brand-tint) !important;
   }
 
+  /* (2026-07-13) Style larger tinted action buttons on PC; was small monochrome */
   .receipt-table-wrap .receipt-actions-cluster {
     display: inline-flex !important;
-    gap: 4px !important;
+    gap: 6px !important;
     align-items: center !important;
     justify-content: flex-end !important;
     flex-wrap: nowrap !important;
@@ -4024,11 +4025,51 @@
   }
 
   .receipt-table-wrap .receipt-actions-cluster .btn {
-    padding: 5px 7px !important;
-    font-size: 0.7rem !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 7px !important;
     line-height: 1 !important;
+    flex-shrink: 0 !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+  }
+
+  .receipt-table-wrap .receipt-actions-cluster .receipt-btn-edit {
+    background: rgba(37, 99, 235, 0.12) !important;
+    color: #2563eb !important;
+    border: 1px solid rgba(37, 99, 235, 0.28) !important;
+  }
+  .receipt-table-wrap .receipt-actions-cluster .receipt-btn-edit:hover {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+  }
+
+  .receipt-table-wrap .receipt-actions-cluster .receipt-btn-reprint {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #059669 !important;
+    border: 1px solid rgba(16, 185, 129, 0.28) !important;
+  }
+  .receipt-table-wrap .receipt-actions-cluster .receipt-btn-reprint:hover {
+    background: #059669 !important;
+    color: #ffffff !important;
+    border-color: #059669 !important;
+  }
+
+  .receipt-table-wrap .receipt-actions-cluster .receipt-btn-delete {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #dc2626 !important;
+    border: 1px solid rgba(239, 68, 68, 0.28) !important;
+  }
+  .receipt-table-wrap .receipt-actions-cluster .receipt-btn-delete:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #dc2626 !important;
   }
 
   /* Ensure all action buttons are visible */
@@ -5317,8 +5358,8 @@ button:active,
   }
 }
 
-/* Hover effects for desktop */
-@media (min-width: 768px) {
+/* (2026-07-13) Tinted hover states for buttons & chips; was plain white / dim */
+@media (hover: hover), (min-width: 768px) {
   .btn:hover,
   button:hover,
   .chip:hover,
@@ -5326,18 +5367,52 @@ button:active,
   .product-card:hover,
   .inv-mobile-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
     transition: all 0.2s ease !important;
   }
-  
+
+  .btn:not(.btn-primary):not(.btn-danger):not(.btn-amber):hover,
+  .btn-ghost:hover,
+  .btn-outline:hover {
+    background: var(--brand-tint) !important;
+    color: var(--brand-deep) !important;
+    border-color: var(--brand-bright) !important;
+  }
+
   .btn-primary:hover {
-    background: var(--brand-deep) !important;
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep)) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(47, 66, 216, 0.40) !important;
   }
-  
-  .btn-ghost:hover {
-    background: var(--paper-dim) !important;
+
+  .btn-danger:hover {
+    background: var(--danger-deep) !important;
+    color: #ffffff !important;
+    border-color: var(--danger-deep) !important;
   }
-  
+
+  .chip:not(.active):hover {
+    background: var(--brand-tint) !important;
+    color: var(--brand-deep) !important;
+    border-color: var(--brand) !important;
+  }
+
+  .dropdown-item:hover,
+  .ui-select-opt:hover,
+  .rpt-menu-item:hover {
+    background: var(--brand-tint) !important;
+    color: var(--brand-deep) !important;
+  }
+
+  .nav-btn:hover:not(.active),
+  .rpt-nav-btn:hover:not(.active),
+  .rpt-date-btn:hover,
+  .rpt-dropdown-btn:hover {
+    background: var(--brand-tint) !important;
+    color: var(--brand-deep) !important;
+    border-color: var(--brand-bright) !important;
+  }
+
   table.data tbody tr:hover {
     background: var(--brand-tint) !important;
     transition: background 0.15s ease !important;
@@ -5447,4 +5522,14 @@ textarea {
   outline: 2px solid var(--brand) !important;
   outline-offset: 2px !important;
   transition: outline 0.2s ease !important;
+}
+
+/* (2026-07-13) Hide inactive pages & executive dashboard; was visible */
+[data-nav="dashboard"],
+[data-nav="venue"],
+[data-nav="restaurant"],
+[data-mob-nav="dashboard"],
+[data-mob-nav="venue"],
+[data-mob-nav="restaurant"] {
+  display: none !important;
 }

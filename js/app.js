@@ -3,13 +3,11 @@
 // ============================================================
 // (2026-07-13) Group sidebar by 4 businesses & overview; was single list
 const App = (() => {
+  // (2026-07-13) Hide inactive pages & dashboard on desktop/mobile; was visible
   const NAV_SECTIONS = [
     {
       group: "OVERVIEW",
       views: [
-        // (2026-07-13) Executive dashboard restricted to admin; was admin,cashier
-        { id:"dashboard", label:"Executive Dashboard", ic:"bar-chart", mod:Dashboard, roles:["admin"], color:"#312E81" },
-        // (2026-07-13) Place Shift under Overview below Dashboard; was in operations
         { id:"shift", label:"Shift", ic:"clock", mod:Shift, roles:["admin","cashier"], color:"#0284C7" }
       ]
     },
@@ -26,8 +24,8 @@ const App = (() => {
       views: [
         // (2026-07-13) Sort operations: Reports, Inventory, Expenses (OPEX); was unsorted
         { id:"reports", label:"Reports", ic:"clipboard", mod:Reports, roles:["admin","cashier"], color:"#4B5563" },
-        // (2026-07-13) Inventory now accessible to cashier; was admin only
-        { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin","cashier"], color:"#4B5563" },
+        // (2026-07-13) Restrict inventory view to admin; was admin,cashier
+        { id:"inventory", label:"Inventory", ic:"package", mod:Inventory, roles:["admin"], color:"#4B5563" },
         { id:"expenses", label:"Expenses (OPEX)", ic:"dollar-sign", mod:Expenses, roles:["admin"], color:"#DC2626" }
       ]
     },
@@ -36,21 +34,13 @@ const App = (() => {
       views: [
         { id:"settings", label:"Settings", ic:"gear", mod:Settings, roles:["admin"], color:"#4B5563" }
       ]
-    },
-    // (2026-07-13) Hide event venue from cashier; was roles:admin,cashier
-    {
-      group: "INACTIVE",
-      views: [
-        { id:"venue", label:"Event Venue", ic:"party", mod:Venue, roles:["admin"], color:"#7C3AED" },
-        { id:"restaurant", label:"Restaurant", ic:"utensils", mod:Restaurant, roles:["admin"], color:"#059669" }
-      ]
     }
   ];
   // (2026-07-13) Restore VIEWS definition from NAV_SECTIONS; was missing
   const VIEWS = NAV_SECTIONS.flatMap(s => s.views);
   // (2026-07-13) Add inventory to bottom nav; was pos/shift/reports/dash/gas only
   const BOTTOM_NAV_IDS = ["pos","inventory","shift","reports","gasoline"];
-  let currentView = "dashboard";
+  let currentView = "pos";
 
   function accessibleViews(){
     const role = Auth.currentUser()?.role || "cashier";
@@ -297,11 +287,11 @@ const App = (() => {
   function boot(){
     document.documentElement.dataset.theme = DB.getSettings().theme || "light";
     shell();
-    // (2026-07-13) Safe view resolution for non-admin accounts; was unassigned
+    // (2026-07-13) Safe view fallback excluding hidden views; was dashboard
     const views = accessibleViews();
     const remembered = DB.getSettings().lastView;
-    if(views.find(v => v.id === remembered)) currentView = remembered;
-    else currentView = views[0]?.id || "pos";
+    if(remembered && !["dashboard","venue","restaurant"].includes(remembered) && views.find(v => v.id === remembered)) currentView = remembered;
+    else currentView = views.find(v => v.id === "pos")?.id || views[0]?.id || "pos";
     navigate(currentView);
   }
 
@@ -403,21 +393,18 @@ document.addEventListener("wheel", (e) => {
     chips.classList.toggle("scrolled-end", isAtEnd);
   }
 
-  // (2026-07-13) Watch rpt-subnav-tabs for gradient fade; was chips only
+  const sharedResizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(entries => {
+    for(const entry of entries) updateGradientFade(entry.target);
+  }) : null;
+
+  // (2026-07-13) Reuse singleton ResizeObserver; was creating new instance per chip
   const observer = new MutationObserver(() => {
     document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
       if(chips.dataset.dragScrollInit) return;
       chips.dataset.dragScrollInit = "true";
-      
-      // Initial check
       updateGradientFade(chips);
-      
-      // Update on scroll
       chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
-      
-      // Update on resize
-      const resizeObserver = new ResizeObserver(() => updateGradientFade(chips));
-      resizeObserver.observe(chips);
+      sharedResizeObserver?.observe(chips);
     });
   });
 

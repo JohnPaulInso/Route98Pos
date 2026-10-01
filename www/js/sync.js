@@ -6,6 +6,7 @@ const Sync = (() => {
   let app = null, db = null, firestoreMod = null;
   let debounceTimer = null;
   let backupTimer = null;
+  let isSyncing = false;
 
   function pill(){ return document.getElementById("sync-pill"); }
 
@@ -126,7 +127,8 @@ const Sync = (() => {
     merged.shiftLogs = mergeArray3Way(base.shiftLogs, local.shiftLogs, remote.shiftLogs, "id", "openedAt");
     merged.fuelSales = mergeArray3Way(base.fuelSales, local.fuelSales, remote.fuelSales, "id", "ts");
     merged.expenses = mergeArray3Way(base.expenses, local.expenses, remote.expenses, "id", "ts");
-    merged.voidLogs = mergeArray3Way(base.voidLogs, local.voidLogs, remote.voidLogs, "id", "ts");
+    // (2026-07-13) Keep void logs sorted descending in merge; was unsorted
+    merged.voidLogs = mergeArray3Way(base.voidLogs, local.voidLogs, remote.voidLogs, "id", "ts").sort((a,b)=>(b.ts||0)-(a.ts||0));
     merged.users = mergeArray3Way(base.users, local.users, remote.users, "id", "id");
 
     const catSet = new Set([...(remote.categories || []), ...(local.categories || [])]);
@@ -147,9 +149,12 @@ const Sync = (() => {
     return merged;
   }
 
+  // (2026-07-13) Guard pushSnapshot with isSyncing flag; was unbounded recursion
   async function pushSnapshot(force = false){
     const meta = DB.getSyncMeta();
     if(meta.status === "quota") return;
+    if(isSyncing && !force) return;
+    isSyncing = true;
     try{
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
@@ -190,11 +195,16 @@ const Sync = (() => {
       } else {
         DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
       }
+    } finally {
+      isSyncing = false;
+      paintStatus();
     }
-    paintStatus();
   }
 
+  // (2026-07-13) Guard pullSnapshot with isSyncing flag; was unbounded recursion
   async function pullSnapshot(force = false){
+    if(isSyncing && !force) return;
+    isSyncing = true;
     try{
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
@@ -228,7 +238,8 @@ const Sync = (() => {
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
 
-      // (2026-07-13) Pull all cloud backups, voids & collections; was limited slices
+      // (2026-07-13) Pull subcollections only on first-time setup; was redundant on every pull
+      if(!snapDoc.exists()){
       try {
         const prodSnap = await mod.getDocs(mod.collection(database, "products"));
         if(!prodSnap.empty){
@@ -337,12 +348,15 @@ const Sync = (() => {
       } catch(e) {
         console.warn("Could not pull voidLogs collection:", e);
       }
+      }
     }catch(err){
       console.error("Firestore pull failed", err);
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"error" });
+    } finally {
+      isSyncing = false;
+      paintStatus();
+      App.rerenderCurrentView?.();
     }
-    paintStatus();
-    App.rerenderCurrentView?.();
   }
 
   // Automated 11:59 PM Daily Backup Exporter
@@ -458,21 +472,27 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      // (2026-07-13) 3-way merge on snapshot change without data loss; was skipped
+      // (2026-07-13) Skip self-echo and guard onSnapshot with isSyncing; was re-sync loop
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
         if(docSnap.metadata?.hasPendingWrites) return;
         if(docSnap.exists()){
           const remoteData = docSnap.data();
           const baseline = DB.getSyncBaseline();
-          const localSnap = DB.snapshot();
-          const merged = threeWayMerge(baseline, localSnap, remoteData);
-          DB.restoreSnapshot(merged);
-          DB.setSyncBaseline(merged);
-          DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-          paintStatus();
-          App.rerenderCurrentView?.();
-          if(typeof Shift !== "undefined" && Shift.render && App.currentView === "shift"){
-            Shift.render();
+          if(baseline && remoteData.exportedAt && baseline.exportedAt === remoteData.exportedAt) return;
+          isSyncing = true;
+          try {
+            const localSnap = DB.snapshot();
+            const merged = threeWayMerge(baseline, localSnap, remoteData);
+            DB.restoreSnapshot(merged);
+            DB.setSyncBaseline(merged);
+            DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
+            paintStatus();
+            App.rerenderCurrentView?.();
+            if(typeof Shift !== "undefined" && Shift.render && App.currentView === "shift"){
+              Shift.render();
+            }
+          } finally {
+            isSyncing = false;
           }
         }
       }, (err) => {
@@ -500,7 +520,7 @@ const Sync = (() => {
     }
   }
 
-  // (2026-07-13) Push void audit doc to Firestore voidLogs; was local-only
+  // (2026-07-13) Direct sync void doc to Firestore & snapshot; was isolated
   async function pushVoidDoc(voidItem){
     try {
       const settings = DB.getSettings();
@@ -508,6 +528,16 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       const docId = String(voidItem.id || Utils.uid("void"));
       await mod.setDoc(mod.doc(database, "voidLogs", docId), voidItem, { merge:true }).catch(()=>{});
+      const baseline = DB.getSyncBaseline();
+      if(baseline){
+        const baseVoids = baseline.voidLogs || [];
+        if(!baseVoids.some(v => v.id === voidItem.id)){
+          baseVoids.unshift(voidItem);
+          baseline.voidLogs = baseVoids.sort((a,b)=>(b.ts||0)-(a.ts||0));
+          DB.setSyncBaseline(baseline);
+        }
+      }
+      pushSnapshot(true).catch(()=>{});
     } catch(e){
       console.warn("Could not push void doc to Firestore:", e);
     }
@@ -530,9 +560,10 @@ const Sync = (() => {
   }
 
   function init(){
+    // (2026-07-13) Skip auto-sync during sync, silent writes, & internal keys; was infinite loop
     document.addEventListener("mm:dirty", (e) => {
-      // (2026-07-13) Skip auto-sync on internal sync keys; was reload spam
-      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.syncBaseline || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds) return;
+      if(isSyncing || e.detail?.silent) return;
+      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.syncBaseline || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds || e.detail?.key === DB.KEYS.shift) return;
       scheduleAutoSync();
     });
     // (2026-07-13) Pull cloud first then push offline updates; was push first
