@@ -31,14 +31,26 @@ const Settings = (() => {
   }
 
   // (2026-07-13) Manage staff accounts with add/edit/delete; was edit-only
+  let pinsVisible = false; // Track PIN visibility state
+  
   function renderStaffTable(){
     const wrap = document.getElementById("staff-table");
     const users = DB.getUsers();
-    wrap.innerHTML = `<div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
+    const isAdmin = Auth.isAdmin();
+    
+    wrap.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">${Icons.get("users",{size:16})} Staff Accounts</h3>
+        <button class="btn btn-sm btn-ghost" id="toggle-pin-visibility" style="gap:6px;${!isAdmin ? 'display:none;' : ''}">
+          ${pinsVisible ? Icons.get("eye-off",{size:14}) : Icons.get("eye",{size:14})}
+          <span>${pinsVisible ? 'Hide' : 'Show'} PINs</span>
+        </button>
+      </div>
+      <div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Role</th><th>PIN</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
       ${users.map(u => `<tr>
         <td><strong>${Utils.escapeHtml(u.name)}</strong></td>
         <td><span class="badge ${u.role==="admin"?"badge-amber":"badge-info"}">${u.role === "admin" ? "Admin" : "Cashier"}</span></td>
-        <td class="mono">••••</td>
+        <td class="mono" style="font-weight:700;font-size:1.1rem;letter-spacing:0.2em;color:${pinsVisible ? 'var(--brand)' : 'var(--ink-faint)'};">${isAdmin && pinsVisible ? u.pin : '••••'}</td>
         <td style="text-align:right;white-space:nowrap;">
           <button class="btn btn-sm btn-ghost" data-edit-user="${u.id}">${Icons.get("edit",{size:13})} Edit</button>
           ${users.length > 1 && !(u.role === "admin" && users.filter(x => x.role === "admin").length <= 1) ? `
@@ -50,6 +62,16 @@ const Settings = (() => {
     <div style="margin-top:10px;">
       <button class="btn btn-primary btn-sm" id="btn-add-staff-acct">${Icons.get("plus",{size:13})} Add Staff Account</button>
     </div>`;
+    
+    // Toggle PIN visibility
+    const toggleBtn = wrap.querySelector("#toggle-pin-visibility");
+    if(toggleBtn){
+      toggleBtn.onclick = () => {
+        pinsVisible = !pinsVisible;
+        renderStaffTable();
+      };
+    }
+    
     wrap.querySelectorAll("[data-edit-user]").forEach(b => b.onclick = () => editUser(b.dataset.editUser));
     wrap.querySelectorAll("[data-del-user]").forEach(b => b.onclick = () => {
       const u = DB.getUsers().find(x => x.id === b.dataset.delUser);
@@ -494,7 +516,7 @@ const Settings = (() => {
     }
     else if(tab === "staff"){
       wrap.innerHTML = `
-        <div class="card"><h3 style="margin-bottom:12px;">${Icons.get("users",{size:16})} Staff Accounts</h3><div id="staff-table"></div></div>
+        <div class="card"><div id="staff-table"></div></div>
         <div class="card" style="margin-top:14px;"><h3 style="margin-bottom:6px;">${Icons.get("receipt",{size:16})} POS Cashiers</h3><p class="text-sm text-faint" style="margin-top:0;margin-bottom:12px;">Cashiers selectable during checkout register sales.</p><div id="cashiers-list"></div></div>
       `;
       renderStaffTable();
