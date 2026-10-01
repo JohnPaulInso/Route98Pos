@@ -171,16 +171,26 @@ const Sync = (() => {
       DB.setSyncBaseline(finalSnap);
 
       const localSales = finalSnap.sales || [];
+      
+      // Smart sync: Include recent sales (last 500) + all manual sales + recent imported sales
+      const now = Date.now();
+      const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+      
       const manualSales = localSales.filter(s => !s.isImported && s.source !== "imported");
-      const recentSales = localSales.slice(0, 100);
+      const recentImported = localSales.filter(s => (s.isImported || s.source === "imported") && s.ts >= thirtyDaysAgo);
+      const recentAll = localSales.filter(s => s.ts >= thirtyDaysAgo);
+      
+      // Combine and dedupe by receipt number
       const sMap = new Map();
-      recentSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      recentAll.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       manualSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
-      const liveSyncSales = Array.from(sMap.values());
+      recentImported.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      
+      const syncSales = Array.from(sMap.values()).slice(0, 1000); // Limit to 1000 most relevant
 
       const cloudSnap = {
         ...finalSnap,
-        sales: liveSyncSales,
+        sales: syncSales,
         isPartialSalesSync: true,
         exportedAt: Date.now()
       };

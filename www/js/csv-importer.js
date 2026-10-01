@@ -165,11 +165,18 @@ const CSVImporter = (() => {
       // Final save
       DB.setSales(existingSales);
       
-      // Trigger sync
+      // Automatically sync to cloud after import
+      console.log('[CSV Import] Import complete. Triggering automatic cloud sync...');
+      
+      // Trigger Firestore sync in background
       if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
         setTimeout(() => {
-          Sync.pushSnapshot(true);
-        }, 1000);
+          Sync.pushSnapshot(true).then(() => {
+            console.log('[CSV Import] Cloud sync completed successfully');
+          }).catch(err => {
+            console.error('[CSV Import] Cloud sync failed:', err);
+          });
+        }, 2000); // Delay 2 seconds to let UI update first
       }
       
       return {
@@ -241,6 +248,9 @@ const CSVImporter = (() => {
       </div>
     `;
     
+    let receiptsData = null;
+    let itemsData = null;
+    
     const modal = Modal.open({
       title: `${Icons.get('upload', {size: 18})} Import Transactions from CSV`,
       body,
@@ -254,14 +264,11 @@ const CSVImporter = (() => {
           id: 'btn-start-import',
           disabled: true,
           onClick: async () => {
-            await startImport(modal);
+            await startImport(modal, receiptsData, itemsData);
           }
         }
       ]
     });
-    
-    let receiptsData = null;
-    let itemsData = null;
     
     // Handle file uploads
     const receiptsInput = modal.querySelector('#receipts-csv-file');
@@ -298,27 +305,25 @@ const CSVImporter = (() => {
           • Date range: ${receipts[receipts.length - 1]?.Date} to ${receipts[0]?.Date}
         `;
         
+        // Find and enable button
+        const backdrop = document.querySelector('.modal-backdrop');
+        const importBtn = backdrop?.querySelector('#btn-start-import') || document.querySelector('#btn-start-import');
+        
         if (importBtn) {
           importBtn.disabled = false;
-          importBtn.dataset.receipts = receiptsData;
-          importBtn.dataset.items = itemsData;
         }
       }
     }
     
-    async function startImport(modal) {
+    async function startImport(modal, receiptsCSV, itemsCSV) {
       const progressDiv = modal.querySelector('#import-progress');
       const resultsDiv = modal.querySelector('#import-results');
-      const importBtn = modal.querySelector('#btn-start-import');
+      const previewDiv = modal.querySelector('#import-preview');
       
       progressDiv.style.display = 'block';
-      previewDiv.style.display = 'none';
-      if (importBtn) importBtn.disabled = true;
+      if (previewDiv) previewDiv.style.display = 'none';
       
-      const result = await importReceipts(
-        importBtn.dataset.receipts,
-        importBtn.dataset.items
-      );
+      const result = await importReceipts(receiptsCSV, itemsCSV);
       
       progressDiv.style.display = 'none';
       resultsDiv.style.display = 'block';
@@ -348,9 +353,18 @@ const CSVImporter = (() => {
               </div>
               ` : ''}
             </div>
-            <p class="text-sm text-faint" style="text-align: center; margin: 0;">
+            <p class="text-sm text-faint" style="text-align: center; margin: 0 0 12px 0;">
               All transactions have been added to your sales history.
             </p>
+            <div style="background: var(--brand-tint); border: 1px solid var(--brand); border-radius: 6px; padding: 10px; margin-top: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                ${Icons.get('cloud-upload', {size: 16, style: 'color: var(--brand-deep);'})}
+                <strong style="color: var(--brand-deep); font-size: 0.9rem;">Cloud Sync in Progress</strong>
+              </div>
+              <p class="text-xs text-faint" style="margin: 0; line-height: 1.5;">
+                Recent imported transactions (last 30 days) are being automatically synced to the cloud. Other devices will see them shortly. Check the sync status in <strong>Settings → Data & Backups</strong>.
+              </p>
+            </div>
           </div>
         `;
         
