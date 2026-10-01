@@ -1290,8 +1290,11 @@ const Reports = (() => {
                   ${Icons.get("download",{size:14})} Export Sales (.csv)
                 </div>
                 ${Auth.isAdmin() ? `
+                  <div class="rpt-menu-item" id="btn-import-csv-transactions" style="cursor:pointer;gap:8px;display:flex;align-items:center;">
+                    ${Icons.get("upload",{size:14})} Import from CSV
+                  </div>
                   <label class="rpt-menu-item" style="cursor:pointer;margin:0;gap:8px;display:flex;align-items:center;">
-                    ${Icons.get("upload",{size:14})} Import Sales
+                    ${Icons.get("file-text",{size:14})} Import Sales (JSON)
                     <input type="file" id="file-sales-import" accept=".csv,.json" style="display:none;">
                   </label>
                 ` : ""}
@@ -4278,6 +4281,15 @@ const Reports = (() => {
       }
       document.getElementById("btn-export-sales-report")?.addEventListener("click", () => {
         ImportExport.exportSalesCSV(periodKey);
+      });
+      
+      // CSV Import button handler
+      document.getElementById("btn-import-csv-transactions")?.addEventListener("click", () => {
+        if (typeof CSVImporter !== 'undefined' && CSVImporter.openImportModal) {
+          CSVImporter.openImportModal();
+        } else {
+          Utils.toast('CSV Importer not loaded', 'error');
+        }
       });
       
       // (2026-07-13) Debounce receipt search & preserve input focus; was wiped per-char

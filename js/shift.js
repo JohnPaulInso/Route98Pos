@@ -123,22 +123,17 @@ const Shift = (() => {
     return `${mins}m`;
   }
 
-  // (2026-07-13) Allow everyone to open shift and admin selection; was cashiers only
+  // (2026-07-13) Auto-use logged-in user for shift; was dropdown selection
   function openStartShiftModal(){
-    const allUsers = DB.getUsers ? DB.getUsers() : [];
     const currentUser = Auth.currentUser()?.name || "Rosella";
-    const isAdmin = Auth.isAdmin ? Auth.isAdmin() : false;
-    // (2026-07-13) Default shift cashier to cashier roster; was defaulting admin
-    const cashiers = allUsers.filter(u => u.role !== "admin").map(u => u.name);
-    const admins = allUsers.filter(u => u.role === "admin").map(u => u.name);
-    let roster = [...cashiers, ...admins];
-    if(!roster.length) roster = ["Rosella", "Niño", "Owner/Admin"];
-    const savedCashier = localStorage.getItem("pos_cashier") || cashiers[0] || "Rosella";
-    const defaultDuty = isAdmin ? savedCashier : currentUser;
+    const currentUserRole = Auth.currentUser()?.role || "cashier";
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric" });
     const timeStr = now.toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" });
 
+    // Get initials for avatar
+    const initials = currentUser.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    
     const body = `
       <div style="padding:4px 0 10px;">
         <div class="card card-tight" style="margin-bottom:14px;background:var(--paper-dim);padding:12px 16px;">
@@ -148,18 +143,34 @@ const Shift = (() => {
           </div>
         </div>
 
-        <div class="field" style="margin-bottom:14px;">
-          <label style="font-weight:700;display:block;margin-bottom:6px;">Select ${isAdmin ? "Admin / Staff" : "Cashier"} on Duty</label>
-          <select class="input" id="shift-start-cashier" style="font-size:1rem;height:42px;width:100%;">
-            ${roster.map(c => `<option value="${Utils.escapeHtml(c)}" ${c.toLowerCase()===defaultDuty.toLowerCase()?"selected":""}>${Utils.escapeHtml(c)}</option>`).join("")}
-          </select>
+        <div style="margin-bottom:14px;">
+          <label style="font-weight:700;display:block;margin-bottom:8px;">Staff on Duty</label>
+          <div class="card" style="padding:14px 18px;background:linear-gradient(135deg, rgba(79,70,229,0.08), rgba(99,102,241,0.12));border:2px solid var(--brand);border-radius:12px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--brand);color:white;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;box-shadow:0 2px 8px rgba(79,70,229,0.3);">
+                ${initials}
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:1.15rem;font-weight:800;color:var(--ink);margin-bottom:2px;">${Utils.escapeHtml(currentUser)}</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="badge" style="background:var(--brand);color:white;font-size:0.7rem;padding:2px 8px;border-radius:6px;font-weight:700;">
+                    ${currentUserRole === 'admin' ? '👑 ADMIN' : '👤 CASHIER'}
+                  </span>
+                  <span style="font-size:0.75rem;color:var(--ink-faint);">Logged in via PIN</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-faint" style="margin-top:6px;margin-bottom:0;">
+            This shift will be assigned to ${Utils.escapeHtml(currentUser)}. To use a different account, log out and log in with the correct PIN.
+          </p>
         </div>
+        
         <div class="field" style="margin-bottom:14px;">
           <label style="font-weight:700;display:block;margin-bottom:6px;">Starting Cash in Drawer (Cash Register Float)</label>
-          <!-- (2026-07-13) Fix currency symbol overlap; was 32px padding-left -->
           <div style="position:relative;display:flex;align-items:center;">
             <span style="position:absolute;left:14px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);pointer-events:none;z-index:2;">₱</span>
-            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-start-cash" value="1000.00" placeholder="0.00" style="padding-left:44px !important;font-size:1.25rem;height:46px;width:100%;">
+            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-start-cash" value="1000.00" placeholder="0.00" autofocus style="padding-left:44px !important;font-size:1.25rem;height:46px;width:100%;">
           </div>
           <div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;">
             <span class="text-xs text-faint" style="font-weight:600;">Presets:</span>
@@ -178,19 +189,17 @@ const Shift = (() => {
       body,
       wide: false,
       preventBackdropClose: true,
-      // (2026-07-13) Disable btn on click to prevent double-submit; was always enabled
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
         { label: "Open Shift", cls: "btn-primary font-bold", onClick: (e) => {
           const btn = document.querySelector(".modal-foot [data-i='1']");
           if(btn){ btn.disabled = true; btn.style.opacity = "0.6"; }
-          const selCashier = document.getElementById("shift-start-cashier")?.value || currentUser;
           const openingCash = Number(document.getElementById("shift-start-cash")?.value) || 0;
           const shiftRecord = {
             id: Utils.uid("shift"),
             openedAt: Date.now(),
             openingCash,
-            cashier: selCashier,
+            cashier: currentUser,
             status: "open",
             cashIn: 0,
             cashOut: 0
@@ -203,14 +212,14 @@ const Shift = (() => {
           const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
           dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), startingBalance: openingCash };
           if(DB.setDayBalances) DB.setDayBalances(dayBalances);
-          localStorage.setItem("pos_cashier", selCashier);
-          Utils.toast(`Shift opened for ${selCashier} with ${Utils.money(openingCash)} float.`, "success");
+          localStorage.setItem("pos_cashier", currentUser);
+          Utils.toast(`Shift opened for ${currentUser} with ${Utils.money(openingCash)} float.`, "success");
           Utils.openCashDrawer();
           Modal.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
           
-          // (2026-07-13) Push opened shift to cloud snapshot; was RTDB-only
+          // Push opened shift to cloud snapshot
           if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
           RealtimeSync.openShift(shiftRecord).catch(err => {
             console.warn("Background sync failed:", err);
