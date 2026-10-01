@@ -2551,7 +2551,8 @@ const Reports = (() => {
     });
 
     const sortedAsc = Object.values(dayMap).sort((a, b) => a.dateTs - b.dateTs);
-    let runningBalance = (DB.getShift ? (DB.getShift().openingCash || 0) : 0);
+    const currentShift = DB.getShift ? DB.getShift() : null;
+    let runningBalance = (currentShift && currentShift.openingCash) ? currentShift.openingCash : 0;
     sortedAsc.forEach(row => {
       row.grossProfit = row.netSales - row.cogs;
       row.openingBalance = runningBalance;
@@ -3391,6 +3392,7 @@ const Reports = (() => {
     // (2026-07-13) Defer chart render after layout reflow; was synchronous 0x0
     requestAnimationFrame(() => {
       buildOverviewCharts(stats);
+      renderDailySalesTable(stats);
     });
     renderTopSellersTable(stats);
     const trendSel = document.getElementById("trend-period-select");
