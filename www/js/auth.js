@@ -170,61 +170,125 @@ const Auth = (() => {
     });
   }
 
-  // (2026-07-13) Direct self-service PIN change for Cashier and Admin. Prev: none
+  // (2026-07-13) Direct self-service PIN change for all users. Prev: role-based only
   function openChangePinModal(presetRole = pendingRole){
+    const allUsers = DB.getUsers ? DB.getUsers() : [];
+    const currentUser = Auth.currentUser();
+    const isAdmin = Auth.isAdmin();
+    
+    // Build user select options
+    const userOptions = allUsers.map(u => {
+      const isSelected = currentUser && u.id === currentUser.id;
+      const roleLabel = u.role === 'admin' ? '👑' : '👤';
+      return `<option value="${u.id}" ${isSelected ? 'selected' : ''}>${roleLabel} ${Utils.escapeHtml(u.name)}</option>`;
+    }).join('');
+    
     const body = `
-      <div class="field"><label>Account</label>
-        <select class="input" id="change-pin-role">
-          <option value="cashier" ${presetRole==="cashier"?"selected":""}>Cashier</option>
-          <option value="admin" ${presetRole==="admin"?"selected":""}>Owner / Admin</option>
+      <div class="field">
+        <label style="font-weight:700;display:block;margin-bottom:6px;">Select User Account</label>
+        <select class="input" id="change-pin-user-select" style="font-size:1rem;height:42px;">
+          ${userOptions}
         </select>
       </div>
-      <div class="field"><label>Current 4-digit PIN</label>
-        <input class="input" id="curr-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      
+      ${isAdmin ? `
+        <div class="card" id="admin-current-pin-display" style="padding:12px 16px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="text-sm text-faint" style="font-weight:700;">Current PIN for selected user:</span>
+            <strong class="mono" style="font-size:1.3rem;color:var(--brand);letter-spacing:0.3em;" id="display-current-pin">••••</strong>
+          </div>
+          <p class="text-xs text-faint" style="margin-top:4px;margin-bottom:0;">
+            ${Icons.get("shield-check",{size:12})} Admin privilege - You can see and reset PINs for all users
+          </p>
+        </div>
+      ` : `
+        <div class="field">
+          <label style="font-weight:700;display:block;margin-bottom:6px;">Current 4-digit PIN</label>
+          <input class="input" id="curr-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="font-size:1.1rem;height:42px;letter-spacing:0.3em;text-align:center;">
+        </div>
+      `}
+      
+      <div class="field">
+        <label style="font-weight:700;display:block;margin-bottom:6px;">New 4-digit PIN</label>
+        <input class="input" id="new-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="font-size:1.1rem;height:42px;letter-spacing:0.3em;text-align:center;">
       </div>
-      <div class="field"><label>New 4-digit PIN</label>
-        <input class="input" id="new-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      <div class="field">
+        <label style="font-weight:700;display:block;margin-bottom:6px;">Confirm New PIN</label>
+        <input class="input" id="confirm-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="font-size:1.1rem;height:42px;letter-spacing:0.3em;text-align:center;">
       </div>
-      <div class="field"><label>Confirm New PIN</label>
-        <input class="input" id="confirm-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
-      </div>`;
+    `;
 
-    Modal.open({
+    const modal = Modal.open({
       title: `${Icons.get("key",{size:17})} Change Account PIN`,
       body,
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
         {
           label: "Update PIN",
-          cls: "btn-primary",
+          cls: "btn-primary font-bold",
           onClick: () => {
-            const role = document.getElementById("change-pin-role").value;
-            const currPin = document.getElementById("curr-pin-input").value.trim();
+            const userId = document.getElementById("change-pin-user-select").value;
+            const currPinInput = document.getElementById("curr-pin-input");
+            const currPin = currPinInput ? currPinInput.value.trim() : null;
             const newPin = document.getElementById("new-pin-input").value.trim();
             const confirmPin = document.getElementById("confirm-pin-input").value.trim();
 
-            const user = DB.getUsers().find(u => u.role === role);
-            if(!user || user.pin !== currPin){
+            const users = DB.getUsers();
+            const user = users.find(u => u.id === userId);
+            
+            if(!user){
+              Utils.toast("User not found.", "error");
+              return;
+            }
+            
+            // If not admin, verify current PIN
+            if(!isAdmin && user.pin !== currPin){
               Utils.toast("Current PIN is incorrect.", "error");
               return;
             }
+            
             if(!/^\d{4}$/.test(newPin)){
               Utils.toast("New PIN must be exactly 4 digits.", "error");
               return;
             }
+            
             if(newPin !== confirmPin){
               Utils.toast("New PIN confirmation does not match.", "error");
               return;
             }
 
-            const users = DB.getUsers().map(u => u.id === user.id ? { ...u, pin: newPin } : u);
-            DB.setUsers(users);
-            Utils.toast(`${user.name} PIN updated successfully.`, "success");
+            // Update the user's PIN
+            const updatedUsers = users.map(u => u.id === user.id ? { ...u, pin: newPin } : u);
+            DB.setUsers(updatedUsers);
+            
+            Utils.toast(`PIN updated successfully for ${user.name}!`, "success");
             Modal.close();
           }
         }
       ]
     });
+    
+    // If admin, update the displayed current PIN when user selection changes
+    if(isAdmin){
+      const updateCurrentPinDisplay = () => {
+        const userId = document.getElementById("change-pin-user-select").value;
+        const users = DB.getUsers();
+        const user = users.find(u => u.id === userId);
+        const pinDisplay = document.getElementById("display-current-pin");
+        if(user && pinDisplay){
+          pinDisplay.textContent = user.pin || '••••';
+        }
+      };
+      
+      // Update on initial load
+      updateCurrentPinDisplay();
+      
+      // Update when selection changes
+      const userSelect = modal.querySelector("#change-pin-user-select");
+      if(userSelect){
+        userSelect.addEventListener("change", updateCurrentPinDisplay);
+      }
+    }
   }
 
   // (2026-07-13) Update profile select options on role switch; was static tabs
