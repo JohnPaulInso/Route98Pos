@@ -248,9 +248,11 @@ const Settings = (() => {
     };
   }
 
-  // (2026-07-13) Render all backups and fetch cloud records; was sliced to 15
+  // (2026-07-13) Populate and sync backups on data tab load; was empty check
   function renderDataTab(){
     const wrap = document.getElementById("view-tab-body");
+    if(DB.populateHistoricalBackups) DB.populateHistoricalBackups();
+    if(typeof Sync !== "undefined" && Sync.syncBackupsToCloud) Sync.syncBackupsToCloud();
     const backups = DB.getBackups();
     if(backups.length === 0 && typeof Sync !== "undefined" && Sync.pullSnapshot && !renderDataTab._fetching){
       renderDataTab._fetching = true;

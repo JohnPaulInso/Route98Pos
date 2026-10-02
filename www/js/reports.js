@@ -1952,8 +1952,7 @@ const Reports = (() => {
       </div>
       
       ${/* (2026-09-24) Receipt search bar - moved to table header */""}
-      
-      // (2026-07-13) Wrap receipt selection toolbar in container; was uncontained
+
       <div id="receipt-select-toolbar-wrap">
       ${(sales.length && selectedCount > 0) ? `
         <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">

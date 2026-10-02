@@ -250,6 +250,29 @@ const Sync = (() => {
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
 
+      // (2026-07-13) Pull and sync backups collection unconditionally; was skipped
+      try {
+        const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
+        if(!backupsSnap.empty){
+          const cloudBackups = [];
+          backupsSnap.forEach(d => cloudBackups.push(d.data()));
+          if(cloudBackups.length){
+            const existing = DB.getBackups();
+            const existingIds = new Set(existing.map(x => x.id));
+            const merged = [...existing];
+            cloudBackups.forEach(b => {
+              if(!existingIds.has(b.id)){
+                merged.push(b);
+              }
+            });
+            merged.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+            DB.setBackups(merged);
+          }
+        }
+      } catch(e) {
+        console.warn("Could not pull backups collection:", e);
+      }
+
       // (2026-07-13) Pull subcollections only on first-time setup; was redundant on every pull
       if(!snapDoc.exists()){
       try {
@@ -403,18 +426,43 @@ const Sync = (() => {
     // Save locally
     DB.saveBackup(record);
 
-    // Upload to Firestore if configured
+    // (2026-07-13) Safe payload for Firestore 1MB limit and cloud sync; was raw
     try{
       const settings = DB.getSettings();
       if(settings.firebaseConfig){
         const { db: database, mod } = await ensureFirebase();
-        await mod.setDoc(mod.doc(database, "backups", backupId), record, { merge:true });
+        const cloudRecord = { ...record };
+        if(cloudRecord.data && JSON.stringify(cloudRecord.data).length > 750000){
+          const compactSales = (cloudRecord.data.sales || []).filter(s => !s.isImported && s.source !== "imported").slice(0, 500);
+          cloudRecord.data = { ...cloudRecord.data, sales: compactSales, isCompacted: true };
+        }
+        await mod.setDoc(mod.doc(database, "backups", backupId), cloudRecord, { merge:true });
+        syncBackupsToCloud();
       }
     }catch(e){
       console.warn("Could not push daily backup to Firestore", e);
     }
 
     return record;
+  }
+
+  async function syncBackupsToCloud(){
+    try{
+      const settings = DB.getSettings();
+      if(!settings.firebaseConfig) return;
+      const { db: database, mod } = await ensureFirebase();
+      const localBackups = DB.getBackups().slice(0, 15);
+      for(const b of localBackups){
+        const cloudB = { ...b };
+        if(cloudB.data && JSON.stringify(cloudB.data).length > 750000){
+          const compactSales = (cloudB.data.sales || []).filter(s => !s.isImported && s.source !== "imported").slice(0, 500);
+          cloudB.data = { ...cloudB.data, sales: compactSales, isCompacted: true };
+        }
+        await mod.setDoc(mod.doc(database, "backups", b.id), cloudB, { merge:true }).catch(()=>{});
+      }
+    }catch(e){
+      console.warn("Could not sync backups to cloud:", e);
+    }
   }
 
   function getNext1159Target(){
@@ -602,8 +650,8 @@ const Sync = (() => {
   }
 
   return {
-    // (2026-07-13) Export pushVoidDoc in Sync API; was unexported
+    // (2026-07-13) Export pushVoidDoc & syncBackupsToCloud; was unexported
     init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue, deleteSaleDoc, pushVoidDoc,
-    createDailyBackup, checkDailyBackup, getNext1159Target, ensureFirebase, startRealtimeListener
+    createDailyBackup, checkDailyBackup, syncBackupsToCloud, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();
