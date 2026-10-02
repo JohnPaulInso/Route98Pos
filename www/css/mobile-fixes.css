@@ -155,6 +155,13 @@
     -webkit-tap-highlight-color: transparent;
     box-sizing: border-box;
   }
+
+  /* (2026-10-02) Fix APK: add touch-action manipulation to kill 300ms tap delay; was missing */
+  button, a, [role="button"], input, select, textarea,
+  .btn, .chip, .nav-btn, .bn-btn, .product-card,
+  .icon-btn, .cart-head, .modal-backdrop, label {
+    touch-action: manipulation;
+  }
   
   html {
     font-size: 14px;

@@ -326,6 +326,7 @@ const Venue = (() => {
 
   function render(){
     const view = document.getElementById("view-root");
+    if(!view) return;
     const today = getTodayStr();
     const allBookings = DB.getBookings();
 

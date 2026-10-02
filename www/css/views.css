@@ -129,11 +129,13 @@
   position:relative; width:100%; min-width:0; padding:0; margin:0;
   color:inherit; font-family:var(--font-body);
   transition:box-shadow var(--transition);
-  touch-action:pan-y !important;
+  /* (2026-10-02) Fix APK taps: pan-y swallowed taps in Android WebView; was pan-y */
+  touch-action:manipulation;
   -webkit-user-select:none; user-select:none;
   -webkit-touch-callout:none;
 }
-.product-card *{ pointer-events:none; -webkit-user-drag:none !important; user-select:none; touch-action:pan-y !important; }
+/* (2026-10-02) Fix APK taps: pan-y on children killed click events; was pan-y */
+.product-card *{ pointer-events:none; -webkit-user-drag:none !important; user-select:none; touch-action:manipulation; }
 @media (hover: hover) and (pointer: fine){
   .product-card:hover{ box-shadow:var(--shadow-md); transform:translateY(-2px); }
   .product-card:active{ transform:scale(.98); }
@@ -142,7 +144,8 @@
   width:100%; height:98px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
   position:relative; overflow:hidden; background:var(--paper-dim); border-bottom:1px solid var(--line);
   border-top-left-radius:calc(var(--r-md) - 1px); border-top-right-radius:calc(var(--r-md) - 1px);
-  touch-action:pan-y;
+  /* (2026-10-02) Fix APK taps: was pan-y, killing touch events on card thumb */
+  touch-action:manipulation;
 }
 .product-card .thumb:has(img), .product-card.has-img .thumb{ background:#ffffff !important; }
 [data-theme="dark"] .product-card .thumb{ background:var(--paper-dim); }

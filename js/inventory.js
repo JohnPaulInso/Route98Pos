@@ -1887,6 +1887,7 @@ const Inventory = (() => {
     searchTerm = "";
     currentPage = 1;
     const view = document.getElementById("view-root");
+    if(!view) return;
     // (2026-07-13) Category chips inside toolbar & sorted by stock valuation; was missing cats def
     const cats = DB.getCategories();
     const allProds = DB.getProducts();

@@ -1498,6 +1498,7 @@ const Gas = (() => {
 
   function render(){
     const view = document.getElementById("view-root");
+    if(!view) return;
     view.innerHTML = `
       <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
         <!-- (2026-07-13) Responsive gas header classes; was fixed row flex -->

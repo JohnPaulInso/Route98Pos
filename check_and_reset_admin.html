@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Route 98 - Check & Reset Admin PIN</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 { color: #2563EB; margin-top: 0; }
+    h2 { color: #333; border-bottom: 2px solid #2563EB; padding-bottom: 8px; }
+    button {
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    button:hover { background: #1D4ED8; }
+    button.danger { background: #DC2626; }
+    button.danger:hover { background: #B91C1C; }
+    button.success { background: #10B981; }
+    button.success:hover { background: #059669; }
+    .user-list {
+      list-style: none;
+      padding: 0;
+    }
+    .user-item {
+      background: #f9f9f9;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border-left: 4px solid #2563EB;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-info { font-weight: 600; }
+    .user-role {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .role-admin { background: #FEE2E2; color: #DC2626; }
+    .role-cashier { background: #DBEAFE; color: #2563EB; }
+    .user-pin {
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      font-weight: bold;
+      color: #059669;
+      letter-spacing: 0.2em;
+    }
+    pre {
+      background: #1F2937;
+      color: #10B981;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+    .alert-info { background: #DBEAFE; color: #1E40AF; border-left: 4px solid #2563EB; }
+    .alert-success { background: #D1FAE5; color: #065F46; border-left: 4px solid #10B981; }
+    .alert-danger { background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔑 Route 98 Admin PIN Checker & Reset</h1>
+    <p>This tool will show you all user accounts and their PINs stored in your browser.</p>
+    
+    <button onclick="checkUsers()">🔍 Show All Users & PINs</button>
+    <button class="success" onclick="resetToDefaults()">🔄 Reset All to Defaults</button>
+    <button class="danger" onclick="clearAll()">🗑️ Clear All Data (Factory Reset)</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    const NS = "mm_";
+    const KEYS = {
+      users: NS + "users"
+    };
+
+    const DEFAULT_USERS = [
+      { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"1234" },
+      { id:"u_jp",      name:"JP",            role:"admin",   pin:"3333" },
+      { id:"u_sharon",  name:"Sharon",        role:"admin",   pin:"4444" },
+      { id:"u_ike",     name:"Elaicka / Ike", role:"admin",   pin:"5555" },
+      { id:"u_rosella", name:"Rosella",       role:"cashier", pin:"1111" },
+      { id:"u_nino",    name:"Niño",          role:"cashier", pin:"2222" }
+    ];
+
+    function checkUsers() {
+      const results = document.getElementById('results');
+      const usersJson = localStorage.getItem(KEYS.users);
+      
+      if (!usersJson) {
+        results.innerHTML = `
+          <div class="card">
+            <div class="alert alert-danger">
+              <strong>⚠️ No users found in localStorage!</strong><br>
+              The users data is missing. Click "Reset All to Defaults" to restore default accounts.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const users = JSON.parse(usersJson);
+        
+        let html = `
+          <div class="card">
+            <h2>📋 Current Users in Database</h2>
+            <div class="alert alert-info">
+              <strong>Found ${users.length} user account(s)</strong><br>
+              Below are all the accounts with their current PINs:
+            </div>
+            <ul class="user-list">
+        `;
+
+        users.forEach(user => {
+          const roleClass = user.role === 'admin' ? 'role-admin' : 'role-cashier';
+          const roleIcon = user.role === 'admin' ? '👑' : '👤';
+          html += `
+            <li class="user-item">
+              <div class="user-info">
+                ${roleIcon} <strong>${user.name}</strong>
+                <span class="user-role ${roleClass}">${user.role}</span>
+              </div>
+              <div class="user-pin">${user.pin}</div>
+            </li>
+          `;
+        });
+
+        html += `
+            </ul>
+            <div class="alert alert-success" style="margin-top: 20px;">
+              <strong>✅ Try logging in with any of these PINs</strong><br>
+              Switch to "${users.find(u => u.role === 'admin') ? 'Admin' : 'Cashier'}" tab on login screen and enter the corresponding PIN.
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>🔧 Raw Data (for debugging)</h2>
+            <pre>${JSON.stringify(users, null, 2)}</pre>
+          </div>
+        `;
+
+        results.innerHTML = html;
+      } catch (e) {
+        results.innerHTML = `
+          <div class="card">
+            <div class="alert alert-danger">
+              <strong>❌ Error parsing users data!</strong><br>
+              ${e.message}<br><br>
+              Raw data: <pre>${usersJson}</pre>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function resetToDefaults() {
+      if (!confirm('Reset all user accounts to default PINs?\n\nDefault Admin PINs:\n• Owner/Admin: 1234\n• JP: 3333\n• Sharon: 4444\n• Elaicka/Ike: 5555\n\nDefault Cashier PINs:\n• Rosella: 1111\n• Niño: 2222')) {
+        return;
+      }
+
+      localStorage.setItem(KEYS.users, JSON.stringify(DEFAULT_USERS));
+      
+      document.getElementById('results').innerHTML = `
+        <div class="card">
+          <div class="alert alert-success">
+            <strong>✅ Users reset to defaults successfully!</strong><br><br>
+            <strong>Admin Accounts:</strong><br>
+            • Owner/Admin - PIN: 1234<br>
+            • JP - PIN: 3333<br>
+            • Sharon - PIN: 4444<br>
+            • Elaicka/Ike - PIN: 5555<br><br>
+            <strong>Cashier Accounts:</strong><br>
+            • Rosella - PIN: 1111<br>
+            • Niño - PIN: 2222<br><br>
+            <strong>Now reload your app and login with any of these PINs!</strong>
+          </div>
+        </div>
+      `;
+
+      setTimeout(checkUsers, 1000);
+    }
+
+    function clearAll() {
+      if (!confirm('⚠️ WARNING: This will DELETE ALL your data!\n\nThis includes:\n• All users and PINs\n• All products\n• All sales history\n• All settings\n• Everything!\n\nAre you ABSOLUTELY SURE?')) {
+        return;
+      }
+
+      if (!confirm('FINAL WARNING!\n\nThis cannot be undone. Continue?')) {
+        return;
+      }
+
+      // Clear all localStorage keys starting with mm_
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('mm_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Also clear session
+      sessionStorage.clear();
+
+      document.getElementById('results').innerHTML = `
+        <div class="card">
+          <div class="alert alert-success">
+            <strong>✅ All data cleared!</strong><br><br>
+            Your app has been reset to factory state.<br>
+            Reload the app to start fresh with default settings.
+          </div>
+        </div>
+      `;
+    }
+
+    // Auto-check on load
+    window.onload = checkUsers;
+  </script>
+</body>
+</html>

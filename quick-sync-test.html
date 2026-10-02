@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Route 98 - Quick Sync Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 { color: #2563EB; margin-top: 0; }
+    button {
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+      width: calc(50% - 5px);
+      display: inline-block;
+    }
+    button:hover { background: #1D4ED8; }
+    button.success { background: #10B981; }
+    button.success:hover { background: #059669; }
+    button.danger { background: #DC2626; }
+    button.danger:hover { background: #B91C1C; }
+    .status {
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-weight: 600;
+    }
+    .status-syncing { background: #DBEAFE; color: #1E40AF; }
+    .status-success { background: #D1FAE5; color: #065F46; }
+    .status-error { background: #FEE2E2; color: #991B1B; }
+    .status-idle { background: #F3F4F6; color: #4B5563; }
+    pre {
+      background: #1F2937;
+      color: #10B981;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .count {
+      font-size: 32px;
+      font-weight: 800;
+      color: #2563EB;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔄 Route 98 Sync Test</h1>
+    <p>Use this tool to manually sync data between devices</p>
+    
+    <div id="status" class="status status-idle">
+      ⏳ Ready to sync
+    </div>
+
+    <button onclick="pullFromCloud()">⬇️ Pull from Cloud</button>
+    <button class="success" onclick="pushToCloud()">⬆️ Push to Cloud</button>
+    <button class="danger" onclick="fullSync()">🔄 Full Sync (Both Ways)</button>
+    <button onclick="checkData()">📊 Check Local Data</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    function updateStatus(message, type = 'idle') {
+      const status = document.getElementById('status');
+      status.className = `status status-${type}`;
+      status.textContent = message;
+    }
+
+    async function pullFromCloud() {
+      updateStatus('⏳ Pulling data from cloud...', 'syncing');
+      try {
+        if (typeof Sync === 'undefined') {
+          updateStatus('❌ Error: Not on Route 98 app page! Open this in the same browser tab as your app.', 'error');
+          alert('You need to open the Route 98 app first (http://127.0.0.1:5514), then run this tool from the browser console instead.');
+          return;
+        }
+        
+        await Sync.pullSnapshot();
+        updateStatus('✅ Pull complete! Refreshing page in 2 seconds...', 'success');
+        
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } catch (e) {
+        updateStatus(`❌ Pull failed: ${e.message}`, 'error');
+        console.error(e);
+      }
+    }
+
+    async function pushToCloud() {
+      updateStatus('⏳ Pushing data to cloud...', 'syncing');
+      try {
+        if (typeof Sync === 'undefined') {
+          updateStatus('❌ Error: Not on Route 98 app page!', 'error');
+          alert('Open Route 98 app first, then use browser console to run: Sync.pushSnapshot(true)');
+          return;
+        }
+        
+        await Sync.pushSnapshot(true);
+        updateStatus('✅ Push complete! Data uploaded to Firebase.', 'success');
+        
+        checkData();
+      } catch (e) {
+        updateStatus(`❌ Push failed: ${e.message}`, 'error');
+        console.error(e);
+      }
+    }
+
+    async function fullSync() {
+      updateStatus('⏳ Running full sync (pull + push)...', 'syncing');
+      try {
+        if (typeof Sync === 'undefined') {
+          updateStatus('❌ Error: Not on Route 98 app page!', 'error');
+          return;
+        }
+        
+        await Sync.pullSnapshot();
+        updateStatus('⏳ Pull complete, now pushing...', 'syncing');
+        await new Promise(r => setTimeout(r, 1000));
+        
+        await Sync.pushSnapshot(true);
+        updateStatus('✅ Full sync complete! Refreshing in 2 seconds...', 'success');
+        
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } catch (e) {
+        updateStatus(`❌ Sync failed: ${e.message}`, 'error');
+        console.error(e);
+      }
+    }
+
+    function checkData() {
+      updateStatus('📊 Checking local data...', 'syncing');
+      
+      const products = JSON.parse(localStorage.getItem('mm_products') || '[]');
+      const sales = JSON.parse(localStorage.getItem('mm_sales') || '[]');
+      const users = JSON.parse(localStorage.getItem('mm_users') || '[]');
+      const settings = JSON.parse(localStorage.getItem('mm_settings') || '{}');
+      const syncMeta = JSON.parse(localStorage.getItem('mm_syncMeta') || '{}');
+      
+      const todaySales = sales.filter(s => {
+        const saleDate = new Date(s.ts).toDateString();
+        const today = new Date().toDateString();
+        return saleDate === today;
+      });
+
+      const results = document.getElementById('results');
+      results.innerHTML = `
+        <div class="card">
+          <h2>📊 Local Data Summary</h2>
+          
+          <div><strong>Products:</strong> <span class="count">${products.length}</span></div>
+          <div><strong>Total Sales:</strong> <span class="count">${sales.length}</span></div>
+          <div><strong>Today's Sales:</strong> <span class="count">${todaySales.length}</span></div>
+          <div><strong>Users:</strong> <span class="count">${users.length}</span></div>
+          
+          <hr style="margin: 20px 0;">
+          
+          <div><strong>Auto-Sync:</strong> ${settings.autoSync ? '✅ Enabled' : '❌ Disabled'}</div>
+          <div><strong>Firebase:</strong> ${settings.firebaseConfig ? '✅ Configured' : '❌ Not configured'}</div>
+          <div><strong>Last Synced:</strong> ${syncMeta.lastSynced ? new Date(syncMeta.lastSynced).toLocaleString() : 'Never'}</div>
+          <div><strong>Sync Status:</strong> ${syncMeta.status || 'Unknown'}</div>
+        </div>
+
+        <div class="card">
+          <h2>🔧 Quick Actions</h2>
+          <button onclick="showProducts()">View Products</button>
+          <button onclick="showTodaySales()">View Today's Sales</button>
+          <button onclick="showSyncMeta()">View Sync Meta</button>
+          <button onclick="showSettings()">View Settings</button>
+        </div>
+      `;
+      
+      updateStatus('✅ Data check complete', 'success');
+    }
+
+    function showProducts() {
+      const products = JSON.parse(localStorage.getItem('mm_products') || '[]');
+      const results = document.getElementById('results');
+      results.innerHTML = `
+        <div class="card">
+          <h2>📦 Products (${products.length})</h2>
+          <pre>${JSON.stringify(products, null, 2)}</pre>
+        </div>
+      `;
+    }
+
+    function showTodaySales() {
+      const sales = JSON.parse(localStorage.getItem('mm_sales') || '[]');
+      const todaySales = sales.filter(s => {
+        const saleDate = new Date(s.ts).toDateString();
+        const today = new Date().toDateString();
+        return saleDate === today;
+      });
+      const results = document.getElementById('results');
+      results.innerHTML = `
+        <div class="card">
+          <h2>💰 Today's Sales (${todaySales.length})</h2>
+          <pre>${JSON.stringify(todaySales, null, 2)}</pre>
+        </div>
+      `;
+    }
+
+    function showSyncMeta() {
+      const syncMeta = JSON.parse(localStorage.getItem('mm_syncMeta') || '{}');
+      const results = document.getElementById('results');
+      results.innerHTML = `
+        <div class="card">
+          <h2>🔄 Sync Metadata</h2>
+          <pre>${JSON.stringify(syncMeta, null, 2)}</pre>
+        </div>
+      `;
+    }
+
+    function showSettings() {
+      const settings = JSON.parse(localStorage.getItem('mm_settings') || '{}');
+      const results = document.getElementById('results');
+      results.innerHTML = `
+        <div class="card">
+          <h2>⚙️ Settings</h2>
+          <pre>${JSON.stringify(settings, null, 2)}</pre>
+        </div>
+      `;
+    }
+
+    // Auto-check on load
+    if (typeof Sync !== 'undefined' && typeof DB !== 'undefined') {
+      window.onload = checkData;
+    } else {
+      document.getElementById('results').innerHTML = `
+        <div class="card">
+          <div class="status status-error">
+            <strong>⚠️ Not Connected to Route 98 App</strong><br><br>
+            This tool needs to be opened while the Route 98 app is running.<br><br>
+            <strong>Instructions:</strong><br>
+            1. Open Route 98 app: <code>http://127.0.0.1:5514</code><br>
+            2. Log in to the app<br>
+            3. Open browser Console (F12)<br>
+            4. Run these commands:<br>
+            <pre>// Pull from cloud
+await Sync.pullSnapshot();
+
+// Push to cloud  
+await Sync.pushSnapshot(true);
+
+// Then refresh page
+location.reload();</pre>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

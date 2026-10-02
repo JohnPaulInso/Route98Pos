@@ -1697,6 +1697,7 @@ const POS = (() => {
 
   function render(){
     const view = document.getElementById("view-root");
+    if(!view) return;
     view.innerHTML = `
       <!-- (2026-07-13) Sticky search & scanner header; was crowded view-head -->
       <div class="pos-sticky-header">

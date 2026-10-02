@@ -532,6 +532,7 @@ const Expenses = (() => {
 
   function render(){
     const view = document.getElementById("view-root");
+    if(!view) return;
     const expenses = getFilteredExpenses();
 
     const totalOpex = expenses.reduce((s,e) => s + (e.amount || 0), 0);
