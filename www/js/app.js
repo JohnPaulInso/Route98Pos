@@ -287,11 +287,20 @@ const App = (() => {
   function boot(){
     document.documentElement.dataset.theme = DB.getSettings().theme || "light";
     shell();
-    // (2026-07-13) Safe view fallback excluding hidden views; was dashboard
     const views = accessibleViews();
-    const remembered = DB.getSettings().lastView;
-    if(remembered && !["dashboard","venue","restaurant"].includes(remembered) && views.find(v => v.id === remembered)) currentView = remembered;
-    else currentView = views.find(v => v.id === "pos")?.id || views[0]?.id || "pos";
+    const isMobile = (typeof MobileUtils !== "undefined" && MobileUtils.isMobile()) || window.innerWidth <= 768 || Boolean(window.Capacitor?.isNativePlatform?.());
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const isShiftTime = (h === 7) || (h === 8 && m <= 30);
+    // (2026-07-13) Set shift 7-8:30am else minimart pos on mobile; was remembered
+    if(isMobile){
+      currentView = (isShiftTime && views.find(v => v.id === "shift")) ? "shift" : (views.find(v => v.id === "pos")?.id || "pos");
+    } else {
+      const remembered = DB.getSettings().lastView;
+      if(remembered && !["dashboard","venue","restaurant"].includes(remembered) && views.find(v => v.id === remembered)) currentView = remembered;
+      else currentView = views.find(v => v.id === "pos")?.id || views[0]?.id || "pos";
+    }
     navigate(currentView);
   }
 
@@ -305,7 +314,7 @@ const App = (() => {
     else Auth.render();
   }
 
-  return { init, boot, navigate, rerenderCurrentView, paintTopbar };
+  return { init, boot, navigate, rerenderCurrentView, paintTopbar, getCurrentView: () => currentView };
 })();
 
 // (2026-07-13) Horizontal mouse wheel scroll for category-chips; was default vertical

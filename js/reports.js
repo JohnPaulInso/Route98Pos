@@ -1952,7 +1952,8 @@ const Reports = (() => {
       </div>
       
       ${/* (2026-09-24) Receipt search bar - moved to table header */""}
-      
+
+      <div id="receipt-select-toolbar-wrap">
       ${(sales.length && selectedCount > 0) ? `
         <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">
           <div class="text-sm font-bold flex-row" style="gap:8px;align-items:center;">
@@ -1969,6 +1970,7 @@ const Reports = (() => {
           </div>
         </div>
       ` : ""}
+      </div>
       <!-- (2026-07-13) Integrated search input with internal icons; was misaligned -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap;">
         <div style="flex:1;">
@@ -4184,7 +4186,72 @@ const Reports = (() => {
         e.stopPropagation();
         deleteFuelSaleRecord(b.dataset.deleteFuelSale);
       });
-      // (2026-07-13) Wire receipt multi-select & batch delete; was single view only
+      // (2026-07-13) In-place receipt selection without scrolling; was render()
+      function updateReceiptSelectionUI(){
+        const r = getActiveRange();
+        const filterFn = getReportFilterFn();
+        let curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+        if(receiptSearchTerm){
+          const term = receiptSearchTerm.toLowerCase().trim();
+          curSales = curSales.filter(s => {
+            if(s.id && String(s.id).toLowerCase().includes(term)) return true;
+            if(s.receiptNo && String(s.receiptNo).toLowerCase().includes(term)) return true;
+            if(s.items && s.items.some(i => (i.name && i.name.toLowerCase().includes(term)) || (i.barcode && String(i.barcode).toLowerCase().includes(term)))) return true;
+            return false;
+          });
+        }
+        const selectedCount = curSales.filter(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id))).length;
+        const allChecked = curSales.length > 0 && curSales.every(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id)));
+        const selAllEl = document.getElementById("receipt-select-all");
+        if(selAllEl) selAllEl.checked = allChecked;
+
+        document.querySelectorAll(".receipt-select-chk").forEach(chk => {
+          const id = chk.dataset.saleId;
+          const isChecked = selectedReceiptIds.has(id) || selectedReceiptIds.has(Number(id)) || selectedReceiptIds.has(String(id));
+          chk.checked = isChecked;
+          const tr = chk.closest("tr");
+          if(tr){
+            tr.classList.toggle("selected-row", isChecked);
+            tr.style.background = isChecked ? "var(--brand-tint, rgba(47,66,216,0.08))" : "";
+          }
+        });
+
+        const toolbarWrap = document.getElementById("receipt-select-toolbar-wrap");
+        if(toolbarWrap){
+          if(curSales.length && selectedCount > 0){
+            toolbarWrap.innerHTML = `
+              <div class="receipt-select-toolbar flex-between" style="margin-bottom:10px;padding:8px 12px;background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap;gap:8px;">
+                <div class="text-sm font-bold flex-row" style="gap:8px;align-items:center;">
+                  <span>${selectedCount} of ${curSales.length} selected</span>
+                  <button class="btn btn-xs btn-ghost font-bold" id="btn-clear-receipt-selection" type="button">Clear</button>
+                </div>
+                <div class="flex-row" style="gap:8px;">
+                  <button class="btn btn-sm btn-danger font-bold" id="btn-delete-selected-receipts" type="button">
+                    ${Icons.get("trash",{size:13})} Delete Selected (${selectedCount})
+                  </button>
+                  <button class="btn btn-sm btn-outline text-danger font-bold" id="btn-delete-all-receipts" type="button" style="border-color:var(--danger);" title="Delete all ${curSales.length} receipts in current view">
+                    ${Icons.get("trash",{size:13})} Delete All (${curSales.length})
+                  </button>
+                </div>
+              </div>`;
+            document.getElementById("btn-clear-receipt-selection")?.addEventListener("click", () => {
+              selectedReceiptIds.clear();
+              updateReceiptSelectionUI();
+            });
+            document.getElementById("btn-delete-selected-receipts")?.addEventListener("click", () => {
+              const ids = Array.from(selectedReceiptIds);
+              if(ids.length > 0) batchDeleteSales(ids);
+            });
+            document.getElementById("btn-delete-all-receipts")?.addEventListener("click", () => {
+              const ids = curSales.map(s => s.id);
+              if(ids.length > 0) batchDeleteSales(ids);
+            });
+          } else {
+            toolbarWrap.innerHTML = "";
+          }
+        }
+      }
+
       const selectAll = document.getElementById("receipt-select-all");
       if(selectAll){
         selectAll.onclick = (e) => e.stopPropagation();
@@ -4193,16 +4260,24 @@ const Reports = (() => {
           e.stopPropagation();
           const r = getActiveRange();
           const filterFn = getReportFilterFn();
-          const curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
-          if(e.target.checked){
+          let curSales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+          if(receiptSearchTerm){
+            const term = receiptSearchTerm.toLowerCase().trim();
+            curSales = curSales.filter(s => {
+              if(s.id && String(s.id).toLowerCase().includes(term)) return true;
+              if(s.receiptNo && String(s.receiptNo).toLowerCase().includes(term)) return true;
+              if(s.items && s.items.some(i => (i.name && i.name.toLowerCase().includes(term)) || (i.barcode && String(i.barcode).toLowerCase().includes(term)))) return true;
+              return false;
+            });
+          }
+          if(selectAll.checked){
             curSales.forEach(s => { selectedReceiptIds.add(s.id); selectedReceiptIds.add(String(s.id)); });
           } else {
             selectedReceiptIds.clear();
           }
-          render();
+          updateReceiptSelectionUI();
         };
       }
-      // (2026-07-13) Enable multi-select receipt checkboxes; was blocked by prevent
       document.querySelectorAll(".receipt-select-chk").forEach(chk => {
         chk.onclick = (e) => {
           e.stopPropagation();
@@ -4219,7 +4294,7 @@ const Reports = (() => {
             const num = Number(id);
             if(!isNaN(num)) selectedReceiptIds.delete(num);
           }
-          render();
+          updateReceiptSelectionUI();
         };
       });
       document.querySelectorAll(".receipt-select-cell").forEach(td => {
@@ -4227,7 +4302,7 @@ const Reports = (() => {
       });
       document.getElementById("btn-clear-receipt-selection")?.addEventListener("click", () => {
         selectedReceiptIds.clear();
-        render();
+        updateReceiptSelectionUI();
       });
       document.getElementById("btn-delete-selected-receipts")?.addEventListener("click", () => {
         const ids = Array.from(selectedReceiptIds);
