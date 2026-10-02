@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Backup Sync to Firestore</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 { color: #2563EB; margin-top: 0; }
+    button {
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+    }
+    button:hover { background: #1D4ED8; }
+    button.success { background: #10B981; }
+    button.success:hover { background: #059669; }
+    .status {
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-weight: 600;
+    }
+    .status-syncing { background: #DBEAFE; color: #1E40AF; }
+    .status-success { background: #D1FAE5; color: #065F46; }
+    .status-error { background: #FEE2E2; color: #991B1B; }
+    pre {
+      background: #1F2937;
+      color: #10B981;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔥 Test Firestore Backup Sync</h1>
+    <p>Use this to manually test if backups are reaching Firestore</p>
+    
+    <div id="status" class="status status-syncing">
+      ⏳ Open this page from Route 98 app context...
+    </div>
+
+    <button onclick="testBackupSync()">🧪 Test Backup Upload</button>
+    <button class="success" onclick="checkFirestore()">🔍 Check Firestore Backups</button>
+    <button onclick="syncAllBackups()">📤 Sync All Local Backups</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    function updateStatus(message, type = 'syncing') {
+      const status = document.getElementById('status');
+      status.className = `status status-${type}`;
+      status.textContent = message;
+    }
+
+    async function testBackupSync() {
+      updateStatus('⏳ Creating test backup and uploading to Firestore...', 'syncing');
+      const results = document.getElementById('results');
+      
+      try {
+        if (typeof Sync === 'undefined') {
+          updateStatus('❌ Error: Not in Route 98 app context!', 'error');
+          results.innerHTML = `
+            <div class="card">
+              <div class="status status-error">
+                <strong>⚠️ Not Connected to Route 98 App</strong><br><br>
+                Open your Route 98 app first: <code>http://127.0.0.1:5514</code><br>
+                Then open browser Console (F12) and run:<br>
+                <pre>await Sync.createDailyBackup("manual_test");</pre>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // Create backup
+        const backup = await Sync.createDailyBackup("manual_test");
+        
+        updateStatus('✅ Backup created! Check Firestore console...', 'success');
+        
+        results.innerHTML = `
+          <div class="card">
+            <h2>✅ Backup Created Successfully!</h2>
+            <p><strong>Backup ID:</strong> <code>${backup.id}</code></p>
+            <p><strong>Created At:</strong> ${new Date(backup.createdAt).toLocaleString()}</p>
+            
+            <h3>Summary:</h3>
+            <pre>${JSON.stringify(backup.summary, null, 2)}</pre>
+            
+            <hr style="margin: 20px 0;">
+            
+            <h3>🔥 Check Firestore:</h3>
+            <ol>
+              <li>Open <a href="https://console.firebase.google.com/project/route98-bogo/firestore" target="_blank">Firestore Console</a></li>
+              <li>Look for collection: <code>backups</code></li>
+              <li>Find document: <code>${backup.id}</code></li>
+              <li>It should have been uploaded just now!</li>
+            </ol>
+            
+            <p style="margin-top: 20px; padding: 12px; background: #FEF3C7; border-radius: 8px; color: #92400E;">
+              <strong>⚠️ Note:</strong> If you don't see it, there might be a Firebase rules issue or network error. Check browser console for errors.
+            </p>
+          </div>
+        `;
+      } catch (e) {
+        updateStatus(`❌ Backup failed: ${e.message}`, 'error');
+        results.innerHTML = `
+          <div class="card">
+            <div class="status status-error">
+              <strong>❌ Backup Upload Failed</strong><br><br>
+              Error: ${e.message}<br><br>
+              <pre>${e.stack}</pre>
+            </div>
+          </div>
+        `;
+        console.error('Backup error:', e);
+      }
+    }
+
+    async function checkFirestore() {
+      updateStatus('⏳ Fetching backups from Firestore...', 'syncing');
+      const results = document.getElementById('results');
+      
+      try {
+        if (typeof Sync === 'undefined') {
+          updateStatus('❌ Error: Not in Route 98 app context!', 'error');
+          return;
+        }
+
+        const { db, mod } = await Sync.ensureFirebase();
+        const backupsSnap = await mod.getDocs(mod.collection(db, "backups"));
+        
+        if (backupsSnap.empty) {
+          updateStatus('⚠️ No backups found in Firestore', 'error');
+          results.innerHTML = `
+            <div class="card">
+              <div class="status status-error">
+                <strong>⚠️ Firestore "backups" Collection is Empty</strong><br><br>
+                Possible reasons:<br>
+                1. Backups were never uploaded<br>
+                2. Firebase rules are blocking reads<br>
+                3. Collection was deleted<br><br>
+                Try clicking "Test Backup Upload" to create one now.
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        const backups = [];
+        backupsSnap.forEach(doc => {
+          backups.push({ id: doc.id, ...doc.data() });
+        });
+
+        backups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        updateStatus(`✅ Found ${backups.length} backup(s) in Firestore!`, 'success');
+        
+        results.innerHTML = `
+          <div class="card">
+            <h2>🔥 Firestore Backups (${backups.length} found)</h2>
+            
+            ${backups.map(b => `
+              <div style="background: #F9FAFB; padding: 16px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #2563EB;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong style="font-size: 16px;">${b.dateStr || 'Unknown date'}</strong><br>
+                    <code style="font-size: 12px; color: #6B7280;">${b.id}</code>
+                  </div>
+                  <span style="background: #DBEAFE; color: #1E40AF; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+                    ${b.exportType || 'backup'}
+                  </span>
+                </div>
+                <div style="margin-top: 10px; font-size: 14px; color: #6B7280;">
+                  📦 ${b.summary?.products || 0} Products • 
+                  💰 ${b.summary?.sales || 0} Sales • 
+                  ⛽ ${b.summary?.fuelSales || 0} Fuel Sales • 
+                  💸 ${b.summary?.expenses || 0} Expenses
+                </div>
+                ${b.data?.isCompacted ? '<div style="margin-top: 8px; color: #F59E0B; font-size: 12px;">⚠️ Compacted (limited sales data)</div>' : ''}
+              </div>
+            `).join('')}
+            
+            <hr style="margin: 20px 0;">
+            
+            <p><strong>🔥 Direct Firestore Link:</strong></p>
+            <a href="https://console.firebase.google.com/project/route98-bogo/firestore/data/backups" target="_blank" style="color: #2563EB; text-decoration: underline;">
+              Open Backups Collection in Firebase Console →
+            </a>
+          </div>
+        `;
+      } catch (e) {
+        updateStatus(`❌ Failed to check Firestore: ${e.message}`, 'error');
+        results.innerHTML = `
+          <div class="card">
+            <div class="status status-error">
+              <strong>❌ Firestore Read Failed</strong><br><br>
+              Error: ${e.message}<br><br>
+              <pre>${e.stack}</pre>
+              
+              <p style="margin-top: 20px;">
+                <strong>Possible issues:</strong><br>
+                • Firebase rules blocking reads<br>
+                • Network connection issue<br>
+                • Firebase not initialized properly
+              </p>
+            </div>
+          </div>
+        `;
+        console.error('Firestore check error:', e);
+      }
+    }
+
+    async function syncAllBackups() {
+      updateStatus('⏳ Syncing all local backups to Firestore...', 'syncing');
+      
+      try {
+        if (typeof Sync === 'undefined') {
+          updateStatus('❌ Error: Not in Route 98 app context!', 'error');
+          return;
+        }
+
+        await Sync.syncBackupsToCloud();
+        
+        updateStatus('✅ All backups synced! Check Firestore now.', 'success');
+        
+        setTimeout(() => {
+          checkFirestore();
+        }, 1000);
+      } catch (e) {
+        updateStatus(`❌ Sync failed: ${e.message}`, 'error');
+        console.error('Sync error:', e);
+      }
+    }
+
+    // Auto-check on load if in app context
+    window.onload = () => {
+      if (typeof Sync !== 'undefined' && typeof DB !== 'undefined') {
+        updateStatus('✅ Connected to Route 98 app! Ready to test.', 'success');
+      } else {
+        updateStatus('⚠️ Open this from Route 98 app browser console', 'error');
+      }
+    };
+  </script>
+</body>
+</html>
