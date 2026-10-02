@@ -50,7 +50,8 @@ const Modal = (() => {
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
     document.body.appendChild(backdrop);
-    backdrop.addEventListener("mousedown", (e)=>{ 
+    // (2026-10-02) Fix APK: mousedown unreliable in Capacitor WebView; was mousedown
+    backdrop.addEventListener("click", (e)=>{ 
       if(e.target === backdrop && !preventBackdropClose){ 
         close(backdrop, onClose); 
       } 
