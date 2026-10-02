@@ -1183,53 +1183,8 @@ const POS = (() => {
     grid.innerHTML = customCardHtml + addNewCardHtml + (items.length ? cardsHtml : emptyMsgHtml);
     if(prevGridScroll > 0) grid.scrollTop = prevGridScroll;
 
-    // (2026-07-13) Kinetic scroll only on touch; ignore mouse pointers. Prev: all pointers
-    let isScrollDragging = false;
-    let dragStartY = 0, dragStartScrollTop = 0, dragLastY = 0, dragLastTime = 0, dragVelocityY = 0;
-    let momentumTimer = null;
-    grid.onpointerdown = (e) => {
-      if(e.pointerType === "mouse") return;
-      if(momentumTimer) cancelAnimationFrame(momentumTimer);
-      isScrollDragging = false;
-      dragStartY = e.clientY;
-      dragStartScrollTop = grid.scrollTop;
-      dragLastY = e.clientY;
-      dragLastTime = performance.now();
-      dragVelocityY = 0;
-    };
-    grid.onpointermove = (e) => {
-      if(e.pointerType === "mouse") return;
-      const deltaY = e.clientY - dragStartY;
-      if(!isScrollDragging && Math.abs(deltaY) > 6){
-        isScrollDragging = true;
-      }
-      if(isScrollDragging){
-        grid.scrollTop = dragStartScrollTop - deltaY;
-        const now = performance.now();
-        const dt = Math.max(1, now - dragLastTime);
-        dragVelocityY = (dragLastY - e.clientY) / dt;
-        dragLastY = e.clientY;
-        dragLastTime = now;
-      }
-    };
-    grid.onpointerup = (e) => {
-      if(e.pointerType === "mouse") return;
-      if(isScrollDragging){
-        let v = dragVelocityY * 16;
-        const step = () => {
-          if(Math.abs(v) > 0.5){
-            grid.scrollTop += v;
-            v *= 0.92;
-            momentumTimer = requestAnimationFrame(step);
-          }
-        };
-        if(Math.abs(v) > 1) momentumTimer = requestAnimationFrame(step);
-        setTimeout(() => { isScrollDragging = false; }, 80);
-      }
-    };
-    grid.onpointercancel = () => { isScrollDragging = false; };
+    // (2026-07-13) Native touch scrolling and clean click for grid; was blocked
     grid.onclick = (e) => {
-      if(isScrollDragging) return;
       // (2026-07-13) Add custom item on grid click; was calling undefined modal
       const customBtn = e.target.closest("#btn-grid-custom-item");
       if(customBtn){

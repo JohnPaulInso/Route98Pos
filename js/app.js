@@ -335,7 +335,9 @@ document.addEventListener("wheel", (e) => {
   let targetChips = null;
   let hasDragged = false;
 
+  // (2026-07-13) Desktop-only mouse drag for chips; was intercepting touch
   document.addEventListener("mousedown", (e) => {
+    if(e.button !== 0 || window.matchMedia("(max-width: 768px)").matches) return;
     const chips = e.target.closest(".category-chips");
     if(!chips) return;
     

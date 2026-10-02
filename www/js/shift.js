@@ -47,19 +47,9 @@ const Shift = (() => {
     return null;
   }
 
+  // (2026-07-13) Synchronous active shift getter; was auto-pulling cloud loop
   function getActiveShift(){
     const s = DB.getShift ? DB.getShift() : null;
-    
-    // If no shift found and not already recovering, try to recover from cloud
-    if(!s && !isRecovering){
-      recoverShiftFromCloud().then(recovered => {
-        if(recovered){
-          // Re-render the shift view with recovered data
-          render();
-        }
-      });
-    }
-    
     return s && s.status === "open" ? s : null;
   }
 
@@ -123,10 +113,10 @@ const Shift = (() => {
     return `${mins}m`;
   }
 
-  // (2026-07-13) Auto-use logged-in user for shift; was dropdown selection
+  // (2026-07-13) Safe user resolution for shift modal; was Auth.currentUser()
   function openStartShiftModal(){
-    const currentUser = Auth.currentUser()?.name || "Rosella";
-    const currentUserRole = Auth.currentUser()?.role || "cashier";
+    const currentUser = (typeof Auth !== "undefined" && Auth.currentUser?.()?.name) || localStorage.getItem("pos_cashier") || "Rosella";
+    const currentUserRole = (typeof Auth !== "undefined" && Auth.currentUser?.()?.role) || "cashier";
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-PH", { month:"short", day:"numeric", year:"numeric" });
     const timeStr = now.toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" });
@@ -432,20 +422,9 @@ const Shift = (() => {
 
     const activeShift = getActiveShift();
     let shiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
-    // (2026-07-13) Cashiers fallback to Rosella & Niño; was Cashier 1 & 2
     const allCashiers = DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"];
     const totals = activeShift ? calculateShiftTotals(activeShift) : null;
-
-    // (2026-10-01) Auto-recover shift logs from cloud if empty
-    if(shiftLogs.length === 0 && !isRecovering){
-      recoverShiftFromCloud().then(() => {
-        // Re-render after recovery attempt
-        const logs = DB.getShiftLogs ? DB.getShiftLogs() : [];
-        if(logs.length > 0){
-          render();
-        }
-      });
-    }
+    // (2026-07-13) Manual-only cloud shift log recovery; was auto-pull on render
 
     root.innerHTML = `
       <!-- (2026-07-13) Lock shift view full width to stabilize nav tabs; was shifting -->
@@ -925,3 +904,12 @@ const Shift = (() => {
 
   return { render, openStartShiftModal, openEndShiftModal, getActiveShift };
 })();
+
+// (2026-07-13) Global delegated click listener for open shift; was local only
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#btn-open-new-shift");
+  if(btn){
+    e.preventDefault();
+    Shift.openStartShiftModal();
+  }
+});

@@ -5228,13 +5228,27 @@
   box-sizing: border-box !important;
 }
 
-/* (2026-07-13) Add top margin on shift page; was 0 top padding */
+/* (2026-07-13) Shift page mobile clearance & button touch; was blocked */
 .shift-view-container {
   margin-top: 8px !important;
   padding-top: 10px !important;
+  padding-bottom: calc(var(--bottomnav-h, 60px) + 48px) !important;
   width: 100% !important;
   max-width: 100% !important;
   overflow-x: hidden !important;
+}
+
+#btn-open-new-shift {
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+#btn-open-new-shift * {
+  pointer-events: none !important;
 }
 
 /* Prevent shift page elements from causing horizontal scroll */

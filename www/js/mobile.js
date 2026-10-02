@@ -93,9 +93,10 @@ const MobileUtils = (() => {
   }
   
   // ============ HAPTIC FEEDBACK ============
+  // (2026-07-13) Safe navigator vibrate call with try-catch; was unhandled
   function vibrate(pattern = 10) {
     if ('vibrate' in navigator) {
-      navigator.vibrate(pattern);
+      try { navigator.vibrate(pattern); } catch(e){}
     }
   }
   
@@ -321,9 +322,10 @@ const MobileUtils = (() => {
   
   // ============ ENHANCE MODALS FOR MOBILE ============
   function enhanceMobileModals() {
-    // Close modal on backdrop click
+    // (2026-07-13) Honor _preventBackdropClose flag in mobile modals; was closing
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('modal-backdrop') && isMobile()) {
+        if (e.target._preventBackdropClose) return;
         hapticLight();
         const closeBtn = document.querySelector('.modal-foot .btn-ghost, .modal-foot .btn:not(.btn-primary)');
         if (closeBtn) {
