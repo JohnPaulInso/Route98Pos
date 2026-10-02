@@ -123,7 +123,8 @@ const Sync = (() => {
     const merged = { ...remote, ...local };
 
     merged.products = mergeArray3Way(base.products, local.products, remote.products, "id", "updatedAt");
-    merged.sales = mergeArray3Way(base.sales, local.sales, remote.sales, "receiptNo", "ts");
+    // (2026-07-13) Sort merged sales newest first; was unsorted order
+    merged.sales = mergeArray3Way(base.sales, local.sales, remote.sales, "receiptNo", "ts").sort((a,b)=>(b.ts||0)-(a.ts||0));
     merged.shiftLogs = mergeArray3Way(base.shiftLogs, local.shiftLogs, remote.shiftLogs, "id", "openedAt");
     merged.fuelSales = mergeArray3Way(base.fuelSales, local.fuelSales, remote.fuelSales, "id", "ts");
     merged.expenses = mergeArray3Way(base.expenses, local.expenses, remote.expenses, "id", "ts");
@@ -186,7 +187,8 @@ const Sync = (() => {
       manualSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       recentImported.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       
-      const syncSales = Array.from(sMap.values()).slice(0, 1000); // Limit to 1000 most relevant
+      // (2026-07-13) Prioritize newest sales in cloud sync; was unsorted slice
+      const syncSales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 1000);
 
       const cloudSnap = {
         ...finalSnap,
