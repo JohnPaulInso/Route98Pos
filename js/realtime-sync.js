@@ -9,6 +9,129 @@ const RealtimeSync = (() => {
   let realtimeMod = null;
   let listeners = new Map();
   let isInitialized = false;
+  
+  // Offline sync queue
+  const SYNC_QUEUE_KEY = 'mm_syncQueue';
+  let syncQueue = [];
+  let isSyncing = false;
+  
+  // Load sync queue from localStorage
+  function loadSyncQueue() {
+    try {
+      const stored = localStorage.getItem(SYNC_QUEUE_KEY);
+      syncQueue = stored ? JSON.parse(stored) : [];
+      console.log(`[RealtimeSync] 📋 Loaded ${syncQueue.length} pending sync operations`);
+    } catch (error) {
+      console.error('[RealtimeSync] Failed to load sync queue:', error);
+      syncQueue = [];
+    }
+  }
+  
+  // Save sync queue to localStorage
+  function saveSyncQueue() {
+    try {
+      localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(syncQueue));
+    } catch (error) {
+      console.error('[RealtimeSync] Failed to save sync queue:', error);
+    }
+  }
+  
+  // Add operation to queue
+  function enqueueSync(operation) {
+    syncQueue.push({
+      ...operation,
+      id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      retries: 0
+    });
+    saveSyncQueue();
+    console.log(`[RealtimeSync] 📝 Queued: ${operation.type} for ${operation.entityType}`);
+    
+    // Try to process immediately
+    processQueue();
+  }
+  
+  // Process sync queue
+  async function processQueue() {
+    if (isSyncing || syncQueue.length === 0) return;
+    if (!realtimeDB) {
+      console.log('[RealtimeSync] ⏸️ Queue paused - Firebase not ready');
+      return;
+    }
+    
+    isSyncing = true;
+    console.log(`[RealtimeSync] 🔄 Processing queue: ${syncQueue.length} operations`);
+    
+    const operations = [...syncQueue];
+    
+    for (const op of operations) {
+      try {
+        await executeQueuedOperation(op);
+        
+        // Remove from queue on success
+        syncQueue = syncQueue.filter(q => q.id !== op.id);
+        saveSyncQueue();
+        
+      } catch (error) {
+        console.error(`[RealtimeSync] ❌ Failed to sync:`, op, error);
+        
+        // Increment retries
+        const queuedOp = syncQueue.find(q => q.id === op.id);
+        if (queuedOp) {
+          queuedOp.retries++;
+          queuedOp.lastError = error.message;
+          
+          // Remove if too many retries
+          if (queuedOp.retries >= 5) {
+            console.error(`[RealtimeSync] 💀 Giving up on operation after 5 retries:`, op);
+            syncQueue = syncQueue.filter(q => q.id !== op.id);
+          }
+          saveSyncQueue();
+        }
+      }
+    }
+    
+    isSyncing = false;
+    
+    if (syncQueue.length > 0) {
+      console.log(`[RealtimeSync] ⏳ ${syncQueue.length} operations still pending, will retry...`);
+      // Retry after 5 seconds
+      setTimeout(processQueue, 5000);
+    } else {
+      console.log(`[RealtimeSync] ✅ Queue empty - all synced!`);
+    }
+  }
+  
+  // Execute a queued operation
+  async function executeQueuedOperation(op) {
+    console.log(`[RealtimeSync] ⚡ Executing: ${op.type} ${op.entityType}`, op.data?.name || op.data?.id);
+    
+    switch (op.entityType) {
+      case 'product':
+        if (op.type === 'create' || op.type === 'update') {
+          await syncSingleProductDirect(op.data);
+        } else if (op.type === 'delete') {
+          await deleteProductFromCloudDirect(op.data.id);
+        }
+        break;
+        
+      case 'restockLog':
+        if (op.type === 'create') {
+          await syncRestockLogDirect(op.data);
+        } else if (op.type === 'delete') {
+          await deleteRestockLogFromCloudDirect(op.data.id);
+        }
+        break;
+        
+      case 'expense':
+        if (op.type === 'create') {
+          await syncExpenseDirect(op.data);
+        } else if (op.type === 'delete') {
+          await deleteExpenseFromCloudDirect(op.data.id);
+        }
+        break;
+    }
+  }
 
   // Initialize Firebase Realtime Database
   async function init() {
@@ -16,6 +139,9 @@ const RealtimeSync = (() => {
       console.log('[RealtimeSync] ✅ Already initialized');
       return;
     }
+    
+    // Load sync queue first
+    loadSyncQueue();
     
     // Safety check - ensure DB is loaded
     if (typeof DB === 'undefined') {
@@ -31,7 +157,7 @@ const RealtimeSync = (() => {
       if (!settings.firebaseConfig) {
         console.error('[RealtimeSync] ❌ Firebase not configured in Settings!');
         console.log('[RealtimeSync] 💡 Go to Settings → Firebase Configuration to set it up');
-        Utils.toast('Firebase not configured! Go to Settings', 'error', 5000);
+        console.log('[RealtimeSync] ⏸️ Running in offline-only mode. Changes queued:', syncQueue.length);
         return;
       }
       
@@ -61,11 +187,17 @@ const RealtimeSync = (() => {
       
       console.log('[RealtimeSync] ✅ Firebase Realtime Database initialized successfully!');
       console.log('[RealtimeSync] 🌐 Database URL:', settings.firebaseConfig.databaseURL);
-      Utils.toast('Firebase connected successfully!', 'success', 2000);
+      Utils.toast('Firebase connected!', 'success', 2000);
+      
+      // Process any queued operations
+      if (syncQueue.length > 0) {
+        console.log(`[RealtimeSync] 🚀 Processing ${syncQueue.length} queued operations...`);
+        processQueue();
+      }
     } catch (error) {
       console.error('[RealtimeSync] ❌ Failed to initialize:', error);
       console.error('[RealtimeSync] Error details:', error.message);
-      Utils.toast(`Firebase init failed: ${error.message}`, 'error', 5000);
+      console.log('[RealtimeSync] ⏸️ Running in offline-only mode. Changes queued:', syncQueue.length);
     }
   }
 
@@ -383,87 +515,120 @@ const RealtimeSync = (() => {
     try {
       const updates = {};
       products.forEach(product => {
-        updates[product.id] = {
+        // Sanitize product ID - remove dots and invalid characters
+        const sanitizedId = product.id.replace(/\./g, '_');
+        
+        // Remove undefined values and sanitize data
+        const cleanProduct = {
           id: product.id,
-          name: product.name,
-          stock: product.stock,
-          price: product.price,
-          cost: product.cost,
-          barcode: product.barcode,
-          category: product.category,
-          updatedAt: Date.now()
+          name: product.name || 'Unnamed Product',
+          stock: Number(product.stock) || 0,
+          price: Number(product.price) || 0,
+          cost: Number(product.cost) || 0,
+          barcode: product.barcode || '',
+          category: product.category || 'Uncategorized',
+          brand: product.brand || '',
+          distributor: product.distributor || '',
+          imageUrl: product.imageUrl || '',
+          unit: product.unit || 'pc',
+          lowStockThreshold: Number(product.lowStockThreshold) || 5,
+          piecesPerPack: Number(product.piecesPerPack) || 1,
+          packPrice: Number(product.packPrice) || 0,
+          packCost: Number(product.packCost) || 0,
+          packBarcode: product.packBarcode || '',
+          updatedAt: product.updatedAt || Date.now(),
+          createdAt: product.createdAt || Date.now()
         };
+        
+        updates[sanitizedId] = cleanProduct;
       });
       
       await realtimeMod.update(productsRef, updates);
       console.log(`✅ Synced ${products.length} products to cloud`);
+      Utils.toast(`Synced ${products.length} products`, 'success', 2000);
     } catch (error) {
       console.error("Failed to sync products:", error);
-    }
-  }
-
-  // NEW: Real-time single product sync
-  async function syncSingleProduct(product) {
-    console.log('[RealtimeSync] 🚀 Starting sync for product:', product.name);
-    await init();
-    if (!realtimeDB) {
-      console.error('[RealtimeSync] ❌ Firebase not initialized! Cannot sync.');
-      Utils.toast('Sync failed: Firebase not configured', 'error', 3000);
-      return;
-    }
-
-    const productRef = realtimeMod.ref(realtimeDB, `products/${product.id}`);
-    
-    try {
-      console.log('[RealtimeSync] 📤 Pushing to Firebase:', product);
-      await realtimeMod.set(productRef, {
-        id: product.id,
-        name: product.name,
-        stock: product.stock,
-        price: product.price,
-        cost: product.cost,
-        barcode: product.barcode,
-        category: product.category,
-        brand: product.brand,
-        distributor: product.distributor,
-        imageUrl: product.imageUrl,
-        unit: product.unit,
-        lowStockThreshold: product.lowStockThreshold,
-        piecesPerPack: product.piecesPerPack,
-        packPrice: product.packPrice,
-        packCost: product.packCost,
-        packBarcode: product.packBarcode,
-        updatedAt: product.updatedAt || Date.now(),
-        deviceId: getDeviceId()
-      });
-      console.log(`[RealtimeSync] ✅ Synced product "${product.name}" to Firebase!`);
-      Utils.toast(`Synced: ${product.name}`, 'success', 1500);
-    } catch (error) {
-      console.error('[RealtimeSync] ❌ Failed to sync product:', error);
       Utils.toast(`Sync failed: ${error.message}`, 'error', 3000);
     }
   }
 
-  // NEW: Real-time product delete
-  async function deleteProductFromCloud(productId) {
-    console.log('[RealtimeSync] 🗑️ Starting delete for product:', productId);
-    await init();
-    if (!realtimeDB) {
-      console.error('[RealtimeSync] ❌ Firebase not initialized! Cannot delete.');
-      Utils.toast('Delete sync failed: Firebase not configured', 'error', 3000);
-      return;
-    }
-
-    const productRef = realtimeMod.ref(realtimeDB, `products/${productId}`);
+  // Direct sync (used by queue)
+  async function syncSingleProductDirect(product) {
+    const sanitizedId = product.id.replace(/\./g, '_').replace(/[#$\/\[\]]/g, '_');
+    const productRef = realtimeMod.ref(realtimeDB, `products/${sanitizedId}`);
     
-    try {
-      console.log('[RealtimeSync] 📤 Deleting from Firebase...');
-      await realtimeMod.remove(productRef);
-      console.log(`[RealtimeSync] ✅ Deleted product ${productId} from Firebase!`);
-      Utils.toast('Delete synced to cloud', 'success', 1500);
-    } catch (error) {
-      console.error('[RealtimeSync] ❌ Failed to delete product from cloud:', error);
-      Utils.toast(`Delete sync failed: ${error.message}`, 'error', 3000);
+    const cleanProduct = {
+      id: product.id,
+      name: product.name || 'Unnamed Product',
+      stock: Number(product.stock) || 0,
+      price: Number(product.price) || 0,
+      cost: Number(product.cost) || 0,
+      barcode: product.barcode || '',
+      category: product.category || 'Uncategorized',
+      brand: product.brand || '',
+      distributor: product.distributor || '',
+      imageUrl: product.imageUrl || '',
+      unit: product.unit || 'pc',
+      lowStockThreshold: Number(product.lowStockThreshold) || 5,
+      piecesPerPack: Number(product.piecesPerPack) || 1,
+      packPrice: Number(product.packPrice) || 0,
+      packCost: Number(product.packCost) || 0,
+      packBarcode: product.packBarcode || '',
+      updatedAt: product.updatedAt || Date.now(),
+      createdAt: product.createdAt || Date.now(),
+      deviceId: getDeviceId()
+    };
+    
+    await realtimeMod.set(productRef, cleanProduct);
+  }
+  
+  // NEW: Real-time single product sync (with queue)
+  async function syncSingleProduct(product) {
+    console.log('[RealtimeSync] 🚀 Syncing product:', product.name);
+    
+    // Always save to localStorage first (instant)
+    // Already done by DB.updateProduct() or DB.addProduct()
+    
+    // Add to sync queue
+    enqueueSync({
+      type: 'update',
+      entityType: 'product',
+      data: product
+    });
+    
+    // If online, process immediately
+    if (realtimeDB) {
+      await processQueue();
+    } else {
+      console.log('[RealtimeSync] ⏸️ Offline - queued for later');
+      Utils.toast(`Saved locally (will sync when online)`, 'info', 2000);
+    }
+  }
+
+  // Direct delete (used by queue)
+  async function deleteProductFromCloudDirect(productId) {
+    const sanitizedId = productId.replace(/\./g, '_').replace(/[#$\/\[\]]/g, '_');
+    const productRef = realtimeMod.ref(realtimeDB, `products/${sanitizedId}`);
+    await realtimeMod.remove(productRef);
+  }
+  
+  // NEW: Real-time product delete (with queue)
+  async function deleteProductFromCloud(productId) {
+    console.log('[RealtimeSync] 🗑️ Deleting product:', productId);
+    
+    // Add to sync queue
+    enqueueSync({
+      type: 'delete',
+      entityType: 'product',
+      data: { id: productId }
+    });
+    
+    // If online, process immediately
+    if (realtimeDB) {
+      await processQueue();
+    } else {
+      console.log('[RealtimeSync] ⏸️ Offline - queued for later');
+      Utils.toast(`Deleted locally (will sync when online)`, 'info', 2000);
     }
   }
 
@@ -471,43 +636,44 @@ const RealtimeSync = (() => {
   // RESTOCK LOG SYNC - Real-time
   // ==============================================================
   
-  async function syncRestockLog(log) {
-    console.log('[RealtimeSync] 🚀 Starting sync for restock log:', log);
-    await init();
-    if (!realtimeDB) {
-      console.error('[RealtimeSync] ❌ Firebase not initialized! Cannot sync restock log.');
-      Utils.toast('Restock sync failed: Firebase not configured', 'error', 3000);
-      return;
-    }
-
+  // Direct sync (used by queue)
+  async function syncRestockLogDirect(log) {
     const logRef = realtimeMod.ref(realtimeDB, `restockLogs/${log.id}`);
+    await realtimeMod.set(logRef, {
+      ...log,
+      syncedAt: Date.now(),
+      deviceId: getDeviceId()
+    });
+  }
+  
+  async function syncRestockLog(log) {
+    console.log('[RealtimeSync] 🚀 Syncing restock log');
     
-    try {
-      console.log('[RealtimeSync] 📤 Pushing restock log to Firebase...');
-      await realtimeMod.set(logRef, {
-        ...log,
-        syncedAt: Date.now(),
-        deviceId: getDeviceId()
-      });
-      console.log(`[RealtimeSync] ✅ Synced restock log to Firebase!`);
-      Utils.toast('Restock log synced', 'success', 1500);
-    } catch (error) {
-      console.error('[RealtimeSync] ❌ Failed to sync restock log:', error);
-      Utils.toast(`Restock sync failed: ${error.message}`, 'error', 3000);
+    enqueueSync({
+      type: 'create',
+      entityType: 'restockLog',
+      data: log
+    });
+    
+    if (realtimeDB) {
+      await processQueue();
     }
   }
 
-  async function deleteRestockLogFromCloud(logId) {
-    await init();
-    if (!realtimeDB) return;
-
+  async function deleteRestockLogFromCloudDirect(logId) {
     const logRef = realtimeMod.ref(realtimeDB, `restockLogs/${logId}`);
+    await realtimeMod.remove(logRef);
+  }
+
+  async function deleteRestockLogFromCloud(logId) {
+    enqueueSync({
+      type: 'delete',
+      entityType: 'restockLog',
+      data: { id: logId }
+    });
     
-    try {
-      await realtimeMod.remove(logRef);
-      console.log(`✅ Deleted restock log ${logId} from cloud`);
-    } catch (error) {
-      console.error("Failed to delete restock log from cloud:", error);
+    if (realtimeDB) {
+      await processQueue();
     }
   }
 
@@ -577,35 +743,41 @@ const RealtimeSync = (() => {
   // EXPENSE SYNC - Real-time
   // ==============================================================
   
-  async function syncExpense(expense) {
-    await init();
-    if (!realtimeDB) return;
-
+  async function syncExpenseDirect(expense) {
     const expenseRef = realtimeMod.ref(realtimeDB, `expenses/${expense.id}`);
+    await realtimeMod.set(expenseRef, {
+      ...expense,
+      syncedAt: Date.now(),
+      deviceId: getDeviceId()
+    });
+  }
+  
+  async function syncExpense(expense) {
+    enqueueSync({
+      type: 'create',
+      entityType: 'expense',
+      data: expense
+    });
     
-    try {
-      await realtimeMod.set(expenseRef, {
-        ...expense,
-        syncedAt: Date.now(),
-        deviceId: getDeviceId()
-      });
-      console.log(`✅ Synced expense to cloud`);
-    } catch (error) {
-      console.error("Failed to sync expense:", error);
+    if (realtimeDB) {
+      await processQueue();
     }
   }
 
-  async function deleteExpenseFromCloud(expenseId) {
-    await init();
-    if (!realtimeDB) return;
-
+  async function deleteExpenseFromCloudDirect(expenseId) {
     const expenseRef = realtimeMod.ref(realtimeDB, `expenses/${expenseId}`);
+    await realtimeMod.remove(expenseRef);
+  }
+
+  async function deleteExpenseFromCloud(expenseId) {
+    enqueueSync({
+      type: 'delete',
+      entityType: 'expense',
+      data: { id: expenseId }
+    });
     
-    try {
-      await realtimeMod.remove(expenseRef);
-      console.log(`✅ Deleted expense ${expenseId} from cloud`);
-    } catch (error) {
-      console.error("Failed to delete expense from cloud:", error);
+    if (realtimeDB) {
+      await processQueue();
     }
   }
 
@@ -679,111 +851,105 @@ const RealtimeSync = (() => {
     const productsRef = realtimeMod.ref(realtimeDB, 'products');
     const deviceId = getDeviceId();
     
-    // Listen for product deletions specifically
+    console.log('[RealtimeSync] 🎧 Setting up product listeners...');
+    
+    // Listen for product additions
+    const onChildAddedListener = realtimeMod.onChildAdded(productsRef, (snapshot) => {
+      const newProduct = snapshot.val();
+      const localProducts = DB.getProducts();
+      const exists = localProducts.some(p => p.id === newProduct.id);
+      
+      if (!exists) {
+        console.log('[RealtimeSync] ➕ New product from cloud:', newProduct.name);
+        localProducts.push(newProduct);
+        
+        const key = 'mm_products';
+        localStorage.setItem(key, JSON.stringify(localProducts));
+        document.dispatchEvent(new CustomEvent('mm:dirty', { 
+          detail: { key, silent: true } 
+        }));
+        
+        if (newProduct.deviceId && newProduct.deviceId !== deviceId) {
+          Utils.toast(`New product: ${newProduct.name}`, 'info', 2000);
+        }
+        
+        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
+          Inventory.render();
+        }
+      }
+    });
+    
+    // Listen for product updates/changes
+    const onChildChangedListener = realtimeMod.onChildChanged(productsRef, (snapshot) => {
+      const updatedProduct = snapshot.val();
+      const localProducts = DB.getProducts();
+      const index = localProducts.findIndex(p => p.id === updatedProduct.id);
+      
+      if (index !== -1) {
+        const oldStock = localProducts[index].stock;
+        const newStock = updatedProduct.stock;
+        
+        console.log('[RealtimeSync] 🔄 Product changed from cloud:', updatedProduct.name, 
+                    `stock: ${oldStock} → ${newStock}`);
+        
+        localProducts[index] = updatedProduct;
+        
+        const key = 'mm_products';
+        localStorage.setItem(key, JSON.stringify(localProducts));
+        document.dispatchEvent(new CustomEvent('mm:dirty', { 
+          detail: { key, silent: true } 
+        }));
+        
+        if (updatedProduct.deviceId && updatedProduct.deviceId !== deviceId) {
+          Utils.toast(`Updated: ${updatedProduct.name} (stock: ${newStock})`, 'info', 2000);
+        }
+        
+        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
+          Inventory.render();
+        }
+      }
+    });
+    
+    // Listen for product deletions
     const onChildRemovedListener = realtimeMod.onChildRemoved(productsRef, (snapshot) => {
       const deletedProductId = snapshot.key;
       const deletedProduct = snapshot.val();
       
-      console.log('[RealtimeSync] Product deleted from cloud:', deletedProduct?.name || deletedProductId);
+      console.log('[RealtimeSync] 🗑️ Product deleted from cloud:', deletedProduct?.name || deletedProductId);
       
-      // Remove from local DB
       const localProducts = DB.getProducts();
       const filtered = localProducts.filter(p => p.id !== deletedProductId);
       
       if (filtered.length !== localProducts.length) {
-        // Actually removed something
         const key = 'mm_products';
         localStorage.setItem(key, JSON.stringify(filtered));
         document.dispatchEvent(new CustomEvent('mm:dirty', { 
           detail: { key, silent: true } 
         }));
         
-        // Show notification
         if (deletedProduct?.deviceId && deletedProduct.deviceId !== deviceId) {
           Utils.toast('Product deleted on another device', 'info', 2000);
         }
         
-        // Refresh inventory view if open
         if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
           Inventory.render();
         }
       }
     });
     
-    // Listen for all changes (adds/updates)
-    const onValueListener = realtimeMod.onValue(productsRef, (snapshot) => {
-      const cloudProducts = snapshot.val();
-      const localProducts = DB.getProducts();
-      
-      // If cloud is empty but we have local products, don't delete everything
-      if (!cloudProducts && localProducts.length === 0) {
-        return;
-      }
-      
-      const cloudProductsArray = cloudProducts ? Object.values(cloudProducts) : [];
-      const localProductsMap = new Map(localProducts.map(p => [p.id, p]));
-      
-      let hasChanges = false;
-      let hasExternalChanges = false;
-      const updatedProducts = [...localProducts];
-
-      // Check for new/updated products from cloud
-      cloudProductsArray.forEach(cloudProduct => {
-        const localProduct = localProductsMap.get(cloudProduct.id);
-        
-        if (!localProduct) {
-          // New product from cloud
-          updatedProducts.push(cloudProduct);
-          hasChanges = true;
-          if (cloudProduct.deviceId && cloudProduct.deviceId !== deviceId) {
-            hasExternalChanges = true;
-          }
-          console.log('[RealtimeSync] New product from cloud:', cloudProduct.name);
-        } else if (cloudProduct.updatedAt > (localProduct.updatedAt || 0)) {
-          // Product updated from cloud
-          const index = updatedProducts.findIndex(p => p.id === cloudProduct.id);
-          if (index !== -1) {
-            updatedProducts[index] = cloudProduct;
-            hasChanges = true;
-            if (cloudProduct.deviceId && cloudProduct.deviceId !== deviceId) {
-              hasExternalChanges = true;
-            }
-            console.log('[RealtimeSync] Product updated from cloud:', cloudProduct.name);
-          }
-        }
-      });
-
-      // Update local DB if there are changes
-      if (hasChanges) {
-        const key = 'mm_products';
-        localStorage.setItem(key, JSON.stringify(updatedProducts));
-        document.dispatchEvent(new CustomEvent('mm:dirty', { 
-          detail: { key, silent: true } 
-        }));
-        
-        // Show notification only for external changes
-        if (hasExternalChanges) {
-          Utils.toast('Inventory updated from another device', 'info', 2000);
-        }
-        
-        // Refresh inventory view if open
-        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
-          Inventory.render();
-        }
-        
-        if (callback) callback(updatedProducts);
-      }
-    });
+    console.log('[RealtimeSync] ✅ Product listeners active');
     
-    // Store both listeners
+    // Store all listeners
     listeners.set('products', () => {
+      onChildAddedListener();
+      onChildChangedListener();
       onChildRemovedListener();
-      onValueListener();
     });
     
     return () => {
+      onChildAddedListener();
+      onChildChangedListener();
       onChildRemovedListener();
-      onValueListener();
     };
   }
 
@@ -1034,6 +1200,19 @@ const RealtimeSync = (() => {
     getDeviceId,
     registerDevice,
     getActiveDevices,
+    
+    // Queue management
+    processQueue,
+    getQueueStatus: () => ({
+      pending: syncQueue.length,
+      operations: syncQueue.map(op => ({
+        type: op.type,
+        entity: op.entityType,
+        name: op.data?.name || op.data?.id,
+        retries: op.retries,
+        timestamp: op.timestamp
+      }))
+    }),
     
     // Diagnostic
     getSyncStatus,
