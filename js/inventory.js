@@ -1205,7 +1205,13 @@ const Inventory = (() => {
       const expBtn = document.getElementById("btn-export-inv");
       if(expBtn) expBtn.onclick = ImportExport.exportInventoryCSV;
       const impBtn = document.getElementById("btn-import-inv");
-      if(impBtn) impBtn.onclick = () => document.getElementById("inv-import-file").click();
+      if(impBtn) impBtn.onclick = () => {
+        if (typeof InventoryImporter !== 'undefined' && InventoryImporter.openImportModal) {
+          InventoryImporter.openImportModal();
+        } else {
+          document.getElementById("inv-import-file").click();
+        }
+      };
       const addBtn = document.getElementById("btn-add-product");
       if(addBtn) addBtn.onclick = () => openProductForm();
 
@@ -1257,7 +1263,11 @@ const Inventory = (() => {
       if(mImpBtn) mImpBtn.onclick = () => { 
         if(mToolsMenu) mToolsMenu.style.display = "none"; 
         document.body.classList.remove("dropdown-active");
-        document.getElementById("inv-import-file").click(); 
+        if (typeof InventoryImporter !== 'undefined' && InventoryImporter.openImportModal) {
+          InventoryImporter.openImportModal();
+        } else {
+          document.getElementById("inv-import-file").click();
+        }
       };
       const mSelBtn = document.getElementById("btn-m-select-mode");
       if(mSelBtn) mSelBtn.onclick = () => { 
