@@ -508,6 +508,13 @@ const Expenses = (() => {
         DB.deleteExpense(exp.id);
         Utils.toast("Expense record deleted.", "success");
         render();
+        
+        // Force immediate sync
+        if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+          Sync.pushSnapshot(true).catch(err => {
+            console.error('[Expenses] Failed to sync delete:', err);
+          });
+        }
       }
     });
   }

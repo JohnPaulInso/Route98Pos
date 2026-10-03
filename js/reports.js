@@ -589,6 +589,13 @@ const Reports = (() => {
         DB.deleteRestockLog(log.id);
         Utils.toast("Restock log deleted & stock rolled back.", "success");
         render();
+        
+        // Force immediate sync
+        if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+          Sync.pushSnapshot(true).catch(err => {
+            console.error('[Restock] Failed to sync delete:', err);
+          });
+        }
       }
     });
   }

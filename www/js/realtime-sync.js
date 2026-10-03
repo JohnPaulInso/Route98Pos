@@ -424,6 +424,202 @@ const RealtimeSync = (() => {
     }
   }
 
+  // ==============================================================
+  // RESTOCK LOG SYNC - Real-time
+  // ==============================================================
+  
+  async function syncRestockLog(log) {
+    await init();
+    if (!realtimeDB) return;
+
+    const logRef = realtimeMod.ref(realtimeDB, `restockLogs/${log.id}`);
+    
+    try {
+      await realtimeMod.set(logRef, {
+        ...log,
+        syncedAt: Date.now(),
+        deviceId: getDeviceId()
+      });
+      console.log(`✅ Synced restock log to cloud`);
+    } catch (error) {
+      console.error("Failed to sync restock log:", error);
+    }
+  }
+
+  async function deleteRestockLogFromCloud(logId) {
+    await init();
+    if (!realtimeDB) return;
+
+    const logRef = realtimeMod.ref(realtimeDB, `restockLogs/${logId}`);
+    
+    try {
+      await realtimeMod.remove(logRef);
+      console.log(`✅ Deleted restock log ${logId} from cloud`);
+    } catch (error) {
+      console.error("Failed to delete restock log from cloud:", error);
+    }
+  }
+
+  async function subscribeToRestockLogs(callback) {
+    await init();
+    if (!realtimeDB) return;
+
+    const logsRef = realtimeMod.ref(realtimeDB, 'restockLogs');
+    
+    const unsubscribe = realtimeMod.onValue(logsRef, (snapshot) => {
+      const cloudLogs = snapshot.val();
+      if (!cloudLogs) return;
+
+      const cloudLogsArray = Object.values(cloudLogs).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      const localLogs = DB.getRestockLogs();
+      const localLogsMap = new Map(localLogs.map(l => [l.id, l]));
+      
+      let hasChanges = false;
+      const updatedLogs = [...localLogs];
+
+      // Check for updates from cloud
+      cloudLogsArray.forEach(cloudLog => {
+        const localLog = localLogsMap.get(cloudLog.id);
+        
+        if (!localLog) {
+          // New log from cloud
+          updatedLogs.unshift(cloudLog);
+          hasChanges = true;
+          console.log('[RealtimeSync] New restock log from cloud');
+        }
+      });
+
+      // Check for deletions
+      const cloudLogIds = new Set(cloudLogsArray.map(l => l.id));
+      const filtered = updatedLogs.filter(l => cloudLogIds.has(l.id));
+      if (filtered.length !== updatedLogs.length) {
+        hasChanges = true;
+        console.log('[RealtimeSync] Restock logs deleted from cloud');
+      }
+
+      // Update local DB if there are changes
+      if (hasChanges) {
+        DB.setRestockLogs(filtered);
+        
+        // Show notification
+        const deviceId = getDeviceId();
+        const hasExternalChanges = cloudLogsArray.some(l => l.deviceId && l.deviceId !== deviceId);
+        
+        if (hasExternalChanges) {
+          Utils.toast('Restock logs updated from another device', 'info', 2000);
+        }
+        
+        // Refresh reports view if open
+        if (typeof Reports !== 'undefined' && App.currentView === 'reports') {
+          Reports.render();
+        }
+        
+        if (callback) callback(filtered);
+      }
+    });
+    
+    listeners.set('restockLogs', unsubscribe);
+    return unsubscribe;
+  }
+
+  // ==============================================================
+  // EXPENSE SYNC - Real-time
+  // ==============================================================
+  
+  async function syncExpense(expense) {
+    await init();
+    if (!realtimeDB) return;
+
+    const expenseRef = realtimeMod.ref(realtimeDB, `expenses/${expense.id}`);
+    
+    try {
+      await realtimeMod.set(expenseRef, {
+        ...expense,
+        syncedAt: Date.now(),
+        deviceId: getDeviceId()
+      });
+      console.log(`✅ Synced expense to cloud`);
+    } catch (error) {
+      console.error("Failed to sync expense:", error);
+    }
+  }
+
+  async function deleteExpenseFromCloud(expenseId) {
+    await init();
+    if (!realtimeDB) return;
+
+    const expenseRef = realtimeMod.ref(realtimeDB, `expenses/${expenseId}`);
+    
+    try {
+      await realtimeMod.remove(expenseRef);
+      console.log(`✅ Deleted expense ${expenseId} from cloud`);
+    } catch (error) {
+      console.error("Failed to delete expense from cloud:", error);
+    }
+  }
+
+  async function subscribeToExpenses(callback) {
+    await init();
+    if (!realtimeDB) return;
+
+    const expensesRef = realtimeMod.ref(realtimeDB, 'expenses');
+    
+    const unsubscribe = realtimeMod.onValue(expensesRef, (snapshot) => {
+      const cloudExpenses = snapshot.val();
+      if (!cloudExpenses) return;
+
+      const cloudExpensesArray = Object.values(cloudExpenses).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      const localExpenses = DB.getExpenses();
+      const localExpensesMap = new Map(localExpenses.map(e => [e.id, e]));
+      
+      let hasChanges = false;
+      const updatedExpenses = [...localExpenses];
+
+      // Check for updates from cloud
+      cloudExpensesArray.forEach(cloudExpense => {
+        const localExpense = localExpensesMap.get(cloudExpense.id);
+        
+        if (!localExpense) {
+          // New expense from cloud
+          updatedExpenses.unshift(cloudExpense);
+          hasChanges = true;
+          console.log('[RealtimeSync] New expense from cloud');
+        }
+      });
+
+      // Check for deletions
+      const cloudExpenseIds = new Set(cloudExpensesArray.map(e => e.id));
+      const filtered = updatedExpenses.filter(e => cloudExpenseIds.has(e.id));
+      if (filtered.length !== updatedExpenses.length) {
+        hasChanges = true;
+        console.log('[RealtimeSync] Expenses deleted from cloud');
+      }
+
+      // Update local DB if there are changes
+      if (hasChanges) {
+        DB.setExpenses(filtered);
+        
+        // Show notification
+        const deviceId = getDeviceId();
+        const hasExternalChanges = cloudExpensesArray.some(e => e.deviceId && e.deviceId !== deviceId);
+        
+        if (hasExternalChanges) {
+          Utils.toast('Expenses updated from another device', 'info', 2000);
+        }
+        
+        // Refresh expenses view if open
+        if (typeof Expenses !== 'undefined' && App.currentView === 'expenses') {
+          Expenses.render();
+        }
+        
+        if (callback) callback(filtered);
+      }
+    });
+    
+    listeners.set('expenses', unsubscribe);
+    return unsubscribe;
+  }
+
   // NEW: Subscribe to all product changes from cloud
   async function subscribeToAllProducts(callback) {
     await init();
@@ -649,6 +845,16 @@ const RealtimeSync = (() => {
     deleteProductFromCloud,
     subscribeToAllProducts,
     
+    // Restock logs
+    syncRestockLog,
+    deleteRestockLogFromCloud,
+    subscribeToRestockLogs,
+    
+    // Expenses
+    syncExpense,
+    deleteExpenseFromCloud,
+    subscribeToExpenses,
+    
     // Device management
     getDeviceId,
     registerDevice,
@@ -669,6 +875,8 @@ if (document.readyState === 'loading') {
       RealtimeSync.registerDevice();
       RealtimeSync.subscribeToShift();
       RealtimeSync.subscribeToAllProducts();
+      RealtimeSync.subscribeToRestockLogs();
+      RealtimeSync.subscribeToExpenses();
       RealtimeSync.setupAutomaticSync();
     });
   });
@@ -677,6 +885,8 @@ if (document.readyState === 'loading') {
     RealtimeSync.registerDevice();
     RealtimeSync.subscribeToShift();
     RealtimeSync.subscribeToAllProducts();
+    RealtimeSync.subscribeToRestockLogs();
+    RealtimeSync.subscribeToExpenses();
     RealtimeSync.setupAutomaticSync();
   });
 }

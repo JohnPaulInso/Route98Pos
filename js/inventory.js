@@ -284,9 +284,12 @@ const Inventory = (() => {
         return;
       }
     }
+    
+    let savedProduct;
     if(product){
       const diff = payload.stock - (product.stock || 0);
       DB.updateProduct(product.id, payload);
+      savedProduct = { ...product, ...payload };
       if(diff !== 0){
         DB.addRestockLog({
           product_id: product.id,
@@ -303,6 +306,7 @@ const Inventory = (() => {
       }
     } else {
       DB.addProduct(payload);
+      savedProduct = payload;
       clearProductDraft();
       if(payload.stock > 0){
         DB.addRestockLog({
@@ -319,6 +323,16 @@ const Inventory = (() => {
     Utils.toast(product ? "Product updated." : "Product added.", "success");
     Modal.close();
     renderTable();
+    
+    // Force immediate sync to cloud (bypasses debounce)
+    console.log('[Inventory] Forcing immediate sync after save');
+    if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+      Sync.pushSnapshot(true).then(() => {
+        console.log('[Inventory] Save synced to cloud successfully');
+      }).catch(err => {
+        console.error('[Inventory] Failed to sync save:', err);
+      });
+    }
   }
 
   // (2026-07-13) Block stock adjustment for cashier; was open to all
@@ -1141,6 +1155,16 @@ const Inventory = (() => {
         DB.deleteProduct(product.id);
         Utils.toast(`"${product.name}" deleted.`, "success");
         renderTable();
+        
+        // Force immediate sync to cloud (bypasses debounce)
+        console.log('[Inventory] Forcing immediate sync after delete');
+        if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+          Sync.pushSnapshot(true).then(() => {
+            console.log('[Inventory] Delete synced to cloud successfully');
+          }).catch(err => {
+            console.error('[Inventory] Failed to sync delete:', err);
+          });
+        }
       }
     });
   }
@@ -1916,6 +1940,30 @@ const Inventory = (() => {
         };
       });
     }
+
+    // Touch-friendly sticky hover for inventory rows
+    let currentTouchedRow = null;
+    getInvElements("[data-prod-row]").forEach(row => {
+      row.addEventListener("touchstart", (e) => {
+        // Remove touch-active from previous row
+        if (currentTouchedRow && currentTouchedRow !== row) {
+          currentTouchedRow.classList.remove("touch-active");
+        }
+        // Add touch-active to current row
+        row.classList.add("touch-active");
+        currentTouchedRow = row;
+      }, { passive: true });
+    });
+    
+    // Remove touch-active when touching outside table
+    document.addEventListener("touchstart", (e) => {
+      if (!e.target.closest("#inv-tbody, #inv-mobile-cards")) {
+        if (currentTouchedRow) {
+          currentTouchedRow.classList.remove("touch-active");
+          currentTouchedRow = null;
+        }
+      }
+    }, { passive: true });
 
     getInvElements("[data-copy-name]").forEach(el => {
       el.onclick = (e) => {

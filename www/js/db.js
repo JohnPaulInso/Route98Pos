@@ -545,6 +545,16 @@ const DB = (() => {
       timestamp: entry.timestamp || entry.ts || now
     };
     logs.unshift(record);
+    setRestockLogs(logs);
+    
+    // Immediate realtime sync
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncRestockLog){
+      RealtimeSync.syncRestockLog(record);
+    }
+    
+    return record;
+    };
+    logs.unshift(record);
     setRestockLogs(logs.slice(0, 1000));
     return record;
   }
@@ -582,9 +592,19 @@ const DB = (() => {
           p.stock = Math.max(0, Utils.round2(p.stock - rollQty));
           p.updatedAt = Date.now();
           setProducts(prods);
+          
+          // Sync updated product
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+            RealtimeSync.syncSingleProduct(p);
+          }
         }
       }
       setRestockLogs(logs.filter(l => l.id !== logId));
+      
+      // Immediate realtime sync
+      if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteRestockLogFromCloud){
+        RealtimeSync.deleteRestockLogFromCloud(logId);
+      }
     }
   }
   // (2026-07-13) Device tag in TXN sequence prevents collisions. Prev: shared max
@@ -690,10 +710,21 @@ const DB = (() => {
     };
     items.unshift(item);
     setExpenses(items);
+    
+    // Immediate realtime sync
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncExpense){
+      RealtimeSync.syncExpense(item);
+    }
+    
     return item;
   }
   function deleteExpense(id){
     setExpenses(getExpenses().filter(x => x.id !== id));
+    
+    // Immediate realtime sync
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteExpenseFromCloud){
+      RealtimeSync.deleteExpenseFromCloud(id);
+    }
   }
 
   const getBookings    = () => read(KEYS.bookings, []);
@@ -806,16 +837,33 @@ const DB = (() => {
   function addProduct(p){
     const products = getProducts();
     const now = Date.now();
-    products.push({ id: Utils.uid("prod"), createdAt: now, updatedAt: now, ...p });
+    const newProduct = { id: Utils.uid("prod"), createdAt: now, updatedAt: now, ...p };
+    products.push(newProduct);
     setProducts(products);
+    
+    // Immediate realtime sync
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+      RealtimeSync.syncSingleProduct(newProduct);
+    }
   }
   function updateProduct(id, patch){
     const products = getProducts().map(p => p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p);
     setProducts(products);
+    
+    // Immediate realtime sync
+    const updatedProduct = products.find(p => p.id === id);
+    if(updatedProduct && typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+      RealtimeSync.syncSingleProduct(updatedProduct);
+    }
   }
   function deleteProduct(id){
     if(id) markProductDeleted(id);
     setProducts(getProducts().filter(p => p.id !== id));
+    
+    // Immediate realtime sync
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteProductFromCloud){
+      RealtimeSync.deleteProductFromCloud(id);
+    }
   }
   // (2026-07-13) Support pack & piece barcodes; was single barcode match
   function findByBarcode(code){

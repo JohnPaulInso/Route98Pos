@@ -353,6 +353,29 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
   table.data tr.low-stock:hover td{ background:var(--warning-tint); filter:brightness(.97); }
 }
 
+/* Touch/Mobile: Sticky hover state for inventory rows */
+@media (hover: none) and (pointer: coarse) {
+  table.data tbody tr.touch-active,
+  table.data tbody tr:active {
+    background: var(--brand-tint) !important;
+    transition: background 0s !important;
+  }
+  table.data tbody tr.touch-active td,
+  table.data tbody tr:active td {
+    background: var(--brand-tint) !important;
+  }
+  table.data tr.out-of-stock.touch-active td,
+  table.data tr.out-of-stock:active td {
+    background: var(--danger-tint) !important;
+    filter: brightness(.97);
+  }
+  table.data tr.low-stock.touch-active td,
+  table.data tr.low-stock:active td {
+    background: var(--warning-tint) !important;
+    filter: brightness(.97);
+  }
+}
+
 /* (2026-07-13) Raise modal z-index to 10000 above dropdowns; was 100 */
 /* (2026-07-13) Smooth modal popup and exit animations; was pop-in without exit */
 .modal-backdrop{
