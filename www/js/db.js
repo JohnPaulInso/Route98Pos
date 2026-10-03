@@ -843,12 +843,48 @@ const DB = (() => {
     }
   }
   function updateProduct(id, patch){
-    const products = getProducts().map(p => p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p);
-    setProducts(products);
+    const products = getProducts();
+    const oldProduct = products.find(p => p.id === id);
+    if(!oldProduct) return;
+    
+    // Check if stock is changing
+    const hasStockChange = patch.stock !== undefined && patch.stock !== oldProduct.stock;
+    const oldStock = oldProduct.stock || 0;
+    const newStock = patch.stock !== undefined ? patch.stock : oldStock;
+    const stockDelta = newStock - oldStock;
+    
+    // Update product
+    const updatedProducts = products.map(p => 
+      p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p
+    );
+    setProducts(updatedProducts);
+    
+    // If stock changed, log it
+    if(hasStockChange && stockDelta !== 0){
+      console.log(`[DB] 📊 Stock changed: ${oldProduct.name} from ${oldStock} to ${newStock} (${stockDelta > 0 ? '+' : ''}${stockDelta})`);
+      
+      const qty = Math.abs(stockDelta);
+      const unitCost = oldProduct.cost || 0;
+      const totalCost = stockDelta > 0 ? qty * unitCost : -(qty * unitCost);
+      
+      addRestockLog({
+        product_id: id,
+        product_name: oldProduct.name,
+        quantity_added: stockDelta,
+        unit_cost: unitCost,
+        total_cost: totalCost,
+        supplier_name: stockDelta > 0 ? (oldProduct.distributor || oldProduct.brand || "Direct Supplier") : "N/A",
+        reason: stockDelta > 0 ? "Stock Updated" : "Stock Reduced",
+        oldStock: oldStock,
+        newStock: newStock,
+        timestamp: Date.now()
+      });
+    }
     
     // Immediate realtime sync
-    const updatedProduct = products.find(p => p.id === id);
+    const updatedProduct = updatedProducts.find(p => p.id === id);
     if(updatedProduct && typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+      console.log('[DB] 🚀 Syncing product update to Firebase...');
       RealtimeSync.syncSingleProduct(updatedProduct);
     }
   }
@@ -873,8 +909,11 @@ const DB = (() => {
     if(!p) return;
     const oldStock = p.stock;
     p.stock = Math.max(0, Utils.round2(p.stock + delta));
+    const newStock = p.stock;
     p.updatedAt = Date.now();
     setProducts(products);
+    
+    console.log(`[DB] 📊 Stock adjusted: ${p.name} from ${oldStock} to ${newStock} (${delta > 0 ? '+' : ''}${delta}) - Reason: ${reason}`);
     
     // (2026-08-26) Log ALL stock changes including negatives to track theft/damage; was positive only
     const log = getStockLog();
@@ -896,9 +935,15 @@ const DB = (() => {
         supplier_name: delta > 0 ? (supplier || p.distributor || p.brand || "Direct Supplier") : "N/A",
         reason: reason,
         oldStock: oldStock,
-        newStock: p.stock,
+        newStock: newStock,
         timestamp: Date.now()
       });
+      
+      // Also sync the updated product
+      if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+        console.log('[DB] 🚀 Syncing stock adjustment to Firebase...');
+        RealtimeSync.syncSingleProduct(p);
+      }
     }
   }
 

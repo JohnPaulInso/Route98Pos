@@ -12,22 +12,36 @@ const RealtimeSync = (() => {
 
   // Initialize Firebase Realtime Database
   async function init() {
-    if (isInitialized) return;
-    
-    // Safety check - ensure DB is loaded
-    if (typeof DB === 'undefined') {
-      console.warn('[RealtimeSync] DB not loaded yet, cannot initialize');
+    if (isInitialized) {
+      console.log('[RealtimeSync] ✅ Already initialized');
       return;
     }
     
+    // Safety check - ensure DB is loaded
+    if (typeof DB === 'undefined') {
+      console.warn('[RealtimeSync] ⚠️ DB not loaded yet, cannot initialize');
+      return;
+    }
+    
+    console.log('[RealtimeSync] 🔄 Initializing Firebase Realtime Database...');
+    
     try {
       const settings = DB.getSettings();
+      
       if (!settings.firebaseConfig) {
-        console.warn("Firebase not configured");
+        console.error('[RealtimeSync] ❌ Firebase not configured in Settings!');
+        console.log('[RealtimeSync] 💡 Go to Settings → Firebase Configuration to set it up');
+        Utils.toast('Firebase not configured! Go to Settings', 'error', 5000);
         return;
       }
+      
+      console.log('[RealtimeSync] 📋 Firebase config found:', {
+        projectId: settings.firebaseConfig.projectId,
+        databaseURL: settings.firebaseConfig.databaseURL
+      });
 
       // Import Realtime Database
+      console.log('[RealtimeSync] 📦 Loading Firebase modules...');
       const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
       realtimeMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
       
@@ -36,15 +50,22 @@ const RealtimeSync = (() => {
       const apps = getApps();
       if (apps.length > 0) {
         app = apps[0];
+        console.log('[RealtimeSync] 📱 Using existing Firebase app');
       } else {
+        console.log('[RealtimeSync] 📱 Creating new Firebase app...');
         app = initializeApp(settings.firebaseConfig);
       }
       
       realtimeDB = realtimeMod.getDatabase(app);
       isInitialized = true;
-      console.log("✅ Realtime Sync initialized");
+      
+      console.log('[RealtimeSync] ✅ Firebase Realtime Database initialized successfully!');
+      console.log('[RealtimeSync] 🌐 Database URL:', settings.firebaseConfig.databaseURL);
+      Utils.toast('Firebase connected successfully!', 'success', 2000);
     } catch (error) {
-      console.error("Failed to initialize Realtime Sync:", error);
+      console.error('[RealtimeSync] ❌ Failed to initialize:', error);
+      console.error('[RealtimeSync] Error details:', error.message);
+      Utils.toast(`Firebase init failed: ${error.message}`, 'error', 5000);
     }
   }
 
@@ -383,12 +404,18 @@ const RealtimeSync = (() => {
 
   // NEW: Real-time single product sync
   async function syncSingleProduct(product) {
+    console.log('[RealtimeSync] 🚀 Starting sync for product:', product.name);
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB) {
+      console.error('[RealtimeSync] ❌ Firebase not initialized! Cannot sync.');
+      Utils.toast('Sync failed: Firebase not configured', 'error', 3000);
+      return;
+    }
 
     const productRef = realtimeMod.ref(realtimeDB, `products/${product.id}`);
     
     try {
+      console.log('[RealtimeSync] 📤 Pushing to Firebase:', product);
       await realtimeMod.set(productRef, {
         id: product.id,
         name: product.name,
@@ -409,24 +436,34 @@ const RealtimeSync = (() => {
         updatedAt: product.updatedAt || Date.now(),
         deviceId: getDeviceId()
       });
-      console.log(`✅ Synced product ${product.name} to cloud`);
+      console.log(`[RealtimeSync] ✅ Synced product "${product.name}" to Firebase!`);
+      Utils.toast(`Synced: ${product.name}`, 'success', 1500);
     } catch (error) {
-      console.error("Failed to sync product:", error);
+      console.error('[RealtimeSync] ❌ Failed to sync product:', error);
+      Utils.toast(`Sync failed: ${error.message}`, 'error', 3000);
     }
   }
 
   // NEW: Real-time product delete
   async function deleteProductFromCloud(productId) {
+    console.log('[RealtimeSync] 🗑️ Starting delete for product:', productId);
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB) {
+      console.error('[RealtimeSync] ❌ Firebase not initialized! Cannot delete.');
+      Utils.toast('Delete sync failed: Firebase not configured', 'error', 3000);
+      return;
+    }
 
     const productRef = realtimeMod.ref(realtimeDB, `products/${productId}`);
     
     try {
+      console.log('[RealtimeSync] 📤 Deleting from Firebase...');
       await realtimeMod.remove(productRef);
-      console.log(`✅ Deleted product ${productId} from cloud`);
+      console.log(`[RealtimeSync] ✅ Deleted product ${productId} from Firebase!`);
+      Utils.toast('Delete synced to cloud', 'success', 1500);
     } catch (error) {
-      console.error("Failed to delete product from cloud:", error);
+      console.error('[RealtimeSync] ❌ Failed to delete product from cloud:', error);
+      Utils.toast(`Delete sync failed: ${error.message}`, 'error', 3000);
     }
   }
 
@@ -435,20 +472,28 @@ const RealtimeSync = (() => {
   // ==============================================================
   
   async function syncRestockLog(log) {
+    console.log('[RealtimeSync] 🚀 Starting sync for restock log:', log);
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB) {
+      console.error('[RealtimeSync] ❌ Firebase not initialized! Cannot sync restock log.');
+      Utils.toast('Restock sync failed: Firebase not configured', 'error', 3000);
+      return;
+    }
 
     const logRef = realtimeMod.ref(realtimeDB, `restockLogs/${log.id}`);
     
     try {
+      console.log('[RealtimeSync] 📤 Pushing restock log to Firebase...');
       await realtimeMod.set(logRef, {
         ...log,
         syncedAt: Date.now(),
         deviceId: getDeviceId()
       });
-      console.log(`✅ Synced restock log to cloud`);
+      console.log(`[RealtimeSync] ✅ Synced restock log to Firebase!`);
+      Utils.toast('Restock log synced', 'success', 1500);
     } catch (error) {
-      console.error("Failed to sync restock log:", error);
+      console.error('[RealtimeSync] ❌ Failed to sync restock log:', error);
+      Utils.toast(`Restock sync failed: ${error.message}`, 'error', 3000);
     }
   }
 
@@ -632,19 +677,57 @@ const RealtimeSync = (() => {
     if (!realtimeDB || typeof DB === 'undefined') return;
 
     const productsRef = realtimeMod.ref(realtimeDB, 'products');
+    const deviceId = getDeviceId();
     
-    const unsubscribe = realtimeMod.onValue(productsRef, (snapshot) => {
-      const cloudProducts = snapshot.val();
-      if (!cloudProducts) return;
-
-      const cloudProductsArray = Object.values(cloudProducts);
+    // Listen for product deletions specifically
+    const onChildRemovedListener = realtimeMod.onChildRemoved(productsRef, (snapshot) => {
+      const deletedProductId = snapshot.key;
+      const deletedProduct = snapshot.val();
+      
+      console.log('[RealtimeSync] Product deleted from cloud:', deletedProduct?.name || deletedProductId);
+      
+      // Remove from local DB
       const localProducts = DB.getProducts();
+      const filtered = localProducts.filter(p => p.id !== deletedProductId);
+      
+      if (filtered.length !== localProducts.length) {
+        // Actually removed something
+        const key = 'mm_products';
+        localStorage.setItem(key, JSON.stringify(filtered));
+        document.dispatchEvent(new CustomEvent('mm:dirty', { 
+          detail: { key, silent: true } 
+        }));
+        
+        // Show notification
+        if (deletedProduct?.deviceId && deletedProduct.deviceId !== deviceId) {
+          Utils.toast('Product deleted on another device', 'info', 2000);
+        }
+        
+        // Refresh inventory view if open
+        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
+          Inventory.render();
+        }
+      }
+    });
+    
+    // Listen for all changes (adds/updates)
+    const onValueListener = realtimeMod.onValue(productsRef, (snapshot) => {
+      const cloudProducts = snapshot.val();
+      const localProducts = DB.getProducts();
+      
+      // If cloud is empty but we have local products, don't delete everything
+      if (!cloudProducts && localProducts.length === 0) {
+        return;
+      }
+      
+      const cloudProductsArray = cloudProducts ? Object.values(cloudProducts) : [];
       const localProductsMap = new Map(localProducts.map(p => [p.id, p]));
       
       let hasChanges = false;
+      let hasExternalChanges = false;
       const updatedProducts = [...localProducts];
 
-      // Check for updates from cloud
+      // Check for new/updated products from cloud
       cloudProductsArray.forEach(cloudProduct => {
         const localProduct = localProductsMap.get(cloudProduct.id);
         
@@ -652,6 +735,9 @@ const RealtimeSync = (() => {
           // New product from cloud
           updatedProducts.push(cloudProduct);
           hasChanges = true;
+          if (cloudProduct.deviceId && cloudProduct.deviceId !== deviceId) {
+            hasExternalChanges = true;
+          }
           console.log('[RealtimeSync] New product from cloud:', cloudProduct.name);
         } else if (cloudProduct.updatedAt > (localProduct.updatedAt || 0)) {
           // Product updated from cloud
@@ -659,27 +745,23 @@ const RealtimeSync = (() => {
           if (index !== -1) {
             updatedProducts[index] = cloudProduct;
             hasChanges = true;
+            if (cloudProduct.deviceId && cloudProduct.deviceId !== deviceId) {
+              hasExternalChanges = true;
+            }
             console.log('[RealtimeSync] Product updated from cloud:', cloudProduct.name);
           }
         }
       });
 
-      // Check for deletions (products in local but not in cloud)
-      const cloudProductIds = new Set(cloudProductsArray.map(p => p.id));
-      const filtered = updatedProducts.filter(p => cloudProductIds.has(p.id));
-      if (filtered.length !== updatedProducts.length) {
-        hasChanges = true;
-        console.log('[RealtimeSync] Products deleted from cloud');
-      }
-
       // Update local DB if there are changes
       if (hasChanges) {
-        DB.setProducts(filtered);
+        const key = 'mm_products';
+        localStorage.setItem(key, JSON.stringify(updatedProducts));
+        document.dispatchEvent(new CustomEvent('mm:dirty', { 
+          detail: { key, silent: true } 
+        }));
         
-        // Show notification
-        const deviceId = getDeviceId();
-        const hasExternalChanges = cloudProductsArray.some(p => p.deviceId && p.deviceId !== deviceId);
-        
+        // Show notification only for external changes
         if (hasExternalChanges) {
           Utils.toast('Inventory updated from another device', 'info', 2000);
         }
@@ -689,12 +771,20 @@ const RealtimeSync = (() => {
           Inventory.render();
         }
         
-        if (callback) callback(filtered);
+        if (callback) callback(updatedProducts);
       }
     });
     
-    listeners.set('products', unsubscribe);
-    return unsubscribe;
+    // Store both listeners
+    listeners.set('products', () => {
+      onChildRemovedListener();
+      onValueListener();
+    });
+    
+    return () => {
+      onChildRemovedListener();
+      onValueListener();
+    };
   }
 
   // ==============================================================
@@ -826,6 +916,85 @@ const RealtimeSync = (() => {
   }
   
   // ==============================================================
+  // DIAGNOSTIC & DEBUG FUNCTIONS
+  // ==============================================================
+  
+  function getSyncStatus() {
+    const status = {
+      initialized: isInitialized,
+      firebaseConfigured: typeof DB !== 'undefined' && !!DB.getSettings().firebaseConfig,
+      realtimeDBReady: !!realtimeDB,
+      activeListeners: listeners.size,
+      deviceId: getDeviceId()
+    };
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 REALTIME SYNC STATUS');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✓ Initialized:', status.initialized ? '✅ YES' : '❌ NO');
+    console.log('✓ Firebase Config:', status.firebaseConfigured ? '✅ YES' : '❌ NO');
+    console.log('✓ Realtime DB Ready:', status.realtimeDBReady ? '✅ YES' : '❌ NO');
+    console.log('✓ Active Listeners:', status.activeListeners);
+    console.log('✓ Device ID:', status.deviceId);
+    
+    if (status.firebaseConfigured && typeof DB !== 'undefined') {
+      const config = DB.getSettings().firebaseConfig;
+      console.log('✓ Database URL:', config.databaseURL || '❌ MISSING');
+      console.log('✓ Project ID:', config.projectId || '❌ MISSING');
+    }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    if (!status.initialized) {
+      console.warn('⚠️ NOT INITIALIZED - Run: RealtimeSync.init()');
+    }
+    if (!status.firebaseConfigured) {
+      console.error('❌ FIREBASE NOT CONFIGURED - Go to Settings → Firebase Configuration');
+    }
+    if (!status.realtimeDBReady) {
+      console.error('❌ REALTIME DB NOT READY - Check Firebase config');
+    }
+    if (status.activeListeners === 0) {
+      console.warn('⚠️ NO ACTIVE LISTENERS - Run: RealtimeSync.subscribeToAllProducts()');
+    }
+    
+    return status;
+  }
+  
+  async function testSync() {
+    console.log('[RealtimeSync] 🧪 Running sync test...');
+    
+    const status = getSyncStatus();
+    
+    if (!status.realtimeDBReady) {
+      console.error('[RealtimeSync] ❌ Cannot test - Firebase not ready');
+      return;
+    }
+    
+    // Test write
+    try {
+      const testRef = realtimeMod.ref(realtimeDB, `test/sync_test_${Date.now()}`);
+      await realtimeMod.set(testRef, {
+        timestamp: Date.now(),
+        message: 'Test sync',
+        deviceId: getDeviceId()
+      });
+      console.log('[RealtimeSync] ✅ Write test PASSED');
+      
+      // Clean up
+      await realtimeMod.remove(testRef);
+      console.log('[RealtimeSync] ✅ Delete test PASSED');
+      
+      Utils.toast('Sync test PASSED! ✅', 'success', 3000);
+      return true;
+    } catch (error) {
+      console.error('[RealtimeSync] ❌ Sync test FAILED:', error);
+      Utils.toast(`Sync test FAILED: ${error.message}`, 'error', 5000);
+      return false;
+    }
+  }
+  
+  // ==============================================================
   // PUBLIC API
   // ==============================================================
   
@@ -865,6 +1034,10 @@ const RealtimeSync = (() => {
     getDeviceId,
     registerDevice,
     getActiveDevices,
+    
+    // Diagnostic
+    getSyncStatus,
+    testSync,
     
     // Cleanup
     unsubscribeAll,
