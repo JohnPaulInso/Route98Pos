@@ -211,9 +211,12 @@ const Shift = (() => {
           
           // Push opened shift to cloud snapshot
           if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
-          RealtimeSync.openShift(shiftRecord).catch(err => {
-            console.warn("Background sync failed:", err);
-          });
+          // (2026-07-13) Guard RealtimeSync.openShift safely; was bare call
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.openShift){
+            RealtimeSync.openShift(shiftRecord).catch(err => {
+              console.warn("Background sync failed:", err);
+            });
+          }
         }}
       ]
     });
@@ -272,7 +275,10 @@ const Shift = (() => {
           
           // Update both local and cloud
           DB.setShift(active);
-          RealtimeSync.openShift(active); // Sync the updated shift state
+          // (2026-07-13) Guard RealtimeSync on pay in/out; was bare call
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.openShift){
+            RealtimeSync.openShift(active);
+          }
           
           Utils.openCashDrawer();
           Utils.toast(`Recorded ${isPayIn ? 'Pay In' : 'Pay Out'} of ${Utils.money(amt)}.`, "success");
@@ -397,10 +403,12 @@ const Shift = (() => {
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
           
-          // Sync to cloud in background (non-blocking)
-          RealtimeSync.closeShift(logRecord).catch(err => {
-            console.warn("Background sync failed:", err);
-          });
+          // (2026-07-13) Guard RealtimeSync.closeShift safely; was bare call
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.closeShift){
+            RealtimeSync.closeShift(logRecord).catch(err => {
+              console.warn("Background sync failed:", err);
+            });
+          }
         }}
       ]
     });

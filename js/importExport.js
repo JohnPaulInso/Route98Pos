@@ -272,7 +272,8 @@ const ImportExport = (() => {
     const rows = [];
     sales.forEach(s => {
       const d = new Date(s.ts || Date.now());
-      const dateStr = d.toISOString().slice(0, 10);
+      // (2026-07-13) Use local date formatting; was toISOString previous-day split
+      const dateStr = d.toLocaleDateString("en-CA");
       const timeStr = d.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       const items = Array.isArray(s.items) && s.items.length ? s.items : [{ name: "Custom Sale", qty: 1, price: s.total || 0, category: "MISC" }];
       items.forEach((item, idx) => {

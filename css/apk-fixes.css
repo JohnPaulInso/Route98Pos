@@ -1,0 +1,264 @@
+/* ============================================================
+ * APK Fixes - Critical fixes for Capacitor Android APK
+ * ============================================================ */
+
+/* (2026-10-02) Ensure modals are always visible and clickable in APK */
+.modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5) !important;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto !important;
+}
+
+.modal {
+  position: relative !important;
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  transform: none !important;
+  background: var(--paper, #ffffff) !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-body {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+/* (2026-10-02) Fix buttons not responding in APK */
+button,
+.btn,
+.icon-btn,
+.nav-btn,
+.bn-btn {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto !important;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button:disabled,
+.btn:disabled {
+  pointer-events: none !important;
+  opacity: 0.5;
+}
+
+/* (2026-10-02) Visual feedback for touch */
+button:active,
+.btn:active,
+.icon-btn:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* (2026-10-02) Fix inputs not focusing in APK */
+input,
+textarea,
+select {
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+  touch-action: auto !important;
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Fix dropdowns in APK */
+.ui-select-list {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
+
+/* (2026-10-02) Prevent accidental text selection on buttons */
+button *,
+.btn *,
+.nav-btn *,
+.bn-btn * {
+  pointer-events: none;
+}
+
+/* (2026-10-02) Fix scanner overlay in APK */
+#scanner-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Fix cart drawer in mobile APK */
+.pos-cart {
+  pointer-events: auto !important;
+  touch-action: pan-y !important;
+}
+
+.cart-items {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* (2026-10-02) Fix product grid touch in APK */
+.product-grid {
+  touch-action: auto !important;
+  pointer-events: auto !important;
+}
+
+.prod-card {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.prod-card:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+/* (2026-10-02) Fix category chips scrolling in APK */
+.category-chips {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.chip {
+  touch-action: manipulation !important;
+  flex-shrink: 0;
+}
+
+/* (2026-10-02) Prevent zoom on input focus */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="password"],
+  input[type="email"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* (2026-07-13) Move toast-stack bottom-right & in-flow; was fixed on .toast */
+#toast-stack {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 20px !important;
+  left: auto !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+}
+.toast {
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Ensure scrollable areas work in APK */
+.view-body,
+.pos-catalog,
+.cart-items,
+.modal-body,
+.report-body {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* (2026-10-02) Fix sidebar navigation in APK */
+.sidebar {
+  pointer-events: auto !important;
+  touch-action: pan-y !important;
+}
+
+.nav-btn,
+.bn-btn {
+  touch-action: manipulation !important;
+}
+
+/* (2026-10-02) Fix bottom nav in APK */
+.bottom-nav {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* (2026-10-02) Fix topbar buttons in APK */
+.topbar {
+  pointer-events: auto !important;
+}
+
+.topbar button {
+  touch-action: manipulation !important;
+}
+
+/* (2026-10-02) Fix held transactions button */
+.pos-held-btn,
+.pos-scan-btn {
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Fix charge button and cart actions */
+.cart-foot {
+  pointer-events: auto !important;
+}
+
+.cart-foot button {
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Fix mobile cart toggle */
+.mobile-cart-toggle-btn,
+.mobile-cart-checkout-btn {
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Prevent unwanted scroll behavior */
+body.scroll-locked {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* (2026-10-02) Fix form inputs in modals */
+.modal input,
+.modal textarea,
+.modal select,
+.modal button {
+  pointer-events: auto !important;
+}
+
+/* (2026-10-02) Critical: Ensure modal X button works */
+.modal-head button#modal-x {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  z-index: 1;
+}
+
+/* (2026-10-02) Fix action buttons in modals */
+.modal-foot button {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* (2026-10-02) Prevent double-tap zoom */
+* {
+  touch-action: manipulation;
+}
+
+input,
+textarea,
+select,
+[contenteditable] {
+  touch-action: auto;
+}

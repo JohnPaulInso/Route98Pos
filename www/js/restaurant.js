@@ -14,8 +14,9 @@ const Restaurant = (() => {
   let dragEndH = null;
   let dragTable = "";
 
+  // (2026-07-13) Use local date formatting; was toISOString previous-day split
   function getTodayStr(){
-    return new Date().toISOString().split("T")[0];
+    return new Date().toLocaleDateString("en-CA");
   }
 
   function fmtPHTDate(d){

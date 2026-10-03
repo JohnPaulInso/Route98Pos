@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Route 98 - Test Automatic Sync</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 { color: #2563EB; margin-top: 0; }
+    .status {
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .status-success { background: #D1FAE5; color: #065F46; border-left: 4px solid #10B981; }
+    .status-error { background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
+    .status-info { background: #DBEAFE; color: #1E40AF; border-left: 4px solid #2563EB; }
+    button {
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover { background: #1D4ED8; }
+    .metric {
+      display: inline-block;
+      padding: 12px 20px;
+      margin: 8px;
+      background: #F3F4F6;
+      border-radius: 8px;
+      border: 2px solid #E5E7EB;
+    }
+    .metric-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #2563EB;
+      display: block;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: #6B7280;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    pre {
+      background: #1F2937;
+      color: #10B981;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔄 Test Automatic Sync</h1>
+    <p>Monitor real-time sync activity between devices</p>
+    
+    <div id="auto-pull-status" class="status status-info">
+      ⏳ Checking auto-sync status...
+    </div>
+
+    <div style="text-align: center; margin: 20px 0;">
+      <div class="metric">
+        <span class="metric-value" id="last-sync">--</span>
+        <span class="metric-label">Last Synced</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value" id="pull-count">0</span>
+        <span class="metric-label">Auto-Pulls</span>
+      </div>
+      <div class="metric">
+        <span class="metric-value" id="sync-status">--</span>
+        <span class="metric-label">Status</span>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <button onclick="testAutoPull()">🧪 Test Auto-Pull</button>
+      <button onclick="checkStatus()">📊 Check Status</button>
+      <button onclick="simulateChanges()">✨ Simulate Changes</button>
+    </div>
+  </div>
+
+  <div id="log-container"></div>
+
+  <script>
+    let pullCount = 0;
+    let logs = [];
+
+    function addLog(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      logs.unshift({ time: timestamp, message, type });
+      if (logs.length > 20) logs.pop();
+      updateLogDisplay();
+    }
+
+    function updateLogDisplay() {
+      const container = document.getElementById('log-container');
+      container.innerHTML = `
+        <div class="card">
+          <h2>📜 Sync Activity Log</h2>
+          <pre>${logs.map(l => `[${l.time}] ${l.message}`).join('\n')}</pre>
+        </div>
+      `;
+    }
+
+    async function testAutoPull() {
+      if (typeof Sync === 'undefined') {
+        document.getElementById('auto-pull-status').innerHTML = 
+          '❌ Not connected to Route 98 app. Open this from the app.';
+        document.getElementById('auto-pull-status').className = 'status status-error';
+        return;
+      }
+
+      addLog('🧪 Testing auto-pull functionality...', 'info');
+      
+      try {
+        // Check if auto-pull is configured
+        const settings = DB.getSettings();
+        if (!settings.autoSync) {
+          addLog('⚠️ Auto-sync is disabled! Enabling now...', 'warn');
+          settings.autoSync = true;
+          DB.setSettings(settings);
+        }
+
+        // Test pull
+        addLog('⬇️ Running test pull from Firestore...', 'info');
+        await Sync.pullSnapshot();
+        pullCount++;
+        document.getElementById('pull-count').textContent = pullCount;
+        
+        addLog('✅ Test pull successful!', 'success');
+        document.getElementById('auto-pull-status').innerHTML = 
+          '✅ Auto-pull is working! It runs automatically every 10 seconds.';
+        document.getElementById('auto-pull-status').className = 'status status-success';
+        
+        checkStatus();
+      } catch (error) {
+        addLog('❌ Pull failed: ' + error.message, 'error');
+        document.getElementById('auto-pull-status').innerHTML = 
+          '❌ Auto-pull failed. Check console for errors.';
+        document.getElementById('auto-pull-status').className = 'status status-error';
+      }
+    }
+
+    function checkStatus() {
+      if (typeof DB === 'undefined') return;
+
+      const settings = DB.getSettings();
+      const meta = DB.getSyncMeta();
+      
+      // Update metrics
+      if (meta.lastSynced) {
+        const ago = Math.round((Date.now() - meta.lastSynced) / 1000);
+        document.getElementById('last-sync').textContent = 
+          ago < 60 ? `${ago}s ago` : `${Math.round(ago/60)}m ago`;
+      } else {
+        document.getElementById('last-sync').textContent = 'Never';
+      }
+      
+      document.getElementById('sync-status').textContent = meta.status || 'Idle';
+      
+      addLog(`📊 Status: ${meta.status || 'idle'} | Last sync: ${meta.lastSynced ? new Date(meta.lastSynced).toLocaleTimeString() : 'never'}`, 'info');
+      
+      // Check auto-sync setting
+      if (!settings.autoSync) {
+        addLog('⚠️ WARNING: Auto-sync is disabled in settings!', 'warn');
+        document.getElementById('auto-pull-status').innerHTML = 
+          '⚠️ Auto-sync is DISABLED. Click "Simulate Changes" to enable it.';
+        document.getElementById('auto-pull-status').className = 'status status-error';
+      } else {
+        document.getElementById('auto-pull-status').innerHTML = 
+          '✅ Auto-sync is ENABLED. Changes sync automatically every 10 seconds.';
+        document.getElementById('auto-pull-status').className = 'status status-success';
+      }
+    }
+
+    async function simulateChanges() {
+      if (typeof Sync === 'undefined' || typeof DB === 'undefined') {
+        alert('Not connected to Route 98 app!');
+        return;
+      }
+
+      addLog('✨ Simulating changes and triggering sync...', 'info');
+      
+      try {
+        // Enable auto-sync
+        const settings = DB.getSettings();
+        settings.autoSync = true;
+        DB.setSettings(settings);
+        addLog('✅ Auto-sync enabled', 'success');
+        
+        // Push current data
+        addLog('⬆️ Pushing data to Firestore...', 'info');
+        await Sync.pushSnapshot(true);
+        addLog('✅ Push complete!', 'success');
+        
+        // Start auto-pull
+        addLog('🔄 Starting auto-pull (every 10 seconds)...', 'info');
+        Sync.stopAutoPull();
+        Sync.startAutoPull();
+        addLog('✅ Auto-pull active!', 'success');
+        
+        // Update UI
+        Sync.paintStatus();
+        checkStatus();
+        
+        addLog('🎉 Automatic sync is now fully enabled!', 'success');
+        
+        document.getElementById('auto-pull-status').innerHTML = 
+          '✅ Automatic sync ENABLED! All changes will sync within 10 seconds.';
+        document.getElementById('auto-pull-status').className = 'status status-success';
+      } catch (error) {
+        addLog('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // Auto-monitor every 5 seconds
+    setInterval(() => {
+      if (typeof DB !== 'undefined') {
+        checkStatus();
+      }
+    }, 5000);
+
+    // Initial check
+    window.onload = () => {
+      if (typeof Sync !== 'undefined' && typeof DB !== 'undefined') {
+        addLog('✅ Connected to Route 98 app', 'success');
+        checkStatus();
+      } else {
+        addLog('⚠️ Not connected to Route 98 app. Open this while app is running.', 'warn');
+        document.getElementById('auto-pull-status').innerHTML = 
+          '⚠️ Not connected to Route 98 app. Open app first, then refresh this page.';
+        document.getElementById('auto-pull-status').className = 'status status-error';
+      }
+    };
+  </script>
+</body>
+</html>

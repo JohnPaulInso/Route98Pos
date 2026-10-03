@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Test APK Fixes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-card {
+      background: white;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    button:active {
+      opacity: 0.7;
+      transform: scale(0.98);
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .status-success { background: #D1FAE5; color: #065F46; }
+    .status-error { background: #FEE2E2; color: #991B1B; }
+    .status-info { background: #DBEAFE; color: #1E40AF; }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-card">
+    <h1>🧪 APK Touch & Modal Test</h1>
+    <p>Test if buttons and modals work properly</p>
+  </div>
+
+  <div class="test-card">
+    <h2>Test 1: Button Click</h2>
+    <button onclick="testButton()">Click Me!</button>
+    <div id="button-result"></div>
+  </div>
+
+  <div class="test-card">
+    <h2>Test 2: Modal</h2>
+    <button onclick="testModal()">Open Modal</button>
+    <div id="modal-result"></div>
+  </div>
+
+  <div class="test-card">
+    <h2>Test 3: Input Focus</h2>
+    <input type="text" placeholder="Tap here to type" id="test-input" oninput="testInput(this)">
+    <div id="input-result"></div>
+  </div>
+
+  <div class="test-card">
+    <h2>Test 4: Touch Fix Status</h2>
+    <button onclick="checkTouchFix()">Check Status</button>
+    <div id="touchfix-result"></div>
+  </div>
+
+  <script>
+    let clickCount = 0;
+
+    function testButton() {
+      clickCount++;
+      document.getElementById('button-result').innerHTML = 
+        `<div class="status status-success">✅ Button clicked ${clickCount} time(s)!</div>`;
+    }
+
+    function testModal() {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+      modal.innerHTML = `
+        <div style="background:white;padding:30px;border-radius:12px;max-width:400px;width:90%;">
+          <h2>✅ Modal Works!</h2>
+          <p>If you can see this and click the button below, modals are working.</p>
+          <button onclick="this.closest('[style*=fixed]').remove()">Close Modal</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      document.getElementById('modal-result').innerHTML = 
+        `<div class="status status-success">✅ Modal opened! Try closing it.</div>`;
+    }
+
+    function testInput(input) {
+      if (input.value.length > 0) {
+        document.getElementById('input-result').innerHTML = 
+          `<div class="status status-success">✅ Input works! You typed: "${input.value}"</div>`;
+      }
+    }
+
+    function checkTouchFix() {
+      const results = [];
+      
+      // Check if MobileTouchFix is loaded
+      if (typeof MobileTouchFix !== 'undefined') {
+        results.push('✅ MobileTouchFix loaded');
+        results.push(`✅ Capacitor detected: ${MobileTouchFix.isCapacitor()}`);
+        results.push(`✅ Mobile detected: ${MobileTouchFix.isMobile()}`);
+      } else {
+        results.push('❌ MobileTouchFix NOT loaded!');
+      }
+      
+      // Check if Capacitor is available
+      if (window.Capacitor) {
+        results.push('✅ Capacitor available');
+        results.push(`✅ Platform: ${window.Capacitor.getPlatform()}`);
+        results.push(`✅ Native: ${window.Capacitor.isNativePlatform()}`);
+      } else {
+        results.push('⚠️ Capacitor not detected (normal in browser)');
+      }
+      
+      // Check CSS
+      const testBtn = document.createElement('button');
+      testBtn.style.display = 'none';
+      document.body.appendChild(testBtn);
+      const touchAction = window.getComputedStyle(testBtn).touchAction;
+      testBtn.remove();
+      
+      if (touchAction === 'manipulation') {
+        results.push('✅ APK CSS fixes applied');
+      } else {
+        results.push(`⚠️ Touch action: ${touchAction}`);
+      }
+      
+      document.getElementById('touchfix-result').innerHTML = 
+        `<div class="status status-info">${results.join('<br>')}</div>`;
+    }
+
+    // Auto-check on load
+    window.onload = () => {
+      checkTouchFix();
+      
+      // Show environment info
+      const info = document.createElement('div');
+      info.className = 'test-card';
+      info.innerHTML = `
+        <h2>📱 Environment Info</h2>
+        <div class="status status-info">
+          <strong>User Agent:</strong><br>${navigator.userAgent}<br><br>
+          <strong>Screen:</strong> ${window.innerWidth}x${window.innerHeight}<br>
+          <strong>Pixel Ratio:</strong> ${window.devicePixelRatio}<br>
+          <strong>Touch Support:</strong> ${'ontouchstart' in window ? 'Yes' : 'No'}
+        </div>
+      `;
+      document.body.appendChild(info);
+    };
+  </script>
+</body>
+</html>

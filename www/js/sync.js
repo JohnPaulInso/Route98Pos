@@ -79,8 +79,9 @@ const Sync = (() => {
 
       if(localItem && remoteItem){
         if(!baseItem){
-          const localTs = localItem[tsKey] || localItem.ts || localItem.openedAt || localItem.createdAt || 0;
-          const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.openedAt || remoteItem.createdAt || 0;
+          // (2026-07-13) Support updatedAt & timestamp in 3-way merge; was ts only
+          const localTs = localItem[tsKey] || localItem.ts || localItem.updatedAt || localItem.timestamp || localItem.openedAt || localItem.createdAt || 0;
+          const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.updatedAt || remoteItem.timestamp || remoteItem.openedAt || remoteItem.createdAt || 0;
           merged.push(remoteTs > localTs ? remoteItem : localItem);
         } else {
           const localChanged = JSON.stringify(localItem) !== JSON.stringify(baseItem);
@@ -89,8 +90,8 @@ const Sync = (() => {
           else if(localChanged && !remoteChanged) merged.push(localItem);
           else if(!localChanged && remoteChanged) merged.push(remoteItem);
           else {
-            const localTs = localItem[tsKey] || localItem.ts || localItem.openedAt || localItem.createdAt || 0;
-            const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.openedAt || remoteItem.createdAt || 0;
+            const localTs = localItem[tsKey] || localItem.ts || localItem.updatedAt || localItem.timestamp || localItem.openedAt || localItem.createdAt || 0;
+            const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.updatedAt || remoteItem.timestamp || remoteItem.openedAt || remoteItem.createdAt || 0;
             merged.push(remoteTs > localTs ? remoteItem : localItem);
           }
         }
@@ -116,6 +117,7 @@ const Sync = (() => {
     return merged;
   }
 
+  // (2026-07-13) Multi-collection 3-way merge for all store tables. Prev: partial
   function threeWayMerge(baseline, local, remote){
     if(!remote) return local;
     if(!local) return remote;
@@ -130,10 +132,48 @@ const Sync = (() => {
     merged.expenses = mergeArray3Way(base.expenses, local.expenses, remote.expenses, "id", "ts");
     // (2026-07-13) Keep void logs sorted descending in merge; was unsorted
     merged.voidLogs = mergeArray3Way(base.voidLogs, local.voidLogs, remote.voidLogs, "id", "ts").sort((a,b)=>(b.ts||0)-(a.ts||0));
-    merged.users = mergeArray3Way(base.users, local.users, remote.users, "id", "id");
+    merged.users = mergeArray3Way(base.users, local.users, remote.users, "id", "updatedAt");
+    merged.fuelDeliveries = mergeArray3Way(base.fuelDeliveries, local.fuelDeliveries, remote.fuelDeliveries, "id", "ts");
+    merged.venueLeads = mergeArray3Way(base.venueLeads, local.venueLeads, remote.venueLeads, "id", "ts");
+    merged.bookings = mergeArray3Way(base.bookings, local.bookings, remote.bookings, "id", "ts");
+    merged.restaurantBookings = mergeArray3Way(base.restaurantBookings, local.restaurantBookings, remote.restaurantBookings, "id", "ts");
+    merged.restockLogs = mergeArray3Way(base.restockLogs, local.restockLogs, remote.restockLogs, "id", "ts");
+    merged.physicalAudits = mergeArray3Way(base.physicalAudits, local.physicalAudits, remote.physicalAudits, "id", "ts");
+    merged.customItems = mergeArray3Way(base.customItems, local.customItems, remote.customItems, "name", "updatedAt");
+    merged.heldSales = mergeArray3Way(base.heldSales, local.heldSales, remote.heldSales, "id", "ts");
+    // (2026-07-13) Merge deletedProductIds & deletedSaleIds tombstones; was sales only
+    merged.deletedSaleIds = Array.from(new Set([...(base.deletedSaleIds || []), ...(local.deletedSaleIds || []), ...(remote.deletedSaleIds || [])]));
+    merged.deletedProductIds = Array.from(new Set([...(base.deletedProductIds || []), ...(local.deletedProductIds || []), ...(remote.deletedProductIds || [])]));
+    const delProdSet = new Set(merged.deletedProductIds);
+    merged.products = (merged.products || []).filter(p => !delProdSet.has(p.id));
 
     const catSet = new Set([...(remote.categories || []), ...(local.categories || [])]);
     merged.categories = Array.from(catSet);
+
+    const cashierSet = new Set([...(remote.cashiers || []), ...(local.cashiers || [])]);
+    merged.cashiers = Array.from(cashierSet);
+
+    if(remote.fuelConfig && local.fuelConfig){
+      const curCfg = local.fuelConfig;
+      const remoteCfg = remote.fuelConfig;
+      const mergedCfg = { ...remoteCfg, ...curCfg };
+      mergedCfg.fuels = { ...(curCfg.fuels || {}) };
+      if(remoteCfg.fuels){
+          Object.keys(remoteCfg.fuels).forEach(ft => {
+            const curF = mergedCfg.fuels[ft] || {};
+            const remF = remoteCfg.fuels[ft] || {};
+            // (2026-07-13) Merge fuel tank levels by recency; was Math.min erasing deliveries
+            const remUpdated = remF.updatedAt || 0;
+            const curUpdated = curF.updatedAt || 0;
+            mergedCfg.fuels[ft] = {
+              ...curF,
+              ...remF,
+              tank: remUpdated > curUpdated ? (remF.tank ?? curF.tank) : (curF.tank ?? remF.tank)
+            };
+          });
+        }
+        merged.fuelConfig = mergedCfg;
+      }
 
     const localShift = local.shift;
     const remoteShift = remote.shift;
@@ -145,7 +185,11 @@ const Sync = (() => {
       merged.shift = remoteShift || localShift || null;
     }
 
-    merged.dayBalances = { ...(remote.dayBalances || {}), ...(local.dayBalances || {}) };
+    const dayKeys = new Set([...Object.keys(remote.dayBalances || {}), ...Object.keys(local.dayBalances || {})]);
+    merged.dayBalances = {};
+    dayKeys.forEach(k => {
+      merged.dayBalances[k] = { ...(remote.dayBalances?.[k] || {}), ...(local.dayBalances?.[k] || {}) };
+    });
     merged.exportedAt = Math.max(remote.exportedAt || 0, local.exportedAt || 0, Date.now());
     return merged;
   }
@@ -190,9 +234,11 @@ const Sync = (() => {
       // (2026-07-13) Prioritize newest sales in cloud sync; was unsorted slice
       const syncSales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 1000);
 
+      // (2026-07-13) Include deletedSaleIds in cloud snapshot; was sales only
       const cloudSnap = {
         ...finalSnap,
         sales: syncSales,
+        deletedSaleIds: Array.from(DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : []),
         isPartialSalesSync: true,
         exportedAt: Date.now()
       };
@@ -423,8 +469,10 @@ const Sync = (() => {
       data: snap
     };
 
-    // Save locally
-    DB.saveBackup(record);
+    // (2026-07-13) Store metadata summary locally to prevent quota overflow; was raw data
+    const localRecord = { ...record };
+    delete localRecord.data;
+    DB.saveBackup(localRecord);
 
     // (2026-07-13) Safe payload for Firestore 1MB limit and cloud sync; was raw
     try{
@@ -620,10 +668,10 @@ const Sync = (() => {
   }
 
   function init(){
-    // (2026-07-13) Skip auto-sync during sync, silent writes, & internal keys; was infinite loop
+    // (2026-07-13) Auto-sync on shift & deletedSaleIds dirty; was ignored
     document.addEventListener("mm:dirty", (e) => {
       if(isSyncing || e.detail?.silent) return;
-      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.syncBaseline || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart || e.detail?.key === DB.KEYS.deletedSaleIds || e.detail?.key === DB.KEYS.shift) return;
+      if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.syncBaseline || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart) return;
       scheduleAutoSync();
     });
     // (2026-07-13) Pull cloud first then push offline updates; was push first
@@ -638,11 +686,15 @@ const Sync = (() => {
       }
       paintStatus();
     });
-    window.addEventListener("offline", paintStatus);
+    window.addEventListener("offline", () => {
+      paintStatus();
+    });
     paintStatus();
     schedule1159Timer();
     checkDailyBackup();
     setInterval(checkDailyBackup, 30 * 60 * 1000);
+    
+    // (2026-10-02) Use ONLY realtime listener (efficient) instead of polling
     startRealtimeListener();
 
     // (2026-07-13) Auto-pull cloud snapshot on launch; was skipped if local exists

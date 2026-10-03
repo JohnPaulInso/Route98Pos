@@ -566,24 +566,17 @@ const POS = (() => {
             const inputs = modal.querySelectorAll(".physical-count-input");
             let hasDiscrepancy = false;
             
+            // (2026-07-13) Adjust stock via DB.adjustStock; was double stock overwrite
             inputs.forEach((input, idx) => {
               const physicalCount = Number(input.value) || 0;
               const item = verificationData[idx];
               const diff = physicalCount - item.systemStock;
-              
               if(diff !== 0){
                 hasDiscrepancy = true;
-                const product = products.find(p => p.id === item.productId);
-                if(product){
-                  product.stock = physicalCount;
-                  // Log as stock count correction
-                  DB.adjustStock(product.id, diff, "Physical stock count correction", "");
-                }
+                DB.adjustStock(item.productId, diff, "Physical stock count correction", "");
               }
             });
-            
             if(hasDiscrepancy){
-              DB.setProducts(products);
               Utils.toast("Physical stock counts updated in system.", "success");
             }
             
@@ -811,8 +804,9 @@ const POS = (() => {
       }
       if(p){
         const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? line.qty * p.piecesPerPack : line.qty;
-        // (2026-07-13) Record negative stock on sale; was Math.max(0, remaining)
+        // (2026-07-13) Set updatedAt on stock deduction for multi-device sync. Prev: no ts
         p.stock = Utils.round2(p.stock - pieces);
+        p.updatedAt = Date.now();
       }
     });
     DB.setProducts(products);
@@ -822,17 +816,18 @@ const POS = (() => {
     
     const sale = {
       id: txnId,
-      receiptNo: txnId.replace('TXN-', ''),
+      receiptNo: txnId.replace(/^TXN-/i, ''),
       ts: Date.now(),
       items: cart.map(l=>({...l})),
       subtotal:t.subtotal, discountType:discount.type, discountValue:discount.value, discountAmt:t.discountAmt, vat:t.vat, total:t.grand,
       method, refCode, tendered, change: Utils.round2(tendered - t.grand),
       // (2026-07-13) Support all staff as cashier in sale; was cashier role only
-      cashier: modal.querySelector("#checkout-cashier-select")?.value || localStorage.getItem("pos_cashier") || ((DB.getUsers ? DB.getUsers()[0]?.name : null) || "Rosella")
+      // (2026-07-13) Prioritize active user for cashier; was stale localStorage
+      cashier: modal.querySelector("#checkout-cashier-select")?.value || (Auth.currentUser()?.name) || localStorage.getItem("pos_cashier") || "Rosella"
     };
     const sales = DB.getSales(); sales.unshift(sale); DB.setSales(sales);
-    // (2026-07-13) Queue sale for offline syncing; was local sales only
-    if(DB.queueOfflineTransaction) DB.queueOfflineTransaction(sale);
+    // (2026-07-13) Queue offline transaction only when offline; was all sales
+    if(!navigator.onLine && DB.queueOfflineTransaction) DB.queueOfflineTransaction(sale);
     if(activeHeldId){
       DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== activeHeldId));
       activeHeldId = null;
@@ -912,8 +907,11 @@ const POS = (() => {
       onHit: (code) => {
         const product = DB.findByBarcode(code);
         if(!product) return { ok:false, label:"Unknown code" };
-        const ok = addToCart(product);
-        return { ok, label: ok ? product.name : `${product.name} (max reached)` };
+        // (2026-07-13) Support pack barcode detection in camera scan; was piece only
+        const isPack = product.packBarcode && product.packBarcode === code;
+        const ok = addToCart(product, 1, isPack ? "pack" : "piece");
+        const displayName = isPack ? `${product.name} (Pack)` : product.name;
+        return { ok, label: ok ? displayName : `${displayName} (max reached)` };
       },
       onClose: (count) => {
         if(count > 0) Utils.toast(`${count} item(s) scanned — review your cart below.`, "success");
@@ -1242,11 +1240,15 @@ const POS = (() => {
       }
     };
 
-    // (2026-07-13) Right-click product card to edit product; was default context menu
+    // (2026-07-13) Restrict product edit right-click to Admin; was all roles
     grid.oncontextmenu = (e) => {
       const card = e.target.closest(".product-card[data-id]");
       if(!card) return;
       e.preventDefault();
+      if(typeof Auth !== "undefined" && !Auth.isAdmin()){
+        Utils.toast("Product editing is restricted to Admin accounts.", "warn");
+        return;
+      }
       const pid = card.dataset.id;
       const p = DB.getProducts().find(x => x.id === pid);
       if(!p) return;

@@ -653,22 +653,22 @@
     font-size: 0.85rem;
   }
 
-  /* (2026-07-13) Compact bottom-left toasts; was full-width 0.95rem */
+  /* (2026-07-13) Move toast to bottom-right above nav; was bottom-left cut off */
   #toast-stack {
-    left: 10px;
-    right: auto;
-    bottom: calc(var(--bottomnav-h, 56px) + 8px + env(safe-area-inset-bottom, 0px));
-    max-width: min(280px, calc(100vw - 20px));
-    align-items: flex-start;
+    left: auto;
+    right: 14px;
+    bottom: calc(var(--bottomnav-h, 56px) + 14px + env(safe-area-inset-bottom, 0px));
+    max-width: min(320px, calc(100vw - 28px));
+    align-items: flex-end;
   }
 
   .toast {
     width: auto;
     max-width: 100%;
-    padding: 6px 10px;
-    font-size: 0.75rem;
-    border-radius: 6px;
-    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    gap: 8px;
   }
 
   /* ============ BADGES MOBILE ============ */

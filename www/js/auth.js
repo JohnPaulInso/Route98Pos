@@ -125,9 +125,9 @@ const Auth = (() => {
     root.innerHTML = `
       <div class="login-screen">
         <div class="login-card">
-          <!-- (2026-07-13) Update logo to route98_logo.png?v=6; was v=5 -->
+          <!-- (2026-07-13) Fix brand logo markup without stray text. Prev: broken onerror -->
           <div class="brand" style="justify-content:center;margin-bottom:14px;">
-            <div class="brand-mark" style="width:52px;height:52px;"><img src="route98_logo.png?v=6" alt="Route 98" onerror="this.style.display='none';this.parentElement.innerHTML='${Icons.get('store',{size:22})}';"></div>
+            <div class="brand-mark" style="width:52px;height:52px;"><img src="route98_logo.png?v=6" alt="Route 98" onerror="this.onerror=null;this.src='icon.png';"></div>
             <div class="brand-text">
               <strong>Route 98</strong>
               <span>Route98 POS System</span>

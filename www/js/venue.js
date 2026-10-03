@@ -14,8 +14,9 @@ const Venue = (() => {
   let dragEndH = null;
   let dragArea = "";
 
+  // (2026-07-13) Use local date formatting; was toISOString previous-day split
   function getTodayStr(){
-    return new Date().toISOString().split("T")[0];
+    return new Date().toLocaleDateString("en-CA");
   }
 
   // Format date in Philippine format: e.g. "Aug 21, 2026" or "Jan 1, 2026"

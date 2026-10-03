@@ -22,7 +22,8 @@ const Expenses = (() => {
   function getFilteredExpenses(){
     const all = DB.getExpenses();
     const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
+    // (2026-07-13) Use local date formatting; was toISOString previous-day split
+    const todayStr = now.toLocaleDateString("en-CA");
     const curMonthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
 
     return all.filter(e => {
@@ -42,7 +43,8 @@ const Expenses = (() => {
 
   function openExpenseModal(expense = null){
     const isEdit = !!expense;
-    const today = new Date().toISOString().split("T")[0];
+    // (2026-07-13) Use local date formatting; was toISOString previous-day split
+    const today = new Date().toLocaleDateString("en-CA");
 
     const body = `
       <div class="field">
@@ -273,10 +275,13 @@ const Expenses = (() => {
               p.stock = (p.stock || 0) + qty;
               if(unitCost > 0) p.cost = unitCost;
               if(brand && !p.brand) p.brand = brand.replace(/^New Brand\s*["']?/i, "").replace(/["']?$/i, "").trim();
+              // (2026-07-13) Set updatedAt on restock; was unversioned
+              p.updatedAt = Date.now();
               DB.setProducts(allProds);
               DB.addRestockLog({ product_id: p.id, product_name: p.name, quantity_added: qty, unit_cost: unitCost, total_cost: totalCost, supplier_name: seller });
             } else {
               const cleanB = brand.replace(/^New Brand\s*["']?/i, "").replace(/["']?$/i, "").trim();
+              const now = Date.now();
               const newProd = {
                 id: Utils.uid("prod"),
                 name: prodName,
@@ -286,7 +291,9 @@ const Expenses = (() => {
                 price: unitCost > 0 ? Utils.round2(unitCost * 1.25) : 0,
                 stock: qty,
                 unit: "pc",
-                lowStockThreshold: 5
+                lowStockThreshold: 5,
+                createdAt: now,
+                updatedAt: now
               };
               allProds.unshift(newProd);
               DB.setProducts(allProds);

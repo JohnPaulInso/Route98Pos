@@ -193,9 +193,9 @@ const App = (() => {
     root.innerHTML = `
       <div id="app">
         <nav class="sidebar" style="overflow-y:auto;">
-          <!-- (2026-07-13) Update logo to route98_logo.png?v=6; was v=5 -->
+          <!-- (2026-07-13) Fix brand logo markup without stray text. Prev: broken onerror -->
           <div class="brand">
-            <div class="brand-mark"><img src="route98_logo.png?v=6" alt="Route 98" onerror="this.style.display='none';this.parentElement.innerHTML='${Icons.get('store',{size:19})}';"></div>
+            <div class="brand-mark"><img src="route98_logo.png?v=6" alt="Route 98" onerror="this.onerror=null;this.src='icon.png';"></div>
             <div class="brand-text"><strong id="topbar-title">Route 98</strong><span>Route98 POS System</span></div>
           </div>
           ${NAV_SECTIONS.map(sec => {

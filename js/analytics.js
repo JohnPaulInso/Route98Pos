@@ -155,9 +155,17 @@ const Analytics = (() => {
     // Expenses (OPEX + Tanker Logistics)
     const shrinkage = DB.getStockLog().filter(l => l.ts >= r.start && l.ts <= r.end && l.delta < 0 && l.reason !== "Restock / Delivery")
       .reduce((s,l) => s + Math.abs(l.delta) * (costMap[l.productId] ?? 0), 0);
-    const opExpenses = (DB.getExpenses ? DB.getExpenses() : []).filter(e => e.ts >= r.start && e.ts <= r.end).reduce((s,x)=>s+(x.amount||0), 0);
-    const fuelExpenses = (DB.getFuelDeliveries ? DB.getFuelDeliveries() : []).filter(d => d.ts >= r.start && d.ts <= r.end).reduce((s,x)=>s+(x.totalCost||0), 0);
-    const totalOperatingExpenses = opExpenses + fuelExpenses;
+    // (2026-07-13) Exclude wholesale inventory and fuel restock from OPEX; was double COGS
+    const opExpenses = (DB.getExpenses ? DB.getExpenses() : []).filter(e => {
+      if(e.category === "Wholesale Purchases") return false;
+      const eTs = typeof e.date === "string" ? new Date(e.date + "T00:00:00").getTime() : (e.ts || 0);
+      return (eTs >= r.start && eTs <= r.end) || (e.ts >= r.start && e.ts <= r.end);
+    }).reduce((s,x)=>s+(x.amount||0), 0);
+    const fuelExpenses = (DB.getFuelDeliveries ? DB.getFuelDeliveries() : []).filter(d => {
+      const dTs = typeof d.date === "string" ? new Date(d.date + "T00:00:00").getTime() : (d.ts || 0);
+      return (dTs >= r.start && dTs <= r.end) || (d.ts >= r.start && d.ts <= r.end);
+    }).reduce((s,x)=>s+(x.totalCost||0), 0);
+    const totalOperatingExpenses = opExpenses;
 
     // Combined Executive P&L
     const netRevenue = storeNetRevenue + fuelRevenue + venueRevenue + restRevenue;
@@ -165,7 +173,8 @@ const Analytics = (() => {
     const grossProfit = storeGrossProfit + fuelGrossProfit + venueGrossProfit + restGrossProfit;
     const netProfit = grossProfit - shrinkage - opExpenses;
     const margin = netRevenue > 0 ? (grossProfit/netRevenue)*100 : 0;
-    const totalPurchases = restockSummary("all").totalCapitalSpent;
+    // (2026-07-13) Pass active rangeParam to restockSummary; was hardcoded 'all'
+    const totalPurchases = restockSummary(rangeParam).totalCapitalSpent;
 
     // (2026-07-13) Filter trend data by opts.filterFn; was unfiltered DB sales
     const trend = computeTrendData(rangeParam, opts);

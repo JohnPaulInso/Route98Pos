@@ -67,7 +67,12 @@ const Inventory = (() => {
     try { localStorage.removeItem(DRAFT_KEY); } catch(e){}
   }
 
+  // (2026-07-13) Block product edit form for cashier; was open to all
   function openProductForm(product = null){
+    if(typeof Auth !== "undefined" && !Auth.isAdmin()){
+      Utils.toast("Product management is restricted to Admin accounts.", "warn");
+      return;
+    }
     const cats = DB.getCategories().filter(c => c !== "ALL");
     const isEdit = !!product;
     const draft = !isEdit ? getProductDraft() : null;
@@ -271,8 +276,32 @@ const Inventory = (() => {
       packCost: hasDual ? (Number(modal.querySelector("#f-pack-cost")?.value) || (cost * piecesPerPack)) : 0,
       packBarcode: hasDual ? modal.querySelector("#f-pack-barcode")?.value.trim() || "" : ""
     };
-    if(product) DB.updateProduct(product.id, payload);
-    else {
+    // (2026-07-13) Log stock diffs on edit & check barcode dupe; was untracked edit
+    if(payload.barcode){
+      const dupe = DB.getProducts().find(p => p.id !== product?.id && p.barcode && p.barcode.trim().toLowerCase() === payload.barcode.toLowerCase());
+      if(dupe){
+        Utils.toast(`Barcode already used by "${dupe.name}".`, "error");
+        return;
+      }
+    }
+    if(product){
+      const diff = payload.stock - (product.stock || 0);
+      DB.updateProduct(product.id, payload);
+      if(diff !== 0){
+        DB.addRestockLog({
+          product_id: product.id,
+          product_name: payload.name,
+          quantity_added: diff,
+          unit_cost: cost,
+          total_cost: Math.abs(diff) * cost,
+          supplier_name: diff > 0 ? (payload.distributor || payload.brand || "Stock Adjustment") : "N/A",
+          reason: "Product Edit Adjustment",
+          oldStock: product.stock,
+          newStock: payload.stock,
+          timestamp: Date.now()
+        });
+      }
+    } else {
       DB.addProduct(payload);
       clearProductDraft();
       if(payload.stock > 0){
@@ -292,8 +321,12 @@ const Inventory = (() => {
     renderTable();
   }
 
-  // (2026-07-13) Negative input & live stock projection in adjust modal; was dir select
+  // (2026-07-13) Block stock adjustment for cashier; was open to all
   function openStockAdjust(product){
+    if(typeof Auth !== "undefined" && !Auth.isAdmin()){
+      Utils.toast("Stock adjustment is restricted to Admin accounts.", "warn");
+      return;
+    }
     const hasDual = product.piecesPerPack > 1;
     const fullPacks = hasDual ? Math.floor(product.stock / product.piecesPerPack) : 0;
     const loose = hasDual ? product.stock % product.piecesPerPack : 0;
@@ -335,10 +368,12 @@ const Inventory = (() => {
           Utils.toast(`Stock adjusted by ${totalDeltaPieces > 0 ? "+" + totalDeltaPieces : totalDeltaPieces} pcs.`,"success");
           Modal.close(); renderTable();
           
-          // Sync to cloud in background (non-blocking)
-          RealtimeSync.adjustStockAtomic(product.id, totalDeltaPieces, reason).catch(err => {
-            console.warn("Background sync failed:", err);
-          });
+          // (2026-07-13) Guard RealtimeSync call safely; was bare invocation
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.adjustStockAtomic){
+            RealtimeSync.adjustStockAtomic(product.id, totalDeltaPieces, reason).catch(err => {
+              console.warn("Background sync failed:", err);
+            });
+          }
         }}
       ]
     });
@@ -778,15 +813,12 @@ const Inventory = (() => {
               if(!item) return;
               const diff = physicalCount - item.systemStock;
               
+              // (2026-07-13) Adjust stock cleanly via DB.adjustStock; was double adjustment
               if(diff !== 0){
                 hasDiscrepancy = true;
                 discrepancyCount++;
-                const product = products.find(p => p.id === item.productId);
-                if(product){
-                  product.stock = physicalCount;
-                  DB.adjustStock(product.id, diff, diff < 0 ? "Physical audit - shrinkage" : "Physical audit - extra stock", "");
-                  discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff });
-                }
+                DB.adjustStock(item.productId, diff, diff < 0 ? "Physical audit - shrinkage" : "Physical audit - extra stock", "");
+                discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff });
               }
             });
             
@@ -803,7 +835,6 @@ const Inventory = (() => {
             });
 
             if(hasDiscrepancy){
-              DB.setProducts(products);
               Utils.toast(`Audit complete: ${discrepancyCount} count(s) corrected and saved to database.`, "success", 3000);
             } else {
               Utils.toast("✓ All counts matched perfectly!", "success", 2500);
@@ -932,14 +963,10 @@ const Inventory = (() => {
               const input = parentModal.querySelector(`.physical-count-input[data-idx="${verificationData.indexOf(item)}"]`);
               const physicalCount = Number(input?.value) || 0;
               const diff = physicalCount - item.systemStock;
+              // (2026-07-13) Adjust stock cleanly via DB.adjustStock; was double adjustment
               const reason = UISelect.getValue(`audit-disc-reason-${idx}`) || "Discrepancy";
-              
-              const product = products.find(p => p.id === item.productId);
-              if(product){
-                product.stock = physicalCount;
-                DB.adjustStock(product.id, diff, reason, "");
-                discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff, reason });
-              }
+              DB.adjustStock(item.productId, diff, reason, "");
+              discDetails.push({ productId: item.productId, name: item.name, systemStock: item.systemStock, physicalCount, diff, reason });
             });
             
             DB.savePhysicalAudit({
@@ -952,9 +979,7 @@ const Inventory = (() => {
               discrepancies: discDetails
             });
 
-            DB.setProducts(products);
             Utils.toast(`Audit complete: ${discrepancies.length} discrepancy log(s) saved to database.`, "success");
-            Modal.close();
             Modal.close();
             renderTable();
           }
@@ -990,15 +1015,21 @@ const Inventory = (() => {
     renderTable();
   }
 
+  // (2026-07-13) Block batch delete for cashier; was open to all
   function deleteSelectedProducts(){
     const count = selectedIds.size;
     if(count <= 0) return;
+    if(typeof Auth !== "undefined" && !Auth.isAdmin()){
+      Utils.toast("Product deletion is restricted to Admin accounts.", "warn");
+      return;
+    }
     Modal.confirm({
       title: `Delete ${count} product${count===1?"":"s"}?`,
       message: `${count} selected product${count===1?"":"s"} will be permanently removed from inventory.`,
       danger: true,
       onConfirm: () => {
-        DB.setProducts(DB.getProducts().filter(p => !selectedIds.has(p.id)));
+        // (2026-07-13) Delete products via DB.deleteProduct for tombstones; was raw filter
+        selectedIds.forEach(id => DB.deleteProduct(id));
         Utils.toast(`${count} product${count===1?"":"s"} deleted.`, "success");
         selectedIds.clear();
         toggleSelectMode(false);
@@ -1006,9 +1037,13 @@ const Inventory = (() => {
     });
   }
 
-  // (2026-07-13) Implement single product deletion; was undefined function
+  // (2026-07-13) Block product delete for cashier; was open to all
   function deleteProduct(product){
     if(!product) return;
+    if(typeof Auth !== "undefined" && !Auth.isAdmin()){
+      Utils.toast("Product deletion is restricted to Admin accounts.", "warn");
+      return;
+    }
     Modal.confirm({
       title: "Delete Product?",
       message: `Delete "${product.name}"? This will permanently remove the product from inventory.`,
@@ -1465,12 +1500,14 @@ const Inventory = (() => {
             const p = products.find(x => x.id === item.product.id);
             if(p){
               const pieces = item.unitType === "pack" && p.piecesPerPack > 1 ? item.qty * p.piecesPerPack : item.qty;
+              // (2026-07-13) Set updatedAt & product.id on batch restock; was missing updatedAt
               p.stock = Utils.round2((p.stock || 0) + pieces);
+              p.updatedAt = now;
               if(item.cost > 0 && item.cost !== p.cost){
                 p.cost = item.cost;
               }
               DB.addRestockLog({
-                product_id: p.barcode || p.name,
+                product_id: p.id,
                 product_name: p.name,
                 quantity_added: pieces,
                 unit_cost: item.cost,

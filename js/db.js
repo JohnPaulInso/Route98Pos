@@ -16,11 +16,23 @@ const DB = (() => {
     restaurantBookings: NS+"restaurantBookings", fuelDeliveries: NS+"fuelDeliveries", backups: NS+"backups",
     voidLogs: NS+"voidLogs", offlineQueue: NS+"offlineQueue", customItems: NS+"customItems", dayBalances: NS+"dayBalances",
     deletedSaleIds: NS+"deletedSaleIds", // (2026-09-24) Track deleted sale IDs to prevent re-sync
+    // (2026-07-13) Add deletedProductIds tombstone key; was untracked deletes
+    deletedProductIds: NS+"deletedProductIds",
     // (2026-07-13) Store baseline snapshot for 3-way merge; was shiftLogs only
     shiftLogs: NS+"shiftLogs", syncBaseline: NS+"syncBaseline"
   };
 
   const memCache = new Map();
+  // (2026-07-13) Invalidate memCache on cross-tab storage changes; was stale cache
+  if(typeof window !== "undefined"){
+    window.addEventListener("storage", (e) => {
+      if(e.key) memCache.delete(e.key);
+      else memCache.clear();
+      cachedProcessedSales = null;
+      cachedProducts = null;
+      cachedCategories = null;
+    });
+  }
   let cachedProcessedSales = null;
   let cachedProducts = null;
   let cachedCategories = null;
@@ -399,21 +411,8 @@ const DB = (() => {
     if(cachedProcessedSales) return cachedProcessedSales;
     const rawSales = read(KEYS.sales, []);
     const allSales = dedupeSalesList(rawSales);
+    // (2026-07-13) Filter sales by deletedIds without mutating set; was deleting IDs
     const deletedIds = getDeletedSaleIds();
-    let cleaned = false;
-    allSales.forEach(s => {
-      const sId = String(s.id || "").trim();
-      const clean = sId.replace(/^TXN-/i, "");
-      if(deletedIds.has(sId) || deletedIds.has(clean)){
-        deletedIds.delete(sId);
-        deletedIds.delete(sId.toLowerCase());
-        deletedIds.delete(clean);
-        deletedIds.delete(clean.toLowerCase());
-        deletedIds.delete("TXN-" + clean);
-        cleaned = true;
-      }
-    });
-    if(cleaned) write(KEYS.deletedSaleIds, Array.from(deletedIds), true);
     cachedProcessedSales = allSales.filter(s => {
       const sId = String(s.id || "").trim();
       const rId = String(s.receiptNo || "").trim();
@@ -427,6 +426,13 @@ const DB = (() => {
   const setSales       = (v) => { cachedProcessedSales = null; return write(KEYS.sales, dedupeSalesList(v)); };
   // (2026-07-13) Store multi-format deleted keys to prevent reload resync; was single
   const getDeletedSaleIds = () => new Set(read(KEYS.deletedSaleIds, []));
+  const getDeletedProductIds = () => new Set(read(KEYS.deletedProductIds, []));
+  const markProductDeleted = (id) => {
+    if(!id) return;
+    const s = getDeletedProductIds();
+    s.add(String(id));
+    write(KEYS.deletedProductIds, Array.from(s), true);
+  };
   const unmarkSaleDeleted = (saleId) => {
     cachedProcessedSales = null;
     const deleted = getDeletedSaleIds();
@@ -516,7 +522,7 @@ const DB = (() => {
   const setVenueLeads  = (v) => write(KEYS.venueLeads, v);
   const getStockLog    = () => read(KEYS.stockLog, []);
   const setStockLog    = (v) => write(KEYS.stockLog, v);
-  // (2026-07-13) Add restockLogs rollback, sequential TXN & void log methods; was basic log
+  // (2026-07-13) Set updatedAt on restock & rollback; was untracked timestamps
   const getRestockLogs = () => read(KEYS.restockLogs, []);
   const setRestockLogs = (v) => write(KEYS.restockLogs, v);
   function addRestockLog(entry){
@@ -524,6 +530,7 @@ const DB = (() => {
     const qty = Number(entry.quantity_added ?? entry.quantity ?? 0);
     const unitCost = Number(entry.unit_cost ?? entry.unitCost ?? 0);
     const totalCost = Number(entry.total_cost ?? (qty * unitCost));
+    const now = Date.now();
     const record = {
       id: entry.id || Utils.uid("rstk"),
       product_id: entry.product_id || entry.productId || "",
@@ -532,7 +539,9 @@ const DB = (() => {
       unit_cost: unitCost,
       total_cost: totalCost,
       supplier_name: entry.supplier_name || entry.supplierName || "Direct Supplier",
-      timestamp: entry.timestamp || entry.ts || Date.now()
+      ts: entry.timestamp || entry.ts || now,
+      updatedAt: now,
+      timestamp: entry.timestamp || entry.ts || now
     };
     logs.unshift(record);
     setRestockLogs(logs.slice(0, 1000));
@@ -551,10 +560,11 @@ const DB = (() => {
       const p = prods.find(x => x.id === oldLog.product_id || x.name === oldLog.product_name || x.barcode === oldLog.product_id);
       if(p){
         p.stock = Math.max(0, Utils.round2(p.stock + diff));
+        p.updatedAt = Date.now();
         setProducts(prods);
       }
     }
-    const merged = { ...oldLog, ...updated, total_cost: newQty * Number(updated.unit_cost ?? oldLog.unit_cost) };
+    const merged = { ...oldLog, ...updated, updatedAt: Date.now(), ts: Date.now(), total_cost: newQty * Number(updated.unit_cost ?? oldLog.unit_cost) };
     logs[idx] = merged;
     setRestockLogs(logs);
     return merged;
@@ -564,25 +574,32 @@ const DB = (() => {
     const oldLog = logs.find(l => l.id === logId);
     if(oldLog){
       const rollQty = Number(oldLog.quantity_added || 0);
-      if(rollQty > 0){
+      if(rollQty !== 0){
         const prods = getProducts();
         const p = prods.find(x => x.id === oldLog.product_id || x.name === oldLog.product_name || x.barcode === oldLog.product_id);
         if(p){
           p.stock = Math.max(0, Utils.round2(p.stock - rollQty));
+          p.updatedAt = Date.now();
           setProducts(prods);
         }
       }
       setRestockLogs(logs.filter(l => l.id !== logId));
     }
   }
-  // (2026-07-13) Include voids & deleted in max TXN sequence; was sales only
+  // (2026-07-13) Device tag in TXN sequence prevents collisions. Prev: shared max
   function getNextTransactionId(prefix = "TXN"){
+    let devId = localStorage.getItem("mm_terminalTag");
+    if(!devId){
+      const raw = localStorage.getItem("mm_deviceId") || ("T" + Math.floor(10 + Math.random()*90));
+      devId = raw.replace(/[^a-zA-Z0-9]/g, "").slice(-3).toUpperCase();
+      localStorage.setItem("mm_terminalTag", devId);
+    }
     const sales = read(KEYS.sales, []);
     const fuelSales = read(KEYS.fuelSales, []);
     const voidLogs = read(KEYS.voidLogs, []);
     const deletedIds = read(KEYS.deletedSaleIds, []);
     let max = 0;
-    const re = new RegExp(`^${prefix}-(\\d+)$`, "i");
+    const re = new RegExp(`^${prefix}-?(?:${devId}-)?(\\d+)$`, "i");
     [...sales, ...fuelSales, ...voidLogs, ...deletedIds].forEach(item => {
       const raw = typeof item === "string" ? item : (item?.id || item?.origTxnId || item?.receiptNo || "");
       const match = String(raw || "").match(re);
@@ -591,8 +608,8 @@ const DB = (() => {
         if(num > max) max = num;
       }
     });
-    if(max === 0) max = sales.length + fuelSales.length;
-    return `${prefix}-${String(max + 1).padStart(4, "0")}`;
+    if(max === 0) max = Math.max(1000, sales.length + fuelSales.length);
+    return `${prefix}-${devId}-${String(max + 1).padStart(4, "0")}`;
   }
   // (2026-07-13) Sort void logs descending; was unsorted array
   const getVoidLogs    = () => read(KEYS.voidLogs, []).sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -627,11 +644,11 @@ const DB = (() => {
     return shift;
   };
   const setShift       = (v) => write(KEYS.shift, v);
-  // (2026-07-13) Manage shift logs history & cash drawer balance; was transient
+  // (2026-07-13) Deduplicate shift log on save; was pushing duplicates
   const getShiftLogs   = () => read(KEYS.shiftLogs, []);
   const setShiftLogs   = (v) => write(KEYS.shiftLogs, v || []);
   const saveShiftLog   = (item) => {
-    const logs = getShiftLogs();
+    const logs = getShiftLogs().filter(l => l.id !== item.id);
     logs.unshift(item);
     setShiftLogs(logs);
     return item;
@@ -657,9 +674,10 @@ const DB = (() => {
   const setExpenses    = (v) => write(KEYS.expenses, v);
   function addExpense(e){
     const items = getExpenses();
+    // (2026-07-13) Use local date formatting; was toISOString previous-day split
     const item = {
       id: e.id || Utils.uid("exp"),
-      date: e.date || new Date().toISOString().split("T")[0],
+      date: e.date || new Date().toLocaleDateString("en-CA"),
       ts: e.ts || Date.now(),
       category: e.category || "Other",
       description: e.description || "",
@@ -681,12 +699,13 @@ const DB = (() => {
   const setBookings    = (v) => write(KEYS.bookings, v);
   function addBooking(b){
     const items = getBookings();
+    // (2026-07-13) Use local date formatting; was toISOString previous-day split
     const item = {
       id: b.id || Utils.uid("bk"),
       clientName: b.clientName || "Customer",
       phone: b.phone || "",
       eventType: b.eventType || "Celebration / Event",
-      date: b.date || new Date().toISOString().split("T")[0],
+      date: b.date || new Date().toLocaleDateString("en-CA"),
       startTime: b.startTime || "08:00",
       endTime: b.endTime || "12:00",
       fee: Number(b.fee || 0),
@@ -762,9 +781,10 @@ const DB = (() => {
   function setFuelDeliveries(list){ return write(KEYS.fuelDeliveries, list); }
   function addFuelDelivery(d){
     const items = getFuelDeliveries();
+    // (2026-07-13) Use local date formatting; was toISOString previous-day split
     const item = {
       id: Utils.uid("deliv"),
-      date: d.date || new Date().toISOString().split("T")[0],
+      date: d.date || new Date().toLocaleDateString("en-CA"),
       ts: Date.now(),
       truckCapacity: Number(d.truckCapacity) || 4000,
       supplierPricePerL: Number(d.supplierPricePerL) || 65.00,
@@ -781,16 +801,19 @@ const DB = (() => {
   }
 
   // ---------- product helpers ----------
+  // (2026-07-13) Set updatedAt & record tombstone on product edits; was untracked
   function addProduct(p){
     const products = getProducts();
-    products.push({ id: Utils.uid("prod"), createdAt: Date.now(), ...p });
+    const now = Date.now();
+    products.push({ id: Utils.uid("prod"), createdAt: now, updatedAt: now, ...p });
     setProducts(products);
   }
   function updateProduct(id, patch){
-    const products = getProducts().map(p => p.id === id ? { ...p, ...patch } : p);
+    const products = getProducts().map(p => p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p);
     setProducts(products);
   }
   function deleteProduct(id){
+    if(id) markProductDeleted(id);
     setProducts(getProducts().filter(p => p.id !== id));
   }
   // (2026-07-13) Support pack & piece barcodes; was single barcode match
@@ -805,6 +828,7 @@ const DB = (() => {
     if(!p) return;
     const oldStock = p.stock;
     p.stock = Math.max(0, Utils.round2(p.stock + delta));
+    p.updatedAt = Date.now();
     setProducts(products);
     
     // (2026-08-26) Log ALL stock changes including negatives to track theft/damage; was positive only
@@ -1006,7 +1030,7 @@ const DB = (() => {
   }
 
   // ---------- full snapshot (for export + firestore sync) ----------
-  // (2026-07-13) Exclude backups from snapshot to prevent recursion; was nested
+  // (2026-07-13) Include deletedSaleIds & customItems in snapshot. Prev: omitted
   function snapshot(){
     return {
       products:getProducts(), categories:getCategories(), sales:getSales(), fuelSales:getFuelSales(),
@@ -1016,14 +1040,28 @@ const DB = (() => {
       stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
       // (2026-07-13) Include shiftLogs and raw shift in snapshot; was omitted
       dayBalances:getDayBalances(), backups:[], voidLogs:getVoidLogs(), shift:read(KEYS.shift, null), shiftLogs:getShiftLogs(), cashiers:getCashiers(),
+      customItems: getCustomItems ? getCustomItems() : [],
+      deletedSaleIds: Array.from(getDeletedSaleIds ? getDeletedSaleIds() : []),
+      // (2026-07-13) Include deletedProductIds in DB snapshot; was omitted
+      deletedProductIds: Array.from(getDeletedProductIds ? getDeletedProductIds() : []),
       exportedAt: Date.now(), version:3
     };
   }
-  // (2026-07-13) Set isSyncRestoring during restore to stop loop; was unflagged
+  // (2026-07-13) Timestamp merge products & sync deletedSaleIds. Prev: resurrect
   function restoreSnapshot(snap){
     if(!snap) return;
     isSyncRestoring = true;
     try{
+    if(snap.deletedProductIds && Array.isArray(snap.deletedProductIds)){
+      const curDeletedProds = getDeletedProductIds();
+      snap.deletedProductIds.forEach(id => { if(id) curDeletedProds.add(String(id)); });
+      write(KEYS.deletedProductIds, Array.from(curDeletedProds), true);
+    }
+    if(snap.deletedSaleIds && Array.isArray(snap.deletedSaleIds)){
+      const curDeleted = getDeletedSaleIds();
+      snap.deletedSaleIds.forEach(id => { if(id) curDeleted.add(String(id)); });
+      write(KEYS.deletedSaleIds, Array.from(curDeleted), true);
+    }
     if(snap.products && snap.products.length){
       // (2026-07-13) Preserve local offline stock in restore; was overwrite
       const localProds = getProducts();
@@ -1035,6 +1073,11 @@ const DB = (() => {
         snap.products.forEach(remoteP => {
           if(!prodMap.has(remoteP.id)){
             prodMap.set(remoteP.id, remoteP);
+          } else {
+            const curP = prodMap.get(remoteP.id);
+            if((remoteP.updatedAt || 0) >= (curP.updatedAt || 0)){
+              prodMap.set(remoteP.id, { ...curP, ...remoteP });
+            }
           }
         });
         setProducts(Array.from(prodMap.values()));
@@ -1045,7 +1088,13 @@ const DB = (() => {
       const existing = getSales();
       const deletedIds = getDeletedSaleIds();
       const sMap = new Map();
-      existing.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+      existing.forEach(s => {
+        const k = String(s.receiptNo || s.id || '').trim();
+        const sId = String(s.id || '').trim();
+        if(k && !deletedIds.has(sId) && !deletedIds.has(sId.toLowerCase()) && !deletedIds.has(k) && !deletedIds.has(k.toLowerCase())){
+          sMap.set(k, s);
+        }
+      });
       // (2026-07-13) Filter out deleted sales in snapshot merge; was reviving deleted
       snap.sales.forEach(s => { 
         const k = String(s.receiptNo || s.id || "").trim(); 
@@ -1055,13 +1104,41 @@ const DB = (() => {
         const isDeleted = deletedIds.has(sId) || deletedIds.has(sId.toLowerCase()) ||
                           deletedIds.has(rId) || deletedIds.has(rId.toLowerCase()) ||
                           deletedIds.has(clean) || deletedIds.has(clean.toLowerCase());
-        if(k && !isDeleted && !sMap.has(k)) sMap.set(k, s); 
+        if(k && !isDeleted){
+          const curS = sMap.get(k);
+          if(!curS || (s.ts || 0) >= (curS.ts || 0)){
+            sMap.set(k, s);
+          }
+        }
       });
       const merged = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
       setSales(merged);
     }
     if(snap.fuelSales) setFuelSales(snap.fuelSales);
-    if(snap.fuelConfig) setFuelConfig(snap.fuelConfig);
+    if(snap.fuelConfig){
+      const curCfg = getFuelConfig();
+      if(!curCfg){
+        setFuelConfig(snap.fuelConfig);
+      } else {
+        const mergedCfg = { ...curCfg, ...snap.fuelConfig };
+        mergedCfg.fuels = { ...(curCfg.fuels || {}) };
+        if(snap.fuelConfig.fuels){
+          Object.keys(snap.fuelConfig.fuels).forEach(ft => {
+            const curFuel = mergedCfg.fuels[ft] || {};
+            const remoteFuel = snap.fuelConfig.fuels[ft] || {};
+            // (2026-07-13) Preserve tank delivery via recency; was Math.min erasing restock
+            const remUpdated = remoteFuel.updatedAt || 0;
+            const curUpdated = curFuel.updatedAt || 0;
+            mergedCfg.fuels[ft] = {
+              ...curFuel,
+              ...remoteFuel,
+              tank: remUpdated > curUpdated ? (remoteFuel.tank ?? curFuel.tank) : (curFuel.tank ?? remoteFuel.tank)
+            };
+          });
+        }
+        setFuelConfig(mergedCfg);
+      }
+    }
     if(snap.fuelDeliveries) setFuelDeliveries(snap.fuelDeliveries);
     if(snap.settings) setSettings({ ...DEFAULT_SETTINGS, ...snap.settings });
     if(snap.users) setUsers(snap.users);
@@ -1074,6 +1151,7 @@ const DB = (() => {
     if(snap.stockLog) setStockLog(snap.stockLog);
     if(snap.restockLogs) setRestockLogs(snap.restockLogs);
     if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
+    if(snap.customItems && setCustomItems) setCustomItems(snap.customItems);
     if(snap.backups) setBackups(snap.backups);
     // (2026-07-13) Safely merge voidLogs; was overwriting array
     if(snap.voidLogs && Array.isArray(snap.voidLogs)){
@@ -1116,8 +1194,8 @@ const DB = (() => {
     KEYS, init, categoryIcon, getNextTransactionId,
     getProducts, setProducts, deduplicateProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
     getCategories, setCategories,
-    // (2026-07-13) Expose unmarkSaleDeleted API; was internal only
-    getSales, setSales, getDeletedSaleIds, markSaleDeleted, unmarkSaleDeleted, getFuelSales, setFuelSales,
+    // (2026-07-13) Expose unmarkSaleDeleted & product tombstone APIs; was missing
+    getSales, setSales, getDeletedSaleIds, markSaleDeleted, unmarkSaleDeleted, getDeletedProductIds, markProductDeleted, getFuelSales, setFuelSales,
     getFuelConfig, setFuelConfig,
     getSettings, setSettings,
     getUsers, setUsers,

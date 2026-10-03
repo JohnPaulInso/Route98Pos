@@ -76,7 +76,8 @@ const Reports = (() => {
     const cashIn = pay["Cash"]||0;
     const gcashIn = pay["GCash"]||0;
     const cardIn = pay["Card"]||0;
-    const expectedCash = (shift.openingCash || 0) + cashIn;
+    // (2026-07-13) Factor cashIn and cashOut in shift expected cash; was cash sales only
+    const expectedCash = (shift.openingCash || 0) + cashIn + (Number(shift.cashIn)||0) - (Number(shift.cashOut)||0);
     const totalTransactions = store.length + fuel.length;
     return `
       <div class="card" style="margin-bottom:14px;background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
@@ -137,7 +138,8 @@ const Reports = (() => {
         const { store, fuel } = shiftSales();
         const totals = paymentTotals(store, fuel);
         const cashIn = totals["Cash"]||0;
-        const expected = (currentShift.openingCash || 0) + cashIn;
+        // (2026-07-13) Factor cashIn and cashOut in closing expected cash; was cash sales only
+        const expected = (currentShift.openingCash || 0) + cashIn + (Number(currentShift.cashIn)||0) - (Number(currentShift.cashOut)||0);
         const variance = actualCash - expected;
         const closedAt = Date.now();
 
@@ -505,10 +507,20 @@ const Reports = (() => {
           const sales = DB.getSales();
           const idx = sales.findIndex(x => x.id === sale.id);
           if(idx !== -1){
+            // (2026-07-13) Recalculate VAT and set updatedAt on void; was uncalculated
+            const settings = DB.getSettings();
+            let newVat = 0, newNet = newTotal;
+            if(settings && settings.vatEnabled){
+              newVat = Utils.round2(newTotal - (newTotal / (1 + (settings.vatRate || 12)/100)));
+              newNet = Utils.round2(newTotal - newVat);
+            }
             sales[idx].items = items;
             sales[idx].subtotal = newTotal;
             sales[idx].total = newTotal;
+            sales[idx].vat = newVat;
+            sales[idx].netOfVat = newNet;
             sales[idx].alteredAt = Date.now();
+            sales[idx].updatedAt = Date.now();
             sales[idx].alteredBy = Auth.currentUser()?.name || "Admin";
             DB.setSales(sales);
             if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);

@@ -743,7 +743,11 @@ const Gas = (() => {
       DB.setFuelSales(allSales);
 
       const cfgNow = DB.getFuelConfig();
+      // (2026-07-13) Set updatedAt on fuel tank dispense; was unversioned write
+      const now = Date.now();
       cfgNow.fuels[pump.fuelType].tank = Math.max(0, Utils.round2(cfgNow.fuels[pump.fuelType].tank - lit));
+      cfgNow.fuels[pump.fuelType].updatedAt = now;
+      cfgNow.updatedAt = now;
       DB.setFuelConfig(cfgNow);
 
       Utils.Sound.cashChime();
@@ -910,6 +914,8 @@ const Gas = (() => {
 
             f.tank = Utils.round2(newTank);
             f.cost = Utils.round2(weightedCost);
+            // (2026-07-13) Set updatedAt on tank delivery restock; was unversioned
+            f.updatedAt = Date.now();
 
             DB.addFuelDelivery({
               date: modal.querySelector("#deliv-date").value,
@@ -927,6 +933,7 @@ const Gas = (() => {
           updateFuelTank("diesel", dieselLiters);
           updateFuelTank("premium", premLiters);
 
+          cfgNow.updatedAt = Date.now();
           DB.setFuelConfig(cfgNow);
           Utils.Sound.cashChime();
           Utils.toast(`Successfully offloaded ${totalLiters.toLocaleString()}L into ECC tanks!`, "success");
