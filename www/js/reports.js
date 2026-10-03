@@ -2186,27 +2186,27 @@ const Reports = (() => {
       </table></div>`;
   }
 
+  // (2026-10-03) Uniform pagination design across all modules except POS
   function paginationBarHtml(idPrefix, curPage, totalPages, pageSize, totalItems){
     if(!totalItems) return "";
     return `
-      <div class="card-pagination">
-        <div class="pg-nav-group">
-          <button class="pg-btn" id="${idPrefix}-prev" type="button" ${curPage > 1 ? "" : "disabled"}>
-            ${Icons.get("chevron-left", {size:15})}
+      <div class="card-pagination" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;background:var(--paper-raised);border-radius:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);border-radius:8px;padding:4px;">
+          <button class="pg-btn" id="${idPrefix}-prev" type="button" ${curPage > 1 ? "" : "disabled"} style="padding:8px 12px;border:none;background:transparent;cursor:${curPage > 1 ? 'pointer' : 'not-allowed'};display:flex;align-items:center;color:var(--ink);opacity:${curPage > 1 ? '1' : '0.3'};">
+            ${Icons.get("chevron-left", {size:18})}
           </button>
-          <button class="pg-btn" id="${idPrefix}-next" type="button" ${curPage < totalPages ? "" : "disabled"}>
-            ${Icons.get("chevron-right", {size:15})}
+          <button class="pg-btn" id="${idPrefix}-next" type="button" ${curPage < totalPages ? "" : "disabled"} style="padding:8px 12px;border:none;background:transparent;cursor:${curPage < totalPages ? 'pointer' : 'not-allowed'};display:flex;align-items:center;color:var(--ink);opacity:${curPage < totalPages ? '1' : '0.3'};">
+            ${Icons.get("chevron-right", {size:18})}
           </button>
         </div>
-        <div class="pg-page-box">
-          <span>Page:</span>
-          <input type="number" class="pg-input" id="${idPrefix}-page-inp" min="1" max="${totalPages}" value="${curPage}" />
-          <span>of ${totalPages}</span>
+        <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+          <span style="font-weight:500;">Page:</span>
+          <input type="number" class="pg-input" id="${idPrefix}-page-inp" min="1" max="${totalPages}" value="${curPage}" style="width:70px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;text-align:center;font-size:16px;font-weight:600;" />
+          <span style="font-weight:500;">of ${totalPages}</span>
         </div>
-        <div class="pg-divider"></div>
-        <div class="pg-rpp-box">
-          <span>Rows per page:</span>
-          <select class="pg-select" id="${idPrefix}-rpp">
+        <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+          <span style="font-weight:500;">Rows per page:</span>
+          <select class="pg-select" id="${idPrefix}-rpp" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
             <option value="10" ${pageSize === 10 ? "selected" : ""}>10</option>
             <option value="25" ${pageSize === 25 ? "selected" : ""}>25</option>
             <option value="50" ${pageSize === 50 ? "selected" : ""}>50</option>

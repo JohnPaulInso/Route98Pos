@@ -165,19 +165,8 @@ const CSVImporter = (() => {
       // Final save
       DB.setSales(existingSales);
       
-      // Automatically sync to cloud after import
-      console.log('[CSV Import] Import complete. Triggering automatic cloud sync...');
-      
-      // Trigger Firestore sync in background
-      if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
-        setTimeout(() => {
-          Sync.pushSnapshot(true).then(() => {
-            console.log('[CSV Import] Cloud sync completed successfully');
-          }).catch(err => {
-            console.error('[CSV Import] Cloud sync failed:', err);
-          });
-        }, 2000); // Delay 2 seconds to let UI update first
-      }
+      // Note: CSV imports are saved locally only. User can manually sync to cloud if needed.
+      console.log('[CSV Import] Import complete. Data saved locally.');
       
       return {
         success: true,
@@ -353,18 +342,9 @@ const CSVImporter = (() => {
               </div>
               ` : ''}
             </div>
-            <p class="text-sm text-faint" style="text-align: center; margin: 0 0 12px 0;">
-              All transactions have been added to your sales history.
+            <p class="text-sm text-faint" style="text-align: center; margin: 0;">
+              All transactions have been saved locally. Use <strong>Settings → Data & Backups</strong> to manually sync to cloud if needed.
             </p>
-            <div style="background: var(--brand-tint); border: 1px solid var(--brand); border-radius: 6px; padding: 10px; margin-top: 12px;">
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                ${Icons.get('cloud-upload', {size: 16, style: 'color: var(--brand-deep);'})}
-                <strong style="color: var(--brand-deep); font-size: 0.9rem;">Cloud Sync in Progress</strong>
-              </div>
-              <p class="text-xs text-faint" style="margin: 0; line-height: 1.5;">
-                Recent imported transactions (last 30 days) are being automatically synced to the cloud. Other devices will see them shortly. Check the sync status in <strong>Settings → Data & Backups</strong>.
-              </p>
-            </div>
           </div>
         `;
         
