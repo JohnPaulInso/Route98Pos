@@ -545,17 +545,13 @@ const DB = (() => {
       timestamp: entry.timestamp || entry.ts || now
     };
     logs.unshift(record);
-    setRestockLogs(logs);
+    setRestockLogs(logs.slice(0, 1000));
     
     // Immediate realtime sync
     if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncRestockLog){
       RealtimeSync.syncRestockLog(record);
     }
     
-    return record;
-    };
-    logs.unshift(record);
-    setRestockLogs(logs.slice(0, 1000));
     return record;
   }
   function updateRestockLog(logId, updated){

@@ -14,6 +14,12 @@ const RealtimeSync = (() => {
   async function init() {
     if (isInitialized) return;
     
+    // Safety check - ensure DB is loaded
+    if (typeof DB === 'undefined') {
+      console.warn('[RealtimeSync] DB not loaded yet, cannot initialize');
+      return;
+    }
+    
     try {
       const settings = DB.getSettings();
       if (!settings.firebaseConfig) {
@@ -48,7 +54,7 @@ const RealtimeSync = (() => {
   
   async function subscribeToShift(callback) {
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB || typeof DB === 'undefined') return;
 
     const shiftRef = realtimeMod.ref(realtimeDB, 'shift/current');
     
@@ -462,7 +468,7 @@ const RealtimeSync = (() => {
 
   async function subscribeToRestockLogs(callback) {
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB || typeof DB === 'undefined') return;
 
     const logsRef = realtimeMod.ref(realtimeDB, 'restockLogs');
     
@@ -560,7 +566,7 @@ const RealtimeSync = (() => {
 
   async function subscribeToExpenses(callback) {
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB || typeof DB === 'undefined') return;
 
     const expensesRef = realtimeMod.ref(realtimeDB, 'expenses');
     
@@ -623,7 +629,7 @@ const RealtimeSync = (() => {
   // NEW: Subscribe to all product changes from cloud
   async function subscribeToAllProducts(callback) {
     await init();
-    if (!realtimeDB) return;
+    if (!realtimeDB || typeof DB === 'undefined') return;
 
     const productsRef = realtimeMod.ref(realtimeDB, 'products');
     
@@ -868,9 +874,34 @@ const RealtimeSync = (() => {
   };
 })();
 
-// Auto-initialize on load
+// Auto-initialize on load - Wait for all scripts to be ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit to ensure DB is loaded
+    setTimeout(() => {
+      if (typeof DB === 'undefined') {
+        console.warn('[RealtimeSync] DB not loaded yet, waiting...');
+        return;
+      }
+      RealtimeSync.init().then(() => {
+        RealtimeSync.registerDevice();
+        RealtimeSync.subscribeToShift();
+        RealtimeSync.subscribeToAllProducts();
+        RealtimeSync.subscribeToRestockLogs();
+        RealtimeSync.subscribeToExpenses();
+        RealtimeSync.setupAutomaticSync();
+      }).catch(err => {
+        console.warn('[RealtimeSync] Init failed:', err);
+      });
+    }, 100);
+  });
+} else {
+  // Document already loaded, wait a bit for DB to be ready
+  setTimeout(() => {
+    if (typeof DB === 'undefined') {
+      console.warn('[RealtimeSync] DB not loaded yet, skipping auto-init');
+      return;
+    }
     RealtimeSync.init().then(() => {
       RealtimeSync.registerDevice();
       RealtimeSync.subscribeToShift();
@@ -878,15 +909,8 @@ if (document.readyState === 'loading') {
       RealtimeSync.subscribeToRestockLogs();
       RealtimeSync.subscribeToExpenses();
       RealtimeSync.setupAutomaticSync();
+    }).catch(err => {
+      console.warn('[RealtimeSync] Init failed:', err);
     });
-  });
-} else {
-  RealtimeSync.init().then(() => {
-    RealtimeSync.registerDevice();
-    RealtimeSync.subscribeToShift();
-    RealtimeSync.subscribeToAllProducts();
-    RealtimeSync.subscribeToRestockLogs();
-    RealtimeSync.subscribeToExpenses();
-    RealtimeSync.setupAutomaticSync();
-  });
+  }, 100);
 }
