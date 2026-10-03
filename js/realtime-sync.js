@@ -343,7 +343,7 @@ const RealtimeSync = (() => {
   }
 
   // ==============================================================
-  // INVENTORY SYNC - Push products to cloud
+  // INVENTORY SYNC - Push products to cloud (Real-time)
   // ==============================================================
   
   async function syncAllProducts() {
@@ -373,6 +373,126 @@ const RealtimeSync = (() => {
     } catch (error) {
       console.error("Failed to sync products:", error);
     }
+  }
+
+  // NEW: Real-time single product sync
+  async function syncSingleProduct(product) {
+    await init();
+    if (!realtimeDB) return;
+
+    const productRef = realtimeMod.ref(realtimeDB, `products/${product.id}`);
+    
+    try {
+      await realtimeMod.set(productRef, {
+        id: product.id,
+        name: product.name,
+        stock: product.stock,
+        price: product.price,
+        cost: product.cost,
+        barcode: product.barcode,
+        category: product.category,
+        brand: product.brand,
+        distributor: product.distributor,
+        imageUrl: product.imageUrl,
+        unit: product.unit,
+        lowStockThreshold: product.lowStockThreshold,
+        piecesPerPack: product.piecesPerPack,
+        packPrice: product.packPrice,
+        packCost: product.packCost,
+        packBarcode: product.packBarcode,
+        updatedAt: product.updatedAt || Date.now(),
+        deviceId: getDeviceId()
+      });
+      console.log(`✅ Synced product ${product.name} to cloud`);
+    } catch (error) {
+      console.error("Failed to sync product:", error);
+    }
+  }
+
+  // NEW: Real-time product delete
+  async function deleteProductFromCloud(productId) {
+    await init();
+    if (!realtimeDB) return;
+
+    const productRef = realtimeMod.ref(realtimeDB, `products/${productId}`);
+    
+    try {
+      await realtimeMod.remove(productRef);
+      console.log(`✅ Deleted product ${productId} from cloud`);
+    } catch (error) {
+      console.error("Failed to delete product from cloud:", error);
+    }
+  }
+
+  // NEW: Subscribe to all product changes from cloud
+  async function subscribeToAllProducts(callback) {
+    await init();
+    if (!realtimeDB) return;
+
+    const productsRef = realtimeMod.ref(realtimeDB, 'products');
+    
+    const unsubscribe = realtimeMod.onValue(productsRef, (snapshot) => {
+      const cloudProducts = snapshot.val();
+      if (!cloudProducts) return;
+
+      const cloudProductsArray = Object.values(cloudProducts);
+      const localProducts = DB.getProducts();
+      const localProductsMap = new Map(localProducts.map(p => [p.id, p]));
+      
+      let hasChanges = false;
+      const updatedProducts = [...localProducts];
+
+      // Check for updates from cloud
+      cloudProductsArray.forEach(cloudProduct => {
+        const localProduct = localProductsMap.get(cloudProduct.id);
+        
+        if (!localProduct) {
+          // New product from cloud
+          updatedProducts.push(cloudProduct);
+          hasChanges = true;
+          console.log('[RealtimeSync] New product from cloud:', cloudProduct.name);
+        } else if (cloudProduct.updatedAt > (localProduct.updatedAt || 0)) {
+          // Product updated from cloud
+          const index = updatedProducts.findIndex(p => p.id === cloudProduct.id);
+          if (index !== -1) {
+            updatedProducts[index] = cloudProduct;
+            hasChanges = true;
+            console.log('[RealtimeSync] Product updated from cloud:', cloudProduct.name);
+          }
+        }
+      });
+
+      // Check for deletions (products in local but not in cloud)
+      const cloudProductIds = new Set(cloudProductsArray.map(p => p.id));
+      const filtered = updatedProducts.filter(p => cloudProductIds.has(p.id));
+      if (filtered.length !== updatedProducts.length) {
+        hasChanges = true;
+        console.log('[RealtimeSync] Products deleted from cloud');
+      }
+
+      // Update local DB if there are changes
+      if (hasChanges) {
+        DB.setProducts(filtered);
+        
+        // Show notification
+        const deviceId = getDeviceId();
+        const hasExternalChanges = cloudProductsArray.some(p => p.deviceId && p.deviceId !== deviceId);
+        
+        if (hasExternalChanges) {
+          Utils.toast('Inventory updated from another device', 'info', 2000);
+        }
+        
+        // Refresh inventory view if open
+        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
+          Inventory.render();
+        }
+        
+        if (callback) callback(filtered);
+      }
+    });
+    
+    listeners.set('products', unsubscribe);
+    return unsubscribe;
   }
 
   // ==============================================================
@@ -455,6 +575,55 @@ const RealtimeSync = (() => {
   }
 
   // ==============================================================
+  // AUTOMATIC SYNC TRIGGER - Listen to DB changes
+  // ==============================================================
+  
+  let syncDebounceTimer = null;
+  
+  function setupAutomaticSync() {
+    // Listen to all database changes
+    document.addEventListener('mm:dirty', async (e) => {
+      const { key, silent } = e.detail || {};
+      
+      // Skip if silent (sync restore) or not products
+      if (silent) return;
+      
+      // Handle product changes
+      if (key === 'mm_products') {
+        // Debounce to avoid too many syncs
+        clearTimeout(syncDebounceTimer);
+        syncDebounceTimer = setTimeout(async () => {
+          console.log('[RealtimeSync] Auto-syncing products to cloud...');
+          await syncAllProducts();
+          
+          // Also trigger Firestore snapshot sync
+          if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+            Sync.pushSnapshot(true).catch(err => {
+              console.warn('[RealtimeSync] Firestore sync failed:', err);
+            });
+          }
+        }, 1000); // 1 second debounce
+      }
+      
+      // Handle other data changes (sales, expenses, etc.)
+      if (key === 'mm_sales' || key === 'mm_expenses' || key === 'mm_fuelSales') {
+        // Trigger Firestore snapshot sync
+        clearTimeout(syncDebounceTimer);
+        syncDebounceTimer = setTimeout(async () => {
+          if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+            console.log('[RealtimeSync] Auto-syncing data to Firestore...');
+            Sync.pushSnapshot(true).catch(err => {
+              console.warn('[RealtimeSync] Firestore sync failed:', err);
+            });
+          }
+        }, 2000); // 2 second debounce for larger data
+      }
+    });
+    
+    console.log('✅ Automatic sync triggers setup');
+  }
+  
+  // ==============================================================
   // PUBLIC API
   // ==============================================================
   
@@ -476,6 +645,9 @@ const RealtimeSync = (() => {
     adjustStockAtomic,
     subscribeToProductStock,
     syncAllProducts,
+    syncSingleProduct,
+    deleteProductFromCloud,
+    subscribeToAllProducts,
     
     // Device management
     getDeviceId,
@@ -483,7 +655,10 @@ const RealtimeSync = (() => {
     getActiveDevices,
     
     // Cleanup
-    unsubscribeAll
+    unsubscribeAll,
+    
+    // Setup
+    setupAutomaticSync
   };
 })();
 
@@ -493,11 +668,15 @@ if (document.readyState === 'loading') {
     RealtimeSync.init().then(() => {
       RealtimeSync.registerDevice();
       RealtimeSync.subscribeToShift();
+      RealtimeSync.subscribeToAllProducts();
+      RealtimeSync.setupAutomaticSync();
     });
   });
 } else {
   RealtimeSync.init().then(() => {
     RealtimeSync.registerDevice();
     RealtimeSync.subscribeToShift();
+    RealtimeSync.subscribeToAllProducts();
+    RealtimeSync.setupAutomaticSync();
   });
 }

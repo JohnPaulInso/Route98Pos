@@ -91,7 +91,8 @@ const DB = (() => {
       projectId: "route98-bogo",
       storageBucket: "route98-bogo.firebasestorage.app",
       messagingSenderId: "177232035309",
-      appId: "1:177232035309:web:87fa8430b141e7afb97be4"
+      appId: "1:177232035309:web:87fa8430b141e7afb97be4",
+      databaseURL: "https://route98-bogo-default-rtdb.firebaseio.com"
     },
     autoSync: true,
     // (2026-07-13) Default autoPrintReceipt to true; was unset in defaults
