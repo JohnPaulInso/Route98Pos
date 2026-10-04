@@ -454,6 +454,8 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
 .modal table.data td{ font-size:1.05rem; padding:12px 14px; }
 @keyframes pop-in{ from{ opacity:0; transform:translateY(8px) scale(.98);} to{ opacity:1; transform:none; } }
 body.scroll-locked{ overflow:hidden; }
+/* (2026-10-05) APK: html.scroll-locked used instead of body to avoid clipping fixed modals */
+html.scroll-locked body{ overflow:hidden; }
 
 /* ============ TOAST ============ */
 /* (2026-07-13) Position toasts on left for PC view; was bottom-right */

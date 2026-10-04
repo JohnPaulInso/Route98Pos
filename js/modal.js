@@ -21,12 +21,13 @@ const Modal = (() => {
       }
       setTimeout(() => {
         bd.remove();
-        if(!document.querySelector(".modal-backdrop")) document.body.classList.remove("scroll-locked");
+        // (2026-10-05) Move scroll-locked to html; body overflow:hidden clips fixed modals in WebView
+        if(!document.querySelector(".modal-backdrop")) document.documentElement.classList.remove("scroll-locked");
         if(typeof onClosed === "function") onClosed();
         else if(typeof bd._onClose === "function") bd._onClose();
       }, 100);
     } else if(!document.querySelector(".modal-backdrop")){
-      document.body.classList.remove("scroll-locked");
+      document.documentElement.classList.remove("scroll-locked");
       if(typeof onClosed === "function") onClosed();
     }
   }
@@ -35,7 +36,8 @@ const Modal = (() => {
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
-    document.body.classList.add("scroll-locked");
+    // (2026-10-05) Move scroll-locked to html; body overflow:hidden clips fixed modals in WebView
+    document.documentElement.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
     backdrop._preventBackdropClose = preventBackdropClose;

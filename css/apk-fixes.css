@@ -2,19 +2,24 @@
  * APK Fixes - Critical fixes for Capacitor Android APK
  * ============================================================ */
 
-/* (2026-07-13) Faster 100ms modal animation & zero blur; was 220ms + blur */
+/* (2026-10-05) Kill modal animations in APK — Android WebView freezes at opacity:0 */
 .modal-backdrop {
   position: fixed !important;
   inset: 0 !important;
   z-index: 9999999 !important;
   display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
   background: rgba(0, 0, 0, 0.55) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  animation: modal-fade-in .10s ease-out forwards !important;
+  /* (2026-10-05) Force visible — animation was leaving opacity:0 on APK */
+  opacity: 1 !important;
+  animation: none !important;
+  -webkit-animation: none !important;
   -webkit-tap-highlight-color: transparent;
   pointer-events: auto !important;
-  /* (2026-10-04) Re-enable touch on modal subtree; was inherited none from body */
   touch-action: auto !important;
 }
 
@@ -24,16 +29,25 @@
   pointer-events: auto !important;
   touch-action: auto !important;
   background: var(--paper, #ffffff) !important;
-  animation: modal-pop-in .10s ease-out forwards !important;
+  /* (2026-10-05) Force visible — pop-in animation was leaving opacity:0 on APK */
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  -webkit-animation: none !important;
   max-height: 92vh;
   overflow-y: auto;
+  border-radius: var(--r-lg, 12px);
+  width: 100%;
+  max-width: 640px;
 }
 
 .modal-backdrop.modal-closing {
-  animation: modal-fade-out .08s ease-in forwards !important;
+  opacity: 0 !important;
+  transition: opacity 0.08s ease-in !important;
 }
 .modal-backdrop.modal-closing .modal {
-  animation: modal-pop-out .08s ease-in forwards !important;
+  opacity: 0 !important;
+  transition: opacity 0.08s ease-in !important;
 }
 
 .modal-body {
@@ -242,10 +256,13 @@ button *,
   pointer-events: auto !important;
 }
 
-/* (2026-07-13) Fix scroll-locked body without position-fixed; was shift layout */
-body.scroll-locked {
+/* (2026-10-05) Move overflow:hidden to html; body overflow clips position:fixed modals in WebView */
+html.scroll-locked {
   overflow: hidden !important;
-  /* (2026-10-04) Removed touch-action:none; was killing all APK button taps */
+}
+body.scroll-locked {
+  /* (2026-10-05) Removed overflow:hidden from body; was clipping fixed modal backdrop */
+  overflow: visible !important;
 }
 
 /* (2026-10-02) Fix form inputs in modals */

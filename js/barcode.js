@@ -157,7 +157,8 @@ const Scanner = (() => {
         <div class="scan-recent-list" id="scan-recent-list"></div>
       </div>`;
     document.body.appendChild(overlay);
-    document.body.classList.add("scroll-locked");
+    // (2026-10-05) Move scroll-locked to html element; was body which clips fixed overlay
+    document.documentElement.classList.add("scroll-locked");
     const video = overlay.querySelector("#scan-video");
     video.srcObject = stream;
 
@@ -187,7 +188,7 @@ const Scanner = (() => {
       cancelAnimationFrame(raf);
       stream.getTracks().forEach(t => t.stop());
       overlay.remove();
-      document.body.classList.remove("scroll-locked");
+      document.documentElement.classList.remove("scroll-locked");
       if(popHistory && history.state?.scannerOpen){
         history.back();
       }
