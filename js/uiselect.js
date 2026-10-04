@@ -7,13 +7,16 @@
 // options: array of strings OR [{value,label}]
 // ============================================================
 const UISelect = (() => {
-  // (2026-07-13) Clean parent stacking on closeAll; was classList open only
+  // (2026-07-13) Set explicit z-index on open UISelect and parents; was class only
   function closeAll(except){
     document.querySelectorAll(".ui-select.open").forEach(d => {
       if(d !== except) {
         d.classList.remove("open");
-        d.closest(".field")?.classList.remove("select-field-open");
-        d.closest(".input-row")?.classList.remove("select-row-open");
+        d.style.removeProperty("z-index");
+        const fld = d.closest(".field") || d.parentElement;
+        const row = d.closest(".input-row") || (fld ? fld.parentElement : null);
+        if(fld){ fld.classList.remove("select-field-open"); fld.style.removeProperty("z-index"); }
+        if(row){ row.classList.remove("select-row-open"); row.style.removeProperty("z-index"); }
       }
     });
   }
@@ -39,7 +42,7 @@ const UISelect = (() => {
       </div>`;
   }
 
-  // (2026-07-13) Support touch, click & parent elevation in UISelect; was desktop
+  // (2026-07-13) Set explicit z-index & elevation on open UISelect; was desktop
   function bind(id, onChange){
     const el = typeof id === "string" ? document.getElementById(id) : id;
     if(!el) return;
@@ -49,12 +52,17 @@ const UISelect = (() => {
       const willOpen = !el.classList.contains("open");
       closeAll(el);
       el.classList.toggle("open", willOpen);
+      const fld = el.closest(".field") || el.parentElement;
+      const row = el.closest(".input-row") || (fld ? fld.parentElement : null);
       if(willOpen){
-        el.closest(".field")?.classList.add("select-field-open");
-        el.closest(".input-row")?.classList.add("select-row-open");
+        el.style.setProperty("z-index", "10010", "important");
+        el.style.setProperty("position", "relative", "important");
+        if(fld){ fld.classList.add("select-field-open"); fld.style.setProperty("z-index", "10005", "important"); fld.style.setProperty("position", "relative", "important"); }
+        if(row){ row.classList.add("select-row-open"); row.style.setProperty("z-index", "10005", "important"); row.style.setProperty("position", "relative", "important"); }
       } else {
-        el.closest(".field")?.classList.remove("select-field-open");
-        el.closest(".input-row")?.classList.remove("select-row-open");
+        el.style.removeProperty("z-index");
+        if(fld){ fld.classList.remove("select-field-open"); fld.style.removeProperty("z-index"); }
+        if(row){ row.classList.remove("select-row-open"); row.style.removeProperty("z-index"); }
       }
     };
     el.querySelectorAll(".ui-select-opt").forEach(opt => {
@@ -63,8 +71,11 @@ const UISelect = (() => {
         el.dataset.value = opt.dataset.v;
         el.querySelector(".ui-select-label").textContent = opt.textContent;
         el.querySelectorAll(".ui-select-opt").forEach(o => o.classList.toggle("active", o === opt));
-        el.closest(".field")?.classList.remove("select-field-open");
-        el.closest(".input-row")?.classList.remove("select-row-open");
+        const fld = el.closest(".field") || el.parentElement;
+        const row = el.closest(".input-row") || (fld ? fld.parentElement : null);
+        if(fld){ fld.classList.remove("select-field-open"); fld.style.removeProperty("z-index"); }
+        if(row){ row.classList.remove("select-row-open"); row.style.removeProperty("z-index"); }
+        el.style.removeProperty("z-index");
         closeAll();
         onChange?.(opt.dataset.v);
       };

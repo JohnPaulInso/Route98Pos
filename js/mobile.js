@@ -320,74 +320,9 @@ const MobileUtils = (() => {
     }
   }
   
-  // ============ ENHANCE MODALS FOR MOBILE ============
+  // (2026-07-13) Delegate modal backdrop to modal.js; was ghost click listeners
   function enhanceMobileModals() {
-    // (2026-07-13) Honor _preventBackdropClose flag in mobile modals; was closing
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal-backdrop') && isMobile()) {
-        if (e.target._preventBackdropClose) return;
-        hapticLight();
-        const closeBtn = document.querySelector('.modal-foot .btn-ghost, .modal-foot .btn:not(.btn-primary)');
-        if (closeBtn) {
-          closeBtn.click();
-        }
-      }
-    });
-    
-    // Add swipe down to close modal
-    if (!isTouchDevice()) return;
-    
-    let modalStartY = 0;
-    let modalCurrentY = 0;
-    let isDragging = false;
-    
-    document.addEventListener('touchstart', (e) => {
-      const modal = e.target.closest('.modal');
-      const modalBody = e.target.closest('.modal-body');
-      if (modal && !modalBody && isMobile()) {
-        modalStartY = e.touches[0].pageY;
-        isDragging = false;
-      }
-    }, { passive: true });
-    
-    document.addEventListener('touchmove', (e) => {
-      const modal = e.target.closest('.modal');
-      const modalBody = e.target.closest('.modal-body');
-      
-      if (modal && modalStartY && !modalBody && isMobile()) {
-        modalCurrentY = e.touches[0].pageY;
-        const deltaY = modalCurrentY - modalStartY;
-        
-        // Only allow downward swipe
-        if (deltaY > 0) {
-          isDragging = true;
-          modal.style.transform = `translateY(${Math.min(deltaY * 0.5, 100)}px)`;
-          modal.style.transition = 'none';
-        }
-      }
-    }, { passive: true });
-    
-    document.addEventListener('touchend', (e) => {
-      const modal = e.target.closest('.modal');
-      if (modal && modalStartY && isMobile()) {
-        const deltaY = modalCurrentY - modalStartY;
-        
-        if (deltaY > 100 && isDragging) {
-          // Close modal
-          hapticMedium();
-          const closeBtn = document.querySelector('.modal-foot .btn-ghost, .modal-foot .btn:not(.btn-primary)');
-          if (closeBtn) {
-            closeBtn.click();
-          }
-        }
-        
-        modal.style.transform = '';
-        modal.style.transition = '';
-        modalStartY = 0;
-        modalCurrentY = 0;
-        isDragging = false;
-      }
-    }, { passive: true });
+    /* Handled safely by Modal in modal.js with tap delay and cooldown */
   }
   
   // ============ INITIALIZE ALL MOBILE FEATURES ============

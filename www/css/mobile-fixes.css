@@ -3170,8 +3170,8 @@
     transition: width 0.3s ease !important;
   }
 
-  /* (2026-07-13) Date picker bottom sheet & 7-col grid; was single vertical col */
-  .modal-backdrop:has(.modal-loy-dialog) {
+  /* (2026-07-13) Date picker modal backdrop for APK; was broken with :has() */
+  .modal-loy-dialog-backdrop {
     display: flex !important;
     align-items: flex-end !important;
     justify-content: center !important;
@@ -3189,14 +3189,10 @@
     overflow-y: auto !important;
     padding: 0 !important;
     border: none !important;
-    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
-    animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    /* (2026-07-13) Disable slideUpSheet animation; was freezing in WebView */
+    animation: none !important;
+    transform: none !important;
     background: var(--paper-raised, #fff) !important;
-  }
-
-  @keyframes slideUpSheet {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
   }
 
   .loy-sheet-handle {
@@ -3774,9 +3770,8 @@
     font-weight: 600 !important;
   }
 
-  /* (2026-07-13) Product form modal mobile full-screen; was overflowing desktop */
-  .modal-product-form-backdrop,
-  .modal-backdrop:has(.modal-product-form) {
+  /* (2026-07-13) Product form backdrop for APK; was broken with :has() */
+  .modal-product-form-backdrop {
     padding: 0 !important;
     align-items: stretch !important;
     justify-content: stretch !important;
@@ -4619,12 +4614,14 @@
   }
 }
 
+/* (2026-07-13) Disable slide-left animation; was freezing in WebView */
 .modal.modal-slide-left {
-  animation: modal-swipe-in-left 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: none !important;
+  transform: none !important;
 }
 
 .modal-backdrop.modal-closing .modal.modal-slide-left {
-  animation: modal-swipe-out-right 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: none !important;
 }
 
 /* (2026-07-13) Pack modal table cells; was 650px wide with horiz scroll */
