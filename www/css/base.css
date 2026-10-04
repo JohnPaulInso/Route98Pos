@@ -377,11 +377,11 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
 }
 
 /* (2026-07-13) Raise modal z-index to 10000 above dropdowns; was 100 */
-/* (2026-07-13) Faster 100ms modal animation & zero blur; was 220ms + blur */
+/* (2026-07-13) Disable base modal animations; was modal-pop-in forwards */
 .modal-backdrop{
   position:fixed; inset:0; background:rgba(10,13,30,.6); display:flex; align-items:center; justify-content:center;
   z-index:10000; padding:16px; backdrop-filter:none; -webkit-backdrop-filter:none;
-  animation:modal-fade-in .10s ease-out forwards;
+  animation:none; opacity:1;
 }
 .modal-backdrop.modal-closing{
   animation:modal-fade-out .08s ease-in forwards;
@@ -390,7 +390,7 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
 .modal{
   background:var(--paper-raised); border-radius:var(--r-lg); width:100%; max-width:640px;
   max-height:92vh; overflow-y:auto; overflow-x:hidden; box-shadow:var(--shadow-lg);
-  animation:modal-pop-in .10s ease-out forwards;
+  animation:none; opacity:1; transform:none;
   display:flex; flex-direction:column; position:relative;
 }
 .modal-backdrop.modal-closing .modal{

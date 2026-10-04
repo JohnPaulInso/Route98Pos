@@ -1357,7 +1357,9 @@
     max-height: 95vh !important;
     border-radius: 20px 20px 0 0 !important;
     margin: 0 !important;
-    animation: slideUpModal 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* (2026-07-13) Disable slideUpModal animation; was freezing in WebView */
+    animation: none !important;
+    transform: none !important;
     position: relative !important;
     z-index: 100000 !important;
     pointer-events: auto !important;
@@ -5500,21 +5502,12 @@ button:active,
   }
 }
 
-/* Modal scale on desktop */
+/* (2026-07-13) Disable modal scaleIn animation; was freezing opacity:0 */
 @media (min-width: 768px) {
   .modal {
-    animation: scaleIn 0.3s ease !important;
-  }
-  
-  @keyframes scaleIn {
-    from {
-      transform: scale(0.9);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
