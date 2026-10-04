@@ -81,15 +81,23 @@ const MobileTouchFix = (() => {
     m.open = function(...args) {
       const backdrop = originalModalOpen.apply(this, args);
       if (backdrop) {
+        // (2026-07-13) Ensure modal is on body with max z-index; was unparented check
+        if (backdrop.parentElement !== document.body) {
+          document.body.appendChild(backdrop);
+        }
         backdrop.style.zIndex = '9999999';
         backdrop.style.position = 'fixed';
         backdrop.style.inset = '0';
         backdrop.style.pointerEvents = 'auto';
+        backdrop.style.opacity = '1';
+        backdrop.style.visibility = 'visible';
         const modal = backdrop.querySelector('.modal');
         if (modal) {
           modal.style.zIndex = '10000000';
           modal.style.touchAction = 'auto';
           modal.style.pointerEvents = 'auto';
+          modal.style.opacity = '1';
+          modal.style.visibility = 'visible';
         }
       }
       return backdrop;

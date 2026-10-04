@@ -21,12 +21,17 @@ const Modal = (() => {
       }
       setTimeout(() => {
         bd.remove();
-        // (2026-10-05) Move scroll-locked to html; body overflow:hidden clips fixed modals in WebView
-        if(!document.querySelector(".modal-backdrop")) document.documentElement.classList.remove("scroll-locked");
+        // (2026-07-13) Unlock scroll on body and html; was html-only
+        if(!document.querySelector(".modal-backdrop")){
+          document.body.classList.remove("scroll-locked");
+          document.documentElement.classList.remove("scroll-locked");
+        }
         if(typeof onClosed === "function") onClosed();
         else if(typeof bd._onClose === "function") bd._onClose();
       }, 100);
     } else if(!document.querySelector(".modal-backdrop")){
+      // (2026-07-13) Unlock scroll on body and html; was html-only
+      document.body.classList.remove("scroll-locked");
       document.documentElement.classList.remove("scroll-locked");
       if(typeof onClosed === "function") onClosed();
     }
@@ -36,7 +41,8 @@ const Modal = (() => {
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
-    // (2026-10-05) Move scroll-locked to html; body overflow:hidden clips fixed modals in WebView
+    // (2026-07-13) Lock scroll on body and html; was html-only
+    document.body.classList.add("scroll-locked");
     document.documentElement.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
@@ -52,6 +58,7 @@ const Modal = (() => {
         <div class="modal-body">${body}</div>
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
+    // (2026-07-13) Append backdrop to body; was documentElement which broke z-index
     document.body.appendChild(backdrop);
     // (2026-10-02) Fix APK: mousedown unreliable in Capacitor WebView; was mousedown
     backdrop.addEventListener("click", (e)=>{ 
