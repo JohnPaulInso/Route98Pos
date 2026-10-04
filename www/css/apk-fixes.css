@@ -14,6 +14,8 @@
   animation: modal-fade-in .10s ease-out forwards !important;
   -webkit-tap-highlight-color: transparent;
   pointer-events: auto !important;
+  /* (2026-10-04) Re-enable touch on modal subtree; was inherited none from body */
+  touch-action: auto !important;
 }
 
 .modal {
@@ -243,7 +245,7 @@ button *,
 /* (2026-07-13) Fix scroll-locked body without position-fixed; was shift layout */
 body.scroll-locked {
   overflow: hidden !important;
-  touch-action: none;
+  /* (2026-10-04) Removed touch-action:none; was killing all APK button taps */
 }
 
 /* (2026-10-02) Fix form inputs in modals */
@@ -265,11 +267,6 @@ body.scroll-locked {
 .modal-foot button {
   pointer-events: auto !important;
   touch-action: manipulation !important;
-}
-
-/* (2026-10-02) Prevent double-tap zoom */
-* {
-  touch-action: manipulation;
 }
 
 input,
