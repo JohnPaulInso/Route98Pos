@@ -421,8 +421,10 @@ const Settings = (() => {
 
     // (2026-07-13) Render first page of paginated backups table; was inline static map
     if(backups.length) { renderBackupRows(); bindBackupRowActions(wrap); }
+  // (2026-07-13) Close renderDataTab; was missing closing brace
+  }
 
-    // (2026-07-13) View detailed daily backup contents in modal. Prev: download only
+  // (2026-07-13) View detailed daily backup contents in modal. Prev: download only
     function bindBackupRowActions(wrap){
     wrap.querySelectorAll("[data-view-backup]").forEach(btn => {
       btn.onclick = () => {
