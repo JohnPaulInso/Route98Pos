@@ -335,14 +335,21 @@ document.addEventListener("wheel", (e) => {
   let targetChips = null;
   let hasDragged = false;
 
+  // (2026-10-04) Detect mobile/Capacitor to skip mouse-drag logic; was missing
+  const isMobileContext = () =>
+    Boolean(window.Capacitor?.isNativePlatform?.()) ||
+    window.matchMedia("(max-width: 768px)").matches ||
+    /Android|iPhone|iPad/i.test(navigator.userAgent);
+
   // (2026-07-13) Desktop-only mouse drag for chips; was intercepting touch
   document.addEventListener("mousedown", (e) => {
-    if(e.button !== 0 || window.matchMedia("(max-width: 768px)").matches) return;
+    // (2026-10-04) Always reset hasDragged on mousedown; was only reset inside guard
+    hasDragged = false;
+    if(e.button !== 0 || isMobileContext()) return;
     const chips = e.target.closest(".category-chips");
     if(!chips) return;
-    
+
     isDragging = true;
-    hasDragged = false;
     targetChips = chips;
     startX = e.pageX - chips.offsetLeft;
     scrollLeft = chips.scrollLeft;
@@ -354,20 +361,20 @@ document.addEventListener("wheel", (e) => {
     e.preventDefault();
     const x = e.pageX - targetChips.offsetLeft;
     const walk = (x - startX) * 1.5; // Scroll speed multiplier
-    
+
     // If moved more than 5px, consider it a drag
     if(Math.abs(walk) > 5){
       hasDragged = true;
     }
-    
+
     targetChips.scrollLeft = scrollLeft - walk;
   });
 
+  // (2026-10-04) Guard mouseup capture; was blocking APK taps via hasDragged
   document.addEventListener("mouseup", (e) => {
+    if(isMobileContext()){ isDragging = false; targetChips = null; hasDragged = false; return; }
     if(isDragging && targetChips){
       targetChips.style.scrollBehavior = "";
-      
-      // Prevent chip click if we dragged
       if(hasDragged){
         e.preventDefault();
         e.stopPropagation();
@@ -378,8 +385,9 @@ document.addEventListener("wheel", (e) => {
     hasDragged = false;
   }, true);
 
+  // (2026-10-04) Guard click capture; was eating APK taps when hasDragged stale
   document.addEventListener("click", (e) => {
-    // Block clicks on chips if we just dragged
+    if(isMobileContext()){ hasDragged = false; return; }
     if(hasDragged && e.target.closest(".category-chips .chip")){
       e.preventDefault();
       e.stopPropagation();
