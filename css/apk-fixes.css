@@ -2,19 +2,51 @@
  * APK Fixes - Critical fixes for Capacitor Android APK
  * ============================================================ */
 
-/* (2026-07-13) Top z-index & no animations for all modals; was behind main */
+/* (2026-07-13) Max z-index and hide nav/cart on modal-open; was overlapping */
 #root {
   position: relative !important;
   z-index: 1 !important;
 }
 
-/* (2026-07-13) Safe backdrop selectors without :has; was invalidating rule */
+html.modal-open .bottom-nav,
+body.modal-open .bottom-nav,
+html.scroll-locked .bottom-nav,
+body.scroll-locked .bottom-nav {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.modal-open .pos-cart,
+body.modal-open .pos-cart,
+html.scroll-locked .pos-cart,
+body.scroll-locked .pos-cart {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.modal-open .topbar,
+body.modal-open .topbar,
+html.scroll-locked .topbar,
+body.scroll-locked .topbar {
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+html.modal-open #root,
+body.modal-open #root,
+html.scroll-locked #root,
+body.scroll-locked #root {
+  z-index: 0 !important;
+}
+
 .modal-backdrop,
 .modal-product-form-backdrop,
 .modal-loy-dialog-backdrop {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 9999999 !important;
+  z-index: 2147483646 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -39,7 +71,7 @@
 .modal.modal-product-history,
 .modal.modal-slide-left {
   position: relative !important;
-  z-index: 10000000 !important;
+  z-index: 2147483647 !important;
   pointer-events: auto !important;
   touch-action: auto !important;
   background: var(--paper, #ffffff) !important;

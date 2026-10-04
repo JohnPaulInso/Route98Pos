@@ -21,18 +21,18 @@ const Modal = (() => {
       }
       setTimeout(() => {
         bd.remove();
-        // (2026-07-13) Unlock scroll on body and html; was html-only
+        // (2026-07-13) Remove modal-open and scroll-locked; was scroll-locked only
         if(!document.querySelector(".modal-backdrop")){
-          document.body.classList.remove("scroll-locked");
-          document.documentElement.classList.remove("scroll-locked");
+          document.body.classList.remove("scroll-locked", "modal-open");
+          document.documentElement.classList.remove("scroll-locked", "modal-open");
         }
         if(typeof onClosed === "function") onClosed();
         else if(typeof bd._onClose === "function") bd._onClose();
       }, 100);
     } else if(!document.querySelector(".modal-backdrop")){
-      // (2026-07-13) Unlock scroll on body and html; was html-only
-      document.body.classList.remove("scroll-locked");
-      document.documentElement.classList.remove("scroll-locked");
+      // (2026-07-13) Remove modal-open on empty stack; was scroll-locked only
+      document.body.classList.remove("scroll-locked", "modal-open");
+      document.documentElement.classList.remove("scroll-locked", "modal-open");
       if(typeof onClosed === "function") onClosed();
     }
   }
@@ -41,14 +41,15 @@ const Modal = (() => {
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
-    // (2026-07-13) Lock scroll on body and html; was html-only
-    document.body.classList.add("scroll-locked");
-    document.documentElement.classList.add("scroll-locked");
+    // (2026-07-13) Add modal-open and scroll-locked classes; was scroll-locked only
+    document.body.classList.add("scroll-locked", "modal-open");
+    document.documentElement.classList.add("scroll-locked", "modal-open");
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
     backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop`).join(" ") : "";
     backdrop.className = `modal-backdrop ${extraBackdrop}`.trim();
+    backdrop.style.setProperty("z-index", "2147483646", "important");
     backdrop.innerHTML = `
       <div class="modal ${wide ? "modal-wide":""} ${modalClass}">
         <div class="modal-head">
@@ -58,6 +59,8 @@ const Modal = (() => {
         <div class="modal-body">${body}</div>
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
+    const mInner = backdrop.querySelector(".modal");
+    if(mInner) mInner.style.setProperty("z-index", "2147483647", "important");
     // (2026-07-13) Append backdrop to body; was documentElement which broke z-index
     document.body.appendChild(backdrop);
     // (2026-07-13) Guard backdrop against ghost clicks; was instant close

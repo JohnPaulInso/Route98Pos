@@ -72,19 +72,20 @@ const MobileTouchFix = (() => {
         if (backdrop.parentElement !== document.body) {
           document.body.appendChild(backdrop);
         }
-        backdrop.style.zIndex = '9999999';
-        backdrop.style.position = 'fixed';
-        backdrop.style.inset = '0';
-        backdrop.style.pointerEvents = 'auto';
-        backdrop.style.opacity = '1';
-        backdrop.style.visibility = 'visible';
+        // (2026-07-13) Set max int z-index on backdrop and modal; was 9999999
+        backdrop.style.setProperty('z-index', '2147483646', 'important');
+        backdrop.style.setProperty('position', 'fixed', 'important');
+        backdrop.style.setProperty('inset', '0', 'important');
+        backdrop.style.setProperty('pointer-events', 'auto', 'important');
+        backdrop.style.setProperty('opacity', '1', 'important');
+        backdrop.style.setProperty('visibility', 'visible', 'important');
         const modal = backdrop.querySelector('.modal');
         if (modal) {
-          modal.style.zIndex = '10000000';
-          modal.style.touchAction = 'auto';
-          modal.style.pointerEvents = 'auto';
-          modal.style.opacity = '1';
-          modal.style.visibility = 'visible';
+          modal.style.setProperty('z-index', '2147483647', 'important');
+          modal.style.setProperty('touch-action', 'auto', 'important');
+          modal.style.setProperty('pointer-events', 'auto', 'important');
+          modal.style.setProperty('opacity', '1', 'important');
+          modal.style.setProperty('visibility', 'visible', 'important');
         }
       }
       return backdrop;
