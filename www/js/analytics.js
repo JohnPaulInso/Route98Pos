@@ -504,16 +504,34 @@ const Analytics = (() => {
     };
   }
 
-  // (2026-07-13) Aggregate purchase expenses and restock logs with range; was static
+  // (2026-07-13) Safe restock parsing & period range; was strict number equality
   function restockSummary(period = "all"){
-    const logs = DB.getRestockLogs();
+    const logs = DB.getRestockLogs() || [];
     const r = getPeriodRange(period);
-    const filtered = logs.filter(l => {
-      const ts = l.timestamp || l.ts || 0;
+    const parseTs = (val) => {
+      if(!val) return 0;
+      if(typeof val === "number") return val;
+      if(typeof val?.toMillis === "function") return val.toMillis();
+      if(typeof val?.seconds === "number") return val.seconds * 1000;
+      const num = Number(val);
+      if(!isNaN(num) && num > 0) return num;
+      const parsed = new Date(val).getTime();
+      return isNaN(parsed) ? 0 : parsed;
+    };
+    const filtered = (period === "all" || !r) ? logs : logs.filter(l => {
+      const ts = parseTs(l.timestamp ?? l.ts);
       return ts >= r.start && ts <= r.end;
     });
-    const totalCapitalSpent = filtered.reduce((sum, l) => sum + (l.total_cost || 0), 0);
-    const totalUnitsPurchased = filtered.reduce((sum, l) => sum + (l.quantity_added || 0), 0);
+    const totalCapitalSpent = filtered.reduce((sum, l) => {
+      const qty = Math.abs(Number(l.quantity_added ?? l.quantity ?? l.qty ?? 0));
+      const uCost = Number(l.unit_cost ?? l.unitCost ?? 0);
+      const cost = Number(l.total_cost ?? l.totalCost ?? (qty * uCost));
+      return sum + (cost || 0);
+    }, 0);
+    const totalUnitsPurchased = filtered.reduce((sum, l) => {
+      const qty = Number(l.quantity_added ?? l.quantity ?? l.qty ?? 0);
+      return sum + (qty > 0 ? qty : 0);
+    }, 0);
     return {
       totalCapitalSpent: Utils.round2(totalCapitalSpent),
       totalUnitsPurchased,

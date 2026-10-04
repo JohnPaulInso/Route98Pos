@@ -523,8 +523,61 @@ const DB = (() => {
   const setVenueLeads  = (v) => write(KEYS.venueLeads, v);
   const getStockLog    = () => read(KEYS.stockLog, []);
   const setStockLog    = (v) => write(KEYS.stockLog, v);
-  // (2026-07-13) Set updatedAt on restock & rollback; was untracked timestamps
-  const getRestockLogs = () => read(KEYS.restockLogs, []);
+  // (2026-07-13) Auto-recover restock logs & prevent wipe; was empty array wipe
+  const getRestockLogs = () => {
+    let logs = read(KEYS.restockLogs, []);
+    if(!Array.isArray(logs) || logs.length === 0){
+      const baseline = read(KEYS.syncBaseline, null);
+      if(baseline && Array.isArray(baseline.restockLogs) && baseline.restockLogs.length > 0){
+        logs = baseline.restockLogs;
+        write(KEYS.restockLogs, logs);
+        return logs;
+      }
+      const backups = read(KEYS.backups, []);
+      if(Array.isArray(backups)){
+        for(const b of backups){
+          if(b?.data?.restockLogs && Array.isArray(b.data.restockLogs) && b.data.restockLogs.length > 0){
+            logs = b.data.restockLogs;
+            write(KEYS.restockLogs, logs);
+            return logs;
+          }
+        }
+      }
+      const stockLogs = read(KEYS.stockLog, []);
+      if(Array.isArray(stockLogs) && stockLogs.length > 0){
+        const prods = getProducts();
+        const pMap = new Map(prods.map(p => [p.id, p]));
+        const recovered = [];
+        stockLogs.forEach(sl => {
+          const delta = Number(sl.delta || 0);
+          if(delta !== 0){
+            const p = pMap.get(sl.productId);
+            const cost = p?.cost || 0;
+            const rawTs = sl.ts ?? sl.timestamp;
+            const ts = typeof rawTs === "number" ? rawTs : (rawTs ? new Date(rawTs).getTime() : Date.now());
+            recovered.push({
+              id: sl.id || Utils.uid("rstk"),
+              product_id: sl.productId || "",
+              product_name: sl.productName || p?.name || "Unknown Product",
+              quantity_added: delta,
+              unit_cost: cost,
+              total_cost: Math.abs(delta) * cost,
+              supplier_name: delta > 0 ? (p?.distributor || p?.brand || "Stock Adjustment") : "Shrinkage / Audit",
+              reason: sl.reason || "Stock Adjustment",
+              ts: ts,
+              timestamp: ts,
+              updatedAt: ts
+            });
+          }
+        });
+        if(recovered.length > 0){
+          write(KEYS.restockLogs, recovered);
+          return recovered;
+        }
+      }
+    }
+    return Array.isArray(logs) ? logs : [];
+  };
   const setRestockLogs = (v) => write(KEYS.restockLogs, v);
   function addRestockLog(entry){
     const logs = getRestockLogs();
@@ -1138,8 +1191,8 @@ const DB = (() => {
       heldSales:getHeldSales(), venueLeads:getVenueLeads(), bookings:getBookings(),
       restaurantBookings:getRestaurantBookings(), expenses:getExpenses(),
       stockLog:getStockLog(), restockLogs:getRestockLogs(), physicalAudits:getPhysicalAudits(),
-      // (2026-07-13) Include shiftLogs and raw shift in snapshot; was omitted
-      dayBalances:getDayBalances(), backups:[], voidLogs:getVoidLogs(), shift:read(KEYS.shift, null), shiftLogs:getShiftLogs(), cashiers:getCashiers(),
+      // (2026-07-13) Include backup metadata in snapshot; was hardcoded empty array
+      dayBalances:getDayBalances(), backups:getBackups().map(b=>{const c={...b};delete c.data;return c;}).slice(0,30), voidLogs:getVoidLogs(), shift:read(KEYS.shift, null), shiftLogs:getShiftLogs(), cashiers:getCashiers(),
       customItems: getCustomItems ? getCustomItems() : [],
       deletedSaleIds: Array.from(getDeletedSaleIds ? getDeletedSaleIds() : []),
       // (2026-07-13) Include deletedProductIds in DB snapshot; was omitted
@@ -1250,11 +1303,40 @@ const DB = (() => {
     if(snap.bookings) setBookings(snap.bookings);
     if(snap.restaurantBookings) setRestaurantBookings(snap.restaurantBookings);
     if(snap.expenses) setExpenses(snap.expenses);
-    if(snap.stockLog) setStockLog(snap.stockLog);
-    if(snap.restockLogs) setRestockLogs(snap.restockLogs);
+    // (2026-07-13) Safely merge restockLogs; was overwriting with empty remote
+    if(snap.restockLogs && Array.isArray(snap.restockLogs) && snap.restockLogs.length){
+      const curLogs = getRestockLogs();
+      const rMap = new Map();
+      curLogs.forEach(l => { if(l && l.id) rMap.set(l.id, l); });
+      snap.restockLogs.forEach(l => {
+        if(l && l.id){
+          if(!rMap.has(l.id)) rMap.set(l.id, l);
+          else {
+            const old = rMap.get(l.id);
+            if((l.updatedAt || l.ts || 0) >= (old.updatedAt || old.ts || 0)) rMap.set(l.id, { ...old, ...l });
+          }
+        }
+      });
+      setRestockLogs(Array.from(rMap.values()).sort((a,b)=>(b.ts||b.timestamp||0)-(a.ts||a.timestamp||0)));
+    }
     if(snap.physicalAudits) setPhysicalAudits(snap.physicalAudits);
     if(snap.customItems && setCustomItems) setCustomItems(snap.customItems);
-    if(snap.backups) setBackups(snap.backups);
+    // (2026-07-13) Safely merge backups in restoreSnapshot; was overwriting array
+    if(snap.backups && Array.isArray(snap.backups) && snap.backups.length){
+      const localBackups = getBackups();
+      const bMap = new Map();
+      localBackups.forEach(b => { if(b && b.id) bMap.set(b.id, b); });
+      snap.backups.forEach(b => {
+        if(b && b.id){
+          if(!bMap.has(b.id)) bMap.set(b.id, b);
+          else {
+            const old = bMap.get(b.id);
+            if(b.data && !old.data) bMap.set(b.id, { ...old, data: b.data });
+          }
+        }
+      });
+      setBackups(Array.from(bMap.values()).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)));
+    }
     // (2026-07-13) Safely merge voidLogs; was overwriting array
     if(snap.voidLogs && Array.isArray(snap.voidLogs)){
       const localVoids = getVoidLogs();

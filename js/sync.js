@@ -141,6 +141,8 @@ const Sync = (() => {
     merged.physicalAudits = mergeArray3Way(base.physicalAudits, local.physicalAudits, remote.physicalAudits, "id", "ts");
     merged.customItems = mergeArray3Way(base.customItems, local.customItems, remote.customItems, "name", "updatedAt");
     merged.heldSales = mergeArray3Way(base.heldSales, local.heldSales, remote.heldSales, "id", "ts");
+    // (2026-07-13) 3-way merge backups metadata in sync; was omitted and reset
+    merged.backups = mergeArray3Way(base.backups, local.backups, remote.backups, "id", "createdAt").sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     // (2026-07-13) Merge deletedProductIds & deletedSaleIds tombstones; was sales only
     merged.deletedSaleIds = Array.from(new Set([...(base.deletedSaleIds || []), ...(local.deletedSaleIds || []), ...(remote.deletedSaleIds || [])]));
     merged.deletedProductIds = Array.from(new Set([...(base.deletedProductIds || []), ...(local.deletedProductIds || []), ...(remote.deletedProductIds || [])]));
@@ -511,6 +513,38 @@ const Sync = (() => {
     }catch(e){
       console.warn("Could not sync backups to cloud:", e);
     }
+  }  // (2026-07-13) Sync and retrieve cloud backups for UI; was missing fetch func
+  async function fetchCloudBackups(){
+    try {
+      const settings = DB.getSettings();
+      if(!settings.firebaseConfig) return DB.getBackups();
+      const { db: database, mod } = await ensureFirebase();
+      const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
+      if(!backupsSnap.empty){
+        const cloudBackups = [];
+        backupsSnap.forEach(d => cloudBackups.push(d.data()));
+        if(cloudBackups.length){
+          const existing = DB.getBackups();
+          const bMap = new Map();
+          existing.forEach(b => { if(b && b.id) bMap.set(b.id, b); });
+          cloudBackups.forEach(b => {
+            if(b && b.id){
+              if(!bMap.has(b.id)) bMap.set(b.id, b);
+              else {
+                const old = bMap.get(b.id);
+                if(b.data && !old.data) bMap.set(b.id, { ...old, data: b.data });
+              }
+            }
+          });
+          const merged = Array.from(bMap.values()).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+          DB.setBackups(merged);
+          return merged;
+        }
+      }
+    } catch(e) {
+      console.warn("Could not fetch cloud backups:", e);
+    }
+    return DB.getBackups();
   }
 
   function getNext1159Target(){
@@ -705,6 +739,6 @@ const Sync = (() => {
   return {
     // (2026-07-13) Export pushVoidDoc & syncBackupsToCloud; was unexported
     init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue, deleteSaleDoc, pushVoidDoc,
-    createDailyBackup, checkDailyBackup, syncBackupsToCloud, getNext1159Target, ensureFirebase, startRealtimeListener
+    createDailyBackup, checkDailyBackup, syncBackupsToCloud, fetchCloudBackups, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();

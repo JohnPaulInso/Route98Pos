@@ -248,19 +248,66 @@ const Settings = (() => {
     };
   }
 
-  // (2026-07-13) Populate and sync backups on data tab load; was empty check
+  // (2026-07-13) Paginate backups 10/page; was unbounded scrolling list
+  let backupPage = 1;
+  const BACKUP_RPP = 10;
+
+  function renderBackupRows(){
+    const backups = DB.getBackups();
+    const total = backups.length;
+    const totalPages = Math.max(1, Math.ceil(total / BACKUP_RPP));
+    if(backupPage > totalPages) backupPage = totalPages;
+    const slice = backups.slice((backupPage - 1) * BACKUP_RPP, backupPage * BACKUP_RPP);
+    const tbody = document.getElementById("backups-tbody");
+    const pgBar = document.getElementById("backups-pagination");
+    if(!tbody) return;
+    tbody.innerHTML = slice.map(b => `
+      <tr>
+        <td><strong>${Utils.escapeHtml(b.dateStr || new Date(b.createdAt).toLocaleString())}</strong></td>
+        <td><span class="badge ${String(b.exportType).includes("auto")?"badge-info":"badge-amber"}">${String(b.exportType).includes("auto")?"Daily Auto":"Manual"}</span></td>
+        <td class="text-xs text-faint">${b.summary ? `${b.summary.products||0} Prods · ${b.summary.sales||0} Sales · ${b.summary.expenses||0} OPEX` : "Full Snapshot"}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn btn-xs btn-ghost" data-view-backup="${b.id}">${Icons.get("eye",{size:12})} View</button>
+          <button class="btn btn-xs btn-ghost" data-download-backup="${b.id}">${Icons.get("download",{size:12})} Download</button>
+          <button class="btn btn-xs btn-outline" data-restore-backup="${b.id}">${Icons.get("upload",{size:12})} Restore</button>
+        </td>
+      </tr>`).join("");
+    if(pgBar){
+      if(totalPages <= 1){ pgBar.innerHTML = ""; return; }
+      let html = `<div class="pagination-bar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">`;
+      html += `<button class="btn btn-xs btn-ghost" ${backupPage===1?"disabled":""} data-bkp-page="prev">&laquo; Prev</button>`;
+      for(let p = 1; p <= totalPages; p++){
+        html += `<button class="btn btn-xs ${p===backupPage?"btn-primary":"btn-ghost"}" data-bkp-page="${p}">${p}</button>`;
+      }
+      html += `<button class="btn btn-xs btn-ghost" ${backupPage===totalPages?"disabled":""} data-bkp-page="next">Next &raquo;</button>`;
+      html += `<span class="text-xs text-faint" style="margin-left:auto;">Page ${backupPage} of ${totalPages} &nbsp;(${total} records)</span></div>`;
+      pgBar.innerHTML = html;
+      pgBar.querySelectorAll("[data-bkp-page]").forEach(btn => {
+        btn.onclick = () => {
+          const v = btn.dataset.bkpPage;
+          if(v === "prev") backupPage = Math.max(1, backupPage - 1);
+          else if(v === "next") backupPage = Math.min(totalPages, backupPage + 1);
+          else backupPage = Number(v);
+          renderBackupRows();
+          // Re-bind row action buttons after pagination
+          bindBackupRowActions(document.getElementById("view-tab-body"));
+        };
+      });
+    }
+  }
+
+  // (2026-07-13) Fetch backups collection on tab load; was skipped if non-empty
   function renderDataTab(){
     const wrap = document.getElementById("view-tab-body");
     if(DB.populateHistoricalBackups) DB.populateHistoricalBackups();
-    if(typeof Sync !== "undefined" && Sync.syncBackupsToCloud) Sync.syncBackupsToCloud();
-    const backups = DB.getBackups();
-    if(backups.length === 0 && typeof Sync !== "undefined" && Sync.pullSnapshot && !renderDataTab._fetching){
+    if(typeof Sync !== "undefined" && Sync.fetchCloudBackups && !renderDataTab._fetching){
       renderDataTab._fetching = true;
-      Sync.pullSnapshot(true).then(() => {
+      Sync.fetchCloudBackups().then(() => {
         renderDataTab._fetching = false;
         if(tab === "data") renderDataTab();
       }).catch(() => { renderDataTab._fetching = false; });
     }
+    const backups = DB.getBackups();
     const target1159 = Sync.getNext1159Target();
     const targetStr = target1159.toLocaleDateString("en-PH", { month:"short", day:"numeric" }) + " at 11:59 PM";
 
@@ -275,7 +322,7 @@ const Settings = (() => {
           <button class="btn btn-sm btn-primary" id="btn-create-backup-now">${Icons.get("plus",{size:13})} Run Backup Now</button>
         </div>
         ${backups.length ? `
-          <div class="table-wrap" style="max-height:480px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <div class="table-wrap" style="border:1px solid var(--border);border-radius:var(--radius-sm);">
             <table class="data">
               <thead>
                 <tr>
@@ -285,21 +332,10 @@ const Settings = (() => {
                   <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                ${backups.map(b => `
-                  <tr>
-                    <td><strong>${Utils.escapeHtml(b.dateStr || new Date(b.createdAt).toLocaleString())}</strong></td>
-                    <td><span class="badge ${String(b.exportType).includes("auto")?"badge-info":"badge-amber"}">${String(b.exportType).includes("auto")?"Daily Auto":"Manual"}</span></td>
-                    <td class="text-xs text-faint">${b.summary ? `${b.summary.products||0} Prods · ${b.summary.sales||0} Sales · ${b.summary.expenses||0} OPEX` : "Full Snapshot"}</td>
-                    <td style="text-align:right;white-space:nowrap;">
-                      <button class="btn btn-xs btn-ghost" data-view-backup="${b.id}">${Icons.get("eye",{size:12})} View</button>
-                      <button class="btn btn-xs btn-ghost" data-download-backup="${b.id}">${Icons.get("download",{size:12})} Download</button>
-                      <button class="btn btn-xs btn-outline" data-restore-backup="${b.id}">${Icons.get("upload",{size:12})} Restore</button>
-                    </td>
-                  </tr>`).join("")}
-              </tbody>
+              <tbody id="backups-tbody"></tbody>
             </table>
-          </div>` : `
+          </div>
+          <div id="backups-pagination" style="margin-top:10px;"></div>` : `
           <div style="padding:18px;text-align:center;background:var(--card-sub);border-radius:var(--radius-sm);color:var(--text-faint);">
             <p style="margin:0;font-size:.85rem;">No backups recorded yet. Automatic backup will trigger tonight at 11:59 PM, or click "Run Backup Now".</p>
           </div>`}
@@ -383,7 +419,11 @@ const Settings = (() => {
       }, 700);
     };
 
+    // (2026-07-13) Render first page of paginated backups table; was inline static map
+    if(backups.length) { renderBackupRows(); bindBackupRowActions(wrap); }
+
     // (2026-07-13) View detailed daily backup contents in modal. Prev: download only
+    function bindBackupRowActions(wrap){
     wrap.querySelectorAll("[data-view-backup]").forEach(btn => {
       btn.onclick = () => {
         const id = btn.dataset.viewBackup;

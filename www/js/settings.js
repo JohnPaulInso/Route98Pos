@@ -248,19 +248,18 @@ const Settings = (() => {
     };
   }
 
-  // (2026-07-13) Populate and sync backups on data tab load; was empty check
+  // (2026-07-13) Fetch backups collection on tab load; was skipped if non-empty
   function renderDataTab(){
     const wrap = document.getElementById("view-tab-body");
     if(DB.populateHistoricalBackups) DB.populateHistoricalBackups();
-    if(typeof Sync !== "undefined" && Sync.syncBackupsToCloud) Sync.syncBackupsToCloud();
-    const backups = DB.getBackups();
-    if(backups.length === 0 && typeof Sync !== "undefined" && Sync.pullSnapshot && !renderDataTab._fetching){
+    if(typeof Sync !== "undefined" && Sync.fetchCloudBackups && !renderDataTab._fetching){
       renderDataTab._fetching = true;
-      Sync.pullSnapshot(true).then(() => {
+      Sync.fetchCloudBackups().then(() => {
         renderDataTab._fetching = false;
         if(tab === "data") renderDataTab();
       }).catch(() => { renderDataTab._fetching = false; });
     }
+    const backups = DB.getBackups();
     const target1159 = Sync.getNext1159Target();
     const targetStr = target1159.toLocaleDateString("en-PH", { month:"short", day:"numeric" }) + " at 11:59 PM";
 

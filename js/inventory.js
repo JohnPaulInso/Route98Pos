@@ -1388,17 +1388,22 @@ const Inventory = (() => {
     function renderModalBody(modal){
       const summary = Analytics.restockSummary(filter);
       const dayGroups = {};
+      // (2026-07-13) Parse restock log dates & quantities safely; was raw fields
       (summary.logs || []).forEach(l => {
-        const ts = l.timestamp || l.ts || Date.now();
+        const rawTs = l.timestamp ?? l.ts ?? Date.now();
+        const ts = typeof rawTs === "number" ? rawTs : (typeof rawTs?.toMillis === "function" ? rawTs.toMillis() : (typeof rawTs?.seconds === "number" ? rawTs.seconds * 1000 : (new Date(rawTs).getTime() || Date.now())));
         const d = new Date(ts);
         const dayKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
         const dayLabel = d.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
         if(!dayGroups[dayKey]){
           dayGroups[dayKey] = { label: dayLabel, logs: [], totalCost: 0, totalUnits: 0 };
         }
+        const qty = Number(l.quantity_added ?? l.quantity ?? l.qty ?? 0);
+        const uCost = Number(l.unit_cost ?? l.unitCost ?? 0);
+        const cost = Number(l.total_cost ?? l.totalCost ?? (Math.abs(qty) * uCost));
         dayGroups[dayKey].logs.push(l);
-        dayGroups[dayKey].totalCost += (l.total_cost || ((l.unit_cost || 0) * (l.quantity_added || l.quantity || 0)));
-        dayGroups[dayKey].totalUnits += (l.quantity_added || l.quantity || 0);
+        dayGroups[dayKey].totalCost += cost;
+        dayGroups[dayKey].totalUnits += qty;
       });
 
       const dayKeys = Object.keys(dayGroups).sort((a,b) => b.localeCompare(a));

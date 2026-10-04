@@ -773,17 +773,17 @@ const RealtimeSync = (() => {
         }
       });
 
-      // Check for deletions
+      // (2026-07-13) Preserve local restock logs & sync up; was deleting local logs
       const cloudLogIds = new Set(cloudLogsArray.map(l => l.id));
-      const filtered = updatedLogs.filter(l => cloudLogIds.has(l.id));
-      if (filtered.length !== updatedLogs.length) {
-        hasChanges = true;
-        console.log('[RealtimeSync] Restock logs deleted from cloud');
-      }
+      localLogs.forEach(l => {
+        if (l && l.id && !cloudLogIds.has(l.id) && typeof syncRestockLogDirect === "function") {
+          syncRestockLogDirect(l).catch(() => {});
+        }
+      });
 
       // Update local DB if there are changes
       if (hasChanges) {
-        DB.setRestockLogs(filtered);
+        DB.setRestockLogs(updatedLogs);
         
         // Show notification
         const deviceId = getDeviceId();
@@ -880,17 +880,17 @@ const RealtimeSync = (() => {
         }
       });
 
-      // Check for deletions
+      // (2026-07-13) Preserve local expenses & sync up; was deleting local expenses
       const cloudExpenseIds = new Set(cloudExpensesArray.map(e => e.id));
-      const filtered = updatedExpenses.filter(e => cloudExpenseIds.has(e.id));
-      if (filtered.length !== updatedExpenses.length) {
-        hasChanges = true;
-        console.log('[RealtimeSync] Expenses deleted from cloud');
-      }
+      localExpenses.forEach(e => {
+        if (e && e.id && !cloudExpenseIds.has(e.id) && typeof syncExpenseDirect === "function") {
+          syncExpenseDirect(e).catch(() => {});
+        }
+      });
 
       // Update local DB if there are changes
       if (hasChanges) {
-        DB.setExpenses(filtered);
+        DB.setExpenses(updatedExpenses);
         
         // Show notification
         const deviceId = getDeviceId();

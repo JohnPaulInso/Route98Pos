@@ -16,14 +16,15 @@ const Modal = (() => {
       if(!isHandlingHistoryPop && window.history.state?.modalOpen){
         isHandlingHistoryPop = true;
         window.history.back();
-        setTimeout(() => { isHandlingHistoryPop = false; }, 260);
+        // (2026-07-13) Faster 100ms modal close timeout; was 240ms delay
+        setTimeout(() => { isHandlingHistoryPop = false; }, 120);
       }
       setTimeout(() => {
         bd.remove();
         if(!document.querySelector(".modal-backdrop")) document.body.classList.remove("scroll-locked");
         if(typeof onClosed === "function") onClosed();
         else if(typeof bd._onClose === "function") bd._onClose();
-      }, 240);
+      }, 100);
     } else if(!document.querySelector(".modal-backdrop")){
       document.body.classList.remove("scroll-locked");
       if(typeof onClosed === "function") onClosed();

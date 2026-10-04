@@ -6,7 +6,8 @@
 const Auth = (() => {
   let session = null; // { id, name, role }
   let pinBuffer = "";
-  let pendingRole = "cashier";
+  // (2026-07-13) Remember last login role & default admin; was hardcoded cashier
+  let pendingRole = localStorage.getItem("last_login_role") || "admin";
 
   function currentUser(){ return session; }
   function isAdmin(){ return session?.role === "admin"; }
@@ -59,32 +60,45 @@ const Auth = (() => {
     }
   }
 
-  // (2026-07-13) Cashier tab = only cashier role; Admin tab = admin role users; was role match
+  // (2026-07-13) Remember selected user in profile options; was unselected
   function getProfileSelectOptions(){
     const users = DB.getUsers().filter(u => u.role === pendingRole);
     if(!users.length) return `<option value="any">No registered ${pendingRole} accounts</option>`;
-    return users.map(u => `<option value="${u.id}">${Utils.escapeHtml(u.name)}</option>`).join("");
+    const lastUser = localStorage.getItem("last_login_user");
+    return users.map(u => `<option value="${u.id}" ${lastUser === u.id ? "selected" : ""}>${Utils.escapeHtml(u.name)}</option>`).join("");
   }
 
-  // (2026-07-13) Profile-based PIN login & duty cashier assignment; was generic match
+  // (2026-07-13) Multi-tier PIN matcher & role fallback; was rigid select-only
   function tryLogin(){
-    const users = DB.getUsers().filter(u => u.role === pendingRole);
+    if(!pinBuffer || pinBuffer.length < 4) return;
+    const allUsers = DB.getUsers();
     const selEl = document.getElementById("login-user-select");
     const selId = selEl ? selEl.value : "any";
     let match = null;
+
+    const cleanInput = String(pinBuffer).trim();
+    const matchPin = (u) => String(u?.pin ?? "").trim() === cleanInput;
+
     if(selId && selId !== "any"){
-      const specific = users.find(u => u.id === selId);
-      if(specific && specific.pin === pinBuffer){
+      const specific = allUsers.find(u => u.id === selId);
+      if(specific && matchPin(specific)){
         match = specific;
       }
-    } else {
-      match = users.find(u => u.pin === pinBuffer);
+    }
+    if(!match){
+      const roleUsers = allUsers.filter(u => u.role === pendingRole);
+      match = roleUsers.find(matchPin);
+    }
+    if(!match){
+      match = allUsers.find(matchPin);
     }
 
     if(match){
       Utils.Sound.cashChime();
       session = { id: match.id, name: match.name, role: match.role };
       sessionStorage.setItem("mm_session", JSON.stringify(session));
+      localStorage.setItem("last_login_role", match.role);
+      localStorage.setItem("last_login_user", match.id);
       // (2026-07-13) Do not overwrite shift cashier on admin login; was s.cashier=match
       if(match.role === "cashier"){
         localStorage.setItem("pos_cashier", match.name);
