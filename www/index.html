@@ -85,5 +85,9 @@
     }).catch(() => {});
   }
 </script>
+<!-- (2026-10-05) Modal portal: fixed layer above everything, no CSS cascade -->
+<div id="cap-modal-portal"
+  style="position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:2147483647;pointer-events:none;overflow:visible;contain:none;">
+</div>
 </body>
 </html>

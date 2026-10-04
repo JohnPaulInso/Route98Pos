@@ -1127,7 +1127,8 @@ table.data th:first-child{
     white-space:nowrap !important;
   }
   /* (2026-07-13) Fix mobile overflowing & compact card layouts; was clipping */
-  html, body, #app, .main-col, .view {
+  /* (2026-10-05) Removed html/body: overflow-x:hidden breaks fixed stacking */
+  #app, .main-col, .view {
     max-width: 100vw !important;
     overflow-x: hidden !important;
   }
