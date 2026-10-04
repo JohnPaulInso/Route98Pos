@@ -8,10 +8,10 @@
   z-index: 1 !important;
 }
 
+/* (2026-07-13) Safe backdrop selectors without :has; was invalidating rule */
 .modal-backdrop,
 .modal-product-form-backdrop,
-.modal-backdrop:has(.modal-loy-dialog),
-.modal-backdrop:has(.modal-product-form) {
+.modal-loy-dialog-backdrop {
   position: fixed !important;
   inset: 0 !important;
   z-index: 9999999 !important;

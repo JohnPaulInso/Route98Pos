@@ -60,17 +60,25 @@ const Modal = (() => {
       </div>`;
     // (2026-07-13) Append backdrop to body; was documentElement which broke z-index
     document.body.appendChild(backdrop);
-    // (2026-10-02) Fix APK: mousedown unreliable in Capacitor WebView; was mousedown
+    // (2026-07-13) Guard backdrop against ghost clicks; was instant close
+    const openTs = Date.now();
     backdrop.addEventListener("click", (e)=>{ 
+      if(Date.now() - openTs < 350) return;
       if(e.target === backdrop && !preventBackdropClose){ 
         close(backdrop, onClose); 
       } 
     });
-    backdrop.querySelector("#modal-x").onclick = () => { close(backdrop, onClose); };
+    backdrop.querySelector("#modal-x").onclick = () => { 
+      if(Date.now() - openTs < 350) return;
+      close(backdrop, onClose); 
+    };
     const escHandler = (e) => { if(e.key === "Escape"){ close(backdrop, onClose); document.removeEventListener("keydown", escHandler); } };
     document.addEventListener("keydown", escHandler);
     actions.forEach((a,i) => {
-      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => a.onClick ? a.onClick() : close(backdrop, onClose);
+      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => {
+        if(Date.now() - openTs < 350) return;
+        a.onClick ? a.onClick() : close(backdrop, onClose);
+      };
     });
     return backdrop;
   }

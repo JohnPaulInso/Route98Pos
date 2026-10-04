@@ -43,25 +43,12 @@ const MobileTouchFix = (() => {
       }
     }, { passive: true });
 
+    // (2026-07-13) Rely on native clicks; was synthetic click causing ghost close
     document.addEventListener('touchend', (e) => {
       const el = touchTarget;
       touchTarget = null;
       if (!el) return;
       el.classList.remove('touch-active');
-      if (el.disabled) return;
-      // (2026-10-04) Synthesize click when native click suppressed; was no-op
-      if (!el._clickPending) {
-        el._clickPending = true;
-        // Small delay so browser's own click fires first if it will
-        setTimeout(() => {
-          if (el._clickPending) {
-            el._clickPending = false;
-            el.click();
-          }
-        }, 10);
-        // Clear pending flag when native click arrives
-        el.addEventListener('click', () => { el._clickPending = false; }, { once: true });
-      }
     }, { passive: true });
   }
 

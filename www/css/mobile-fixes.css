@@ -5461,8 +5461,10 @@ button:active,
    ============================================================ */
 
 /* Modal backdrop fade in/out */
+/* (2026-07-13) Disable backdrop animation; was fadeIn leaving opacity:0 */
 .modal-backdrop {
-  animation: fadeIn 0.3s ease !important;
+  opacity: 1 !important;
+  animation: none !important;
 }
 
 @keyframes fadeIn {
@@ -5476,8 +5478,11 @@ button:active,
 
 /* Modal slide up on mobile */
 @media (max-width: 767px) {
+  /* (2026-07-13) Disable slideUp animation; was freezing translateY(100%) */
   .modal {
-    animation: slideUp 0.3s ease !important;
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
   }
   
   @keyframes slideUp {
