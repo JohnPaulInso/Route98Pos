@@ -4,8 +4,15 @@ const path = require('path');
 const srcDir = path.resolve(__dirname, '..');
 const outDir = path.resolve(__dirname, '..', 'www');
 
-if (!fs.existsSync(outDir)) {
-  fs.mkdirSync(outDir, { recursive: true });
+// (2026-07-13) Clean www & android public assets; was incremental without purge
+if (fs.existsSync(outDir)) {
+  fs.rmSync(outDir, { recursive: true, force: true });
+}
+fs.mkdirSync(outDir, { recursive: true });
+
+const androidPublicDir = path.resolve(__dirname, '..', 'android', 'app', 'src', 'main', 'assets', 'public');
+if (fs.existsSync(androidPublicDir)) {
+  fs.rmSync(androidPublicDir, { recursive: true, force: true });
 }
 
 const copyRecursive = (src, dest) => {

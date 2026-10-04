@@ -564,11 +564,12 @@ const Sync = (() => {
     }
   }
 
+  // (2026-07-13) Faster auto-sync debounce for live devices; was 4000ms delay
   function scheduleAutoSync(){
     const settings = DB.getSettings();
     if(!settings.autoSync || !settings.firebaseConfig) return;
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => pushSnapshot(), 4000);
+    debounceTimer = setTimeout(() => pushSnapshot(), 800);
   }
 
   // (2026-07-13) Sync realtime snapshot immediately to new clients. Prev: skipped 1st

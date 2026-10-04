@@ -38,31 +38,35 @@ const MobileTouchFix = (() => {
     }, { passive: true });
   }
 
-  // Fix for modals not showing/responding
+  // (2026-07-13) Safe Modal check & top z-index for APK; was Modal crash & 10000
   function fixModals() {
-    if (!isCapacitor()) return;
-
-    // Override Modal.open to ensure proper z-index and touch handling
-    const originalModalOpen = Modal?.open;
-    if (originalModalOpen && typeof originalModalOpen === 'function') {
-      Modal.open = function(...args) {
-        const backdrop = originalModalOpen.apply(this, args);
-        if (backdrop) {
-          // Ensure modal is above everything
-          backdrop.style.zIndex = '10000';
-          backdrop.style.position = 'fixed';
-          backdrop.style.inset = '0';
-          
-          // Fix touch events on modal
-          const modal = backdrop.querySelector('.modal');
-          if (modal) {
-            modal.style.touchAction = 'auto';
-            modal.style.pointerEvents = 'auto';
-          }
-        }
-        return backdrop;
-      };
+    const getM = () => (typeof Modal !== 'undefined' ? Modal : (window.Modal || null));
+    const m = getM();
+    if (!m || typeof m.open !== 'function') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fixModals, { once: true });
+      }
+      return;
     }
+    if (m._apkWrapped) return;
+    m._apkWrapped = true;
+    const originalModalOpen = m.open;
+    m.open = function(...args) {
+      const backdrop = originalModalOpen.apply(this, args);
+      if (backdrop) {
+        backdrop.style.zIndex = '9999999';
+        backdrop.style.position = 'fixed';
+        backdrop.style.inset = '0';
+        backdrop.style.pointerEvents = 'auto';
+        const modal = backdrop.querySelector('.modal');
+        if (modal) {
+          modal.style.zIndex = '10000000';
+          modal.style.touchAction = 'auto';
+          modal.style.pointerEvents = 'auto';
+        }
+      }
+      return backdrop;
+    };
   }
 
   // Fix for inputs not focusing
@@ -84,17 +88,16 @@ const MobileTouchFix = (() => {
     }, { passive: true });
   }
 
-  // Fix for dropdowns/selects not working
+  // (2026-07-13) Permit dropdown touch bubbling in APK; was e.stopPropagation
   function fixDropdowns() {
     if (!isCapacitor()) return;
 
-    // Make sure UISelect works on mobile
     document.addEventListener('touchstart', (e) => {
       const select = e.target.closest('.ui-select-trigger, [data-select]');
       if (select) {
-        e.stopPropagation();
+        select.classList.add('touch-active');
       }
-    }, { passive: false });
+    }, { passive: true });
   }
 
   // Fix for scrolling issues
@@ -146,18 +149,12 @@ const MobileTouchFix = (() => {
     document.head.appendChild(style);
   }
 
-  // Prevent accidental zoom
+  // (2026-07-13) Remove touchmove preventDefault blocking clicks; was e.scale!=1
   function preventZoom() {
     if (!isCapacitor()) return;
 
     document.addEventListener('gesturestart', (e) => {
       e.preventDefault();
-    }, { passive: false });
-
-    document.addEventListener('touchmove', (e) => {
-      if (e.scale !== 1) {
-        e.preventDefault();
-      }
     }, { passive: false });
   }
 

@@ -2,27 +2,24 @@
  * APK Fixes - Critical fixes for Capacitor Android APK
  * ============================================================ */
 
-/* (2026-10-02) Ensure modals are always visible and clickable in APK */
+/* (2026-07-13) Set modal z-index to 9999999 for APK; was 10000 hidden under HUD */
 .modal-backdrop {
   position: fixed !important;
   inset: 0 !important;
-  z-index: 10000 !important;
+  z-index: 9999999 !important;
   display: flex !important;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5) !important;
+  background: rgba(0, 0, 0, 0.55) !important;
   -webkit-tap-highlight-color: transparent;
   pointer-events: auto !important;
 }
 
 .modal {
   position: relative !important;
-  z-index: 10001 !important;
+  z-index: 10000000 !important;
   pointer-events: auto !important;
   touch-action: auto !important;
-  transform: none !important;
   background: var(--paper, #ffffff) !important;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow-y: auto;
 }
 
@@ -78,12 +75,13 @@ select {
   touch-action: auto !important;
 }
 
-/* (2026-10-02) Prevent accidental text selection on buttons */
+/* (2026-07-13) Allow button inner pointer-events in APK; was pointer-events:none */
 button *,
 .btn *,
 .nav-btn *,
 .bn-btn * {
-  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* (2026-10-02) Fix scanner overlay in APK */
@@ -148,14 +146,23 @@ button *,
   }
 }
 
-/* (2026-07-13) Move toast-stack bottom-right & in-flow; was fixed on .toast */
+/* (2026-07-13) Position toasts on left for PC view; was bottom-right */
 #toast-stack {
   position: fixed !important;
   bottom: 24px !important;
-  right: 20px !important;
-  left: auto !important;
+  left: 20px !important;
+  right: auto !important;
   z-index: 999999 !important;
   pointer-events: none !important;
+  align-items: flex-start !important;
+}
+@media (max-width: 768px) {
+  #toast-stack {
+    bottom: calc(var(--bottomnav-h, 56px) + 14px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 14px !important;
+    left: auto !important;
+    align-items: flex-end !important;
+  }
 }
 .toast {
   position: relative !important;
@@ -222,12 +229,10 @@ button *,
   pointer-events: auto !important;
 }
 
-/* (2026-10-02) Prevent unwanted scroll behavior */
+/* (2026-07-13) Fix scroll-locked body without position-fixed; was shift layout */
 body.scroll-locked {
   overflow: hidden !important;
-  position: fixed !important;
-  width: 100% !important;
-  height: 100% !important;
+  touch-action: none;
 }
 
 /* (2026-10-02) Fix form inputs in modals */

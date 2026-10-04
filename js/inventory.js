@@ -526,39 +526,10 @@ const Inventory = (() => {
           .prod-history-modal .btn-view-hist-rcpt{ width:100% !important; max-width:105px !important; padding:4px 6px !important; font-size:0.75rem !important; white-space:nowrap !important; box-sizing:border-box !important; }
         </style>
 
+        <!-- (2026-07-13) Add pagination to product history modal; was unpaginated list -->
         ${matches.length ? `
-          <div class="table-wrap prod-history-modal" style="max-height:420px;overflow-y:auto;overflow-x:auto;border:1px solid var(--line);border-radius:8px;">
-            <table class="data" style="width:100%;min-width:600px;font-size:0.82rem;table-layout:fixed;">
-              <thead>
-                <tr>
-                  <th style="width:130px;">Date & Time</th>
-                  <th style="width:95px;">Receipt #</th>
-                  <th style="width:85px;">Cashier</th>
-                  <th style="width:70px;">Quantity</th>
-                  <th style="width:75px;">Unit Price</th>
-                  <th style="width:85px;text-align:right;">Subtotal</th>
-                  <th class="hist-col-act">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${matches.map(m => `
-                  <tr class="history-row-clickable" data-row-receipt="${Utils.escapeHtml(m.sale.id)}" title="Click to view full receipt">
-                    <td style="font-size:0.80rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.fmtDate(m.ts)}</td>
-                    <td class="mono font-bold" style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;">#${Utils.escapeHtml(m.receiptNo)}</td>
-                    <td style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.escapeHtml(m.cashier)}</td>
-                    <td class="mono font-bold" style="font-size:0.82rem;color:var(--brand-deep);">${m.totalQty} ${m.items[0]?.unitType === "pack" ? "pk" : "pc"}</td>
-                    <td class="mono" style="font-size:0.82rem;">${Utils.money(m.items[0]?.price || 0)}</td>
-                    <td class="mono font-bold" style="font-size:0.84rem;text-align:right;">${Utils.money(m.totalLineAmount)}</td>
-                    <td class="hist-col-act">
-                      <button class="btn btn-xs btn-outline font-bold btn-view-hist-rcpt" data-view-receipt="${Utils.escapeHtml(m.sale.id)}">
-                        View Receipt
-                      </button>
-                    </td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
+          <div id="prod-hist-table-wrap" class="table-wrap prod-history-modal" style="max-height:420px;overflow-y:auto;overflow-x:auto;border:1px solid var(--line);border-radius:8px;"></div>
+          <div id="prod-hist-pagination" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:12px;background:var(--paper-raised);border-radius:8px;margin-top:10px;flex-wrap:wrap;"></div>
         ` : `
           <div class="card" style="padding:32px 16px;text-align:center;background:var(--paper-dim);border:1px dashed var(--line);border-radius:10px;">
             <p class="text-faint text-sm" style="margin:0;">No sales transactions found for this product yet.</p>
@@ -602,16 +573,113 @@ const Inventory = (() => {
       }
     };
 
-    modal.querySelectorAll("[data-row-receipt]").forEach(row => {
-      row.onclick = () => showReceiptAndReturn(row.dataset.rowReceipt);
-    });
+    let curHistPage = 1;
+    let histRPP = 15;
 
-    modal.querySelectorAll("[data-view-receipt]").forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        showReceiptAndReturn(btn.dataset.viewReceipt);
-      };
-    });
+    function renderHistTableAndPagination(){
+      const totalItems = matches.length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / histRPP));
+      if(curHistPage > totalPages) curHistPage = totalPages;
+      if(curHistPage < 1) curHistPage = 1;
+      const startIdx = (curHistPage - 1) * histRPP;
+      const pagedMatches = matches.slice(startIdx, startIdx + histRPP);
+
+      const tableWrap = modal.querySelector("#prod-hist-table-wrap");
+      if(tableWrap){
+        tableWrap.innerHTML = `
+          <table class="data" style="width:100%;min-width:600px;font-size:0.82rem;table-layout:fixed;">
+            <thead>
+              <tr>
+                <th style="width:130px;">Date & Time</th>
+                <th style="width:95px;">Receipt #</th>
+                <th style="width:85px;">Cashier</th>
+                <th style="width:70px;">Quantity</th>
+                <th style="width:75px;">Unit Price</th>
+                <th style="width:85px;text-align:right;">Subtotal</th>
+                <th class="hist-col-act">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pagedMatches.map(m => `
+                <tr class="history-row-clickable" data-row-receipt="${Utils.escapeHtml(m.sale.id)}" title="Click to view full receipt">
+                  <td style="font-size:0.80rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.fmtDate(m.ts)}</td>
+                  <td class="mono font-bold" style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;">#${Utils.escapeHtml(m.receiptNo)}</td>
+                  <td style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.escapeHtml(m.cashier)}</td>
+                  <td class="mono font-bold" style="font-size:0.82rem;color:var(--brand-deep);">${m.totalQty} ${m.items[0]?.unitType === "pack" ? "pk" : "pc"}</td>
+                  <td class="mono" style="font-size:0.82rem;">${Utils.money(m.items[0]?.price || 0)}</td>
+                  <td class="mono font-bold" style="font-size:0.84rem;text-align:right;">${Utils.money(m.totalLineAmount)}</td>
+                  <td class="hist-col-act">
+                    <button class="btn btn-xs btn-outline font-bold btn-view-hist-rcpt" data-view-receipt="${Utils.escapeHtml(m.sale.id)}">
+                      View Receipt
+                    </button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+        tableWrap.querySelectorAll("[data-row-receipt]").forEach(row => {
+          row.onclick = () => showReceiptAndReturn(row.dataset.rowReceipt);
+        });
+        tableWrap.querySelectorAll("[data-view-receipt]").forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            showReceiptAndReturn(btn.dataset.viewReceipt);
+          };
+        });
+      }
+
+      const pagWrap = modal.querySelector("#prod-hist-pagination");
+      if(pagWrap){
+        pagWrap.style.display = totalItems > histRPP ? "flex" : "none";
+        pagWrap.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);border-radius:8px;padding:4px;">
+            <button class="btn btn-sm btn-ghost" id="hist-pg-prev" ${curHistPage <= 1 ? "disabled" : ""} style="padding:8px 12px;border:none;background:transparent;cursor:${curHistPage <= 1 ? 'not-allowed' : 'pointer'};display:flex;align-items:center;opacity:${curHistPage <= 1 ? '0.3' : '1'};">
+              ${Icons.get("chevron-left",{size:18})}
+            </button>
+            <button class="btn btn-sm btn-ghost" id="hist-pg-next" ${curHistPage >= totalPages ? "disabled" : ""} style="padding:8px 12px;border:none;background:transparent;cursor:${curHistPage >= totalPages ? 'not-allowed' : 'pointer'};display:flex;align-items:center;opacity:${curHistPage >= totalPages ? '0.3' : '1'};">
+              ${Icons.get("chevron-right",{size:18})}
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+            <span style="font-weight:500;">Page:</span>
+            <input type="number" id="hist-pg-input" class="input" min="1" max="${totalPages}" value="${curHistPage}" style="width:70px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;text-align:center;font-size:16px;font-weight:600;">
+            <span style="font-weight:500;">of ${totalPages}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+            <span style="font-weight:500;">Rows per page:</span>
+            <select id="hist-pg-rpp" class="input" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
+              <option value="15" ${histRPP === 15 ? 'selected' : ''}>15</option>
+              <option value="30" ${histRPP === 30 ? 'selected' : ''}>30</option>
+              <option value="50" ${histRPP === 50 ? 'selected' : ''}>50</option>
+              <option value="100" ${histRPP === 100 ? 'selected' : ''}>100</option>
+            </select>
+          </div>
+        `;
+
+        const prevBtn = pagWrap.querySelector("#hist-pg-prev");
+        if(prevBtn) prevBtn.onclick = () => { if(curHistPage > 1){ curHistPage--; renderHistTableAndPagination(); } };
+        const nextBtn = pagWrap.querySelector("#hist-pg-next");
+        if(nextBtn) nextBtn.onclick = () => { if(curHistPage < totalPages){ curHistPage++; renderHistTableAndPagination(); } };
+        const pgInp = pagWrap.querySelector("#hist-pg-input");
+        if(pgInp) pgInp.onchange = (e) => {
+          const val = parseInt(e.target.value, 10);
+          if(!isNaN(val) && val >= 1 && val <= totalPages){ curHistPage = val; renderHistTableAndPagination(); }
+          else pgInp.value = curHistPage;
+        };
+        const rppSel = pagWrap.querySelector("#hist-pg-rpp");
+        if(rppSel) rppSel.onchange = (e) => {
+          histRPP = parseInt(e.target.value, 10) || 15;
+          curHistPage = 1;
+          renderHistTableAndPagination();
+        };
+      }
+    }
+
+    if(matches.length){
+      renderHistTableAndPagination();
+    }
   }
 
   // (2026-07-13) Uppercase categories & export button; was mixed unexported
@@ -1136,6 +1204,8 @@ const Inventory = (() => {
         Utils.toast(`${count} product${count===1?"":"s"} deleted.`, "success");
         selectedIds.clear();
         toggleSelectMode(false);
+        // (2026-07-13) Push snapshot on batch product delete; was unpushed
+        if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
       }
     });
   }
@@ -1312,6 +1382,9 @@ const Inventory = (() => {
   // (2026-07-13) Group restock logs by day & add batch scanner; was single PO
   function openRestockLogModal(){
     let filter = "all";
+    // (2026-07-13) Restock log pagination state; was unpaginated modal
+    let restockPage = 1;
+    let restockRPP = 5;
     function renderModalBody(modal){
       const summary = Analytics.restockSummary(filter);
       const dayGroups = {};
@@ -1330,6 +1403,14 @@ const Inventory = (() => {
 
       const dayKeys = Object.keys(dayGroups).sort((a,b) => b.localeCompare(a));
 
+      // (2026-07-13) Add pagination to restock logs modal; was unpaginated list
+      const totalDays = dayKeys.length;
+      const totalPages = Math.max(1, Math.ceil(totalDays / restockRPP));
+      if(restockPage > totalPages) restockPage = totalPages;
+      if(restockPage < 1) restockPage = 1;
+      const startIdx = (restockPage - 1) * restockRPP;
+      const pagedDayKeys = dayKeys.slice(startIdx, startIdx + restockRPP);
+
       modal.querySelector("#restock-modal-content").innerHTML = `
         <div class="grid-3" style="margin-bottom:16px;gap:12px;">
           <div class="card card-tight" style="border:1.5px solid var(--brand);background:var(--brand-tint);padding:14px 18px;border-radius:12px;">
@@ -1346,7 +1427,7 @@ const Inventory = (() => {
           </div>
         </div>
         <div style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
-          ${dayKeys.length ? dayKeys.map(k => {
+          ${pagedDayKeys.length ? pagedDayKeys.map(k => {
             const grp = dayGroups[k];
             return `
             <div class="card" style="padding:0;overflow:hidden;border:1.5px solid var(--line);">
@@ -1402,7 +1483,50 @@ const Inventory = (() => {
               </div>
             </div>`;
           }).join("") : `<div class="empty" style="padding:36px;"><p class="text-faint" style="font-size:1.1rem;">No purchase/restock records found for this period.</p></div>`}
-        </div>`;
+        </div>
+        ${totalDays > restockRPP ? `
+          <div id="restock-pagination" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:12px;background:var(--paper-raised);border-radius:8px;margin-top:12px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);border-radius:8px;padding:4px;">
+              <button class="btn btn-sm btn-ghost" id="rstk-pg-prev" ${restockPage <= 1 ? "disabled" : ""} style="padding:8px 12px;border:none;background:transparent;cursor:${restockPage <= 1 ? 'not-allowed' : 'pointer'};display:flex;align-items:center;opacity:${restockPage <= 1 ? '0.3' : '1'};">
+                ${Icons.get("chevron-left",{size:18})}
+              </button>
+              <button class="btn btn-sm btn-ghost" id="rstk-pg-next" ${restockPage >= totalPages ? "disabled" : ""} style="padding:8px 12px;border:none;background:transparent;cursor:${restockPage >= totalPages ? 'not-allowed' : 'pointer'};display:flex;align-items:center;opacity:${restockPage >= totalPages ? '0.3' : '1'};">
+                ${Icons.get("chevron-right",{size:18})}
+              </button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+              <span style="font-weight:500;">Page:</span>
+              <input type="number" id="rstk-pg-input" class="input" min="1" max="${totalPages}" value="${restockPage}" style="width:70px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;text-align:center;font-size:16px;font-weight:600;">
+              <span style="font-weight:500;">of ${totalPages} (${totalDays} days)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+              <span style="font-weight:500;">Days per page:</span>
+              <select id="rstk-pg-rpp" class="input" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
+                <option value="5" ${restockRPP === 5 ? 'selected' : ''}>5</option>
+                <option value="10" ${restockRPP === 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${restockRPP === 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${restockRPP === 50 ? 'selected' : ''}>50</option>
+              </select>
+            </div>
+          </div>
+        ` : ""}`;
+
+      const prevBtn = modal.querySelector("#rstk-pg-prev");
+      if(prevBtn) prevBtn.onclick = () => { if(restockPage > 1){ restockPage--; renderModalBody(modal); } };
+      const nextBtn = modal.querySelector("#rstk-pg-next");
+      if(nextBtn) nextBtn.onclick = () => { if(restockPage < totalPages){ restockPage++; renderModalBody(modal); } };
+      const pgInput = modal.querySelector("#rstk-pg-input");
+      if(pgInput) pgInput.onchange = (e) => {
+        const val = parseInt(e.target.value, 10);
+        if(!isNaN(val) && val >= 1 && val <= totalPages){ restockPage = val; renderModalBody(modal); }
+        else pgInput.value = restockPage;
+      };
+      const rppSel = modal.querySelector("#rstk-pg-rpp");
+      if(rppSel) rppSel.onchange = (e) => {
+        restockRPP = parseInt(e.target.value, 10) || 5;
+        restockPage = 1;
+        renderModalBody(modal);
+      };
     }
 
     const body = `
@@ -1430,6 +1554,8 @@ const Inventory = (() => {
       c.onclick = () => {
         modal.querySelectorAll("#restock-period-pills .chip").forEach(x => x.classList.remove("active"));
         c.classList.add("active");
+        // (2026-07-13) Reset page on restock filter change; was unreset
+        restockPage = 1;
         filter = c.dataset.p === "30" ? 30 : c.dataset.p;
         renderModalBody(modal);
       };
@@ -2098,10 +2224,11 @@ const Inventory = (() => {
         <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
       </div>
       <div class="inv-toolbar" style="position:relative;z-index:1;">
-        <div class="input-icon-wrap" style="position:relative;width:320px;z-index:1;">
+        <!-- (2026-07-13) Flex center input-icon-wrap for clear X; was uncentered -->
+        <div class="input-icon-wrap" style="position:relative;display:flex;align-items:center;width:320px;z-index:1;">
           ${Icons.get("search",{size:15})}
           <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
-          <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:15})}</button>
+          <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:14})}</button>
         </div>
         <div id="inv-cat-filter-wrap"></div>
         <div id="inv-stock-filter-wrap"></div>

@@ -4,6 +4,9 @@
 const Expenses = (() => {
   let periodFilter = "all"; // all | month | today | 30d
   let categoryFilter = "All";
+  // (2026-07-13) Add expenses pagination state; was unpaginated full list
+  let expPage = 1;
+  let expRPP = 25;
 
   // (2026-07-13) Add Wholesale Purchases category; was utilities/salaries only
   const CATEGORIES = [
@@ -101,15 +104,16 @@ const Expenses = (() => {
             return;
           }
 
+          // (2026-07-13) Sync edited expense via DB.addExpense; was bypass sync
           if(isEdit){
-            const all = DB.getExpenses().map(x => x.id === expense.id ? { ...x, category, description, amount, date, method, recipient, refNo } : x);
-            DB.setExpenses(all);
+            DB.addExpense({ ...expense, category, description, amount, date, method, recipient, refNo, updatedAt: Date.now() });
             Utils.toast("Expense updated.", "success");
           } else {
             DB.addExpense({ category, description, amount, date, method, recipient, refNo });
             Utils.Sound.cashChime();
             Utils.toast(`Recorded expense: ${Utils.money(amount)} (${category})`, "success");
           }
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
 
           Modal.close();
           render();
@@ -268,6 +272,7 @@ const Expenses = (() => {
             recordBrandName(cleanBrand || brand);
           }
 
+          // (2026-07-13) Sync products & restock on wholesale purchase; was local only
           if(syncInv){
             const allProds = DB.getProducts();
             let p = selectedProduct ? allProds.find(x => x.id === selectedProduct.id) : allProds.find(x => x.name.toLowerCase() === prodName.toLowerCase());
@@ -275,9 +280,9 @@ const Expenses = (() => {
               p.stock = (p.stock || 0) + qty;
               if(unitCost > 0) p.cost = unitCost;
               if(brand && !p.brand) p.brand = brand.replace(/^New Brand\s*["']?/i, "").replace(/["']?$/i, "").trim();
-              // (2026-07-13) Set updatedAt on restock; was unversioned
               p.updatedAt = Date.now();
               DB.setProducts(allProds);
+              if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct) RealtimeSync.syncSingleProduct(p);
               DB.addRestockLog({ product_id: p.id, product_name: p.name, quantity_added: qty, unit_cost: unitCost, total_cost: totalCost, supplier_name: seller });
             } else {
               const cleanB = brand.replace(/^New Brand\s*["']?/i, "").replace(/["']?$/i, "").trim();
@@ -297,6 +302,7 @@ const Expenses = (() => {
               };
               allProds.unshift(newProd);
               DB.setProducts(allProds);
+              if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct) RealtimeSync.syncSingleProduct(newProd);
               DB.addRestockLog({ product_id: newProd.id, product_name: newProd.name, quantity_added: qty, unit_cost: unitCost, total_cost: totalCost, supplier_name: seller });
             }
           }
@@ -321,6 +327,8 @@ const Expenses = (() => {
               seller
             }
           });
+
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
 
           Utils.Sound.cashChime();
           Utils.toast(`Logged purchase: ${Utils.money(totalCost)} (${qty}x ${prodName})`, "success");
@@ -544,6 +552,38 @@ const Expenses = (() => {
     Utils.toast("Expenses exported to CSV.", "success");
   }
 
+  // (2026-10-03) Uniform pagination design across all modules except POS
+  function paginationBarHtml(idPrefix, curPage, totalPages, pageSize, totalItems){
+    if(!totalItems) return "";
+    return `
+      <div class="card-pagination" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;background:var(--paper-raised);border-radius:8px;flex-wrap:wrap;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);border-radius:8px;padding:4px;">
+          <button class="pg-btn" id="${idPrefix}-prev" type="button" ${curPage > 1 ? "" : "disabled"} style="padding:8px 12px;border:none;background:transparent;cursor:${curPage > 1 ? 'pointer' : 'not-allowed'};display:flex;align-items:center;color:var(--ink);opacity:${curPage > 1 ? '1' : '0.3'};">
+            ${Icons.get("chevron-left", {size:18})}
+          </button>
+          <button class="pg-btn" id="${idPrefix}-next" type="button" ${curPage < totalPages ? "" : "disabled"} style="padding:8px 12px;border:none;background:transparent;cursor:${curPage < totalPages ? 'pointer' : 'not-allowed'};display:flex;align-items:center;color:var(--ink);opacity:${curPage < totalPages ? '1' : '0.3'};">
+            ${Icons.get("chevron-right", {size:18})}
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+          <span style="font-weight:500;">Page:</span>
+          <input type="number" class="pg-input" id="${idPrefix}-page-inp" min="1" max="${totalPages}" value="${curPage}" style="width:70px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;text-align:center;font-size:16px;font-weight:600;" />
+          <span style="font-weight:500;">of ${totalPages}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
+          <span style="font-weight:500;">Rows per page:</span>
+          <select class="pg-select" id="${idPrefix}-rpp" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
+            <option value="10" ${pageSize === 10 ? "selected" : ""}>10</option>
+            <option value="25" ${pageSize === 25 ? "selected" : ""}>25</option>
+            <option value="50" ${pageSize === 50 ? "selected" : ""}>50</option>
+            <option value="100" ${pageSize === 100 ? "selected" : ""}>100</option>
+          </select>
+        </div>
+      </div>
+    `;
+  }
+
+  // (2026-07-13) Paginate expenses table & mobile cards; was unpaginated full list
   function render(){
     const view = document.getElementById("view-root");
     if(!view) return;
@@ -552,6 +592,13 @@ const Expenses = (() => {
     const totalOpex = expenses.reduce((s,e) => s + (e.amount || 0), 0);
     const salaryTotal = expenses.filter(e => e.category.includes("Salaries")).reduce((s,e) => s + (e.amount || 0), 0);
     const utilTotal = expenses.filter(e => e.category.includes("Electricity") || e.category.includes("Water")).reduce((s,e) => s + (e.amount || 0), 0);
+
+    const totalExpenses = expenses.length;
+    const totalPages = Math.max(1, Math.ceil(totalExpenses / expRPP));
+    if(expPage > totalPages) expPage = totalPages;
+    if(expPage < 1) expPage = 1;
+    const startIdx = (expPage - 1) * expRPP;
+    const pagedExpenses = expenses.slice(startIdx, startIdx + expRPP);
 
     // Compute sales gross profit to show Net Bottom Line
     const sales = DB.getSales();
@@ -625,7 +672,7 @@ const Expenses = (() => {
             </tr>
           </thead>
           <tbody>
-            ${expenses.length ? expenses.map(e => `
+            ${pagedExpenses.length ? pagedExpenses.map(e => `
               <tr>
                 <td class="mono font-bold" style="font-size:1.02rem;">${e.date}</td>
                 <td><span class="badge badge-brand" style="font-size:.86rem;font-weight:800;padding:4px 10px;">${Utils.escapeHtml(e.category)}</span></td>
@@ -661,7 +708,7 @@ const Expenses = (() => {
 
       <!-- Mobile Expenses Cards -->
       <div class="exp-mobile-cards" id="exp-mobile-cards">
-        ${expenses.length ? expenses.map(e => `
+        ${pagedExpenses.length ? pagedExpenses.map(e => `
           <div class="exp-mobile-card">
             <div class="exp-card-row1">
               <span class="mono exp-card-date">${e.date}</span>
@@ -686,6 +733,7 @@ const Expenses = (() => {
           <div class="card text-center text-faint" style="padding:28px 16px;">No operating expenses logged for this period. Click "Log Expense" to add.</div>
         `}
       </div>
+      ${paginationBarHtml("exp-pg", expPage, totalPages, expRPP, totalExpenses)}
     `;
 
     // (2026-07-13) Bind Log Purchases button to openPurchaseModal; was none
@@ -693,9 +741,48 @@ const Expenses = (() => {
     document.getElementById("btn-add-purchase").onclick = () => openPurchaseModal();
     document.getElementById("btn-export-exp").onclick = exportExpensesCSV;
 
+    // (2026-07-13) Wire expenses pagination controls; was unpaginated
+    const prevExpBtn = document.getElementById("exp-pg-prev");
+    if(prevExpBtn){
+      prevExpBtn.onclick = () => {
+        if(expPage > 1){ expPage--; render(); }
+      };
+    }
+    const nextExpBtn = document.getElementById("exp-pg-next");
+    if(nextExpBtn){
+      nextExpBtn.onclick = () => {
+        const curExp = getFilteredExpenses();
+        const tp = Math.max(1, Math.ceil(curExp.length / expRPP));
+        if(expPage < tp){ expPage++; render(); }
+      };
+    }
+    const pageExpInp = document.getElementById("exp-pg-page-inp");
+    if(pageExpInp){
+      pageExpInp.onchange = (e) => {
+        const curExp = getFilteredExpenses();
+        const tp = Math.max(1, Math.ceil(curExp.length / expRPP));
+        const val = parseInt(e.target.value, 10);
+        if(!isNaN(val) && val >= 1 && val <= tp){
+          expPage = val;
+          render();
+        } else {
+          pageExpInp.value = expPage;
+        }
+      };
+    }
+    const rppExpSel = document.getElementById("exp-pg-rpp");
+    if(rppExpSel){
+      rppExpSel.onchange = (e) => {
+        expRPP = parseInt(e.target.value, 10) || 25;
+        expPage = 1;
+        render();
+      };
+    }
+
     document.querySelectorAll("#exp-period-pills .chip").forEach(c => {
       c.onclick = () => {
         periodFilter = c.dataset.p;
+        expPage = 1;
         render();
       };
     });
@@ -703,6 +790,7 @@ const Expenses = (() => {
     document.getElementById("exp-cat-filter-wrap").innerHTML = UISelect.render("exp-cat-filter", ["All", ...CATEGORIES], categoryFilter);
     UISelect.bind("exp-cat-filter", (val) => {
       categoryFilter = val;
+      expPage = 1;
       render();
     });
 

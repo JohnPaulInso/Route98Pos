@@ -689,23 +689,27 @@ input#cash-input::-webkit-input-placeholder{
 .card-pagination .pg-select{ border:none; border-bottom:1px solid var(--line); border-radius:0; background:transparent; color:var(--ink); font-weight:600; font-size:0.88rem; padding:2px 6px; cursor:pointer; outline:none; }
 .card-pagination .pg-select:focus{ border-bottom-color:var(--brand); }
 
-/* (2026-07-13) Reduce inv-toolbar bottom margin to 6px; was 14px */
+/* (2026-07-13) Center inventory clear-search button; was shifted low/right */
 .inv-toolbar{ display:flex; gap:10px; margin-bottom:6px; align-items:center; flex-wrap:wrap; }
-.inv-toolbar .input-icon-wrap{ position:relative; flex-shrink:0; }
-.inv-toolbar .input-icon-wrap .ic-svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
-.inv-toolbar .input-icon-wrap .input{ padding-left:36px; padding-right:36px; }
-.inv-toolbar .input-icon-wrap .clear-search-btn{ 
+.inv-toolbar .input-icon-wrap{ position:relative; display:flex; align-items:center; flex-shrink:0; }
+.inv-toolbar .input-icon-wrap .ic-svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
+.inv-toolbar .input-icon-wrap .input{ display:block; width:100%; padding-left:38px; padding-right:38px; }
+.inv-toolbar .input-icon-wrap .clear-search-btn,
+#btn-clear-inv-search{ 
   position:absolute; right:10px; top:50%; transform:translateY(-50%); 
   background:var(--paper-dim); border:1px solid var(--line); color:var(--ink-soft); 
-  cursor:pointer; padding:0; border-radius:50%; width:26px; height:26px; 
+  cursor:pointer; padding:0; margin:0; border-radius:50%; width:24px; height:24px; 
   display:none; align-items:center; justify-content:center; 
-  transition:all .15s ease; z-index:2; 
+  transition:all .15s ease; z-index:2; line-height:1; box-sizing:border-box;
 }
-.inv-toolbar .input-icon-wrap .clear-search-btn svg{ 
-  display:block; width:15px; height:15px; margin:0; 
+.inv-toolbar .input-icon-wrap .clear-search-btn svg,
+#btn-clear-inv-search svg{ 
+  display:block; width:14px; height:14px; margin:0; 
 }
-.inv-toolbar .input-icon-wrap .clear-search-btn:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); }
-.inv-toolbar .input-icon-wrap .clear-search-btn.visible{ display:flex; }
+.inv-toolbar .input-icon-wrap .clear-search-btn:hover,
+#btn-clear-inv-search:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); transform:translateY(-50%) scale(1.08); }
+.inv-toolbar .input-icon-wrap .clear-search-btn.visible,
+#btn-clear-inv-search.visible{ display:flex; }
 .inv-toolbar .ui-select{ min-width:150px; flex-shrink:0; }
 .inv-toolbar .btn-icon{ width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center; }
 

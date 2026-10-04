@@ -182,6 +182,14 @@ const RealtimeSync = (() => {
         app = initializeApp(settings.firebaseConfig);
       }
       
+      // (2026-07-13) Anonymous auth for realtime database; was unauthenticated
+      try {
+        const { getAuth, signInAnonymously } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+        const auth = getAuth(app);
+        if(!auth.currentUser) await signInAnonymously(auth);
+      } catch(authErr) {
+        console.warn("[RealtimeSync] Anonymous auth note:", authErr);
+      }
       realtimeDB = realtimeMod.getDatabase(app);
       isInitialized = true;
       
@@ -632,6 +640,62 @@ const RealtimeSync = (() => {
     }
   }
 
+  // (2026-07-13) Subscribe to all product updates in cloud; was missing function
+  async function subscribeToAllProducts(callback) {
+    await init();
+    if (!realtimeDB || typeof DB === 'undefined') return;
+
+    const productsRef = realtimeMod.ref(realtimeDB, 'products');
+    
+    const unsubscribe = realtimeMod.onValue(productsRef, (snapshot) => {
+      const cloudData = snapshot.val();
+      if (!cloudData) return;
+
+      const cloudArray = Object.values(cloudData);
+      const localProds = DB.getProducts();
+      const localMap = new Map(localProds.map(p => [p.id, p]));
+      const cloudMap = new Map();
+      cloudArray.forEach(p => { if(p && p.id) cloudMap.set(p.id, p); });
+      const deletedIds = DB.getDeletedProductIds ? DB.getDeletedProductIds() : new Set();
+
+      let hasChanges = false;
+      const updated = [];
+
+      cloudMap.forEach((cp, id) => {
+        if(deletedIds.has(id)) return;
+        const lp = localMap.get(id);
+        if(!lp){
+          updated.push(cp);
+          hasChanges = true;
+        } else {
+          const cTs = cp.updatedAt || cp.createdAt || 0;
+          const lTs = lp.updatedAt || lp.createdAt || 0;
+          if(cTs > lTs || JSON.stringify(lp) !== JSON.stringify(cp)){
+            updated.push({ ...lp, ...cp });
+            hasChanges = true;
+          } else {
+            updated.push(lp);
+          }
+        }
+      });
+
+      localProds.forEach(lp => {
+        if(!cloudMap.has(lp.id) && !deletedIds.has(lp.id)){
+          hasChanges = true;
+        }
+      });
+
+      if(hasChanges){
+        DB.setProducts(updated);
+        App.rerenderCurrentView?.();
+        if(callback) callback(updated);
+      }
+    });
+
+    listeners.set('allProducts', unsubscribe);
+    return unsubscribe;
+  }
+
   // ==============================================================
   // RESTOCK LOG SYNC - Real-time
   // ==============================================================
@@ -694,15 +758,18 @@ const RealtimeSync = (() => {
       let hasChanges = false;
       const updatedLogs = [...localLogs];
 
-      // Check for updates from cloud
+      // (2026-07-13) Sync edited restock logs from cloud; was new logs only
       cloudLogsArray.forEach(cloudLog => {
         const localLog = localLogsMap.get(cloudLog.id);
-        
         if (!localLog) {
-          // New log from cloud
           updatedLogs.unshift(cloudLog);
           hasChanges = true;
-          console.log('[RealtimeSync] New restock log from cloud');
+        } else if (JSON.stringify(localLog) !== JSON.stringify(cloudLog)) {
+          const idx = updatedLogs.findIndex(l => l.id === cloudLog.id);
+          if (idx !== -1) {
+            updatedLogs[idx] = { ...localLog, ...cloudLog };
+            hasChanges = true;
+          }
         }
       });
 
@@ -798,15 +865,18 @@ const RealtimeSync = (() => {
       let hasChanges = false;
       const updatedExpenses = [...localExpenses];
 
-      // Check for updates from cloud
+      // (2026-07-13) Sync edited expenses from cloud; was new expenses only
       cloudExpensesArray.forEach(cloudExpense => {
         const localExpense = localExpensesMap.get(cloudExpense.id);
-        
         if (!localExpense) {
-          // New expense from cloud
           updatedExpenses.unshift(cloudExpense);
           hasChanges = true;
-          console.log('[RealtimeSync] New expense from cloud');
+        } else if (JSON.stringify(localExpense) !== JSON.stringify(cloudExpense)) {
+          const idx = updatedExpenses.findIndex(e => e.id === cloudExpense.id);
+          if (idx !== -1) {
+            updatedExpenses[idx] = { ...localExpense, ...cloudExpense };
+            hasChanges = true;
+          }
         }
       });
 

@@ -749,6 +749,8 @@ const Gas = (() => {
       cfgNow.fuels[pump.fuelType].updatedAt = now;
       cfgNow.updatedAt = now;
       DB.setFuelConfig(cfgNow);
+      // (2026-07-13) Sync fuel dispense to cloud; was local only
+      if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
 
       Utils.Sound.cashChime();
       Utils.toast(`Dispensed ${lit.toFixed(2)}L of ${fuel.name} (${Utils.money(amt)}) via ${paymentMethod}`, "success");
@@ -935,6 +937,8 @@ const Gas = (() => {
 
           cfgNow.updatedAt = Date.now();
           DB.setFuelConfig(cfgNow);
+          // (2026-07-13) Sync tanker offload to cloud; was local only
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
           Utils.Sound.cashChime();
           Utils.toast(`Successfully offloaded ${totalLiters.toLocaleString()}L into ECC tanks!`, "success");
           Modal.close();
@@ -1337,7 +1341,10 @@ const Gas = (() => {
             target.amount = Utils.round2(newAmt);
             target.method = newMethod;
             target.cashier = newCashier;
+            // (2026-07-13) Set updatedAt and sync edited fuel sale; was local only
+            target.updatedAt = Date.now();
             DB.setFuelSales(allSales);
+            if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
           }
 
           Modal.close();
@@ -1383,6 +1390,9 @@ const Gas = (() => {
 
         const allSales = DB.getFuelSales().filter(s => s.id !== sale.id);
         DB.setFuelSales(allSales);
+        // (2026-07-13) Mark deleted fuel sale ID and sync to cloud; was unsynced
+        if(DB.markSaleDeleted) DB.markSaleDeleted(sale.id);
+        if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
 
         Utils.toast("Fuel transaction deleted and volume returned to tank.", "success");
         renderTodayStrip();

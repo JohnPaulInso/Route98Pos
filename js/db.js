@@ -569,11 +569,19 @@ const DB = (() => {
         p.stock = Math.max(0, Utils.round2(p.stock + diff));
         p.updatedAt = Date.now();
         setProducts(prods);
+        // (2026-07-13) Sync product stock on restock edit; was unsynced
+        if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+          RealtimeSync.syncSingleProduct(p);
+        }
       }
     }
     const merged = { ...oldLog, ...updated, updatedAt: Date.now(), ts: Date.now(), total_cost: newQty * Number(updated.unit_cost ?? oldLog.unit_cost) };
     logs[idx] = merged;
     setRestockLogs(logs);
+    // (2026-07-13) Sync restock log edit to cloud; was unsynced
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncRestockLog){
+      RealtimeSync.syncRestockLog(merged);
+    }
     return merged;
   }
   function deleteRestockLog(logId){
@@ -689,9 +697,9 @@ const DB = (() => {
   // (2026-07-13) Add operating expenses and venue bookings DB stores; was none
   const getExpenses    = () => read(KEYS.expenses, []);
   const setExpenses    = (v) => write(KEYS.expenses, v);
+  // (2026-07-13) Upsert expense by ID on edits; was creating duplicates
   function addExpense(e){
-    const items = getExpenses();
-    // (2026-07-13) Use local date formatting; was toISOString previous-day split
+    let items = getExpenses();
     const item = {
       id: e.id || Utils.uid("exp"),
       date: e.date || new Date().toLocaleDateString("en-CA"),
@@ -704,7 +712,9 @@ const DB = (() => {
       refNo: e.refNo || "",
       loggedBy: e.loggedBy || Auth.currentUser()?.name || "Admin"
     };
-    items.unshift(item);
+    const existIdx = e.id ? items.findIndex(x => x.id === e.id) : -1;
+    if(existIdx >= 0) items[existIdx] = item;
+    else items.unshift(item);
     setExpenses(items);
     
     // Immediate realtime sync
@@ -1153,14 +1163,16 @@ const DB = (() => {
       write(KEYS.deletedSaleIds, Array.from(curDeleted), true);
     }
     if(snap.products && snap.products.length){
-      // (2026-07-13) Preserve local offline stock in restore; was overwrite
+      // (2026-07-13) Filter deletedProductIds in restoreSnapshot; was reviving deleted
       const localProds = getProducts();
+      const delProds = getDeletedProductIds();
       if(!localProds.length){
-        setProducts(snap.products);
+        setProducts(snap.products.filter(p => !delProds.has(p.id)));
       } else {
         const prodMap = new Map();
-        localProds.forEach(p => prodMap.set(p.id, p));
+        localProds.forEach(p => { if(!delProds.has(p.id)) prodMap.set(p.id, p); });
         snap.products.forEach(remoteP => {
+          if(delProds.has(remoteP.id)) return;
           if(!prodMap.has(remoteP.id)){
             prodMap.set(remoteP.id, remoteP);
           } else {

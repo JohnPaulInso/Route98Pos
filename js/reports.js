@@ -30,6 +30,11 @@ const Reports = (() => {
   // (2026-07-13) Track receipt pagination state; was unpaginated
   let receiptPage = 1;
   let receiptRPP = 100;
+  // (2026-07-13) Add purchases and fuel sales pagination state; was unpaginated
+  let purchasesPage = 1;
+  let purchasesRPP = 25;
+  let fuelSalesPage = 1;
+  let fuelSalesRPP = 25;
   // Sorting state for tables
   let sortState = {
     receipts: { column: 'ts', direction: 'desc' },
@@ -806,6 +811,9 @@ const Reports = (() => {
         if(typeof Sync !== "undefined" && Sync.pushVoidDoc) Sync.pushVoidDoc(voidEntry);
         voidLogsPage = 1;
         DB.setFuelSales(DB.getFuelSales().filter(x => x.id !== fuelId));
+        // (2026-07-13) Mark deleted fuel sale ID and push snapshot; was local delete
+        if(DB.markSaleDeleted) DB.markSaleDeleted(sale.id || fuelId);
+        if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
         Utils.toast("Fuel sale record deleted & logged to Void Audit.", "success");
         render();
       }
@@ -2126,15 +2134,22 @@ const Reports = (() => {
       }`;
   }
 
+  // (2026-07-13) Paginate fuel sales table; was unpaginated full list
   function fuelHistoryTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
     let sales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+    const totalFuel = sales.length;
+    const totalPages = Math.max(1, Math.ceil(totalFuel / fuelSalesRPP));
+    if(fuelSalesPage > totalPages) fuelSalesPage = totalPages;
+    if(fuelSalesPage < 1) fuelSalesPage = 1;
+    const startIdx = (fuelSalesPage - 1) * fuelSalesRPP;
+    const pagedSales = sales.slice(startIdx, startIdx + fuelSalesRPP);
     return `
       ${timeframeBarHtml(periodKey)}
       ${sales.length ? `
         <div class="table-wrap"><table class="data"><thead><tr><th>Time</th><th>Txn ID</th><th>Pump</th><th>Fuel</th><th>Liters</th><th>Total</th><th>Method</th><th>Attendant</th><th style="text-align:right;">Actions</th></tr></thead><tbody>
-        ${sales.map(s => `<tr>
+        ${pagedSales.map(s => `<tr>
           <td>${Utils.fmtDate(s.ts)}</td>
           <td class="mono font-bold">${fmtTxnId(s.id)}</td>
           <td>${s.pumpLabel}</td>
@@ -2147,13 +2162,23 @@ const Reports = (() => {
             ${Auth.isAdmin() ? `<button class="btn btn-sm btn-ghost" data-delete-fuel-sale="${s.id}" style="color:var(--danger);" title="Delete Fuel Sale">${Icons.get("trash",{size:13})}</button>` : ""}
           </td>
         </tr>`).join("")}
-        </tbody></table></div>` : `<div class="empty">${Icons.get("fuel",{size:34})}<h3>No fuel sales in ${r.label}</h3></div>`
+        </tbody></table></div>
+        ${paginationBarHtml("fuel-pg", fuelSalesPage, totalPages, fuelSalesRPP, totalFuel)}
+      ` : `<div class="empty">${Icons.get("fuel",{size:34})}<h3>No fuel sales in ${r.label}</h3></div>`
       }`;
   }
 
+  // (2026-07-13) Paginate restock purchases table; was unpaginated full list
   function purchasesTable(){
     const r = getActiveRange();
     const summary = Analytics.restockSummary(r);
+    const logs = summary.logs || [];
+    const totalLogs = logs.length;
+    const totalPages = Math.max(1, Math.ceil(totalLogs / purchasesRPP));
+    if(purchasesPage > totalPages) purchasesPage = totalPages;
+    if(purchasesPage < 1) purchasesPage = 1;
+    const startIdx = (purchasesPage - 1) * purchasesRPP;
+    const pagedLogs = logs.slice(startIdx, startIdx + purchasesRPP);
     return `
       ${timeframeBarHtml(periodKey)}
       <div class="grid-3" style="margin-bottom:14px;gap:10px;">
@@ -2173,7 +2198,7 @@ const Reports = (() => {
       <div class="table-wrap"><table class="data">
         <thead><tr><th>Time</th><th>Product</th><th>Supplier</th><th>Qty Added</th><th>Unit Cost</th><th>Total Cost</th><th style="text-align:right;">Actions</th></tr></thead>
         <tbody>
-          ${summary.logs.length ? summary.logs.map(l => `
+          ${pagedLogs.length ? pagedLogs.map(l => `
             <tr>
               <td class="text-sm text-faint">${Utils.fmtDate(l.timestamp||l.ts)}</td>
               <td><strong>${Utils.escapeHtml(l.product_name||l.productName)}</strong></td>
@@ -2190,7 +2215,8 @@ const Reports = (() => {
             </tr>`).join("") : `<tr><td colspan="7" class="text-faint text-center" style="padding:24px;">No purchase/restock records found in ${r.label}.</td></tr>`
           }
         </tbody>
-      </table></div>`;
+      </table></div>
+      ${paginationBarHtml("purchases-pg", purchasesPage, totalPages, purchasesRPP, totalLogs)}`;
   }
 
   // (2026-10-03) Uniform pagination design across all modules except POS
@@ -3943,8 +3969,49 @@ const Reports = (() => {
     } else if(tab === "purchases"){
       document.getElementById("report-body").innerHTML = purchasesTable();
       document.querySelectorAll("[data-period]").forEach(chip => {
-        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); };
+        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; purchasesPage = 1; render(); };
       });
+      // (2026-07-13) Wire purchases pagination controls; was unpaginated
+      const prevPurchasesBtn = document.getElementById("purchases-pg-prev");
+      if(prevPurchasesBtn){
+        prevPurchasesBtn.onclick = () => {
+          if(purchasesPage > 1){ purchasesPage--; render(); }
+        };
+      }
+      const nextPurchasesBtn = document.getElementById("purchases-pg-next");
+      if(nextPurchasesBtn){
+        nextPurchasesBtn.onclick = () => {
+          const r = getActiveRange();
+          const summary = Analytics.restockSummary(r);
+          const total = (summary.logs || []).length;
+          const tp = Math.max(1, Math.ceil(total / purchasesRPP));
+          if(purchasesPage < tp){ purchasesPage++; render(); }
+        };
+      }
+      const pagePurchasesInp = document.getElementById("purchases-pg-page-inp");
+      if(pagePurchasesInp){
+        pagePurchasesInp.onchange = (e) => {
+          const r = getActiveRange();
+          const summary = Analytics.restockSummary(r);
+          const total = (summary.logs || []).length;
+          const tp = Math.max(1, Math.ceil(total / purchasesRPP));
+          const val = parseInt(e.target.value, 10);
+          if(!isNaN(val) && val >= 1 && val <= tp){
+            purchasesPage = val;
+            render();
+          } else {
+            pagePurchasesInp.value = purchasesPage;
+          }
+        };
+      }
+      const rppPurchasesSel = document.getElementById("purchases-pg-rpp");
+      if(rppPurchasesSel){
+        rppPurchasesSel.onchange = (e) => {
+          purchasesRPP = parseInt(e.target.value, 10) || 25;
+          purchasesPage = 1;
+          render();
+        };
+      }
       document.querySelectorAll("[data-edit-restock]").forEach(b => {
         b.onclick = () => {
           const l = DB.getRestockLogs().find(x => x.id === b.dataset.editRestock);
@@ -4173,7 +4240,7 @@ const Reports = (() => {
       }
       
       document.querySelectorAll("[data-period]").forEach(chip => {
-        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; receiptPage = 1; render(); };
+        chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; receiptPage = 1; fuelSalesPage = 1; render(); };
       });
       document.querySelectorAll("[data-view-receipt]").forEach(b=>b.onclick=()=>{
         const s = DB.getSales().find(x=>x.id===b.dataset.viewReceipt);
@@ -4372,6 +4439,47 @@ const Reports = (() => {
         rppReceiptSel.onchange = (e) => {
           receiptRPP = parseInt(e.target.value, 10) || 100;
           receiptPage = 1;
+          render();
+        };
+      }
+      // (2026-07-13) Wire fuel pagination controls; was unpaginated
+      const prevFuelBtn = document.getElementById("fuel-pg-prev");
+      if(prevFuelBtn){
+        prevFuelBtn.onclick = () => {
+          if(fuelSalesPage > 1){ fuelSalesPage--; render(); }
+        };
+      }
+      const nextFuelBtn = document.getElementById("fuel-pg-next");
+      if(nextFuelBtn){
+        nextFuelBtn.onclick = () => {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const total = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s)).length;
+          const tp = Math.max(1, Math.ceil(total / fuelSalesRPP));
+          if(fuelSalesPage < tp){ fuelSalesPage++; render(); }
+        };
+      }
+      const pageFuelInp = document.getElementById("fuel-pg-page-inp");
+      if(pageFuelInp){
+        pageFuelInp.onchange = (e) => {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const total = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s)).length;
+          const tp = Math.max(1, Math.ceil(total / fuelSalesRPP));
+          const val = parseInt(e.target.value, 10);
+          if(!isNaN(val) && val >= 1 && val <= tp){
+            fuelSalesPage = val;
+            render();
+          } else {
+            pageFuelInp.value = fuelSalesPage;
+          }
+        };
+      }
+      const rppFuelSel = document.getElementById("fuel-pg-rpp");
+      if(rppFuelSel){
+        rppFuelSel.onchange = (e) => {
+          fuelSalesRPP = parseInt(e.target.value, 10) || 25;
+          fuelSalesPage = 1;
           render();
         };
       }

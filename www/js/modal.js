@@ -245,3 +245,6 @@ const Modal = (() => {
 
   return { open, close, confirm, handleUniversalBack };
 })();
+// (2026-07-13) Expose Modal on window for WebView access; was const-scoped only
+window.Modal = Modal;
+
