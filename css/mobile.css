@@ -782,10 +782,9 @@
       max-width: 100% !important;
     }
     
-    /* Ensure all dropdowns are accessible */
+    /* (2026-07-13) Remove ui-select-list from fixed dropdowns; was fixed z:200 */
     .rpt-dropdown-menu,
-    .inv-tools-menu,
-    .ui-select-list {
+    .inv-tools-menu {
       position: fixed !important;
       z-index: 200 !important;
       touch-action: manipulation !important;

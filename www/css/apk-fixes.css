@@ -140,12 +140,92 @@ select {
   pointer-events: auto !important;
 }
 
-/* (2026-10-02) Fix dropdowns in APK */
+/* (2026-07-13) Fix UISelect dropdowns in APK; was position:fixed z:9999 */
+.ui-select {
+  position: relative !important;
+  width: 100% !important;
+}
+
+/* (2026-07-13) Stack open select and parents over modal; was unstacked */
+.ui-select.open,
+.modal .ui-select.open,
+.field:has(.ui-select.open),
+.input-row:has(.ui-select.open),
+.select-field-open,
+.select-row-open {
+  position: relative !important;
+  z-index: 10005 !important;
+}
+
+.ui-select-btn {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
 .ui-select-list {
-  position: fixed !important;
-  z-index: 9999 !important;
+  display: none !important;
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  max-height: 240px !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--paper-raised, #ffffff) !important;
+  border: 1.5px solid var(--brand, #3b5afb) !important;
+  border-radius: var(--r-md, 8px) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+  padding: 4px !important;
+  z-index: 10010 !important;
   pointer-events: auto !important;
   touch-action: auto !important;
+  transform: none !important;
+  /* (2026-07-13) Disable dropdown animation; was pop-in keyframe */
+  animation: none !important;
+}
+
+.ui-select.open .ui-select-list {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ui-select-opt {
+  padding: 10px 14px !important;
+  font-size: 14.5px !important;
+  font-weight: 600 !important;
+  color: var(--ink, #1e293b) !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 40px !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.ui-select-opt:hover,
+.ui-select-opt:active {
+  background: var(--paper-dim, #f1f5f9) !important;
+}
+
+.ui-select-opt.active {
+  background: var(--brand-tint, #eff2fe) !important;
+  color: var(--brand, #3b5afb) !important;
 }
 
 /* (2026-07-13) Allow button inner pointer-events in APK; was pointer-events:none */

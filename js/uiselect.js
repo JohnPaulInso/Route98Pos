@@ -7,8 +7,15 @@
 // options: array of strings OR [{value,label}]
 // ============================================================
 const UISelect = (() => {
+  // (2026-07-13) Clean parent stacking on closeAll; was classList open only
   function closeAll(except){
-    document.querySelectorAll(".ui-select.open").forEach(d => { if(d !== except) d.classList.remove("open"); });
+    document.querySelectorAll(".ui-select.open").forEach(d => {
+      if(d !== except) {
+        d.classList.remove("open");
+        d.closest(".field")?.classList.remove("select-field-open");
+        d.closest(".input-row")?.classList.remove("select-row-open");
+      }
+    });
   }
   document.addEventListener("click", (e) => { if(!e.target.closest(".ui-select")) closeAll(); });
   document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeAll(); });
@@ -32,22 +39,32 @@ const UISelect = (() => {
       </div>`;
   }
 
+  // (2026-07-13) Support touch, click & parent elevation in UISelect; was desktop
   function bind(id, onChange){
-    const el = document.getElementById(id);
+    const el = typeof id === "string" ? document.getElementById(id) : id;
     if(!el) return;
     const btn = el.querySelector(".ui-select-btn");
     btn.onclick = (e) => {
-      e.stopPropagation();
+      if(e){ e.preventDefault(); e.stopPropagation(); }
       const willOpen = !el.classList.contains("open");
       closeAll(el);
       el.classList.toggle("open", willOpen);
+      if(willOpen){
+        el.closest(".field")?.classList.add("select-field-open");
+        el.closest(".input-row")?.classList.add("select-row-open");
+      } else {
+        el.closest(".field")?.classList.remove("select-field-open");
+        el.closest(".input-row")?.classList.remove("select-row-open");
+      }
     };
     el.querySelectorAll(".ui-select-opt").forEach(opt => {
       opt.onclick = (e) => {
-        e.stopPropagation();
+        if(e){ e.preventDefault(); e.stopPropagation(); }
         el.dataset.value = opt.dataset.v;
         el.querySelector(".ui-select-label").textContent = opt.textContent;
         el.querySelectorAll(".ui-select-opt").forEach(o => o.classList.toggle("active", o === opt));
+        el.closest(".field")?.classList.remove("select-field-open");
+        el.closest(".input-row")?.classList.remove("select-row-open");
         closeAll();
         onChange?.(opt.dataset.v);
       };

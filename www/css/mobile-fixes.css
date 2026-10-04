@@ -1891,11 +1891,14 @@
   }
 
   /* ============ UI SELECT DROPDOWN ============ */
+  /* (2026-07-13) Align UISelect list to parent width; was left:50% translate */
   .ui-select-list {
-    max-width: calc(100vw - 32px) !important;
+    max-width: 100% !important;
+    width: 100% !important;
     max-height: 60vh !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
   }
 
   /* ============ DATE RANGE BAR ============ */
