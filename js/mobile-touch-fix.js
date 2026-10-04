@@ -8,32 +8,59 @@ const MobileTouchFix = (() => {
   };
 
   const isMobile = () => {
-    return isCapacitor() || 
+    return isCapacitor() ||
            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
            window.innerWidth <= 768;
   };
 
-  // Fix for buttons that don't respond in APK
+  // (2026-10-04) Synthesize real click on touchend; was _touched flag without .click()
   function fixButtonClicks() {
     if (!isCapacitor()) return;
 
-    // Add touch event listeners to all buttons
+    const SELECTOR = 'button, .btn, .icon-btn, .nav-btn, .bn-btn, .chip, .prod-card, .product-card, [role="button"]';
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchTarget = null;
+
     document.addEventListener('touchstart', (e) => {
-      const btn = e.target.closest('button, .btn, .icon-btn, .nav-btn, .bn-btn');
-      if (btn && !btn.disabled) {
-        btn.classList.add('touch-active');
+      const el = e.target.closest(SELECTOR);
+      if (el && !el.disabled) {
+        touchTarget = el;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        el.classList.add('touch-active');
+      }
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!touchTarget) return;
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+      // (2026-10-04) Cancel touch if moved more than 10px; was no threshold
+      if (dx > 10 || dy > 10) {
+        touchTarget.classList.remove('touch-active');
+        touchTarget = null;
       }
     }, { passive: true });
 
     document.addEventListener('touchend', (e) => {
-      const btn = e.target.closest('button, .btn, .icon-btn, .nav-btn, .bn-btn');
-      if (btn) {
-        btn.classList.remove('touch-active');
-        // Force click event if it wasn't triggered
-        if (!btn._touched) {
-          btn._touched = true;
-          setTimeout(() => btn._touched = false, 300);
-        }
+      const el = touchTarget;
+      touchTarget = null;
+      if (!el) return;
+      el.classList.remove('touch-active');
+      if (el.disabled) return;
+      // (2026-10-04) Synthesize click when native click suppressed; was no-op
+      if (!el._clickPending) {
+        el._clickPending = true;
+        // Small delay so browser's own click fires first if it will
+        setTimeout(() => {
+          if (el._clickPending) {
+            el._clickPending = false;
+            el.click();
+          }
+        }, 10);
+        // Clear pending flag when native click arrives
+        el.addEventListener('click', () => { el._clickPending = false; }, { once: true });
       }
     }, { passive: true });
   }
@@ -119,29 +146,26 @@ const MobileTouchFix = (() => {
     // But add CSS for extra safety
     const style = document.createElement('style');
     style.textContent = `
-      * {
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-      }
-      
-      button, .btn, .icon-btn, a, [onclick] {
+      button, .btn, .icon-btn, a, [onclick], [role="button"] {
         cursor: pointer;
         -webkit-user-select: none;
         user-select: none;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
       }
-      
+
       button.touch-active, .btn.touch-active {
         opacity: 0.7;
         transform: scale(0.98);
         transition: all 0.1s ease;
       }
-      
+
       input, textarea, select {
         -webkit-user-select: auto;
         user-select: auto;
         touch-action: auto;
       }
-      
+
       .modal-backdrop {
         -webkit-tap-highlight-color: transparent;
       }
@@ -149,13 +173,11 @@ const MobileTouchFix = (() => {
     document.head.appendChild(style);
   }
 
-  // (2026-07-13) Remove touchmove preventDefault blocking clicks; was e.scale!=1
+  // (2026-10-04) Removed gesturestart preventDefault; was consuming all touch events
   function preventZoom() {
     if (!isCapacitor()) return;
-
-    document.addEventListener('gesturestart', (e) => {
-      e.preventDefault();
-    }, { passive: false });
+    // touch-action: manipulation on interactive elements handles zoom prevention
+    // gesturestart preventDefault removed — it was suppressing touch events on Android
   }
 
   // Initialize all fixes
@@ -172,7 +194,7 @@ const MobileTouchFix = (() => {
       fixScrolling();
       fixTapDelay();
       preventZoom();
-      
+
       console.log('✅ Mobile Touch Fix enabled');
     }
   }
