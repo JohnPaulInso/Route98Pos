@@ -465,3 +465,32 @@ select,
 [contenteditable] {
   touch-action: auto;
 }
+
+/* ===== WebView hardening ===== */
+/* A stuck modal-open/scroll-locked class can no longer kill the UI.
+   The full-screen backdrop already blocks touches underneath. */
+html.modal-open #root, body.modal-open #root,
+html.scroll-locked #root, body.scroll-locked #root,
+html.modal-open .topbar, body.modal-open .topbar,
+html.scroll-locked .topbar, body.scroll-locked .topbar,
+html.modal-open .pos-cart, body.modal-open .pos-cart,
+html.scroll-locked .pos-cart, body.scroll-locked .pos-cart {
+  pointer-events: auto !important;
+}
+
+/* Works without :has() support */
+#cap-modal-portal > * { pointer-events: auto !important; }
+
+@media (max-width: 767px) {
+  /* backdrop-filter traps fixed children and glitches in WebView */
+  .topbar, .bottom-nav, #back-to-top-btn, .back-to-top-btn {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .topbar, .bottom-nav { background: var(--paper-raised) !important; }
+
+  /* Fixed menu now positions against the viewport */
+  #rpt-crumb-menu {
+    top: calc(var(--topbar-h, 60px) + env(safe-area-inset-top, 0px)) !important;
+  }
+}
