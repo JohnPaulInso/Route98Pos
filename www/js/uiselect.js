@@ -40,13 +40,23 @@ const UISelect = (() => {
   }
 
   function detachPortalList() {
-    if (_portalList && _portalList.parentElement) {
+    if (_portalList && _activeEl) {
+      // (2026-10-05) Return list to its original .ui-select parent; was orphaning it
+      _portalList.style.display = "";
+      _portalList.classList.remove("ui-select-portal-list");
+      try { _activeEl.appendChild(_portalList); } catch(e){}
+    } else if (_portalList && _portalList.parentElement) {
       _portalList.parentElement.removeChild(_portalList);
     }
     _portalList = null;
     _activeList = null;
     _activeEl = null;
     if (_positionTimer) { clearInterval(_positionTimer); _positionTimer = null; }
+    // (2026-10-05) Reset portal ptr-events if no modals open
+    if (!document.querySelector(".modal-backdrop")) {
+      const portal = getPortal();
+      if (portal && portal.id === "cap-modal-portal") portal.style.setProperty("pointer-events", "none", "important");
+    }
   }
 
   // (2026-07-13) Set explicit z-index on open UISelect and parents; was class only

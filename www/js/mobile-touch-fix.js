@@ -68,10 +68,7 @@ const MobileTouchFix = (() => {
     m.open = function(...args) {
       const backdrop = originalModalOpen.apply(this, args);
       if (backdrop) {
-        // (2026-07-13) Ensure modal is on body with max z-index; was unparented check
-        if (backdrop.parentElement !== document.body) {
-          document.body.appendChild(backdrop);
-        }
+        // (2026-10-05) Leave backdrop in portal; do NOT move to body - portal handles layering
         // (2026-07-13) Set max int z-index on backdrop and modal; was 9999999
         backdrop.style.setProperty('z-index', '2147483646', 'important');
         backdrop.style.setProperty('position', 'fixed', 'important');

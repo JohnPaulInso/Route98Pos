@@ -160,7 +160,8 @@ const Shift = (() => {
           <label style="font-weight:700;display:block;margin-bottom:6px;">Starting Cash in Drawer (Cash Register Float)</label>
           <div style="position:relative;display:flex;align-items:center;">
             <span style="position:absolute;left:14px;font-size:1.15rem;font-weight:700;color:var(--ink-soft);pointer-events:none;z-index:2;">₱</span>
-            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-start-cash" value="1000.00" placeholder="0.00" autofocus style="padding-left:44px !important;font-size:1.25rem;height:46px;width:100%;">
+            <!-- (2026-07-13) Support custom starting cash float; was reverting to 1000 -->
+            <input type="number" step="0.01" min="0" class="input mono font-bold" id="shift-start-cash" value="1000.00" placeholder="0.00" autofocus onfocus="this.select()" style="padding-left:44px !important;font-size:1.25rem;height:46px;width:100%;">
           </div>
           <div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;">
             <span class="text-xs text-faint" style="font-weight:600;">Presets:</span>
@@ -182,12 +183,15 @@ const Shift = (() => {
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
         { label: "Open Shift", cls: "btn-primary font-bold", onClick: (e) => {
-          const btn = document.querySelector(".modal-foot [data-i='1']");
-          if(btn){ btn.disabled = true; btn.style.opacity = "0.6"; }
-          const openingCash = Number(document.getElementById("shift-start-cash")?.value) || 0;
+          // (2026-10-05) Read from modal directly; was document.getElementById causing 1000 revert
+          const startInp = modal.querySelector("#shift-start-cash");
+          const rawVal = startInp ? String(startInp.value).trim().replace(/[^0-9.]/g, '') : '0';
+          const openingCash = parseFloat(rawVal) || 0;
+          const nowTs = Date.now();
           const shiftRecord = {
             id: Utils.uid("shift"),
-            openedAt: Date.now(),
+            openedAt: nowTs,
+            updatedAt: nowTs,
             openingCash,
             cashier: currentUser,
             status: "open",
@@ -221,10 +225,15 @@ const Shift = (() => {
       ]
     });
 
+    setTimeout(() => {
+      const inp = modal?.querySelector("#shift-start-cash");
+      if(inp){ inp.focus(); inp.select(); }
+    }, 100);
+
     modal?.querySelectorAll(".shift-float-chip").forEach(btn => {
       btn.addEventListener("click", () => {
         const inp = modal.querySelector("#shift-start-cash");
-        if(inp) inp.value = Number(btn.getAttribute("data-amt") || 0).toFixed(2);
+        if(inp){ inp.value = Number(btn.getAttribute("data-amt") || 0).toFixed(2); inp.select(); }
       });
     });
   }

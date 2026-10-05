@@ -308,16 +308,8 @@ const RealtimeSync = (() => {
         adjustments: shiftData.adjustments || []
       };
       
-      // Use transaction to prevent race conditions
-      await realtimeMod.runTransaction(shiftRef, (currentShift) => {
-        if (currentShift && currentShift.status === 'open') {
-          // Shift already open - abort transaction
-          return undefined;
-        }
-        
-        // Open new shift with preserved timestamp
-        return timestampedShift;
-      });
+      // (2026-07-13) Set cloud shift directly; was aborting if status open
+      await realtimeMod.set(shiftRef, timestampedShift);
       
       // Also update local with same timestamp
       DB.setShift(timestampedShift);

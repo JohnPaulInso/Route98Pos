@@ -55,7 +55,7 @@ const Modal = (() => {
     backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop`).join(" ") : "";
     backdrop.className = `modal-backdrop ${extraBackdrop}`.trim();
-    backdrop.style.setProperty("z-index", "2147483646", "important");
+    backdrop.style.setProperty("z-index", "1", "important");
     backdrop.innerHTML = `
       <div class="modal ${wide ? "modal-wide":""} ${modalClass}">
         <div class="modal-head">
@@ -66,7 +66,7 @@ const Modal = (() => {
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
     const mInner = backdrop.querySelector(".modal");
-    if(mInner) mInner.style.setProperty("z-index", "2147483647", "important");
+    // (2026-10-05) z-index relative to portal stacking context (absolute child)
     // (2026-10-05) Append to portal instead of body; portal has fixed inline style
     const portal = document.getElementById("cap-modal-portal") || document.body;
     portal.appendChild(backdrop);

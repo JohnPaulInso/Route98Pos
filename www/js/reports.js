@@ -187,6 +187,11 @@ const Reports = (() => {
         // Clear shift
         DB.setShift({ openedAt: null, openingCash: 0, cashier: null, status: "closed", closedAt });
 
+        // (2026-07-13) Sync closed shift state to cloud; was local only
+        if(typeof RealtimeSync !== "undefined" && RealtimeSync.closeShift){
+          RealtimeSync.closeShift({ id: currentShift.id || Utils.uid("shift"), openedAt: currentShift.openedAt, closedAt, cashier: currentShift.cashier, openingCash: currentShift.openingCash, actualCash, variance, status: "closed" }).catch(e => console.warn(e));
+        }
+
         // (2026-07-13) Auto-create daily backup on shift close; was unbacked
         if(typeof Sync !== "undefined" && Sync.createDailyBackup){
           Sync.createDailyBackup("automatic_daily");
@@ -940,16 +945,17 @@ const Reports = (() => {
     let selPhase = "done";
     let selectedPreset = (curPreset && curPreset !== "custom") ? curPreset : (curPreset === "all" ? "all" : null);
 
-    const fmtDDMM = (ts) => {
+    // (2026-07-13) Format as MM/DD/YYYY in date picker; was DD/MM/YYYY
+    const fmtMMDD = (ts) => {
       const d = new Date(ts);
-      return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+      return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${d.getFullYear()}`;
     };
 
-    const parseDDMM = (str) => {
+    const parseMMDD = (str) => {
       const parts = str.trim().split(/[\/\-\.]/);
       if(parts.length !== 3) return null;
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
+      const month = parseInt(parts[0], 10) - 1;
+      const day = parseInt(parts[1], 10);
       const year = parseInt(parts[2], 10);
       if(isNaN(day) || isNaN(month) || isNaN(year)) return null;
       const d = new Date(year, month, day);
@@ -987,11 +993,11 @@ const Reports = (() => {
             <div class="loy-cal-inputs">
               <div class="loy-cal-input-wrap">
                 <label>Start date</label>
-                <input type="text" id="loy-start-input" placeholder="DD/MM/YYYY">
+                <input type="text" id="loy-start-input" placeholder="MM/DD/YYYY">
               </div>
               <div class="loy-cal-input-wrap">
                 <label>End date</label>
-                <input type="text" id="loy-end-input" placeholder="DD/MM/YYYY">
+                <input type="text" id="loy-end-input" placeholder="MM/DD/YYYY">
               </div>
             </div>
           </div>
@@ -1031,8 +1037,8 @@ const Reports = (() => {
         nextBtn.style.visibility = "visible";
       }
 
-      startInp.value = fmtDDMM(tempStart);
-      endInp.value = fmtDDMM(tempEnd);
+      startInp.value = fmtMMDD(tempStart);
+      endInp.value = fmtMMDD(tempEnd);
 
       const firstDay = new Date(viewYear, viewMonth, 1).getDay();
       const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
@@ -1122,7 +1128,7 @@ const Reports = (() => {
     };
 
     const handleDateInput = (inp, isStart) => {
-      const parsed = parseDDMM(inp.value);
+      const parsed = parseMMDD(inp.value);
       if(parsed && parsed <= todayStart + oneDay){
         if(isStart){
           tempStart = parsed;
