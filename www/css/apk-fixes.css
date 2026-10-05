@@ -494,3 +494,13 @@ html.scroll-locked .pos-cart, body.scroll-locked .pos-cart {
     top: calc(var(--topbar-h, 60px) + env(safe-area-inset-top, 0px)) !important;
   }
 }
+
+@media (max-width: 767px) {
+  /* remove the layers that trap dropdowns */
+  #root, .main-col, .view, .view-body, #view-root,
+  .view-head, .rpt-view-head, .inv-tools-dropdown-wrap {
+    z-index: auto !important;
+  }
+  /* topbar holds the breadcrumb menu, so keep it above cart (92) and nav (95) */
+  .topbar { z-index: 2000000000 !important; }
+}
