@@ -25,9 +25,13 @@ const Modal = (() => {
         if(!document.querySelector(".modal-backdrop")){
           document.body.classList.remove("scroll-locked", "modal-open");
           document.documentElement.classList.remove("scroll-locked", "modal-open");
-          // (2026-10-05) Reset portal pointer-events when no modals remain
+          // ✅ Reset portal when all modals closed
           const portal = document.getElementById("cap-modal-portal");
-          if (portal) portal.style.setProperty("pointer-events", "none", "important");
+          if (portal) {
+            portal.style.setProperty("pointer-events", "none", "important");
+            portal.style.setProperty("visibility", "hidden", "important");
+            console.log("✅ All modals closed, portal hidden");
+          }
         }
         if(typeof onClosed === "function") onClosed();
         else if(typeof bd._onClose === "function") bd._onClose();
@@ -36,9 +40,12 @@ const Modal = (() => {
       // (2026-07-13) Remove modal-open on empty stack; was scroll-locked only
       document.body.classList.remove("scroll-locked", "modal-open");
       document.documentElement.classList.remove("scroll-locked", "modal-open");
-      // (2026-10-05) Reset portal pointer-events on empty stack close
+      // ✅ Reset portal on empty stack
       const portal = document.getElementById("cap-modal-portal");
-      if (portal) portal.style.setProperty("pointer-events", "none", "important");
+      if (portal) {
+        portal.style.setProperty("pointer-events", "none", "important");
+        portal.style.setProperty("visibility", "hidden", "important");
+      }
       if(typeof onClosed === "function") onClosed();
     }
   }
@@ -66,13 +73,18 @@ const Modal = (() => {
         ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
     const mInner = backdrop.querySelector(".modal");
-    // (2026-10-05) z-index relative to portal stacking context (absolute child)
-    // (2026-10-05) Append to portal instead of body; portal has fixed inline style
-    const portal = document.getElementById("cap-modal-portal") || document.body;
-    portal.appendChild(backdrop);
-    // (2026-10-05) Activate portal pointer-events so backdrop is touchable
-    if (portal.id === "cap-modal-portal") {
+    // ✅ Append to portal - CSS :has() selector will enable pointer-events
+    const portal = document.getElementById("cap-modal-portal");
+    if (portal) {
+      portal.appendChild(backdrop);
+      // ✅ Force show portal when modal added
       portal.style.setProperty("pointer-events", "auto", "important");
+      portal.style.setProperty("visibility", "visible", "important");
+      console.log("✅ Modal opened in portal:", title);
+    } else {
+      // Fallback to body if portal doesn't exist
+      console.warn("⚠️ Portal not found, appending to body");
+      document.body.appendChild(backdrop);
     }
     // (2026-07-13) Guard backdrop against ghost clicks; was instant close
     const openTs = Date.now();

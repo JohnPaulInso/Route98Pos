@@ -1,41 +1,60 @@
 @echo off
-rem ========================================
-rem   MODAL FIX - CAPACITOR APK REBUILD
-rem ========================================
 echo ========================================
-echo   MODAL FIX - APK REBUILD
+echo   MODAL FIX - COMPLETE REBUILD
 echo ========================================
 echo.
-echo [INFO] This script will rebuild your APK with modal fixes:
-echo  - Portal visibility and pointer-events fix
-echo  - Fixed positioning for modal backdrop
-echo  - Removed transform isolation
-echo  - Mobile drag-scroll guard for buttons
+echo This will:
+echo  1. Clean old builds
+echo  2. Copy all fixed files to www
+echo  3. Sync with Android
+echo  4. Build APK
 echo.
+echo Press Ctrl+C to cancel, or
 pause
 echo.
 
-echo [1/6] Cleaning old build...
+echo [1/7] Cleaning old builds...
 if exist www rmdir /S /Q www
-if exist android\app\src\main\assets\public rmdir /S /Q android\app\src\main\assets\public
+echo Deleted www folder
+if exist android\app\build rmdir /S /Q android\app\build
+echo Deleted Android build cache
 echo.
 
-echo [2/6] Building web assets to www...
+echo [2/7] Building web assets...
 call npm run build
 if %errorlevel% neq 0 (
-    echo [ERROR] Build failed!
+    echo [ERROR] Build failed! Check if Node.js is installed.
     pause
     exit /b 1
 )
 echo.
 
-echo [3/6] Copying test files...
-copy /Y test-modal.html www\test-modal.html >nul 2>&1
-echo Test page copied to www/test-modal.html
+echo [3/7] Verifying fixes in www...
+findstr /C:"Portal shown" www\js\modal.js >nul
+if %errorlevel% equ 0 (
+    echo [PASS] Portal visibility code in www build
+) else (
+    echo [WARN] Portal visibility code may be missing
+)
+
+findstr /C:"border-radius: 16px" www\css\mobile-fixes.css >nul
+if %errorlevel% equ 0 (
+    echo [PASS] Rounded corners fix in www build
+) else (
+    echo [WARN] Rounded corners fix may be missing
+)
 echo.
 
-echo [4/6] Syncing with Android project...
+echo [4/7] Copying to Android assets...
 call npx cap copy android
+if %errorlevel% neq 0 (
+    echo [ERROR] Copy failed!
+    pause
+    exit /b 1
+)
+echo.
+
+echo [5/7] Syncing Capacitor...
 call npx cap sync android
 if %errorlevel% neq 0 (
     echo [ERROR] Sync failed!
@@ -44,7 +63,7 @@ if %errorlevel% neq 0 (
 )
 echo.
 
-echo [5/6] Building debug APK...
+echo [6/7] Building APK (this takes 2-5 minutes)...
 cd android
 call gradlew.bat clean assembleDebug
 if %errorlevel% neq 0 (
@@ -56,30 +75,42 @@ if %errorlevel% neq 0 (
 cd ..
 echo.
 
-echo [6/6] Verification...
+echo [7/7] Locating APK...
+set APK_PATH=android\app\build\outputs\apk\debug\route98.apk
+if not exist %APK_PATH% (
+    set APK_PATH=android\app\build\outputs\apk\debug\app-debug.apk
+)
+
+if exist %APK_PATH% (
+    echo [SUCCESS] APK built successfully!
+    echo.
+    echo APK Location: %APK_PATH%
+    for %%F in (%APK_PATH%) do echo APK Size: %%~zF bytes
+) else (
+    echo [ERROR] APK file not found!
+    echo Searched locations:
+    echo  - android\app\build\outputs\apk\debug\route98.apk
+    echo  - android\app\build\outputs\apk\debug\app-debug.apk
+    pause
+    exit /b 1
+)
 echo.
+
 echo ========================================
 echo   BUILD COMPLETE!
 echo ========================================
 echo.
-echo APK Location: android\app\build\outputs\apk\debug\app-debug.apk
+echo NEXT STEPS:
+echo  1. Install APK: adb install -r %APK_PATH%
+echo     OR manually copy to phone: %APK_PATH%
+echo  2. Open app on device
+echo  3. Click any button (Charge, Open Shift, etc.)
+echo  4. VERIFY: Modal appears with rounded corners
 echo.
-echo TESTING CHECKLIST:
-echo  [_] Install APK on device
-echo  [_] Click any button (Charge, Open Shift, Add Product)
-echo  [_] Verify modal appears on screen
-echo  [_] Tap backdrop to close modal
-echo  [_] Test modal close X button
-echo  [_] Test dropdown menus (Reports filters, Inventory tools)
-echo.
-echo DEBUG:
-echo  - Open chrome://inspect in Chrome desktop
-echo  - Select your device to see console logs
-echo  - Look for "✅ Modal opened in portal" messages
-echo  - Check for "⚠️ Portal not found" errors
-echo.
-echo Test page available at:
-echo  capacitor://localhost/test-modal.html
-echo  (Open in APK browser/webview to test modal system)
+echo DEBUG (if modals don't appear):
+echo  1. Connect device to PC
+echo  2. Open Chrome: chrome://inspect
+echo  3. Click "Inspect" on your device
+echo  4. Check Console for "✅ Modal opened in portal" message
 echo.
 pause

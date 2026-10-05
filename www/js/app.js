@@ -327,25 +327,56 @@ document.addEventListener("wheel", (e) => {
   }
 }, { passive: false, capture: true });
 
-// (2026-10-01) Drag-to-scroll for category-chips; was wheel only
+// ✅ Desktop-only drag-to-scroll for category-chips (skip on mobile/APK)
 (function initCategoryChipsDragScroll(){
+  // ✅ Check if mobile/Capacitor - skip drag-scroll entirely on mobile
+  const isMobileContext = () =>
+    Boolean(window.Capacitor?.isNativePlatform?.()) ||
+    window.matchMedia("(max-width: 768px)").matches ||
+    /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  if (isMobileContext()) {
+    console.log("✅ Mobile/Capacitor detected - skipping drag-scroll listeners");
+    // Still setup gradient fade without drag handlers
+    function updateGradientFade(chips){
+      if(!chips) return;
+      const isAtEnd = chips.scrollLeft + chips.clientWidth >= chips.scrollWidth - 5;
+      chips.classList.toggle("scrolled-end", isAtEnd);
+    }
+
+    const sharedResizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(entries => {
+      for(const entry of entries) updateGradientFade(entry.target);
+    }) : null;
+
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
+        if(chips.dataset.dragScrollInit) return;
+        chips.dataset.dragScrollInit = "true";
+        updateGradientFade(chips);
+        chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
+        sharedResizeObserver?.observe(chips);
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
+      updateGradientFade(chips);
+      chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
+    });
+    return; // ✅ EXIT - no drag handlers
+  }
+
+  // ✅ Desktop only: full drag-scroll implementation
   let isDragging = false;
   let startX = 0;
   let scrollLeft = 0;
   let targetChips = null;
   let hasDragged = false;
 
-  // (2026-10-04) Detect mobile/Capacitor to skip mouse-drag logic; was missing
-  const isMobileContext = () =>
-    Boolean(window.Capacitor?.isNativePlatform?.()) ||
-    window.matchMedia("(max-width: 768px)").matches ||
-    /Android|iPhone|iPad/i.test(navigator.userAgent);
-
-  // (2026-07-13) Desktop-only mouse drag for chips; was intercepting touch
   document.addEventListener("mousedown", (e) => {
-    // (2026-10-04) Always reset hasDragged on mousedown; was only reset inside guard
     hasDragged = false;
-    if(e.button !== 0 || isMobileContext()) return;
+    if(e.button !== 0) return;
     const chips = e.target.closest(".category-chips");
     if(!chips) return;
 
@@ -360,9 +391,8 @@ document.addEventListener("wheel", (e) => {
     if(!isDragging || !targetChips) return;
     e.preventDefault();
     const x = e.pageX - targetChips.offsetLeft;
-    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    const walk = (x - startX) * 1.5;
 
-    // If moved more than 5px, consider it a drag
     if(Math.abs(walk) > 5){
       hasDragged = true;
     }
@@ -370,9 +400,7 @@ document.addEventListener("wheel", (e) => {
     targetChips.scrollLeft = scrollLeft - walk;
   });
 
-  // (2026-10-04) Guard mouseup capture; was blocking APK taps via hasDragged
   document.addEventListener("mouseup", (e) => {
-    if(isMobileContext()){ isDragging = false; targetChips = null; hasDragged = false; return; }
     if(isDragging && targetChips){
       targetChips.style.scrollBehavior = "";
       if(hasDragged){
@@ -385,9 +413,7 @@ document.addEventListener("wheel", (e) => {
     hasDragged = false;
   }, true);
 
-  // (2026-10-04) Guard click capture; was eating APK taps when hasDragged stale
   document.addEventListener("click", (e) => {
-    if(isMobileContext()){ hasDragged = false; return; }
     if(hasDragged && e.target.closest(".category-chips .chip")){
       e.preventDefault();
       e.stopPropagation();
@@ -416,7 +442,6 @@ document.addEventListener("wheel", (e) => {
     for(const entry of entries) updateGradientFade(entry.target);
   }) : null;
 
-  // (2026-07-13) Reuse singleton ResizeObserver; was creating new instance per chip
   const observer = new MutationObserver(() => {
     document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
       if(chips.dataset.dragScrollInit) return;
@@ -429,7 +454,6 @@ document.addEventListener("wheel", (e) => {
 
   observer.observe(document.body, { childList: true, subtree: true });
   
-  // Initial setup for existing chips
   document.querySelectorAll(".category-chips, .rpt-subnav-tabs").forEach(chips => {
     updateGradientFade(chips);
     chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
