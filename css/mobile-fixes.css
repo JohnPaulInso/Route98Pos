@@ -32,11 +32,11 @@
     position: fixed !important;
     inset: 0 !important;
     display: flex !important;
-    /* (2026-10-05) Changed from flex-end; was pushing modal below visible area */
-    align-items: center !important;
+    align-items: center !important; /* ✅ Center modal vertically */
     justify-content: center !important;
     background: rgba(0, 0, 0, 0.5) !important;
     pointer-events: auto !important;
+    padding: 16px !important; /* ✅ Add padding */
   }
   
   /* Modal container */
@@ -1355,7 +1355,7 @@
     max-width: 100% !important;
     width: 100% !important;
     max-height: 95vh !important;
-    border-radius: 20px 20px 0 0 !important;
+    border-radius: 16px !important; /* ✅ Fully rounded on all corners */
     margin: 0 !important;
     /* (2026-07-13) Disable slideUpModal animation; was freezing in WebView */
     animation: none !important;
@@ -3184,7 +3184,7 @@
     width: 100% !important;
     max-width: 500px !important;
     margin: 0 auto !important;
-    border-radius: 20px 20px 0 0 !important;
+    border-radius: 16px !important; /* ✅ Fully rounded */
     max-height: 90vh !important;
     overflow-y: auto !important;
     padding: 0 !important;
