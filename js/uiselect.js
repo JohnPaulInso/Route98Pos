@@ -14,7 +14,7 @@ const UISelect = (() => {
   let _positionTimer = null;
 
   function getPortal() {
-    return document.getElementById("cap-modal-portal") || document.body;
+    return document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz") || document.body;
   }
 
   // (2026-10-05) Position the portal list over the trigger rect
@@ -43,7 +43,7 @@ const UISelect = (() => {
     if (_portalList && _activeEl) {
       // (2026-10-05) Return list to its original .ui-select parent; was orphaning it
       _portalList.style.display = "";
-      _portalList.classList.remove("ui-select-portal-list");
+      _portalList.classList.remove("ui-select-portal-list", "ui-select-portal-listz");
       try { _activeEl.appendChild(_portalList); } catch(e){}
     } else if (_portalList && _portalList.parentElement) {
       _portalList.parentElement.removeChild(_portalList);
@@ -53,24 +53,24 @@ const UISelect = (() => {
     _activeEl = null;
     if (_positionTimer) { clearInterval(_positionTimer); _positionTimer = null; }
     // (2026-10-05) Reset portal ptr-events if no modals open
-    if (!document.querySelector(".modal-backdrop")) {
+    if (!document.querySelector(".modal-backdropz")) {
       const portal = getPortal();
-      if (portal && portal.id === "cap-modal-portal") portal.style.setProperty("pointer-events", "none", "important");
+      if (portal && (portal.id === "cap-modal-portal" || portal.id === "cap-modal-portalz")) portal.style.setProperty("pointer-events", "none", "important");
     }
   }
 
-  // (2026-07-13) Set explicit z-index on open UISelect and parents; was class only
+  // (2026-07-13) Add z suffix to dropdown classes & ids; was standard names
   function closeAll(except) {
     if (_activeEl && _activeEl !== except) {
       _activeEl.classList.remove("open");
       detachPortalList();
     }
-    document.querySelectorAll(".ui-select.open").forEach(d => {
+    document.querySelectorAll(".ui-select.open, .ui-selectz.open").forEach(d => {
       if (d !== except) d.classList.remove("open");
     });
   }
 
-  document.addEventListener("click", (e) => { if (!e.target.closest(".ui-select") && !e.target.closest(".ui-select-portal-list")) closeAll(); });
+  document.addEventListener("click", (e) => { if (!e.target.closest(".ui-select, .ui-selectz") && !e.target.closest(".ui-select-portal-list, .ui-select-portal-listz")) closeAll(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAll(); });
 
   function normalize(options) {
@@ -81,13 +81,13 @@ const UISelect = (() => {
     const opts = normalize(options);
     const selected = opts.find(o => o.value === value) || opts[0];
     return `
-      <div class="ui-select" id="${id}" data-value="${selected ? Utils.escapeHtml(selected.value) : ""}">
-        <button type="button" class="ui-select-btn">
-          <span class="ui-select-label">${selected ? Utils.escapeHtml(selected.label) : placeholder}</span>
-          ${Icons.get("chevron-down", { size: 15, cls: "ui-select-chevron" })}
+      <div class="ui-select ui-selectz" id="${id}" data-value="${selected ? Utils.escapeHtml(selected.value) : ""}">
+        <button type="button" class="ui-select-btn ui-select-btnz">
+          <span class="ui-select-label ui-select-labelz">${selected ? Utils.escapeHtml(selected.label) : placeholder}</span>
+          ${Icons.get("chevron-down", { size: 15, cls: "ui-select-chevron ui-select-chevronz" })}
         </button>
-        <div class="ui-select-list ui-select-list-hidden" role="listbox" data-select-id="${id}">
-          ${opts.map(o => `<div class="ui-select-opt ${o.value === value ? "active" : ""}" data-v="${Utils.escapeHtml(o.value)}" role="option">${Utils.escapeHtml(o.label)}</div>`).join("")}
+        <div class="ui-select-list ui-select-listz ui-select-list-hidden ui-select-list-hiddenz" role="listbox" data-select-id="${id}">
+          ${opts.map(o => `<div class="ui-select-opt ui-select-optz ${o.value === value ? "active" : ""}" data-v="${Utils.escapeHtml(o.value)}" role="option">${Utils.escapeHtml(o.label)}</div>`).join("")}
         </div>
       </div>`;
   }
@@ -96,8 +96,8 @@ const UISelect = (() => {
   function bind(id, onChange) {
     const el = typeof id === "string" ? document.getElementById(id) : id;
     if (!el) return;
-    const btn = el.querySelector(".ui-select-btn");
-    const list = el.querySelector(".ui-select-list");
+    const btn = el.querySelector(".ui-select-btn, .ui-select-btnz");
+    const list = el.querySelector(".ui-select-list, .ui-select-listz");
 
     btn.onclick = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -112,7 +112,7 @@ const UISelect = (() => {
         portal.style.setProperty("pointer-events", "auto", "important");
         // Clone-free: just move the node
         portal.appendChild(list);
-        list.classList.add("ui-select-portal-list");
+        list.classList.add("ui-select-portal-list", "ui-select-portal-listz");
         list.style.display = "block";
         list.style.position = "fixed";
         list.style.zIndex = "2147483647";
@@ -124,22 +124,23 @@ const UISelect = (() => {
       }
     };
 
-    el.querySelectorAll(".ui-select-opt").forEach(opt => {
+    el.querySelectorAll(".ui-select-opt, .ui-select-optz").forEach(opt => {
       opt.onclick = (e) => {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         el.dataset.value = opt.dataset.v;
-        el.querySelector(".ui-select-label").textContent = opt.textContent;
-        el.querySelectorAll(".ui-select-opt").forEach(o => o.classList.toggle("active", o === opt));
+        const lbl = el.querySelector(".ui-select-label, .ui-select-labelz");
+        if (lbl) lbl.textContent = opt.textContent;
+        el.querySelectorAll(".ui-select-opt, .ui-select-optz").forEach(o => o.classList.toggle("active", o === opt));
         // (2026-10-05) Return list back to el before closing; was detaching
         if (list.parentElement !== el) el.appendChild(list);
         list.style.display = "";
-        list.classList.remove("ui-select-portal-list");
+        list.classList.remove("ui-select-portal-list", "ui-select-portal-listz");
         el.classList.remove("open");
         detachPortalList();
         // (2026-10-05) Reset portal ptr-events if no modals open
-        if (!document.querySelector(".modal-backdrop")) {
+        if (!document.querySelector(".modal-backdropz")) {
           const portal = getPortal();
-          if (portal.id === "cap-modal-portal") portal.style.setProperty("pointer-events", "none", "important");
+          if (portal && (portal.id === "cap-modal-portal" || portal.id === "cap-modal-portalz")) portal.style.setProperty("pointer-events", "none", "important");
         }
         onChange?.(opt.dataset.v);
       };
@@ -151,11 +152,12 @@ const UISelect = (() => {
   function setValue(id, value) {
     const el = document.getElementById(id);
     if (!el) return;
-    const opt = el.querySelector(`.ui-select-opt[data-v="${CSS.escape(String(value))}"]`);
+    const opt = el.querySelector(`.ui-select-opt[data-v="${CSS.escape(String(value))}"], .ui-select-optz[data-v="${CSS.escape(String(value))}"]`);
     if (!opt) return;
     el.dataset.value = value;
-    el.querySelector(".ui-select-label").textContent = opt.textContent;
-    el.querySelectorAll(".ui-select-opt").forEach(o => o.classList.toggle("active", o === opt));
+    const lbl = el.querySelector(".ui-select-label, .ui-select-labelz");
+    if (lbl) lbl.textContent = opt.textContent;
+    el.querySelectorAll(".ui-select-opt, .ui-select-optz").forEach(o => o.classList.toggle("active", o === opt));
   }
 
   return { render, bind, getValue, setValue, closeAll };

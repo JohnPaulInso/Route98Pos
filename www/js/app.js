@@ -172,14 +172,14 @@ const App = (() => {
             </div>`;
         }).join("")}
       </div>`;
-    const m = Modal.open({
+    const m = Modalz.open({
       title: `${Icons.get("grid",{size:18})} All Modules & Navigation`,
       body,
       actions: [{ label:"Close", cls:"btn-ghost" }]
     });
     m.querySelectorAll("[data-mob-nav]").forEach(btn => {
       btn.onclick = () => {
-        Modal.close();
+        Modalz.close();
         navigate(btn.dataset.mobNav);
       };
     });
@@ -265,7 +265,7 @@ const App = (() => {
     // (2026-07-13) Click shift indicator to open shift management; was no handler
     document.getElementById("topbar-shift-indicator")?.addEventListener("click", () => navigate("shift"));
     document.getElementById("user-chip").onclick = () => {
-      Modal.confirm({ title:"Log out?", message:`Sign out ${Auth.currentUser()?.name}?`, onConfirm: () => Auth.logout() });
+      Modalz.confirm({ title:"Log out?", message:`Sign out ${Auth.currentUser()?.name}?`, onConfirm: () => Auth.logout() });
     };
     const themeBtn = document.getElementById("theme-toggle-btn");
     const paintThemeIcon = () => { themeBtn.innerHTML = Icons.get(document.documentElement.dataset.theme === "dark" ? "sun" : "moon", { size:16 }); };

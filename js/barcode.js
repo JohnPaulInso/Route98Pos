@@ -29,7 +29,7 @@ const Scanner = (() => {
     const gap = now - lastKeyTime;
     lastKeyTime = now;
 
-    const modalOpen = !!document.querySelector(".modal-backdrop, .modal, .modal-wrap");
+    const modalOpen = !!document.querySelector(".modal-backdropz, .modalz, .modal-wrapz");
     const activeEl = document.activeElement;
     const isOtherField = ["INPUT","TEXTAREA","SELECT"].includes(activeEl?.tagName) &&
                          !activeEl.classList.contains("scan-target");
@@ -95,7 +95,7 @@ const Scanner = (() => {
     const detector = new BarcodeDetector({ formats:["qr_code","ean_13","ean_8","upc_a","upc_e","code_128","code_39"] });
     const body = `<video id="cam-preview" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;"></video>
                   <p class="text-sm text-faint" style="margin-top:10px;">Point the camera at a barcode or QR code.</p>`;
-    const modal = Modal.open({ title:`${Icons.get("camera",{size:17})} Scan with camera`, body, actions:[{ label:"Cancel", cls:"btn-ghost" }], onClose:()=>stopCam() });
+    const modal = Modalz.open({ title:`${Icons.get("camera",{size:17})} Scan with camera`, body, actions:[{ label:"Cancel", cls:"btn-ghost" }], onClose:()=>stopCam() });
     const video = modal.querySelector("#cam-preview");
     video.srcObject = stream;
 
@@ -110,7 +110,7 @@ const Scanner = (() => {
       try{
         const codes = await detector.detect(video);
         if(codes.length){
-          stopCam(); Modal.close();
+          stopCam(); Modalz.close();
           flashBanner(codes[0].rawValue);
           onResult(codes[0].rawValue);
           return;

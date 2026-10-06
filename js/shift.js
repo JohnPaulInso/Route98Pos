@@ -175,7 +175,7 @@ const Shift = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("clock",{size:18})} Open Shift (Time In)`,
       body,
       wide: false,
@@ -209,7 +209,7 @@ const Shift = (() => {
           localStorage.setItem("pos_cashier", currentUser);
           Utils.toast(`Shift opened for ${currentUser} with ${Utils.money(openingCash)} float.`, "success");
           Utils.openCashDrawer();
-          Modal.close();
+          Modalz.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
           
@@ -261,7 +261,7 @@ const Shift = (() => {
       </div>
     `;
 
-    Modal.open({
+    Modalz.open({
       title: `${Icons.get("dollar-sign",{size:18})} ${isPayIn ? "Pay In (Add Drawer Cash)" : "Pay Out (Remove Drawer Cash)"}`,
       body,
       wide: false,
@@ -291,7 +291,7 @@ const Shift = (() => {
           
           Utils.openCashDrawer();
           Utils.toast(`Recorded ${isPayIn ? 'Pay In' : 'Pay Out'} of ${Utils.money(amt)}.`, "success");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -345,7 +345,7 @@ const Shift = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("lock",{size:18})} Close Shift (Time Out)`,
       body,
       wide: false,
@@ -354,7 +354,7 @@ const Shift = (() => {
       actions: [
         { label: "Cancel", cls: "btn-ghost" },
         { label: "Confirm & Close Shift", cls: "btn-danger font-bold", onClick: () => {
-          const btn = document.querySelector(".modal-foot [data-i='1']");
+          const btn = document.querySelector(".modal-footz [data-i='1']");
           if(btn){ btn.disabled = true; btn.style.opacity = "0.6"; }
           const actualVal = Number(document.getElementById("shift-close-actual")?.value) || 0;
           const variance = actualVal - expected;
@@ -408,7 +408,7 @@ const Shift = (() => {
           }
 
           Utils.toast(`Shift for ${logRecord.cashier} closed. Variance: ${variance >= 0 ? "+" : ""}${Utils.money(variance)}`, "success");
-          Modal.close();
+          Modalz.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
           
@@ -515,7 +515,7 @@ const Shift = (() => {
             ${cashiersList.map(c => `<option value="${Utils.escapeHtml(c)}" ${c.toLowerCase() === cur.toLowerCase() ? "selected" : ""}>${Utils.escapeHtml(c)}</option>`).join("")}
           </select>
         </div>`;
-      Modal.open({
+      Modalz.open({
         title: `${Icons.get("user",{size:17})} Change Cashier on Duty`,
         body,
         actions: [
@@ -532,7 +532,7 @@ const Shift = (() => {
                 }
                 localStorage.setItem("pos_cashier", next);
                 Utils.toast(`Cashier on duty switched to ${next}.`, "success");
-                Modal.close();
+                Modalz.close();
                 render();
               }
             }
@@ -557,7 +557,7 @@ const Shift = (() => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const logId = btn.getAttribute("data-delete-shift-log");
-          Modal.confirm({
+          Modalz.confirm({
             title: "Delete Shift Log?",
             message: "This will permanently remove this shift history record. This cannot be undone.",
             danger: true,

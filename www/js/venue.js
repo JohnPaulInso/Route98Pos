@@ -207,7 +207,7 @@ const Venue = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("party",{size:18})} ${isEdit ? "Edit Venue Reservation" : "New Venue Reservation"}`,
       body,
       wide: true,
@@ -248,7 +248,7 @@ const Venue = (() => {
           }
 
           currentAnchorDate = new Date(date + "T00:00:00");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -313,7 +313,7 @@ const Venue = (() => {
   }
 
   function deleteBookingConfirm(b){
-    Modal.confirm({
+    Modalz.confirm({
       title: "Cancel & Delete Booking?",
       message: `Permanently remove reservation for ${Utils.escapeHtml(b.clientName)} on ${fmtPHTDate(b.date)}?`,
       danger: true,

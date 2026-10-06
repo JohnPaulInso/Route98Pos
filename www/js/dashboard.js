@@ -254,7 +254,7 @@ const Dashboard = (() => {
         const title = btn.dataset.tipTitle || "Metric Details";
         const tip = btn.dataset.tip;
         if(tip && (window.innerWidth <= 768 || 'ontouchstart' in window)){
-          Modal.open({
+          Modalz.open({
             title: `${Icons.get("info",{size:18})} ${title}`,
             body: `<div style="padding:10px 4px;font-size:0.95rem;line-height:1.5;color:var(--ink);">${tip}</div>`,
             actions: [{ label: "Close", cls: "btn-primary btn-block" }]

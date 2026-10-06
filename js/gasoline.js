@@ -882,7 +882,7 @@ const Gas = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("truck",{size:18})} Log 4,000L Bulk Tanker Intake`,
       body,
       wide: true,
@@ -941,7 +941,7 @@ const Gas = (() => {
           if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
           Utils.Sound.cashChime();
           Utils.toast(`Successfully offloaded ${totalLiters.toLocaleString()}L into ECC tanks!`, "success");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -1088,7 +1088,7 @@ const Gas = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("tag",{size:18})} Set Daily Fuel Selling Prices (SRP Manager)`,
       body,
       wide: true,
@@ -1116,7 +1116,7 @@ const Gas = (() => {
 
           DB.setFuelConfig(cfgNow);
           Utils.toast("Daily fuel prices updated successfully.", "success");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -1308,7 +1308,7 @@ const Gas = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("edit",{size:18})} Edit Fuel Transaction`,
       body,
       wide: false,
@@ -1347,7 +1347,7 @@ const Gas = (() => {
             if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
           }
 
-          Modal.close();
+          Modalz.close();
           Utils.toast("Fuel transaction updated successfully.", "success");
           renderTodayStrip();
           renderPumps();
@@ -1377,7 +1377,7 @@ const Gas = (() => {
   }
 
   function deleteFuelTransactionConfirm(sale){
-    Modal.confirm({
+    Modalz.confirm({
       title: "Delete Fuel Transaction?",
       message: `Permanently delete ${sale.liters.toFixed(2)}L of ${sale.fuelName} (${Utils.money(sale.amount)})? The ${sale.liters.toFixed(2)}L will be returned to the ${sale.fuelName} tank.`,
       danger: true,

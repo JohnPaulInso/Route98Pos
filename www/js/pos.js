@@ -207,7 +207,7 @@ const POS = (() => {
         renderCatalog();
         return;
       }
-      Modal.confirm({
+      Modalz.confirm({
         title: "Product Not Found",
         message: `No product found for barcode "${code}". Would you like to add a new product with this barcode?`,
         confirmText: "Add New Product",
@@ -339,7 +339,7 @@ const POS = (() => {
         </div>
         <div id="change-out" class="val mono">₱0.00</div>
       </div>`;
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("wallet",{size:18})} Complete Sale`,
       body,
       actions: [
@@ -547,7 +547,7 @@ const POS = (() => {
         </div>
       </div>`;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("clipboard-check",{size:17})} Physical Stock Verification`,
       body,
       wide: true,
@@ -580,7 +580,7 @@ const POS = (() => {
               Utils.toast("Physical stock counts updated in system.", "success");
             }
             
-            Modal.close();
+            Modalz.close();
             onComplete();
           }
         }
@@ -661,7 +661,7 @@ const POS = (() => {
         }).join("")}
       </div>`;
 
-    const discModal = Modal.open({
+    const discModal = Modalz.open({
       title: `${Icons.get("alert-triangle",{size:17})} Log Stock Discrepancies`,
       body,
       wide: true,
@@ -688,8 +688,8 @@ const POS = (() => {
             
             DB.setProducts(products);
             Utils.toast(`${discrepancies.length} discrepancy log(s) saved.`, "success");
-            Modal.close(); // Close discrepancy modal
-            Modal.close(); // Close verification modal
+            Modalz.close(); // Close discrepancy modal
+            Modalz.close(); // Close verification modal
             onComplete();
           }
         }
@@ -763,7 +763,7 @@ const POS = (() => {
         ` : ""}
       </div>`;
 
-    Modal.open({
+    Modalz.open({
       title: `${Icons.get("check-circle",{size:17})} Sale Confirmation`,
       body,
       wide: true,
@@ -771,7 +771,7 @@ const POS = (() => {
         { label: "Open Drawer", cls: "btn-outline btn-lg", onClick: () => { Utils.openCashDrawer(); } },
         // (2026-07-13) Line break print receipt button on mobile; was standard button
         { label: "Print Receipt (JK580H)", cls: "btn-outline btn-lg btn-print-receipt", onClick: () => { printReceipt(sale); } },
-        { label: "Start Next Sale", cls: "btn-primary btn-lg", onClick: Modal.close }
+        { label: "Start Next Sale", cls: "btn-primary btn-lg", onClick: Modalz.close }
       ]
     });
   }
@@ -834,7 +834,7 @@ const POS = (() => {
       renderHeldButton();
     }
 
-    Modal.close();
+    Modalz.close();
     clearCart();
     Utils.Sound.cashChime();
     Utils.toast(`Sale complete — ${Utils.money(t.grand)}`, "success");
@@ -875,14 +875,14 @@ const POS = (() => {
         <td style="text-align:right;"><button class="btn btn-sm btn-primary" data-recall="${h.id}">Recall</button> <button class="btn btn-sm btn-ghost" data-del="${h.id}">${Icons.get("x",{size:14})}</button></td>
       </tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">${Icons.get("pause-circle",{size:34})}<h3>No parked sales</h3><p>Held carts will show up here.</p></div>`;
-    const modal = Modal.open({ title:`${Icons.get("pause-circle",{size:17})} Held Sales`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
+    const modal = Modalz.open({ title:`${Icons.get("pause-circle",{size:17})} Held Sales`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
     modal.querySelectorAll("[data-recall]").forEach(btn => btn.onclick = () => {
       const h = DB.getHeldSales().find(x => x.id === btn.dataset.recall);
       if(!h) return;
       activeHeldId = h.id;
       cart = JSON.parse(JSON.stringify(h.items));
       discount = h.discount || { type:"percent", value:0 };
-      renderCart(); Modal.close(); renderHeldButton();
+      renderCart(); Modalz.close(); renderHeldButton();
       Utils.toast("Parked sale restored.", "info", 1500);
     });
     modal.querySelectorAll("[data-del]").forEach(btn => btn.onclick = () => {
@@ -900,7 +900,7 @@ const POS = (() => {
   }
 
   // ---------- continuous camera scan mode ----------
-  // (2026-07-13) Open continuous camera scan directly; prev: Modal.confirm prompt
+  // (2026-07-13) Open continuous camera scan directly; prev: Modalz.confirm prompt
   function openScanMode(){
     Scanner.openContinuousScan({
       title: "Scan items into cart",
@@ -1069,7 +1069,7 @@ const POS = (() => {
         </button>
       </div>`;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("package",{size:17})} Select Sale Unit`,
       body,
       actions: [{ label:"Cancel", cls:"btn-ghost" }]
@@ -1080,7 +1080,7 @@ const POS = (() => {
       packBtn.onclick = () => {
         if(addToCart(product, 1, "pack")){
           Utils.toast(`Added 1 Pack of ${product.name}`, "success", 1200);
-          Modal.close();
+          Modalz.close();
         }
       };
     }
@@ -1089,7 +1089,7 @@ const POS = (() => {
       pcBtn.onclick = () => {
         if(addToCart(product, 1, "piece")){
           Utils.toast(`Added 1 pc ${product.name}`, "success", 1200);
-          Modal.close();
+          Modalz.close();
         }
       };
     }
@@ -1313,7 +1313,7 @@ const POS = (() => {
           <span class="text-xs text-faint">Individual pc</span>
         </button>
       </div>`;
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("package",{size:17})} Select Sale Unit — ${Utils.escapeHtml(product.name)}`,
       body,
       actions: [{ label:"Cancel", cls:"btn-ghost" }]
@@ -1322,14 +1322,14 @@ const POS = (() => {
       if(addToCart(product, 1, "pack")){
         if(fromBtn) animateFlyToCart(fromBtn, product);
         Utils.toast(`Added 1 pack of ${product.name}`, "success", 1200);
-        Modal.close();
+        Modalz.close();
       }
     });
     modal.querySelector("#btn-buy-piece")?.addEventListener("click", () => {
       if(addToCart(product, 1, "piece")){
         if(fromBtn) animateFlyToCart(fromBtn, product);
         Utils.toast(`Added 1 pc of ${product.name}`, "success", 1200);
-        Modal.close();
+        Modalz.close();
       }
     });
   }
@@ -1580,7 +1580,7 @@ const POS = (() => {
       document.getElementById("btn-undo").onclick = undo;
       document.getElementById("btn-redo").onclick = redo;
       document.getElementById("btn-hold").onclick = holdSale;
-      document.getElementById("btn-clear").onclick = () => Modal.confirm({ title:"Clear cart?", message:"This removes all items from the current sale.", onConfirm: clearCart });
+      document.getElementById("btn-clear").onclick = () => Modalz.confirm({ title:"Clear cart?", message:"This removes all items from the current sale.", onConfirm: clearCart });
       document.getElementById("btn-checkout").onclick = openCheckout;
     }
     updateCatalogStockBadges();
@@ -1643,7 +1643,7 @@ const POS = (() => {
         </div>
       </div>`;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("plus-circle",{size:17})} Add Custom Item / Price`,
       body,
       actions: [
@@ -1671,7 +1671,7 @@ const POS = (() => {
           });
           renderCart(true);
           Utils.toast(`Added ${name} (${Utils.money(price)})`, "success", 1200);
-          Modal.close();
+          Modalz.close();
         }}
       ]
     });
@@ -1818,7 +1818,7 @@ const POS = (() => {
                 onSearchChange("");
                 return;
               }
-              Modal.confirm({
+              Modalz.confirm({
                 title: "Product Not Found",
                 message: `No product found for "${clean}". Would you like to add a new product?`,
                 confirmText: "Add New Product",

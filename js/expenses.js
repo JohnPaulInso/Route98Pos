@@ -84,7 +84,7 @@ const Expenses = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("dollar-sign",{size:18})} ${isEdit ? "Edit Operating Expense" : "Record Operating Expense"}`,
       body,
       wide: true,
@@ -115,7 +115,7 @@ const Expenses = (() => {
           }
           if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
 
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -236,7 +236,7 @@ const Expenses = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("shopping-cart",{size:18})} Log Wholesale Purchase`,
       body,
       wide: true,
@@ -332,7 +332,7 @@ const Expenses = (() => {
 
           Utils.Sound.cashChime();
           Utils.toast(`Logged purchase: ${Utils.money(totalCost)} (${qty}x ${prodName})`, "success");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -508,7 +508,7 @@ const Expenses = (() => {
   }
 
   function deleteExpense(exp){
-    Modal.confirm({
+    Modalz.confirm({
       title: "Delete Expense Record?",
       message: `Delete ${exp.category} (${Utils.money(exp.amount)}) dated ${exp.date}?`,
       danger: true,

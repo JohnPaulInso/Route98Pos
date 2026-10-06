@@ -27,8 +27,8 @@
   }
   
   /* Modal backdrop - highest priority */
-  .modal-backdrop {
-    z-index: 999999 !important;
+  .modal-backdropz {
+    z-index: 2147483646 !important; /* ✅ Modal backdrop - below modals, above everything else */
     position: fixed !important;
     inset: 0 !important;
     display: flex !important;
@@ -40,7 +40,7 @@
   }
   
   /* Modal container */
-  .modal {
+  .modalz {
     z-index: 1000000 !important;
     position: relative !important;
     pointer-events: auto !important;
@@ -161,7 +161,7 @@
   /* (2026-10-02) Fix APK: add touch-action manipulation to kill 300ms tap delay; was missing */
   button, a, [role="button"], input, select, textarea,
   .btn, .chip, .nav-btn, .bn-btn, .product-card,
-  .icon-btn, .cart-head, .modal-backdrop, label {
+  .icon-btn, .cart-head, .modal-backdropz, label {
     touch-action: manipulation;
   }
   
@@ -1294,7 +1294,7 @@
   }
   
   /* Ensure cart is below modals */
-  .modal-backdrop ~ .pos-cart {
+  .modal-backdropz ~ .pos-cart {
     z-index: 24 !important;
   }
 
@@ -1341,7 +1341,7 @@
   }
 
   /* ============ MODALS - SLIDE UP & FULLY INTERACTIVE ============ */
-  .modal-backdrop {
+  .modal-backdropz {
     padding: 0 !important;
     align-items: flex-end !important;
     z-index: 99999 !important;
@@ -1351,7 +1351,7 @@
     pointer-events: auto !important;
   }
   
-  .modal {
+  .modalz {
     max-width: 100% !important;
     width: 100% !important;
     max-height: 95vh !important;
@@ -1378,7 +1378,7 @@
     }
   }
   
-  .modal-head {
+  .modal-headz {
     padding: 20px 20px 16px !important;
     border-bottom: 2px solid var(--line);
     flex-shrink: 0;
@@ -1389,18 +1389,18 @@
     pointer-events: auto !important;
   }
   
-  .modal-head h3 {
+  .modal-headz h3 {
     font-size: 1.2rem !important;
     padding-right: 40px;
     word-break: break-word;
   }
   
-  .modal-head button {
+  .modal-headz button {
     pointer-events: auto !important;
   }
   
   /* (2026-07-13) Compact modal body padding and side-by-side foot; was 20px pad */
-  .modal-body {
+  .modal-bodyz {
     padding: 12px 14px !important;
     max-height: calc(95vh - 160px);
     overflow-y: auto !important;
@@ -1410,11 +1410,11 @@
     pointer-events: auto !important;
   }
   
-  .modal-body * {
+  .modal-bodyz * {
     pointer-events: auto !important;
   }
   
-  .modal-foot {
+  .modal-footz {
     padding: 10px 14px 12px !important;
     flex-direction: row !important;
     gap: 8px !important;
@@ -1427,7 +1427,7 @@
     pointer-events: auto !important;
   }
   
-  .modal-foot .btn {
+  .modal-footz .btn {
     flex: 1 !important;
     width: auto !important;
     min-height: 40px !important;
@@ -1438,18 +1438,18 @@
     justify-content: center;
     pointer-events: auto !important;
   }
-  .modal-foot .btn-primary {
+  .modal-footz .btn-primary {
     flex: 1.6 !important;
   }
   
   /* Ensure all modal interactive elements work */
-  .modal input,
-  .modal button,
-  .modal select,
-  .modal textarea,
-  .modal .btn,
-  .modal .chip,
-  .modal .ui-select {
+  .modalz input,
+  .modalz button,
+  .modalz select,
+  .modalz textarea,
+  .modalz .btn,
+  .modalz .chip,
+  .modalz .ui-select {
     pointer-events: auto !important;
   }
 
@@ -1953,7 +1953,7 @@
     left: auto !important;
     right: 14px !important;
     max-width: min(320px, calc(100vw - 28px)) !important;
-    z-index: 999999 !important;
+    z-index: 99999 !important; /* ✅ Toast stack - notifications layer */
     pointer-events: none !important;
     align-items: flex-end !important;
   }
@@ -2029,7 +2029,7 @@
   .view,
   .cart-items,
   .product-grid,
-  .modal-body {
+  .modal-bodyz {
     -webkit-overflow-scrolling: touch !important;
     overscroll-behavior: contain !important;
   }
@@ -2091,11 +2091,11 @@
    LANDSCAPE MODE OPTIMIZATIONS
    ============================================================ */
 @media (max-width: 767px) and (orientation: landscape) and (max-height: 500px) {
-  .modal {
+  .modalz {
     max-height: 98vh !important;
   }
   
-  .modal-body {
+  .modal-bodyz {
     max-height: calc(98vh - 180px) !important;
   }
   
@@ -3171,14 +3171,14 @@
   }
 
   /* (2026-07-13) Date picker modal backdrop for APK; was broken with :has() */
-  .modal-loy-dialog-backdrop {
+  .modal-loy-dialogz-backdropz {
     display: flex !important;
     align-items: flex-end !important;
     justify-content: center !important;
     padding: 0 !important;
   }
 
-  .modal.modal-loy-dialog {
+  .modalz.modal-loy-dialogz {
     position: fixed !important;
     inset: auto 0 0 0 !important;
     width: 100% !important;
@@ -3771,14 +3771,14 @@
   }
 
   /* (2026-07-13) Product form backdrop for APK; was broken with :has() */
-  .modal-product-form-backdrop {
+  .modal-product-formz-backdropz {
     padding: 0 !important;
     align-items: stretch !important;
     justify-content: stretch !important;
     background: rgba(0, 0, 0, 0.6) !important;
   }
 
-  .modal.modal-product-form {
+  .modalz.modal-product-formz {
     position: fixed !important;
     inset: 0 !important;
     top: 0 !important;
@@ -3799,7 +3799,7 @@
     border: none !important;
   }
 
-  .modal.modal-product-form .modal-head {
+  .modalz.modal-product-formz .modal-headz {
     position: sticky !important;
     top: 0 !important;
     z-index: 20 !important;
@@ -3812,7 +3812,7 @@
     flex-shrink: 0 !important;
   }
 
-  .modal.modal-product-form .modal-head h3 {
+  .modalz.modal-product-formz .modal-headz h3 {
     font-size: 1.05rem !important;
     font-weight: 750 !important;
     margin: 0 !important;
@@ -3821,7 +3821,7 @@
     gap: 8px !important;
   }
 
-  .modal.modal-product-form .modal-head .icon-btn {
+  .modalz.modal-product-formz .modal-headz .icon-btn {
     width: 36px !important;
     height: 36px !important;
     border-radius: 50% !important;
@@ -3832,7 +3832,7 @@
     border: 1px solid var(--line, #e2e8f0) !important;
   }
 
-  .modal.modal-product-form .modal-body {
+  .modalz.modal-product-formz .modal-bodyz {
     flex: 1 1 auto !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
@@ -3842,7 +3842,7 @@
     gap: 12px !important;
   }
 
-  .modal.modal-product-form .modal-foot {
+  .modalz.modal-product-formz .modal-footz {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
@@ -3857,7 +3857,7 @@
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
   }
 
-  .modal.modal-product-form .modal-foot .btn {
+  .modalz.modal-product-formz .modal-footz .btn {
     width: 100% !important;
     height: 44px !important;
     border-radius: 10px !important;
@@ -3869,7 +3869,7 @@
     margin: 0 !important;
   }
 
-  .modal.modal-product-form .prod-form-image-section {
+  .modalz.modal-product-formz .prod-form-image-section {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -3877,7 +3877,7 @@
     margin-bottom: 2px !important;
   }
 
-  .modal.modal-product-form .prod-form-preview {
+  .modalz.modal-product-formz .prod-form-preview {
     width: 88px !important;
     height: 88px !important;
     border-radius: 16px !important;
@@ -3890,14 +3890,14 @@
     overflow: hidden !important;
   }
 
-  .modal.modal-product-form .barcode-input-container {
+  .modalz.modal-product-formz .barcode-input-container {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
   }
 
-  .modal.modal-product-form .barcode-camera-btn {
+  .modalz.modal-product-formz .barcode-camera-btn {
     position: absolute !important;
     right: 6px !important;
     top: 50% !important;
@@ -3913,21 +3913,21 @@
     z-index: 5 !important;
   }
 
-  .modal.modal-product-form .form-two-col {
+  .modalz.modal-product-formz .form-two-col {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
     width: 100% !important;
   }
 
-  .modal.modal-product-form .field {
+  .modalz.modal-product-formz .field {
     display: flex !important;
     flex-direction: column !important;
     gap: 4px !important;
     width: 100% !important;
   }
 
-  .modal.modal-product-form .field label {
+  .modalz.modal-product-formz .field label {
     font-size: 0.74rem !important;
     font-weight: 750 !important;
     text-transform: uppercase !important;
@@ -4128,21 +4128,21 @@
   }
 
   /* (2026-07-13) Desktop modal-product-form dimensions; was unconstrained */
-  .modal.modal-product-form {
+  .modalz.modal-product-formz {
     max-width: 600px !important;
     width: 100% !important;
   }
-  .modal.modal-product-form .modal-body {
+  .modalz.modal-product-formz .modal-bodyz {
     max-height: 72vh !important;
     overflow-y: auto !important;
   }
 
   /* (2026-07-13) Product transaction history desktop modal; was unconstrained */
-  .modal.modal-product-history {
+  .modalz.modal-product-historyz {
     max-width: min(1100px, 92vw) !important;
     width: 92vw !important;
   }
-  .modal.modal-product-history .modal-body {
+  .modalz.modal-product-historyz .modal-bodyz {
     max-height: 80vh !important;
     overflow-y: auto !important;
   }
@@ -4615,18 +4615,18 @@
 }
 
 /* (2026-07-13) Disable slide-left animation; was freezing in WebView */
-.modal.modal-slide-left {
+.modalz.modal-slide-leftz {
   animation: none !important;
   transform: none !important;
 }
 
-.modal-backdrop.modal-closing .modal.modal-slide-left {
+.modal-backdropz.modal-closingz .modalz.modal-slide-leftz {
   animation: none !important;
 }
 
 /* (2026-07-13) Pack modal table cells; was 650px wide with horiz scroll */
 .receipt-modal-table-wrap,
-.modal-receipt-dialog .table-wrap {
+.modal-receipt-dialogz .table-wrap {
   width: 100% !important;
   max-width: 100% !important;
   overflow-x: hidden !important;
@@ -4636,7 +4636,7 @@
 
 .receipt-items-table,
 .receipt-modal-table-wrap table,
-.modal-receipt-dialog table {
+.modal-receipt-dialogz table {
   min-width: 0 !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -4866,7 +4866,7 @@
 
 /* (2026-07-13) Fullscreen backdrop & centered wide modal; was 70vw backdrop */
 @media (min-width: 769px) {
-  .modal-backdrop {
+  .modal-backdropz {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -4881,8 +4881,8 @@
     justify-content: center !important;
   }
 
-  .modal.modal-wide,
-  .modal.modal-receipt-dialog {
+  .modalz.modal-widez,
+  .modalz.modal-receipt-dialogz {
     max-width: min(860px, 70vw) !important;
     width: 70vw !important;
     margin: auto !important;
@@ -5204,11 +5204,11 @@
 }
 
 /* (2026-07-13) Line break print receipt button on mobile; was single row */
-.modal-receipt-dialog .modal-foot,
-.modal-foot:has(.btn-print-receipt) {
+.modal-receipt-dialogz .modal-footz,
+.modal-footz:has(.btn-print-receipt) {
   flex-wrap: wrap !important;
 }
-.modal-foot .btn-print-receipt {
+.modal-footz .btn-print-receipt {
   flex: 1 0 100% !important;
   width: 100% !important;
   order: 10 !important;
@@ -5464,7 +5464,7 @@ button:active,
 
 /* Modal backdrop fade in/out */
 /* (2026-07-13) Disable backdrop animation; was fadeIn leaving opacity:0 */
-.modal-backdrop {
+.modal-backdropz {
   opacity: 1 !important;
   animation: none !important;
 }
@@ -5481,7 +5481,7 @@ button:active,
 /* Modal slide up on mobile */
 @media (max-width: 767px) {
   /* (2026-07-13) Disable slideUp animation; was freezing translateY(100%) */
-  .modal {
+  .modalz {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;
@@ -5501,7 +5501,7 @@ button:active,
 
 /* (2026-07-13) Disable modal scaleIn animation; was freezing opacity:0 */
 @media (min-width: 768px) {
-  .modal {
+  .modalz {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

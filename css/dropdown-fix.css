@@ -40,7 +40,7 @@
     left: 0 !important;
     right: auto !important;
     min-width: 210px !important;
-    z-index: 999999999 !important;
+    z-index: 100000 !important; /* ✅ Dropdown fix - above toasts, below modals */
     pointer-events: auto !important;
     background: var(--paper-raised, #ffffff) !important;
     box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15) !important;
@@ -72,7 +72,7 @@
     top: 60px !important;
     left: 20px !important;
     right: 20px !important;
-    z-index: 999999999 !important;
+    z-index: 100000 !important; /* ✅ Dropdown fix mobile - above toasts, below modals */
     pointer-events: auto !important;
     background: white !important;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;

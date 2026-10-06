@@ -50,7 +50,7 @@ body {
   overflow: visible;
   visibility: hidden;
 }
-.modal-backdrop {
+.modal-backdropz {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
@@ -63,7 +63,7 @@ body {
   background: rgba(0, 0, 0, 0.6) !important;
   pointer-events: auto !important;
 }
-.modal {
+.modalz {
   background: white;
   border-radius: 12px;
   max-width: 500px;
@@ -73,22 +73,22 @@ body {
   display: flex;
   flex-direction: column;
 }
-.modal-head {
+.modal-headz {
   padding: 20px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.modal-head h3 {
+.modal-headz h3 {
   margin: 0;
   font-size: 18px;
 }
-.modal-body {
+.modal-bodyz {
   padding: 20px;
   overflow-y: auto;
 }
-.modal-foot {
+.modal-footz {
   padding: 16px 20px;
   border-top: 1px solid #e2e8f0;
   display: flex;
@@ -143,8 +143,8 @@ function testPortal() {
 
 function testZIndex() {
   const portal = document.getElementById('cap-modal-portal');
-  const backdrop = document.querySelector('.modal-backdrop');
-  const modal = document.querySelector('.modal');
+  const backdrop = document.querySelector('.modal-backdropz');
+  const modal = document.querySelector('.modalz');
   
   log('Portal z-index: ' + (portal ? window.getComputedStyle(portal).zIndex : 'N/A'));
   log('Backdrop z-index: ' + (backdrop ? window.getComputedStyle(backdrop).zIndex : 'N/A'));
@@ -167,19 +167,19 @@ function testModal() {
 
   // Create backdrop and modal
   const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
+  backdrop.className = 'modal-backdropz';
   backdrop.innerHTML = `
-    <div class="modal">
-      <div class="modal-head">
+    <div class="modalz">
+      <div class="modal-headz">
         <h3>🎉 Test Modal</h3>
         <button class="btn btn-ghost" onclick="closeModal()">×</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-bodyz">
         <p>If you can see this modal, the system is working!</p>
         <p>Portal visibility: <strong>${portal.style.visibility}</strong></p>
         <p>Portal pointer-events: <strong>${portal.style.pointerEvents}</strong></p>
       </div>
-      <div class="modal-foot">
+      <div class="modal-footz">
         <button class="btn btn-ghost" onclick="closeModal()">Close</button>
         <button class="btn btn-primary" onclick="closeModal()">OK</button>
       </div>
@@ -200,14 +200,14 @@ function testModal() {
 function closeModal() {
   log('Closing modal...');
   const portal = document.getElementById('cap-modal-portal');
-  const backdrop = document.querySelector('.modal-backdrop');
+  const backdrop = document.querySelector('.modal-backdropz');
   
   if (backdrop) {
     backdrop.remove();
     log('✅ Backdrop removed');
   }
   
-  if (portal && !document.querySelector('.modal-backdrop')) {
+  if (portal && !document.querySelector('.modal-backdropz')) {
     portal.style.setProperty("pointer-events", "none", "important");
     portal.style.setProperty("visibility", "hidden", "important");
     log('✅ Portal hidden');

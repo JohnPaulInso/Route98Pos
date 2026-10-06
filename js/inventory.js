@@ -157,12 +157,12 @@ const Inventory = (() => {
         </div>
       </div>
       <div class="field" style="margin-top:4px;"><label>Low stock alert threshold</label><input class="input" id="f-lowstock" type="number" step="1" value="${initial?.lowStockThreshold??5}"></div>`;
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: isEdit ? `${Icons.get("edit",{size:17})} Edit Product` : `${Icons.get("plus",{size:17})} Add Product`,
-      body, wide: true, modalClass: "modal-product-form",
+      body, wide: true, modalClass: "modal-product-formz",
       actions: [
         { label:"Cancel", cls:"btn-ghost" },
-        ...(isEdit ? [{ label:"Delete", cls:"btn-danger", onClick: () => { Modal.close(); deleteProduct(product); } }] : []),
+        ...(isEdit ? [{ label:"Delete", cls:"btn-danger", onClick: () => { Modalz.close(); deleteProduct(product); } }] : []),
         { label: isEdit ? "Save Changes" : "Add Product", cls:"btn-primary", onClick: () => saveProduct(product, modal) }
       ]
     });
@@ -321,7 +321,7 @@ const Inventory = (() => {
       }
     }
     Utils.toast(product ? "Product updated." : "Product added.", "success");
-    Modal.close();
+    Modalz.close();
     renderTable();
     
     // Force immediate sync to cloud (bypasses debounce)
@@ -365,7 +365,7 @@ const Inventory = (() => {
       ${hasDual ? `<div class="field"><label>Adjustment Unit</label><div id="adj-unit-wrap"></div></div>` : ""}
       <div class="field"><label>Reason / Note</label><div id="adj-reason-wrap"></div></div>`;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title:`${Icons.get("package",{size:17})} Adjust Stock — ${Utils.escapeHtml(product.name)}`, body,
       actions:[
         { label:"Cancel", cls:"btn-ghost" },
@@ -380,7 +380,7 @@ const Inventory = (() => {
           // Apply locally first for instant response
           DB.adjustStock(product.id, totalDeltaPieces, reason);
           Utils.toast(`Stock adjusted by ${totalDeltaPieces > 0 ? "+" + totalDeltaPieces : totalDeltaPieces} pcs.`,"success");
-          Modal.close(); renderTable();
+          Modalz.close(); renderTable();
           
           // (2026-07-13) Guard RealtimeSync call safely; was bare invocation
           if(typeof RealtimeSync !== "undefined" && RealtimeSync.adjustStockAtomic){
@@ -443,12 +443,12 @@ const Inventory = (() => {
         </div>
       </div>`;
 
-    Modal.open({
+    Modalz.open({
       title: `${Icons.get("image",{size:18})} ${Utils.escapeHtml(p.name)}`,
       body,
       actions: [
-        { label: "Close", cls: "btn-ghost", onClick: Modal.close },
-        { label: "Edit Product", cls: "btn-primary", onClick: () => { Modal.close(); openProductForm(p); } }
+        { label: "Close", cls: "btn-ghost", onClick: Modalz.close },
+        { label: "Edit Product", cls: "btn-primary", onClick: () => { Modalz.close(); openProductForm(p); } }
       ]
     });
   }
@@ -538,20 +538,20 @@ const Inventory = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("clock",{size:18})} Product Transaction History`,
       body,
       wide: true,
-      modalClass: "modal-product-history",
+      modalClass: "modal-product-historyz",
       actions: [
         { label: "Close", cls: "btn-ghost" },
-        { label: "Edit Product", cls: "btn-primary", onClick: () => { Modal.close(); openProductForm(product); } }
+        { label: "Edit Product", cls: "btn-primary", onClick: () => { Modalz.close(); openProductForm(product); } }
       ]
     });
 
     if(modal){
       // (2026-07-13) Fix desktop modal width on dialog; was backdrop constrained
-      const dlg = modal.querySelector(".modal");
+      const dlg = modal.querySelector(".modalz");
       if(dlg){
         dlg.style.maxWidth = "min(1100px, 92vw)";
         dlg.style.width = "92vw";
@@ -561,7 +561,7 @@ const Inventory = (() => {
     const showReceiptAndReturn = (saleId) => {
       const s = DB.getSales().find(x => x.id === saleId);
       if(!s) return;
-      Modal.close();
+      Modalz.close();
       if(typeof Reports !== "undefined" && Reports.openReceiptModal){
         Reports.openReceiptModal(s, {
           onClose: () => {
@@ -694,13 +694,13 @@ const Inventory = (() => {
         ${cats.map(c=>`<tr><td><strong style="letter-spacing:.02em;">${Utils.escapeHtml(c.toUpperCase())}</strong></td><td style="text-align:right;"><button class="btn btn-sm btn-ghost" data-del-cat="${Utils.escapeHtml(c)}">${Icons.get("x",{size:13})} Remove</button></td></tr>`).join("")}
       </tbody></table></div>
       <div class="input-row"><input class="input" id="new-cat" placeholder="NEW CATEGORY NAME (ALL CAPS)" style="text-transform:uppercase;"><button class="btn btn-primary" id="add-cat">Add</button></div>`;
-    const modal = Modal.open({ title:`${Icons.get("tag",{size:17})} Manage Categories`, body, actions:[{label:"Done",cls:"btn-primary"}] });
+    const modal = Modalz.open({ title:`${Icons.get("tag",{size:17})} Manage Categories`, body, actions:[{label:"Done",cls:"btn-primary"}] });
     modal.querySelector("#btn-export-cats")?.addEventListener("click", ImportExport.exportCategoriesCSV);
     modal.querySelectorAll("[data-del-cat]").forEach(btn => btn.onclick = () => {
       const name = btn.dataset.delCat.toUpperCase();
       const inUse = DB.getProducts().some(p => (p.category || "").toUpperCase() === name);
       if(inUse){ Utils.toast("Can't remove — products still use this category.","warn"); return; }
-      Modal.confirm({
+      Modalz.confirm({
         title: `Remove Category "${name}"?`,
         message: `Are you sure you want to remove category "${name}"?`,
         danger: true,
@@ -911,7 +911,7 @@ const Inventory = (() => {
 
     const body = renderAuditPage();
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("clipboard-check",{size:17})} Physical Count Audit`,
       body,
       wide: true,
@@ -966,7 +966,7 @@ const Inventory = (() => {
               Utils.toast("✓ All counts matched perfectly!", "success", 2500);
             }
             
-            Modal.close();
+            Modalz.close();
             renderTable();
           }
         }
@@ -985,7 +985,7 @@ const Inventory = (() => {
 
     function refreshAuditModal(){
       saveCurrentPageValues();
-      const container = modal.querySelector(".modal-body");
+      const container = modal.querySelector(".modal-bodyz");
       if(container){
         container.innerHTML = renderAuditPage();
         bindModalEvents();
@@ -1119,7 +1119,7 @@ const Inventory = (() => {
         }).join("")}
       </div>`;
 
-    const discModal = Modal.open({
+    const discModal = Modalz.open({
       title: `${Icons.get("alert-triangle",{size:17})} Log Audit Discrepancies`,
       body,
       wide: true,
@@ -1152,7 +1152,7 @@ const Inventory = (() => {
             });
 
             Utils.toast(`Audit complete: ${discrepancies.length} discrepancy log(s) saved to database.`, "success");
-            Modal.close();
+            Modalz.close();
             renderTable();
           }
         }
@@ -1194,7 +1194,7 @@ const Inventory = (() => {
       Utils.toast("Product deletion is restricted to Admin accounts.", "warn");
       return;
     }
-    Modal.confirm({
+    Modalz.confirm({
       title: `Delete ${count} product${count===1?"":"s"}?`,
       message: `${count} selected product${count===1?"":"s"} will be permanently removed from inventory.`,
       danger: true,
@@ -1217,7 +1217,7 @@ const Inventory = (() => {
       Utils.toast("Product deletion is restricted to Admin accounts.", "warn");
       return;
     }
-    Modal.confirm({
+    Modalz.confirm({
       title: "Delete Product?",
       message: `Delete "${product.name}"? This will permanently remove the product from inventory.`,
       danger: true,
@@ -1273,18 +1273,18 @@ const Inventory = (() => {
           <button class="btn btn-ghost" id="btn-import-inv">${Icons.get("upload",{size:15})} Import</button>
           <button class="btn btn-primary" id="btn-add-product">${Icons.get("plus",{size:15})} Add Product</button>
         </div>
-        <!-- (2026-07-13) Set higher z-index on tools dropdown over search; was unassigned -->
+        <!-- (2026-07-13) Add z suffix to dropdown classes; was standard classes -->
         <div class="inv-mobile-actions" style="position:relative;z-index:100;">
-          <div class="dropdown-wrap inv-tools-dropdown-wrap" style="position:relative;z-index:100;">
+          <div class="dropdown-wrap dropdown-wrapz inv-tools-dropdown-wrap inv-tools-dropdown-wrapz" style="position:relative;z-index:100;">
             <button class="btn btn-outline btn-inv-tools" id="btn-inv-tools" type="button" aria-haspopup="true" aria-expanded="false">
               ${Icons.get("more-horizontal",{size:15})} Tools ▾
             </button>
-            <div class="dropdown-menu inv-tools-menu" id="inv-tools-menu" style="display:none;position:absolute;z-index:99999;">
-              <button class="dropdown-item" id="btn-m-physical-audit">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
-              <button class="dropdown-item" id="btn-m-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
-              <button class="dropdown-item" id="btn-m-export-inv">${Icons.get("download",{size:15})} Export CSV</button>
-              <button class="dropdown-item" id="btn-m-import-inv">${Icons.get("upload",{size:15})} Import CSV</button>
-              <button class="dropdown-item" id="btn-m-select-mode">${Icons.get("check",{size:15})} Select Items</button>
+            <div class="dropdown-menu dropdown-menuz inv-tools-menu inv-tools-menuz" id="inv-tools-menu" style="display:none;position:absolute;z-index:99999;">
+              <button class="dropdown-item dropdown-itemz" id="btn-m-physical-audit">${Icons.get("clipboard-check",{size:15})} Physical Count Audit</button>
+              <button class="dropdown-item dropdown-itemz" id="btn-m-restock-logs">${Icons.get("truck",{size:15})} Restock Log</button>
+              <button class="dropdown-item dropdown-itemz" id="btn-m-export-inv">${Icons.get("download",{size:15})} Export CSV</button>
+              <button class="dropdown-item dropdown-itemz" id="btn-m-import-inv">${Icons.get("upload",{size:15})} Import CSV</button>
+              <button class="dropdown-item dropdown-itemz" id="btn-m-select-mode">${Icons.get("check",{size:15})} Select Items</button>
             </div>
           </div>
           <button class="btn btn-primary" id="btn-m-add-product">${Icons.get("plus",{size:15})} Add Product</button>
@@ -1546,7 +1546,7 @@ const Inventory = (() => {
       </div>
       <div id="restock-modal-content"></div>`;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("truck",{size:18})} Purchase Expense Tracking & Restock Log`,
       body,
       wide: true,
@@ -1737,7 +1737,7 @@ const Inventory = (() => {
       <div id="restock-items-list"></div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("plus-circle",{size:18})} Restock Items / Receive Inventory`,
       body,
       wide: true,
@@ -1775,7 +1775,7 @@ const Inventory = (() => {
 
           Utils.Sound.cashChime();
           Utils.toast(`Restock complete! +${restockList.length} products updated.`, "success");
-          Modal.close();
+          Modalz.close();
           if(onSaved) onSaved();
           renderTable();
         }}

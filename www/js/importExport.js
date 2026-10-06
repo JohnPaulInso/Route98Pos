@@ -250,7 +250,7 @@ const ImportExport = (() => {
     try{
       const text = await Utils.readFile(file);
       const snap = JSON.parse(text);
-      Modal.confirm({
+      Modalz.confirm({
         title:"Restore full backup?",
         message:"This will replace ALL current data (products, sales, settings, fuel config) with the contents of this backup file. This can't be undone.",
         danger:true,

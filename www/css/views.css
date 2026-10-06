@@ -633,9 +633,9 @@ input#cash-input::-webkit-input-placeholder{
 .rpt-menu-item:hover{ background:var(--paper-dim); }
 .rpt-menu-item.active{ color:var(--brand); background:var(--brand-tint); }
 /* (2026-07-13) Loyverse custom range picker style; was basic modal */
-.modal-loy-dialog{ max-width:460px; width:auto; border-radius:4px; overflow:hidden; background:var(--paper-raised); box-shadow:0 8px 30px rgba(0,0,0,0.22); padding:0; border:none; }
-.modal-loy-dialog .modal-head{ display:none; }
-.modal-loy-dialog .modal-body{ padding:0; }
+.modal-loy-dialogz{ max-width:460px; width:auto; border-radius:4px; overflow:hidden; background:var(--paper-raised); box-shadow:0 8px 30px rgba(0,0,0,0.22); padding:0; border:none; }
+.modal-loy-dialogz .modal-headz{ display:none; }
+.modal-loy-dialogz .modal-bodyz{ padding:0; }
 .loy-picker-wrap{ display:flex; min-width:430px; }
 @media (max-width:520px){ .loy-picker-wrap{ flex-direction:column; min-width:0; } }
 .loy-cal-panel{ flex:1; padding:16px 18px 14px 18px; border-right:1px solid var(--line); }
@@ -920,7 +920,7 @@ table.data th:first-child{
     background: #fff !important;
     overflow: visible !important;
   }
-  #root, #app, header, nav, aside, main, .view, .topbar, .sidebar, .bottom-nav, #toast-stack, #modal-root, .modal-backdrop, .modal{
+  #root, #app, header, nav, aside, main, .view, .topbar, .sidebar, .bottom-nav, #toast-stack, #modal-rootz, .modal-backdropz, .modalz{
     display: none !important;
   }
   body > *:not(#receipt-print){
@@ -1665,7 +1665,7 @@ table.data th:first-child{
   font-size:0.88rem;
   font-weight:600;
   white-space:nowrap;
-  z-index:999999 !important;
+  z-index:99998 !important; /* ✅ Balance tooltip - below toasts */
   box-shadow:0 16px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
   pointer-events:none;
   min-width:220px;

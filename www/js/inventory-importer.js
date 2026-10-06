@@ -260,7 +260,7 @@ const InventoryImporter = (() => {
     
     let inventoryData = null;
     
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get('upload', {size: 18})} Import Inventory from CSV`,
       body,
       wide: true,
@@ -308,7 +308,7 @@ const InventoryImporter = (() => {
         `;
         
         // Find and enable button
-        const backdrop = document.querySelector('.modal-backdrop');
+        const backdrop = document.querySelector('.modal-backdropz');
         const importBtn = backdrop?.querySelector('#btn-start-import') || document.querySelector('#btn-start-import');
         
         if (importBtn) {
@@ -372,7 +372,7 @@ const InventoryImporter = (() => {
         if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
           setTimeout(() => {
             Inventory.render();
-            Modal.close();
+            Modalz.close();
           }, 2000);
         }
       } else {

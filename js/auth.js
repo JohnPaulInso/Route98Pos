@@ -28,7 +28,7 @@ const Auth = (() => {
   let keydownBound = false;
   function onLoginKeyDown(e){
     if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
-    if(document.querySelector(".modal-backdrop") || document.querySelector(".modal")) return;
+    if(document.querySelector(".modal-backdropz") || document.querySelector(".modalz")) return;
     if(e.key >= "0" && e.key <= "9"){
       e.preventDefault();
       handleKey(e.key);
@@ -232,7 +232,7 @@ const Auth = (() => {
       </div>
     `;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("key",{size:17})} Change Account PIN`,
       body,
       actions: [
@@ -276,7 +276,7 @@ const Auth = (() => {
             DB.setUsers(updatedUsers);
             
             Utils.toast(`PIN updated successfully for ${user.name}!`, "success");
-            Modal.close();
+            Modalz.close();
           }
         }
       ]
@@ -320,7 +320,7 @@ const Auth = (() => {
     const body = `
       <div class="field"><label>Admin PIN</label><input class="input" id="admin-pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
       <p class="text-sm text-faint">This action needs admin approval.</p>`;
-    Modal.open({
+    Modalz.open({
       title: `${Icons.get("lock",{size:17})} Admin approval required`,
       body,
       actions: [
@@ -328,7 +328,7 @@ const Auth = (() => {
         { label:"Approve", cls:"btn-primary", onClick: () => {
           const val = document.getElementById("admin-pin-input").value;
           const admin = DB.getUsers().find(u => u.role === "admin" && u.pin === val);
-          if(admin){ Modal.close(); callback(); }
+          if(admin){ Modalz.close(); callback(); }
           else Utils.toast("Incorrect admin PIN.", "error");
         }}
       ]

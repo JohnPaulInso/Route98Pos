@@ -108,10 +108,10 @@ const Reports = (() => {
       </div>` : ""}`;
   }
   function openXReport(){
-    Modal.open({ title:`${Icons.get("clipboard",{size:17})} X Report (Mid-Shift Snapshot)`, body: shiftReportHTML(false), wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
+    Modalz.open({ title:`${Icons.get("clipboard",{size:17})} X Report (Mid-Shift Snapshot)`, body: shiftReportHTML(false), wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
   }
   function openZReport(){
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title:`${Icons.get("lock",{size:17})} Z Report (End-of-Shift Reset & Drawer Lock)`, body: shiftReportHTML(true), wide:true,
       actions:[{label:"Cancel",cls:"btn-ghost"},{label:"Lock Drawer & Close Shift",cls:"btn-danger font-bold", onClick:()=>closeShift(modal)}]
     });
@@ -133,7 +133,7 @@ const Reports = (() => {
       Utils.toast("No active open shift to close.", "warn");
       return;
     }
-    Modal.confirm({
+    Modalz.confirm({
       title:"Close and Reset Shift?",
       message:"This archives the current shift, locks the drawer, and resets shift sales counters. Sales history remains safely in database.",
       danger: true,
@@ -196,7 +196,7 @@ const Reports = (() => {
         if(typeof Sync !== "undefined" && Sync.createDailyBackup){
           Sync.createDailyBackup("automatic_daily");
         }
-        Modal.close();
+        Modalz.close();
         Utils.toast("Shift archived and reset successfully.", "success");
         if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
         render();
@@ -290,16 +290,16 @@ const Reports = (() => {
 
     // (2026-07-13) Edit sale, void logs & restock rollbacks for Admin; was delete only
     const actions = [
-      { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modal.close(opts.onClose); } }
+      { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modalz.close(opts.onClose); } }
     ];
     if(Auth.isAdmin()){
-      actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modal.close(); openEditSaleModal(sale); } });
-      actions.push({ label: "Delete Sale", cls: "btn-danger btn-lg", onClick: () => { Modal.close(); deleteSaleRecord(sale.id); } });
+      actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modalz.close(); openEditSaleModal(sale); } });
+      actions.push({ label: "Delete Sale", cls: "btn-danger btn-lg", onClick: () => { Modalz.close(); deleteSaleRecord(sale.id); } });
     }
     // (2026-07-13) Line break print receipt button on mobile; was standard button
     actions.push({ label: "Print Receipt", cls: "btn-primary btn-lg btn-print-receipt", onClick: () => { POS.printByRecord(sale); } });
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("receipt",{size:18})} Receipt & Transaction Details`,
       body,
       wide: true,
@@ -388,13 +388,13 @@ const Reports = (() => {
       </div>`;
 
     const actions = [
-      { label: "Close", cls: "btn-ghost btn-lg", onClick: Modal.close }
+      { label: "Close", cls: "btn-ghost btn-lg", onClick: Modalz.close }
     ];
     if(Auth.isAdmin()){
-      actions.push({ label: "Delete Transaction", cls: "btn-danger btn-lg", onClick: () => { Modal.close(); deleteFuelSaleRecord(fuelSale.id); } });
+      actions.push({ label: "Delete Transaction", cls: "btn-danger btn-lg", onClick: () => { Modalz.close(); deleteFuelSaleRecord(fuelSale.id); } });
     }
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("fuel",{size:18})} Fuel Sale Receipt`,
       body,
       wide: true,
@@ -463,7 +463,7 @@ const Reports = (() => {
         <div class="flex-between" style="margin-top:4px;"><span>Net Price Difference</span><strong class="mono" id="edit-sale-diff">₱0.00</strong></div>
       </div>`;
 
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get("edit",{size:17})} Alter Completed Transaction (${Utils.escapeHtml(sale.id)})`,
       body,
       wide: true,
@@ -536,7 +536,7 @@ const Reports = (() => {
             if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true);
           }
           Utils.toast("Transaction updated & logged to Void Audit.", "success");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -572,7 +572,7 @@ const Reports = (() => {
       </div>
       <div class="field" style="margin-top:10px;"><label>Supplier Name</label><input class="input" id="erstk-supplier" value="${Utils.escapeHtml(log.supplier_name || log.supplierName || "")}"></div>`;
 
-    Modal.open({
+    Modalz.open({
       title: `${Icons.get("edit",{size:17})} Edit Restock Record`,
       body,
       actions: [
@@ -583,7 +583,7 @@ const Reports = (() => {
           const supplier = document.getElementById("erstk-supplier").value.trim();
           DB.updateRestockLog(log.id, { quantity_added: qty, unit_cost: cost, supplier_name: supplier });
           Utils.toast("Restock record updated & inventory adjusted.", "success");
-          Modal.close();
+          Modalz.close();
           render();
         }}
       ]
@@ -591,7 +591,7 @@ const Reports = (() => {
   }
 
   function deleteRestockLogConfirm(log){
-    Modal.confirm({
+    Modalz.confirm({
       title: "Delete Restock Record?",
       message: `Delete restock entry for ${log.product_name || log.productName} (+${log.quantity_added||0} pcs)? This will automatically roll back ${log.quantity_added||0} pcs from current inventory stock.`,
       danger: true,
@@ -629,7 +629,7 @@ const Reports = (() => {
     if(!sale) return;
     
     deleteConfirmOpen = true;
-    Modal.confirm({
+    Modalz.confirm({
       title: "Delete Sale Record?",
       message: `Delete transaction ${sale.receiptNo || sale.id} (${Utils.money(sale.total)})? This will log a complete transaction void.`,
       danger: true,
@@ -715,7 +715,7 @@ const Reports = (() => {
 
     const executeBatch = () => {
       deleteConfirmOpen = true;
-      Modal.confirm({
+      Modalz.confirm({
         title: `Delete ${toDelete.length} Receipt(s)?`,
         message: `Delete ${toDelete.length} transaction(s)? This will restore inventory stock and log complete voids to Void Audit.`,
         danger: true,
@@ -800,7 +800,7 @@ const Reports = (() => {
   function deleteFuelSaleRecord(fuelId){
     const sale = DB.getFuelSales().find(x => x.id === fuelId);
     if(!sale) return;
-    Modal.confirm({
+    Modalz.confirm({
       title: "Delete Fuel Sale?",
       message: `Delete fuel sale ${sale.pumpLabel || ""} (${Utils.money(sale.amount)})? This will log a void record.`,
       danger: true,
@@ -963,7 +963,7 @@ const Reports = (() => {
     };
 
     // (2026-07-13) Date picker bottom sheet & quick-pills; was desktop-only modal
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: "",
       body: `
         <div class="loy-sheet-handle"></div>
@@ -1019,7 +1019,7 @@ const Reports = (() => {
         </div>
       `
     });
-    modal.querySelector(".modal")?.classList.add("modal-loy-dialog");
+    modal.querySelector(".modalz")?.classList.add("modal-loy-dialogz");
 
     function renderGrid(){
       const titleEl = modal.querySelector("#loy-month-title");
@@ -1214,7 +1214,7 @@ const Reports = (() => {
               subtitle: `${new Date(s).toLocaleDateString("en-PH",{month:"short",day:"numeric"})} – ${new Date(e).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}`
             };
           }
-          Modal.close();
+          Modalz.close();
           opts.onApply(newRange, newKey);
           return;
         }
@@ -1237,12 +1237,12 @@ const Reports = (() => {
         }
         receiptPage = 1;
         persistRangeState();
-        Modal.close();
+        Modalz.close();
         render();
       };
     });
 
-    modal.querySelector("#loy-cancel-btn").onclick = () => Modal.close();
+    modal.querySelector("#loy-cancel-btn").onclick = () => Modalz.close();
 
     modal.querySelector("#loy-done-btn").onclick = () => {
       if(opts?.onApply){
@@ -1261,7 +1261,7 @@ const Reports = (() => {
         } else {
           newKey = "all";
         }
-        Modal.close();
+        Modalz.close();
         opts.onApply(newRange, newKey);
         return;
       }
@@ -1282,7 +1282,7 @@ const Reports = (() => {
         };
       }
       receiptPage = 1;
-      Modal.close();
+      Modalz.close();
       render();
     };
 
@@ -1312,13 +1312,14 @@ const Reports = (() => {
           <button class="rpt-nav-btn rpt-stepper-arrow next" id="rpt-btn-next" type="button" title="Next period">${Icons.get("chevron-right", {size:15})}</button>
         </div>
         <!-- (2026-07-13) Add compact ellipsis menu for export/import; was full-width row -->
+        <!-- (2026-07-13) Suffix report dropdowns with z; was standard classes -->
         <div class="rpt-aux-filters">
           ${tab === "history" ? `
-            <div class="rpt-dropdown-wrap">
-              <button class="rpt-dropdown-btn rpt-more-btn" id="btn-rpt-more-actions" type="button" title="Import / Export">
+            <div class="rpt-dropdown-wrap rpt-dropdown-wrapz">
+              <button class="rpt-dropdown-btn rpt-dropdown-btnz rpt-more-btn" id="btn-rpt-more-actions" type="button" title="Import / Export">
                 ${Icons.get("more-horizontal", {size:16})}
               </button>
-              <div class="rpt-dropdown-menu" id="rpt-menu-more-actions">
+              <div class="rpt-dropdown-menu rpt-dropdown-menuz" id="rpt-menu-more-actions">
                 <div class="rpt-menu-item" id="btn-export-sales-report" style="cursor:pointer;gap:8px;display:flex;align-items:center;">
                   ${Icons.get("download",{size:14})} Export Sales (.csv)
                 </div>
@@ -1334,26 +1335,26 @@ const Reports = (() => {
               </div>
             </div>
           ` : ""}
-          <div class="rpt-dropdown-wrap">
-            <button class="rpt-dropdown-btn" id="rpt-btn-time" type="button" title="Filter by time of day">
+          <div class="rpt-dropdown-wrap rpt-dropdown-wrapz">
+            <button class="rpt-dropdown-btn rpt-dropdown-btnz" id="rpt-btn-time" type="button" title="Filter by time of day">
               ${Icons.get("clock", {size:15})}
               <span class="btn-text">${timeBtnLabel}</span>
               <span class="btn-text chevron-sub">${Icons.get("chevron-down", {size:12})}</span>
             </button>
-            <div class="rpt-dropdown-menu" id="rpt-menu-time">
+            <div class="rpt-dropdown-menu rpt-dropdown-menuz" id="rpt-menu-time">
               <div class="rpt-menu-item ${timeFilter === "all" ? "active" : ""}" data-time="all">All day</div>
               <div class="rpt-menu-item ${timeFilter === "morning" ? "active" : ""}" data-time="morning">Morning (06:00 - 14:00)</div>
               <div class="rpt-menu-item ${timeFilter === "afternoon" ? "active" : ""}" data-time="afternoon">Afternoon (14:00 - 22:00)</div>
               <div class="rpt-menu-item ${timeFilter === "night" ? "active" : ""}" data-time="night">Night (22:00 - 06:00)</div>
             </div>
           </div>
-          <div class="rpt-dropdown-wrap">
-            <button class="rpt-dropdown-btn" id="rpt-btn-emp" type="button" title="Filter by employee">
+          <div class="rpt-dropdown-wrap rpt-dropdown-wrapz">
+            <button class="rpt-dropdown-btn rpt-dropdown-btnz" id="rpt-btn-emp" type="button" title="Filter by employee">
               ${Icons.get("user", {size:15})}
               <span class="btn-text">${empBtnLabel}</span>
               <span class="btn-text chevron-sub">${Icons.get("chevron-down", {size:12})}</span>
             </button>
-            <div class="rpt-dropdown-menu" id="rpt-menu-emp">
+            <div class="rpt-dropdown-menu rpt-dropdown-menuz" id="rpt-menu-emp">
               <div class="rpt-menu-item ${employeeFilter === "all" ? "active" : ""}" data-emp="all">All employees</div>
               ${allEmps.map(emp => `
                 <div class="rpt-menu-item ${employeeFilter.toLowerCase() === emp.toLowerCase() ? "active" : ""}" data-emp="${Utils.escapeHtml(emp)}">${Utils.escapeHtml(emp)}</div>
@@ -1380,7 +1381,7 @@ const Reports = (() => {
           </button>
         `).join("")}
       </div>`;
-    const m = Modal.open({
+    const m = Modalz.open({
       title: `${Icons.get("clock", {size:18})} Filter by Time`,
       body,
       actions: [{ label: "Close", cls: "btn-ghost" }]
@@ -1388,7 +1389,7 @@ const Reports = (() => {
     m.querySelectorAll("[data-time-opt]").forEach(b => {
       b.onclick = () => {
         timeFilter = b.dataset.timeOpt;
-        Modal.close();
+        Modalz.close();
         render();
       };
     });
@@ -1409,7 +1410,7 @@ const Reports = (() => {
           </button>
         `).join("")}
       </div>`;
-    const m = Modal.open({
+    const m = Modalz.open({
       title: `${Icons.get("user", {size:18})} Filter by Employee`,
       body,
       actions: [{ label: "Close", cls: "btn-ghost" }]
@@ -1417,7 +1418,7 @@ const Reports = (() => {
     m.querySelectorAll("[data-emp-opt]").forEach(b => {
       b.onclick = () => {
         employeeFilter = b.dataset.empOpt;
-        Modal.close();
+        Modalz.close();
         render();
       };
     });
@@ -2389,7 +2390,7 @@ const Reports = (() => {
       </tbody></table></div>` : ""}
       ${!store.length && !fuel.length ? `<div class="empty">${Icons.get("calendar",{size:30})}<h3>No transactions this day</h3></div>` : ""}`;
     
-    const modal = Modal.open({ 
+    const modal = Modalz.open({ 
       title:`${Icons.get("calendar",{size:17})} ${label}`, 
       body, 
       wide:true, 
@@ -2403,7 +2404,7 @@ const Reports = (() => {
         const sale = DB.getSales().find(s => s.id === saleId);
         if(sale) {
           openReceiptModal(sale, {
-            modalClass: "modal-slide-left",
+            modalClass: "modal-slide-leftz",
             onClose: () => {
               openDayDrilldown(dayStart);
             }
@@ -2418,7 +2419,7 @@ const Reports = (() => {
         const fuelId = row.dataset.fuelId;
         const fuelSale = DB.getFuelSales().find(f => f.id === fuelId);
         if(fuelSale) {
-          Modal.close(); // Close the day drilldown modal
+          Modalz.close(); // Close the day drilldown modal
           openFuelSaleModal(fuelSale); // Open the fuel sale details modal
         }
       };
@@ -2446,7 +2447,7 @@ const Reports = (() => {
       <div class="table-wrap"><table class="data product-drilldown-table"><thead><tr><th class="drill-col-time">Time</th><th class="drill-col-qty">Qty</th><th class="drill-col-amt">Amount</th><th class="drill-col-method">Method</th></tr></thead><tbody>
       ${lines.map(l=>`<tr><td class="drill-col-time">${Utils.fmtDate(l.ts)}</td><td class="drill-col-qty">${l.qty}</td><td class="mono drill-col-amt">${Utils.money(l.amount)}</td><td class="drill-col-method">${l.method}</td></tr>`).join("")}
       </tbody></table></div>`;
-    Modal.open({ title:`${Icons.get("package",{size:17})} ${Utils.escapeHtml(row.name)}`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
+    Modalz.open({ title:`${Icons.get("package",{size:17})} ${Utils.escapeHtml(row.name)}`, body, wide:true, actions:[{label:"Close",cls:"btn-ghost"}] });
   }
 
   // (2026-07-13) Show P&L card to admin only; was visible to all roles

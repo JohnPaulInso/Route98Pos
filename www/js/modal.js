@@ -3,16 +3,16 @@
 // Locks background scroll while open, closes on backdrop click
 // or Escape, and animates in/out.
 // ============================================================
-const Modal = (() => {
+const Modalz = (() => {
   let isHandlingHistoryPop = false;
 
-  // (2026-07-13) Close topmost modal slowly one by one; was closing first modal
+  // (2026-07-13) Add z suffix to modal classes & ids; was standard names
   function close(targetBd, onClosed){
     if(typeof targetBd === "function"){ onClosed = targetBd; targetBd = null; }
-    const bds = document.querySelectorAll(".modal-backdrop:not(.modal-closing)");
+    const bds = document.querySelectorAll(".modal-backdropz:not(.modal-closingz)");
     const bd = targetBd || (bds.length ? bds[bds.length - 1] : null);
     if(bd){
-      bd.classList.add("modal-closing");
+      bd.classList.add("modal-closingz", "modal-closingz");
       if(!isHandlingHistoryPop && window.history.state?.modalOpen){
         isHandlingHistoryPop = true;
         window.history.back();
@@ -22,11 +22,11 @@ const Modal = (() => {
       setTimeout(() => {
         bd.remove();
         // (2026-07-13) Remove modal-open and scroll-locked; was scroll-locked only
-        if(!document.querySelector(".modal-backdrop")){
-          document.body.classList.remove("scroll-locked", "modal-open");
-          document.documentElement.classList.remove("scroll-locked", "modal-open");
+        if(!document.querySelector(".modal-backdropz")){
+          document.body.classList.remove("scroll-locked", "modal-openz", "modal-openz");
+          document.documentElement.classList.remove("scroll-locked", "modal-openz", "modal-openz");
           // ✅ Reset portal when all modals closed
-          const portal = document.getElementById("cap-modal-portal");
+          const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
           if (portal) {
             portal.style.setProperty("pointer-events", "none", "important");
             portal.style.setProperty("visibility", "hidden", "important");
@@ -36,12 +36,12 @@ const Modal = (() => {
         if(typeof onClosed === "function") onClosed();
         else if(typeof bd._onClose === "function") bd._onClose();
       }, 100);
-    } else if(!document.querySelector(".modal-backdrop")){
+    } else if(!document.querySelector(".modal-backdropz")){
       // (2026-07-13) Remove modal-open on empty stack; was scroll-locked only
-      document.body.classList.remove("scroll-locked", "modal-open");
-      document.documentElement.classList.remove("scroll-locked", "modal-open");
+      document.body.classList.remove("scroll-locked", "modal-openz", "modal-openz");
+      document.documentElement.classList.remove("scroll-locked", "modal-openz", "modal-openz");
       // ✅ Reset portal on empty stack
-      const portal = document.getElementById("cap-modal-portal");
+      const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
       if (portal) {
         portal.style.setProperty("pointer-events", "none", "important");
         portal.style.setProperty("visibility", "hidden", "important");
@@ -55,26 +55,26 @@ const Modal = (() => {
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
     // (2026-07-13) Add modal-open and scroll-locked classes; was scroll-locked only
-    document.body.classList.add("scroll-locked", "modal-open");
-    document.documentElement.classList.add("scroll-locked", "modal-open");
+    document.body.classList.add("scroll-locked", "modal-openz", "modal-openz");
+    document.documentElement.classList.add("scroll-locked", "modal-openz", "modal-openz");
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
     backdrop._preventBackdropClose = preventBackdropClose;
-    const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop`).join(" ") : "";
-    backdrop.className = `modal-backdrop ${extraBackdrop}`.trim();
+    const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop ${c}-backdropz`).join(" ") : "";
+    backdrop.className = `modal-backdrop modal-backdropz ${extraBackdrop}`.trim();
     backdrop.style.setProperty("z-index", "1", "important");
     backdrop.innerHTML = `
-      <div class="modal ${wide ? "modal-wide":""} ${modalClass}">
-        <div class="modal-head">
+      <div class="modal modalz modalz ${wide ? "modal-wide modal-widez":""} ${modalClass}">
+        <div class="modal-head modal-headz modal-headz">
           <h3>${title}</h3>
-          <button class="icon-btn" id="modal-x">${Icons.get("x", { size:16 })}</button>
+          <button class="icon-btn" id="modal-xz">${Icons.get("x", { size:16 })}</button>
         </div>
-        <div class="modal-body">${body}</div>
-        ${actions.length ? `<div class="modal-foot">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
+        <div class="modal-body modal-bodyz modal-bodyz">${body}</div>
+        ${actions.length ? `<div class="modal-foot modal-footz modal-footz">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
-    const mInner = backdrop.querySelector(".modal");
+    const mInner = backdrop.querySelector(".modalz, .modalz");
     // ✅ Append to portal - CSS :has() selector will enable pointer-events
-    const portal = document.getElementById("cap-modal-portal");
+    const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
     if (portal) {
       portal.appendChild(backdrop);
       // ✅ Force show portal when modal added
@@ -94,7 +94,8 @@ const Modal = (() => {
         close(backdrop, onClose); 
       } 
     });
-    backdrop.querySelector("#modal-x").onclick = () => { 
+    const xBtn = backdrop.querySelector("#modal-xz") || backdrop.querySelector("#modal-xz");
+    if(xBtn) xBtn.onclick = () => { 
       if(Date.now() - openTs < 350) return;
       close(backdrop, onClose); 
     };
@@ -177,11 +178,12 @@ const Modal = (() => {
     if(now - lastBackTs < 260) return true;
     lastBackTs = now;
 
-    const bds = document.querySelectorAll(".modal-backdrop:not(.modal-closing)");
+    // (2026-07-13) Query modal & dropdown with z suffixes; was standard names
+    const bds = document.querySelectorAll(".modal-backdropz:not(.modal-closingz)");
     if(bds.length){
       exitPressCount = 0;
       const bd = bds[bds.length - 1];
-      const xBtn = bd.querySelector("#modal-x");
+      const xBtn = bd.querySelector("#modal-xz, #modal-xz");
       if(xBtn) xBtn.click();
       else close(bd, bd._onClose);
       return true;
@@ -200,18 +202,18 @@ const Modal = (() => {
       cartEl.classList.remove("expanded");
       return true;
     }
-    if(typeof UISelect !== "undefined" && UISelect.closeAll && document.querySelector(".ui-select-list")){
+    if(typeof UISelect !== "undefined" && UISelect.closeAll && document.querySelector(".ui-select-list, .ui-select-listz")){
       exitPressCount = 0;
       UISelect.closeAll();
       return true;
     }
-    const invMenu = document.getElementById("inv-tools-menu");
+    const invMenu = document.getElementById("inv-tools-menuz") || document.getElementById("inv-tools-menu");
     if(invMenu && invMenu.style.display !== "none"){
       exitPressCount = 0;
       invMenu.style.display = "none";
       return true;
     }
-    const openMenus = document.querySelectorAll(".rpt-dropdown-menu.show, .dropdown-menu.show");
+    const openMenus = document.querySelectorAll(".rpt-dropdown-menu.show, .rpt-dropdown-menuz.show, .dropdown-menu.show, .dropdown-menuz.show");
     if(openMenus.length){
       exitPressCount = 0;
       openMenus.forEach(m => m.classList.remove("show"));
@@ -290,5 +292,5 @@ const Modal = (() => {
   return { open, close, confirm, handleUniversalBack };
 })();
 // (2026-07-13) Expose Modal on window for WebView access; was const-scoped only
-window.Modal = Modal;
+window.Modalz = Modal;
 

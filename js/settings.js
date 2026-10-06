@@ -76,7 +76,7 @@ const Settings = (() => {
     wrap.querySelectorAll("[data-del-user]").forEach(b => b.onclick = () => {
       const u = DB.getUsers().find(x => x.id === b.dataset.delUser);
       if(!u) return;
-      Modal.confirm({
+      Modalz.confirm({
         title: "Delete Staff Account?",
         message: `Are you sure you want to remove "${u.name}" (${u.role})?`,
         onConfirm: () => {
@@ -100,7 +100,7 @@ const Settings = (() => {
         </select>
       </div>
       <div class="field"><label>4-digit PIN</label><input class="input" id="new-staff-pin" maxlength="4" placeholder="e.g. 2222" inputmode="numeric"></div>`;
-    Modal.open({
+    Modalz.open({
       title: `${Icons.get("user-plus",{size:17})} Add Staff Account`,
       body,
       actions: [
@@ -129,7 +129,7 @@ const Settings = (() => {
               }
             }
             Utils.toast(`Staff account "${name}" created.`, "success");
-            Modal.close();
+            Modalz.close();
             renderStaffTable();
           }
         }
@@ -148,7 +148,7 @@ const Settings = (() => {
         </select>
       </div>
       <div class="field"><label>New 4-digit PIN</label><input class="input" id="u-pin" maxlength="4" placeholder="Leave blank to keep current"></div>`;
-    Modal.open({
+    Modalz.open({
       title:`Edit ${u.role}`, body,
       actions:[{label:"Cancel",cls:"btn-ghost"},{label:"Save",cls:"btn-primary", onClick:()=>{
         const name = document.getElementById("u-name").value.trim();
@@ -162,7 +162,7 @@ const Settings = (() => {
           DB.setCashiers(cashiers);
         }
         Utils.toast("Staff account updated.", "success");
-        Modal.close(); renderStaffTable();
+        Modalz.close(); renderStaffTable();
       }}]
     });
   }
@@ -379,7 +379,7 @@ const Settings = (() => {
 
     // (2026-07-13) Animated multi-step progress modal for backup export; was immediate
     document.getElementById("btn-create-backup-now").onclick = async () => {
-      const modal = Modal.open({
+      const modal = Modalz.open({
         title: `${Icons.get("database",{size:17})} Creating System Backup`,
         body: `
           <div style="padding:16px 8px;text-align:center;">
@@ -413,7 +413,7 @@ const Settings = (() => {
       if(subEl) subEl.textContent = `Saved ${rec.id} successfully.`;
 
       setTimeout(() => {
-        Modal.close();
+        Modalz.close();
         Utils.toast(`Backup ${rec.id} created successfully.`, "success");
         renderDataTab();
       }, 700);
@@ -460,7 +460,7 @@ const Settings = (() => {
             </table>
           </div>`;
 
-        Modal.open({
+        Modalz.open({
           title: `${Icons.get("database",{size:17})} Backup Details (${item.id})`,
           body,
           actions: [
@@ -495,7 +495,7 @@ const Settings = (() => {
         const id = btn.dataset.restoreBackup;
         const item = DB.getBackups().find(x => x.id === id);
         if(!item) return;
-        Modal.confirm({
+        Modalz.confirm({
           title: "Restore Backup?",
           message: `Restore data snapshot from ${item.dateStr}? Current live data will be replaced with this backup.`,
           danger: true,

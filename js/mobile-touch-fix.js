@@ -54,7 +54,7 @@ const MobileTouchFix = (() => {
 
   // (2026-07-13) Safe Modal check & top z-index for APK; was Modal crash & 10000
   function fixModals() {
-    const getM = () => (typeof Modal !== 'undefined' ? Modal : (window.Modal || null));
+    const getM = () => (typeof Modalz !== 'undefined' ? Modal : (window.Modalz || null));
     const m = getM();
     if (!m || typeof m.open !== 'function') {
       if (document.readyState === 'loading') {
@@ -76,7 +76,7 @@ const MobileTouchFix = (() => {
         backdrop.style.setProperty('pointer-events', 'auto', 'important');
         backdrop.style.setProperty('opacity', '1', 'important');
         backdrop.style.setProperty('visibility', 'visible', 'important');
-        const modal = backdrop.querySelector('.modal');
+        const modal = backdrop.querySelector('.modalz');
         if (modal) {
           modal.style.setProperty('z-index', '2147483647', 'important');
           modal.style.setProperty('touch-action', 'auto', 'important');
@@ -125,7 +125,7 @@ const MobileTouchFix = (() => {
     if (!isCapacitor()) return;
 
     // Enable momentum scrolling on iOS
-    document.querySelectorAll('.modal-body, .view-body, .pos-catalog, .cart-items').forEach(el => {
+    document.querySelectorAll('.modal-bodyz, .view-body, .pos-catalog, .cart-items').forEach(el => {
       el.style.webkitOverflowScrolling = 'touch';
       el.style.overflowY = 'auto';
     });
@@ -159,7 +159,7 @@ const MobileTouchFix = (() => {
         touch-action: auto;
       }
 
-      .modal-backdrop {
+      .modal-backdropz {
         -webkit-tap-highlight-color: transparent;
       }
     `;

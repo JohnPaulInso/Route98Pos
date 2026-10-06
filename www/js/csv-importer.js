@@ -240,7 +240,7 @@ const CSVImporter = (() => {
     let receiptsData = null;
     let itemsData = null;
     
-    const modal = Modal.open({
+    const modal = Modalz.open({
       title: `${Icons.get('upload', {size: 18})} Import Transactions from CSV`,
       body,
       wide: true,
@@ -295,7 +295,7 @@ const CSVImporter = (() => {
         `;
         
         // Find and enable button
-        const backdrop = document.querySelector('.modal-backdrop');
+        const backdrop = document.querySelector('.modal-backdropz');
         const importBtn = backdrop?.querySelector('#btn-start-import') || document.querySelector('#btn-start-import');
         
         if (importBtn) {
@@ -354,7 +354,7 @@ const CSVImporter = (() => {
         if (typeof Reports !== 'undefined' && App.currentView === 'reports') {
           setTimeout(() => {
             Reports.render();
-            Modal.close();
+            Modalz.close();
           }, 2000);
         }
       } else {
