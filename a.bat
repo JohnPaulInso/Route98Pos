@@ -1,9 +1,10 @@
 @echo off
 rem (2026-07-13) Open APK output in Explorer on complete. Prev: no open
+rem (2026-07-13) Call .cmd binaries to prevent batch exit; was call npm/npx
 echo [1/3] Building assets...
-call npm run build
+call npm.cmd run build
 echo [2/3] Syncing Android project...
-call npx cap sync android
+call npx.cmd cap sync android
 echo [3/3] Assembling Debug APK...
 cd android
 rem (2026-07-13) Clean gradle assemble to ensure stale assets are deleted. Prev: assembleDebug only

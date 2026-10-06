@@ -52,9 +52,9 @@ const MobileTouchFix = (() => {
     }, { passive: true });
   }
 
-  // (2026-07-13) Safe Modal check & top z-index for APK; was Modal crash & 10000
+  // (2026-07-13) Resolve Modalz safely; was evaluating undefined Modal
   function fixModals() {
-    const getM = () => (typeof Modalz !== 'undefined' ? Modal : (window.Modalz || null));
+    const getM = () => (typeof Modalz !== 'undefined' ? Modalz : (window.Modalz || window.Modal || null));
     const m = getM();
     if (!m || typeof m.open !== 'function') {
       if (document.readyState === 'loading') {

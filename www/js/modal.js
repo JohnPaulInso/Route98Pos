@@ -62,7 +62,12 @@ const Modalz = (() => {
     backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop ${c}-backdropz`).join(" ") : "";
     backdrop.className = `modal-backdrop modal-backdropz ${extraBackdrop}`.trim();
-    backdrop.style.setProperty("z-index", "1", "important");
+    // (2026-07-13) Set top z-index and visibility for modal; was z-index 1
+    backdrop.style.setProperty("z-index", "2147483646", "important");
+    backdrop.style.setProperty("position", "fixed", "important");
+    backdrop.style.setProperty("inset", "0", "important");
+    backdrop.style.setProperty("visibility", "visible", "important");
+    backdrop.style.setProperty("pointer-events", "auto", "important");
     backdrop.innerHTML = `
       <div class="modal modalz modalz ${wide ? "modal-wide modal-widez":""} ${modalClass}">
         <div class="modal-head modal-headz modal-headz">
@@ -72,7 +77,12 @@ const Modalz = (() => {
         <div class="modal-body modal-bodyz modal-bodyz">${body}</div>
         ${actions.length ? `<div class="modal-foot modal-footz modal-footz">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
-    const mInner = backdrop.querySelector(".modalz, .modalz");
+    const mInner = backdrop.querySelector(".modalz, .modal");
+    if (mInner) {
+      mInner.style.setProperty("z-index", "2147483647", "important");
+      mInner.style.setProperty("visibility", "visible", "important");
+      mInner.style.setProperty("pointer-events", "auto", "important");
+    }
     // ✅ Append to portal - CSS :has() selector will enable pointer-events
     const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
     if (portal) {
@@ -291,6 +301,7 @@ const Modalz = (() => {
 
   return { open, close, confirm, handleUniversalBack };
 })();
-// (2026-07-13) Expose Modal on window for WebView access; was const-scoped only
-window.Modalz = Modal;
+// (2026-07-13) Expose Modal and Modalz on window; was window.Modalz = Modal
+window.Modal = Modalz;
+window.Modalz = Modalz;
 
