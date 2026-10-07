@@ -41,7 +41,7 @@ const MobileTouchFix = (() => {
         touchTarget.classList.remove('touch-active');
         touchTarget = null;
       }
-    }, { passive: true });
+    }, { passive: false }); // Non-passive to allow preventDefault if needed
 
     // (2026-10-07) Synthesize click immediately on touchend for instant response
     document.addEventListener('touchend', (e) => {
