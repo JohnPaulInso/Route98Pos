@@ -30,7 +30,7 @@ const MobileTouchFix = (() => {
         touchStartY = e.touches[0].clientY;
         el.classList.add('touch-active');
       }
-    }, { passive: false }); // Non-passive to allow preventDefault if needed
+    }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
       if (!touchTarget) return;
@@ -41,22 +41,15 @@ const MobileTouchFix = (() => {
         touchTarget.classList.remove('touch-active');
         touchTarget = null;
       }
-    }, { passive: false }); // Non-passive to allow preventDefault if needed
+    }, { passive: true });
 
-    // (2026-10-07) Synthesize click immediately on touchend for instant response
+    // (2026-07-13) Rely on native clicks; was synthetic click causing ghost close
     document.addEventListener('touchend', (e) => {
       const el = touchTarget;
       touchTarget = null;
       if (!el) return;
       el.classList.remove('touch-active');
-      
-      // Prevent default and stop propagation to avoid ghost clicks
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Trigger click immediately - no 300ms delay
-      el.click();
-    }, { passive: false }); // Changed to false to allow preventDefault
+    }, { passive: true });
   }
 
   // (2026-07-13) Modal lifecycle handled in modal.js directly; was apk wrap

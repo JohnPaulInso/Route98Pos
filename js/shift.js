@@ -921,12 +921,3 @@ const Shift = (() => {
 
   return { render, openStartShiftModal, openEndShiftModal, getActiveShift };
 })();
-
-// (2026-07-13) Global delegated click listener for open shift; was local only
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest("#btn-open-new-shift");
-  if(btn){
-    e.preventDefault();
-    Shift.openStartShiftModal();
-  }
-});
