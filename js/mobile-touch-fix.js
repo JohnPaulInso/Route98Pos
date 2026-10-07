@@ -30,7 +30,7 @@ const MobileTouchFix = (() => {
         touchStartY = e.touches[0].clientY;
         el.classList.add('touch-active');
       }
-    }, { passive: true });
+    }, { passive: false }); // Non-passive to allow preventDefault if needed
 
     document.addEventListener('touchmove', (e) => {
       if (!touchTarget) return;
@@ -43,50 +43,25 @@ const MobileTouchFix = (() => {
       }
     }, { passive: true });
 
-    // (2026-07-13) Rely on native clicks; was synthetic click causing ghost close
+    // (2026-10-07) Synthesize click immediately on touchend for instant response
     document.addEventListener('touchend', (e) => {
       const el = touchTarget;
       touchTarget = null;
       if (!el) return;
       el.classList.remove('touch-active');
-    }, { passive: true });
+      
+      // Prevent default and stop propagation to avoid ghost clicks
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Trigger click immediately - no 300ms delay
+      el.click();
+    }, { passive: false }); // Changed to false to allow preventDefault
   }
 
-  // (2026-07-13) Resolve Modalz safely; was evaluating undefined Modal
+  // (2026-07-13) Modal lifecycle handled in modal.js directly; was apk wrap
   function fixModals() {
-    const getM = () => (typeof Modalz !== 'undefined' ? Modalz : (window.Modalz || window.Modal || null));
-    const m = getM();
-    if (!m || typeof m.open !== 'function') {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fixModals, { once: true });
-      }
-      return;
-    }
-    if (m._apkWrapped) return;
-    m._apkWrapped = true;
-    const originalModalOpen = m.open;
-    m.open = function(...args) {
-      const backdrop = originalModalOpen.apply(this, args);
-      if (backdrop) {
-        // (2026-10-05) Leave backdrop in portal; do NOT move to body - portal handles layering
-        // (2026-07-13) Set max int z-index on backdrop and modal; was 9999999
-        backdrop.style.setProperty('z-index', '2147483646', 'important');
-        backdrop.style.setProperty('position', 'fixed', 'important');
-        backdrop.style.setProperty('inset', '0', 'important');
-        backdrop.style.setProperty('pointer-events', 'auto', 'important');
-        backdrop.style.setProperty('opacity', '1', 'important');
-        backdrop.style.setProperty('visibility', 'visible', 'important');
-        const modal = backdrop.querySelector('.modalz');
-        if (modal) {
-          modal.style.setProperty('z-index', '2147483647', 'important');
-          modal.style.setProperty('touch-action', 'auto', 'important');
-          modal.style.setProperty('pointer-events', 'auto', 'important');
-          modal.style.setProperty('opacity', '1', 'important');
-          modal.style.setProperty('visibility', 'visible', 'important');
-        }
-      }
-      return backdrop;
-    };
+    // Handled natively by modal.js with direct body append and top z-index
   }
 
   // Fix for inputs not focusing

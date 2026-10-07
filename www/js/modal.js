@@ -7,67 +7,45 @@ const Modalz = (() => {
   let isHandlingHistoryPop = false;
 
   // (2026-07-13) Add z suffix to modal classes & ids; was standard names
+  // (2026-07-13) Direct body attach and instant modal show; was portal routing
   function close(targetBd, onClosed){
     if(typeof targetBd === "function"){ onClosed = targetBd; targetBd = null; }
-    const bds = document.querySelectorAll(".modal-backdropz:not(.modal-closingz)");
+    const bds = document.querySelectorAll(".modal-backdropz");
     const bd = targetBd || (bds.length ? bds[bds.length - 1] : null);
     if(bd){
-      bd.classList.add("modal-closingz", "modal-closingz");
       if(!isHandlingHistoryPop && window.history.state?.modalOpen){
         isHandlingHistoryPop = true;
         window.history.back();
-        // (2026-07-13) Faster 100ms modal close timeout; was 240ms delay
-        setTimeout(() => { isHandlingHistoryPop = false; }, 120);
+        setTimeout(() => { isHandlingHistoryPop = false; }, 80);
       }
-      setTimeout(() => {
-        bd.remove();
-        // (2026-07-13) Remove modal-open and scroll-locked; was scroll-locked only
-        if(!document.querySelector(".modal-backdropz")){
-          document.body.classList.remove("scroll-locked", "modal-openz", "modal-openz");
-          document.documentElement.classList.remove("scroll-locked", "modal-openz", "modal-openz");
-          // ✅ Reset portal when all modals closed
-          const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
-          if (portal) {
-            portal.style.setProperty("pointer-events", "none", "important");
-            portal.style.setProperty("visibility", "hidden", "important");
-            console.log("✅ All modals closed, portal hidden");
-          }
-        }
-        if(typeof onClosed === "function") onClosed();
-        else if(typeof bd._onClose === "function") bd._onClose();
-      }, 100);
-    } else if(!document.querySelector(".modal-backdropz")){
-      // (2026-07-13) Remove modal-open on empty stack; was scroll-locked only
-      document.body.classList.remove("scroll-locked", "modal-openz", "modal-openz");
-      document.documentElement.classList.remove("scroll-locked", "modal-openz", "modal-openz");
-      // ✅ Reset portal on empty stack
-      const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
-      if (portal) {
-        portal.style.setProperty("pointer-events", "none", "important");
-        portal.style.setProperty("visibility", "hidden", "important");
+      bd.remove();
+      if(!document.querySelector(".modal-backdropz")){
+        document.body.classList.remove("scroll-locked", "modal-openz");
+        document.documentElement.classList.remove("scroll-locked", "modal-openz");
       }
+      if(typeof onClosed === "function") onClosed();
+      else if(typeof bd._onClose === "function") bd._onClose();
+    } else {
+      document.body.classList.remove("scroll-locked", "modal-openz");
+      document.documentElement.classList.remove("scroll-locked", "modal-openz");
       if(typeof onClosed === "function") onClosed();
     }
   }
 
-  // (2026-07-13) Push history state & preserve modal stack; was close() wiping
+  // (2026-07-13) Instant mobile modal display directly on body; was portal routing
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
-    // (2026-07-13) Add modal-open and scroll-locked classes; was scroll-locked only
-    document.body.classList.add("scroll-locked", "modal-openz", "modal-openz");
-    document.documentElement.classList.add("scroll-locked", "modal-openz", "modal-openz");
+    document.body.classList.add("scroll-locked", "modal-openz");
+    document.documentElement.classList.add("scroll-locked", "modal-openz");
+
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
     backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop ${c}-backdropz`).join(" ") : "";
     backdrop.className = `modal-backdrop modal-backdropz ${extraBackdrop}`.trim();
-    // (2026-07-13) Set top z-index and visibility for modal; was z-index 1
-    backdrop.style.setProperty("z-index", "2147483646", "important");
-    backdrop.style.setProperty("position", "fixed", "important");
-    backdrop.style.setProperty("inset", "0", "important");
-    backdrop.style.setProperty("visibility", "visible", "important");
-    backdrop.style.setProperty("pointer-events", "auto", "important");
+    backdrop.style.cssText = "position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;background:rgba(10,13,30,0.65)!important;z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;animation:none!important;-webkit-animation:none!important;";
+
     backdrop.innerHTML = `
       <div class="modal modalz modalz ${wide ? "modal-wide modal-widez":""} ${modalClass}">
         <div class="modal-head modal-headz modal-headz">
@@ -77,45 +55,44 @@ const Modalz = (() => {
         <div class="modal-body modal-bodyz modal-bodyz">${body}</div>
         ${actions.length ? `<div class="modal-foot modal-footz modal-footz">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
+
     const mInner = backdrop.querySelector(".modalz, .modal");
     if (mInner) {
-      mInner.style.setProperty("z-index", "2147483647", "important");
-      mInner.style.setProperty("visibility", "visible", "important");
-      mInner.style.setProperty("pointer-events", "auto", "important");
+      const maxW = wide ? "min(860px, 92vw)" : "640px";
+      mInner.style.cssText = `position:relative!important;z-index:2147483647!important;width:100%!important;max-width:${maxW}!important;max-height:90vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;background:var(--paper-raised,#ffffff)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;transform:none!important;animation:none!important;-webkit-animation:none!important;`;
     }
-    // ✅ Append to portal - CSS :has() selector will enable pointer-events
-    const portal = document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz");
-    if (portal) {
-      portal.appendChild(backdrop);
-      // ✅ Force show portal when modal added
-      portal.style.setProperty("pointer-events", "auto", "important");
-      portal.style.setProperty("visibility", "visible", "important");
-      console.log("✅ Modal opened in portal:", title);
-    } else {
-      // Fallback to body if portal doesn't exist
-      console.warn("⚠️ Portal not found, appending to body");
-      document.body.appendChild(backdrop);
-    }
-    // (2026-07-13) Guard backdrop against ghost clicks; was instant close
+
+    document.body.appendChild(backdrop);
+
     const openTs = Date.now();
-    backdrop.addEventListener("click", (e)=>{ 
-      if(Date.now() - openTs < 350) return;
+    backdrop.addEventListener("click", (e) => { 
+      if(Date.now() - openTs < 200) return;
       if(e.target === backdrop && !preventBackdropClose){ 
         close(backdrop, onClose); 
       } 
     });
-    const xBtn = backdrop.querySelector("#modal-xz") || backdrop.querySelector("#modal-xz");
-    if(xBtn) xBtn.onclick = () => { 
-      if(Date.now() - openTs < 350) return;
-      close(backdrop, onClose); 
-    };
-    const escHandler = (e) => { if(e.key === "Escape"){ close(backdrop, onClose); document.removeEventListener("keydown", escHandler); } };
-    document.addEventListener("keydown", escHandler);
-    actions.forEach((a,i) => {
-      backdrop.querySelector(`[data-i="${i}"]`).onclick = () => {
-        if(Date.now() - openTs < 350) return;
-        a.onClick ? a.onClick() : close(backdrop, onClose);
+    const xBtn = backdrop.querySelector("#modal-xz");
+    if(xBtn) {
+      xBtn.onclick = (e) => {
+        e.stopPropagation();
+        close(backdrop, onClose);
       };
+    }
+    const escHandler = (e) => {
+      if(e.key === "Escape"){
+        close(backdrop, onClose);
+        document.removeEventListener("keydown", escHandler);
+      }
+    };
+    document.addEventListener("keydown", escHandler);
+    actions.forEach((a, i) => {
+      const btn = backdrop.querySelector(`[data-i="${i}"]`);
+      if(btn) {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          a.onClick ? a.onClick() : close(backdrop, onClose);
+        };
+      }
     });
     return backdrop;
   }

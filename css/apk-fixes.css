@@ -57,8 +57,13 @@ body.scroll-locked #root {
 }
 
 /* Γ£à CRITICAL FIX: Portal must allow pointer events when modals present */
-#cap-modal-portal {
+/* (2026-07-13) Modal backdrop direct body styling; was portal container */
+.modal-backdrop,
+.modal-backdropz,
+.modal-product-form-backdrop,
+.modal-loy-dialog-backdrop {
   position: fixed !important;
+  inset: 0 !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
@@ -66,27 +71,6 @@ body.scroll-locked #root {
   width: 100vw !important;
   height: 100vh !important;
   z-index: 2147483647 !important;
-  overflow: visible !important;
-  pointer-events: none !important;
-  /* Γ£à NO transform, will-change, or isolation - these break fixed positioning */
-}
-
-/* Γ£à When portal has modals, allow pointer events */
-#cap-modal-portal:has(.modal-backdrop,
-.modal-backdropz, .modal-backdropz) {
-  pointer-events: auto !important;
-}
-
-.modal-backdrop,
-.modal-backdropz,
-.modal-product-form-backdrop,
-.modal-loy-dialog-backdrop {
-  /* Γ£à Fixed positioning - portal has NO transform so this works */
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 2147483646 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
