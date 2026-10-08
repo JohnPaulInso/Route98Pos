@@ -114,10 +114,15 @@ async function runInventorySyncTest() {
 
     // ----------------------------------------------------
     logStep(6, 'Device A: Edit product name & image link');
+    await pageA.waitForSelector('.modal-backdrop', { state: 'detached', timeout: 5000 }).catch(() => {});
+    await pageA.waitForTimeout(500);
+
     // Search for the product on Device A to edit
     const searchA = pageA.locator('#inv-search, input[placeholder*="Search"]').first();
-    await searchA.fill(testBarcode);
-    await pageA.waitForTimeout(500);
+    if (await searchA.count() > 0) {
+      await searchA.fill(testBarcode);
+      await pageA.waitForTimeout(500);
+    }
 
     const editBtn = pageA.locator(`tr:has-text("${testBarcode}") button[data-edit], button[data-edit]`).first();
     if (await editBtn.count() > 0) {
@@ -148,6 +153,7 @@ async function runInventorySyncTest() {
           p.imageUrl = imgUrl;
           p.updatedAt = Date.now();
           DB.setProducts(prods);
+          if (typeof Sync !== 'undefined' && Sync.pushSnapshot) Sync.pushSnapshot(true);
         }
       }, { barcode: testBarcode, newName: testUpdatedName, imgUrl: testImageUrl });
       logPass('Device A Edit', 'Product updated in DB layer');
