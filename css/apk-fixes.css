@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
  * APK Fixes - Critical fixes for Capacitor Android APK
  * ============================================================ */
 
@@ -240,10 +240,20 @@ select {
   animation: none !important;
 }
 
-.ui-select.open .ui-select-list {
+/* (2026-07-13) Show portal select list in APK; was ui-select.open only */
+.ui-select.open .ui-select-list,
+.ui-select-portal-list,
+.ui-select-portal-listz {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+}
+/* (2026-07-13) Fix portal select list position; was absolute */
+.ui-select-portal-list,
+.ui-select-portal-listz {
+  position: fixed !important;
+  right: auto !important;
+  bottom: auto !important;
 }
 
 .ui-select-opt {

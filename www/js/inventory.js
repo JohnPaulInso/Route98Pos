@@ -2360,5 +2360,6 @@ const Inventory = (() => {
     }, 150);
   }
 
-  return { render, openProductForm, openAddProductModal, openProductTransactionsModal, resetSearch };
+  // (2026-07-13) Export renderTable for live sync; was unexported
+  return { render, renderTable, openProductForm, openAddProductModal, openProductTransactionsModal, resetSearch };
 })();

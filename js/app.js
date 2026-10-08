@@ -67,13 +67,22 @@ const App = (() => {
     view.mod.render();
   }
 
-  // (2026-07-13) Prevent random sync reload on reports; was full rerender
+  // (2026-07-13) Live refresh reports view on sync; was skipping all updates
   function rerenderCurrentView(){
-    if(currentView === "reports") return;
+    if(currentView === "reports"){
+      if(typeof Reports !== "undefined" && Reports.render){
+        Reports.render();
+      }
+      return;
+    }
+    // (2026-07-13) Live refresh inventory on input focus; was skipping update
     const active = document.activeElement;
     if(active && ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)){
       if(active.id === "pos-search" && currentView === "pos"){
         POS.renderCatalog?.();
+      }
+      if(currentView === "inventory" && typeof Inventory !== "undefined"){
+        Inventory.renderTable?.();
       }
       return;
     }
@@ -314,7 +323,8 @@ const App = (() => {
     else Auth.render();
   }
 
-  return { init, boot, navigate, rerenderCurrentView, paintTopbar, getCurrentView: () => currentView };
+  // (2026-07-13) Expose currentView getter on App; was getter method only
+  return { init, boot, navigate, rerenderCurrentView, paintTopbar, getCurrentView: () => currentView, get currentView() { return currentView; } };
 })();
 
 // (2026-07-13) Horizontal mouse wheel scroll for category-chips; was default vertical

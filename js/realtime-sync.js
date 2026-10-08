@@ -272,7 +272,9 @@ const RealtimeSync = (() => {
         
         // Refresh UI
         if (typeof App !== 'undefined' && App.paintTopbar) App.paintTopbar();
-        if (typeof Shift !== 'undefined' && Shift.render && App.currentView === 'shift') {
+        // (2026-07-13) Safe view check in realtime shift sync; was App.currentView
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Shift !== 'undefined' && Shift.render && curV === 'shift') {
           Shift.render();
         }
       }
@@ -785,8 +787,9 @@ const RealtimeSync = (() => {
           Utils.toast('Restock logs updated from another device', 'info', 2000);
         }
         
-        // Refresh reports view if open
-        if (typeof Reports !== 'undefined' && App.currentView === 'reports') {
+        // (2026-07-13) Safe view check in restock logs sync; was App.currentView
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Reports !== 'undefined' && curV === 'reports') {
           Reports.render();
         }
         
@@ -892,8 +895,9 @@ const RealtimeSync = (() => {
           Utils.toast('Expenses updated from another device', 'info', 2000);
         }
         
-        // Refresh expenses view if open
-        if (typeof Expenses !== 'undefined' && App.currentView === 'expenses') {
+        // (2026-07-13) Safe view check in expenses sync; was App.currentView
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Expenses !== 'undefined' && curV === 'expenses') {
           Expenses.render();
         }
         
@@ -924,19 +928,17 @@ const RealtimeSync = (() => {
       if (!exists) {
         console.log('[RealtimeSync] ➕ New product from cloud:', newProduct.name);
         localProducts.push(newProduct);
-        
-        const key = 'mm_products';
-        localStorage.setItem(key, JSON.stringify(localProducts));
-        document.dispatchEvent(new CustomEvent('mm:dirty', { 
-          detail: { key, silent: true } 
-        }));
+        // (2026-07-13) Set added product via DB & repaint table; was direct setItem
+        DB.setProducts(localProducts);
         
         if (newProduct.deviceId && newProduct.deviceId !== deviceId) {
           Utils.toast(`New product: ${newProduct.name}`, 'info', 2000);
         }
         
-        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
-          Inventory.render();
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Inventory !== 'undefined' && curV === 'inventory') {
+          if (Inventory.renderTable) Inventory.renderTable();
+          else if (Inventory.render) Inventory.render();
         }
       }
     });
@@ -955,19 +957,25 @@ const RealtimeSync = (() => {
                     `stock: ${oldStock} → ${newStock}`);
         
         localProducts[index] = updatedProduct;
-        
-        const key = 'mm_products';
-        localStorage.setItem(key, JSON.stringify(localProducts));
-        document.dispatchEvent(new CustomEvent('mm:dirty', { 
-          detail: { key, silent: true } 
-        }));
+        // (2026-07-13) Set products via DB & rerender table; was direct setItem
+        DB.setProducts(localProducts);
         
         if (updatedProduct.deviceId && updatedProduct.deviceId !== deviceId) {
           Utils.toast(`Updated: ${updatedProduct.name} (stock: ${newStock})`, 'info', 2000);
         }
         
-        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
-          Inventory.render();
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Inventory !== 'undefined' && curV === 'inventory') {
+          if (Inventory.renderTable) Inventory.renderTable();
+          if (Inventory.render) Inventory.render();
+        }
+      } else {
+        // (2026-07-13) Add missing changed product to DB; was dropped on index -1
+        localProducts.push(updatedProduct);
+        DB.setProducts(localProducts);
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Inventory !== 'undefined' && curV === 'inventory') {
+          if (Inventory.renderTable) Inventory.renderTable();
         }
       }
     });
@@ -983,18 +991,17 @@ const RealtimeSync = (() => {
       const filtered = localProducts.filter(p => p.id !== deletedProductId);
       
       if (filtered.length !== localProducts.length) {
-        const key = 'mm_products';
-        localStorage.setItem(key, JSON.stringify(filtered));
-        document.dispatchEvent(new CustomEvent('mm:dirty', { 
-          detail: { key, silent: true } 
-        }));
+        // (2026-07-13) Remove deleted product via DB & repaint table; was direct setItem
+        DB.setProducts(filtered);
         
         if (deletedProduct?.deviceId && deletedProduct.deviceId !== deviceId) {
           Utils.toast('Product deleted on another device', 'info', 2000);
         }
         
-        if (typeof Inventory !== 'undefined' && App.currentView === 'inventory') {
-          Inventory.render();
+        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof Inventory !== 'undefined' && curV === 'inventory') {
+          if (Inventory.renderTable) Inventory.renderTable();
+          else if (Inventory.render) Inventory.render();
         }
       }
     });

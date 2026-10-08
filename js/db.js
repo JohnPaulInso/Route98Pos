@@ -23,15 +23,28 @@ const DB = (() => {
   };
 
   const memCache = new Map();
-  // (2026-07-13) Invalidate memCache on cross-tab storage changes; was stale cache
+  function invalidateCache(){
+    memCache.clear();
+    cachedProcessedSales = null;
+    cachedProducts = null;
+    cachedCategories = null;
+  }
+  // (2026-07-13) BroadcastChannel & storage event for split screen; was storage only
+  let crossTabSync = null;
   if(typeof window !== "undefined"){
-    window.addEventListener("storage", (e) => {
-      if(e.key) memCache.delete(e.key);
-      else memCache.clear();
-      cachedProcessedSales = null;
-      cachedProducts = null;
-      cachedCategories = null;
-    });
+    const onRemoteChange = (key) => {
+      invalidateCache();
+      if(typeof App !== "undefined" && App.rerenderCurrentView) App.rerenderCurrentView();
+      if(key === KEYS.products || !key){
+        if(typeof Inventory !== "undefined" && Inventory.renderTable) Inventory.renderTable();
+        if(typeof POS !== "undefined" && POS.renderCatalog) POS.renderCatalog();
+      }
+    };
+    window.addEventListener("storage", (e) => onRemoteChange(e.key));
+    if(typeof BroadcastChannel !== "undefined"){
+      crossTabSync = new BroadcastChannel("mm_split_screen_channel");
+      crossTabSync.onmessage = (e) => onRemoteChange(e.data?.key);
+    }
   }
   let cachedProcessedSales = null;
   let cachedProducts = null;
@@ -58,6 +71,8 @@ const DB = (() => {
     }catch(e){
       console.warn("DB write failed for key:", key, e);
     }
+    // (2026-07-13) Post message to crossTabSync channel; was local storage only
+    crossTabSync?.postMessage({ key, ts: Date.now() });
     document.dispatchEvent(new CustomEvent("mm:dirty", { detail:{ key, silent: silent || isSyncRestoring } }));
     return value;
   }
@@ -342,16 +357,33 @@ const DB = (() => {
       if(!existing && cleanCode && barcodeMap.has(cleanCode)) existing = barcodeMap.get(cleanCode);
       if(!existing && cleanName && map.has(`name:${cleanName}`)) existing = map.get(`name:${cleanName}`);
 
+      // (2026-07-13) Set stock & cost on newer item; was Math.max overwriting new
       if(existing){
-        if(!existing.barcode && cleanCode) existing.barcode = cleanCode;
-        if(!existing.imageUrl && p.imageUrl) existing.imageUrl = p.imageUrl;
-        if(p.stock !== undefined && !isNaN(Number(p.stock))){
-          existing.stock = Math.max(Number(existing.stock) || 0, Number(p.stock) || 0);
+        const isNewer = (p.updatedAt || p.createdAt || 0) >= (existing.updatedAt || existing.createdAt || 0);
+        if(isNewer){
+          if(p.name) existing.name = p.name;
+          if(p.imageUrl !== undefined) existing.imageUrl = p.imageUrl;
+          if(p.category) existing.category = p.category;
+          if(cleanCode) existing.barcode = cleanCode;
+          if(p.price !== undefined) existing.price = Number(p.price);
+          if(p.cost !== undefined) existing.cost = Number(p.cost);
+          if(p.brand !== undefined) existing.brand = p.brand;
+          if(p.distributor !== undefined) existing.distributor = p.distributor;
+          if(p.unit) existing.unit = p.unit;
+          if(p.lowStockThreshold !== undefined) existing.lowStockThreshold = p.lowStockThreshold;
+          if(p.piecesPerPack !== undefined) existing.piecesPerPack = p.piecesPerPack;
+          if(p.packPrice !== undefined) existing.packPrice = p.packPrice;
+          if(p.packCost !== undefined) existing.packCost = p.packCost;
+          if(p.packBarcode !== undefined) existing.packBarcode = p.packBarcode;
+          if(p.stock !== undefined && !isNaN(Number(p.stock))) existing.stock = Number(p.stock);
+          if(p.updatedAt) existing.updatedAt = p.updatedAt;
+        } else {
+          if(!existing.barcode && cleanCode) existing.barcode = cleanCode;
+          if(!existing.imageUrl && p.imageUrl) existing.imageUrl = p.imageUrl;
+          if(p.brand && !existing.brand) existing.brand = p.brand;
+          if(p.distributor && !existing.distributor) existing.distributor = p.distributor;
+          if(existing.stock === undefined && p.stock !== undefined) existing.stock = Number(p.stock);
         }
-        if(p.price && (!existing.price || Number(p.price) > 0)) existing.price = Number(p.price);
-        if(p.cost && (!existing.cost || Number(p.cost) > 0)) existing.cost = Number(p.cost);
-        if(p.brand && !existing.brand) existing.brand = p.brand;
-        if(p.distributor && !existing.distributor) existing.distributor = p.distributor;
       } else {
         const item = { ...p, barcode: cleanCode };
         if(p.id) map.set(`id:${p.id}`, item);
@@ -1216,43 +1248,26 @@ const DB = (() => {
       write(KEYS.deletedSaleIds, Array.from(curDeleted), true);
     }
     if(snap.products && snap.products.length){
-      // (2026-07-13) Filter deletedProductIds in restoreSnapshot; was reviving deleted
-      const localProds = getProducts();
+      // (2026-07-13) Set products from snapshot; was stale local merge
       const delProds = getDeletedProductIds();
-      if(!localProds.length){
-        setProducts(snap.products.filter(p => !delProds.has(p.id)));
-      } else {
-        const prodMap = new Map();
-        localProds.forEach(p => { if(!delProds.has(p.id)) prodMap.set(p.id, p); });
-        snap.products.forEach(remoteP => {
-          if(delProds.has(remoteP.id)) return;
-          if(!prodMap.has(remoteP.id)){
-            prodMap.set(remoteP.id, remoteP);
-          } else {
-            const curP = prodMap.get(remoteP.id);
-            if((remoteP.updatedAt || 0) >= (curP.updatedAt || 0)){
-              prodMap.set(remoteP.id, { ...curP, ...remoteP });
-            }
-          }
-        });
-        setProducts(Array.from(prodMap.values()));
-      }
+      setProducts(snap.products.filter(p => !delProds.has(p.id)));
     }
     if(snap.categories && snap.categories.length) setCategories(snap.categories);
     if(snap.sales && snap.sales.length){
       const existing = getSales();
       const deletedIds = getDeletedSaleIds();
+      // (2026-07-13) Normalize receipt keys in snapshot merge; was raw id/receiptNo
       const sMap = new Map();
+      const normalizeKey = (s) => String(s.receiptNo || s.id || "").trim().replace(/^TXN-/i, "");
       existing.forEach(s => {
-        const k = String(s.receiptNo || s.id || '').trim();
+        const k = normalizeKey(s);
         const sId = String(s.id || '').trim();
         if(k && !deletedIds.has(sId) && !deletedIds.has(sId.toLowerCase()) && !deletedIds.has(k) && !deletedIds.has(k.toLowerCase())){
           sMap.set(k, s);
         }
       });
-      // (2026-07-13) Filter out deleted sales in snapshot merge; was reviving deleted
       snap.sales.forEach(s => { 
-        const k = String(s.receiptNo || s.id || "").trim(); 
+        const k = normalizeKey(s); 
         const sId = String(s.id || "").trim();
         const rId = String(s.receiptNo || "").trim();
         const clean = sId.replace(/^TXN-/i, "");
@@ -1403,6 +1418,7 @@ const DB = (() => {
     getSyncBaseline, setSyncBaseline,
     getSavedCart, saveCart,
     getCustomItems, setCustomItems, saveCustomItem,
-    snapshot, restoreSnapshot, wipeAll
+    // (2026-07-13) Export invalidateCache to clear in-memory state; was omitted
+    snapshot, restoreSnapshot, wipeAll, invalidateCache
   };
 })();

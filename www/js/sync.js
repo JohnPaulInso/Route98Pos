@@ -39,15 +39,21 @@ const Sync = (() => {
     }
   }
 
-  // (2026-07-13) Auto anonymous auth with Firebase Auth for direct DB access. Prev: none
+  // (2026-07-13) Reuse existing Firebase app in sync; was duplicate initializeApp
   async function ensureFirebase(){
     const settings = DB.getSettings();
     if(!settings.firebaseConfig) throw new Error("No Firebase config saved in Settings.");
     if(db) return { db, mod: firestoreMod };
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const { initializeApp, getApps, getApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
     firestoreMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-    app = initializeApp(settings.firebaseConfig);
-    db = firestoreMod.getFirestore(app);
+    const apps = getApps();
+    app = apps.length > 0 ? getApp() : initializeApp(settings.firebaseConfig);
+    // (2026-07-13) Use force long-polling on Firestore; was default WebChannel stream
+    try {
+      db = firestoreMod.initializeFirestore(app, { experimentalForceLongPolling: true });
+    } catch(e) {
+      db = firestoreMod.getFirestore(app);
+    }
     try {
       const { getAuth, signInAnonymously } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
       const auth = getAuth(app);
@@ -60,14 +66,22 @@ const Sync = (() => {
     return { db, mod: firestoreMod };
   }
 
-  // (2026-07-13) 3-way merge sync pull before push for offline; was blind write
+  // (2026-07-13) Retain sales in 3-way merge; was dropping sales
   function mergeArray3Way(baseArr = [], localArr = [], remoteArr = [], idKey = "id", tsKey = "updatedAt"){
+    const isSales = idKey === "receiptNo";
+    const delSaleIds = isSales && DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : new Set();
+    const getKey = (item) => {
+      if(!item) return "";
+      if(isSales) return String(item.receiptNo || item.id || "").trim().replace(/^TXN-/i, "");
+      return String(item[idKey] || item.id || "");
+    };
+
     const baseMap = new Map();
-    (baseArr || []).forEach(item => { if(item && item[idKey]) baseMap.set(String(item[idKey]), item); });
+    (baseArr || []).forEach(item => { const k = getKey(item); if(k) baseMap.set(k, item); });
     const localMap = new Map();
-    (localArr || []).forEach(item => { if(item && item[idKey]) localMap.set(String(item[idKey]), item); });
+    (localArr || []).forEach(item => { const k = getKey(item); if(k) localMap.set(k, item); });
     const remoteMap = new Map();
-    (remoteArr || []).forEach(item => { if(item && item[idKey]) remoteMap.set(String(item[idKey]), item); });
+    (remoteArr || []).forEach(item => { const k = getKey(item); if(k) remoteMap.set(k, item); });
 
     const allKeys = new Set([...baseMap.keys(), ...localMap.keys(), ...remoteMap.keys()]);
     const merged = [];
@@ -78,25 +92,29 @@ const Sync = (() => {
       const remoteItem = remoteMap.get(k);
 
       if(localItem && remoteItem){
+        const localTs = localItem[tsKey] || localItem.ts || localItem.updatedAt || localItem.timestamp || localItem.openedAt || localItem.createdAt || 0;
+        const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.updatedAt || remoteItem.timestamp || remoteItem.openedAt || remoteItem.createdAt || 0;
+        const baseTs = baseItem ? (baseItem[tsKey] || baseItem.ts || baseItem.updatedAt || baseItem.timestamp || baseItem.openedAt || baseItem.createdAt || 0) : 0;
         if(!baseItem){
-          // (2026-07-13) Support updatedAt & timestamp in 3-way merge; was ts only
-          const localTs = localItem[tsKey] || localItem.ts || localItem.updatedAt || localItem.timestamp || localItem.openedAt || localItem.createdAt || 0;
-          const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.updatedAt || remoteItem.timestamp || remoteItem.openedAt || remoteItem.createdAt || 0;
-          merged.push(remoteTs > localTs ? remoteItem : localItem);
+          // (2026-07-13) Favor newer timestamp between local and remote; was local win
+          merged.push(remoteTs >= localTs ? remoteItem : localItem);
         } else {
-          const localChanged = JSON.stringify(localItem) !== JSON.stringify(baseItem);
-          const remoteChanged = JSON.stringify(remoteItem) !== JSON.stringify(baseItem);
-          if(!localChanged && !remoteChanged) merged.push(localItem);
-          else if(localChanged && !remoteChanged) merged.push(localItem);
-          else if(!localChanged && remoteChanged) merged.push(remoteItem);
-          else {
-            const localTs = localItem[tsKey] || localItem.ts || localItem.updatedAt || localItem.timestamp || localItem.openedAt || localItem.createdAt || 0;
-            const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.updatedAt || remoteItem.timestamp || remoteItem.openedAt || remoteItem.createdAt || 0;
-            merged.push(remoteTs > localTs ? remoteItem : localItem);
+          // (2026-07-13) Pick remote on newer ts or unedited local; was stale clobber
+          if(remoteTs > localTs || localTs <= baseTs){
+            merged.push(remoteItem);
+          } else if(localTs > remoteTs){
+            merged.push(localItem);
+          } else {
+            merged.push(remoteItem);
           }
         }
       } else if(localItem && !remoteItem){
-        if(baseItem){
+        if(isSales){
+          const sId = String(localItem.id || localItem.receiptNo || "");
+          const clean = sId.replace(/^TXN-/i, "");
+          const isDeleted = delSaleIds.has(sId) || delSaleIds.has(sId.toLowerCase()) || delSaleIds.has(clean) || delSaleIds.has(clean.toLowerCase());
+          if(!isDeleted) merged.push(localItem);
+        } else if(baseItem){
           if(JSON.stringify(localItem) !== JSON.stringify(baseItem)){
             merged.push(localItem);
           }
@@ -104,7 +122,12 @@ const Sync = (() => {
           merged.push(localItem);
         }
       } else if(!localItem && remoteItem){
-        if(baseItem){
+        if(isSales){
+          const sId = String(remoteItem.id || remoteItem.receiptNo || "");
+          const clean = sId.replace(/^TXN-/i, "");
+          const isDeleted = delSaleIds.has(sId) || delSaleIds.has(sId.toLowerCase()) || delSaleIds.has(clean) || delSaleIds.has(clean.toLowerCase());
+          if(!isDeleted) merged.push(remoteItem);
+        } else if(baseItem){
           if(JSON.stringify(remoteItem) !== JSON.stringify(baseItem)){
             merged.push(remoteItem);
           }
@@ -203,6 +226,8 @@ const Sync = (() => {
     if(isSyncing && !force) return;
     isSyncing = true;
     try{
+      // (2026-07-13) Invalidate DB cache before pushing; was pushing stale memory
+      DB.invalidateCache?.();
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
@@ -266,6 +291,8 @@ const Sync = (() => {
     if(isSyncing && !force) return;
     isSyncing = true;
     try{
+      // (2026-07-13) Invalidate DB cache before pulling; was stale local snapshot
+      DB.invalidateCache?.();
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
@@ -438,7 +465,19 @@ const Sync = (() => {
     } finally {
       isSyncing = false;
       paintStatus();
+      // (2026-07-13) Refresh inventory & POS on pullSnapshot; was App.rerender only
       App.rerenderCurrentView?.();
+      if(typeof Inventory !== "undefined" && Inventory.renderTable){
+        Inventory.renderTable();
+      }
+      if(typeof POS !== "undefined" && POS.renderCatalog){
+        POS.renderCatalog();
+      }
+      // (2026-07-13) Safe view check in pullSnapshot; was App.currentView
+      const curView = typeof App !== "undefined" && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+      if(typeof Reports !== "undefined" && Reports.render && curView === "reports"){
+        Reports.render();
+      }
     }
   }
 
@@ -615,24 +654,43 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      // (2026-07-13) Skip self-echo and guard onSnapshot with isSyncing; was re-sync loop
+      // (2026-07-13) Auto-retry onSnapshot & repaint inventory; was unrecovered fail
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
         if(docSnap.metadata?.hasPendingWrites) return;
         if(docSnap.exists()){
           const remoteData = docSnap.data();
+          // (2026-07-13) Compare full content in onSnapshot; was checking length only
+          DB.invalidateCache?.();
           const baseline = DB.getSyncBaseline();
-          if(baseline && remoteData.exportedAt && baseline.exportedAt === remoteData.exportedAt) return;
+          const localSnap = DB.snapshot();
+          const localProds = localSnap.products || [];
+          const remProds = remoteData.products || [];
+          const localSales = localSnap.sales || [];
+          const remSales = remoteData.sales || [];
+          const prodsSame = localProds.length === remProds.length && JSON.stringify(localProds) === JSON.stringify(remProds);
+          const salesSame = localSales.length === remSales.length && JSON.stringify(localSales) === JSON.stringify(remSales);
+          if(baseline && remoteData.exportedAt && baseline.exportedAt === remoteData.exportedAt && prodsSame && salesSame) return;
           isSyncing = true;
           try {
-            const localSnap = DB.snapshot();
             const merged = threeWayMerge(baseline, localSnap, remoteData);
             DB.restoreSnapshot(merged);
             DB.setSyncBaseline(merged);
             DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
             paintStatus();
             App.rerenderCurrentView?.();
-            if(typeof Shift !== "undefined" && Shift.render && App.currentView === "shift"){
+            if(typeof Inventory !== "undefined" && Inventory.renderTable){
+              Inventory.renderTable();
+            }
+            if(typeof POS !== "undefined" && POS.renderCatalog){
+              POS.renderCatalog();
+            }
+            // (2026-07-13) Safe view check on realtime sync; was App.currentView
+            const curV = typeof App !== "undefined" && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+            if(typeof Shift !== "undefined" && Shift.render && curV === "shift"){
               Shift.render();
+            }
+            if(typeof Reports !== "undefined" && Reports.render && curV === "reports"){
+              Reports.render();
             }
           } finally {
             isSyncing = false;
@@ -640,9 +698,12 @@ const Sync = (() => {
         }
       }, (err) => {
         console.warn("Firestore onSnapshot error:", err);
+        unsubSnapshot = null;
+        setTimeout(() => startRealtimeListener(), 4000);
       });
     }catch(err){
       console.warn("Could not start Firestore onSnapshot:", err);
+      setTimeout(() => startRealtimeListener(), 5000);
     }
   }
 
@@ -734,6 +795,20 @@ const Sync = (() => {
 
     // (2026-07-13) Auto-pull cloud snapshot on launch; was skipped if local exists
     pullSnapshot();
+
+    // (2026-07-13) Invalidate cache & pull on visibilitychange; was idle in tab
+    document.addEventListener("visibilitychange", () => {
+      if(!document.hidden){
+        DB.invalidateCache?.();
+        startRealtimeListener();
+        pullSnapshot();
+      }
+    });
+    // (2026-07-13) Auto-pull on window focus in split-screen; was visibility only
+    window.addEventListener("focus", () => {
+      DB.invalidateCache?.();
+      pullSnapshot();
+    });
   }
 
   return {

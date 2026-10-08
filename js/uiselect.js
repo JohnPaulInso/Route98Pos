@@ -14,35 +14,48 @@ const UISelect = (() => {
   let _positionTimer = null;
 
   function getPortal() {
-    return document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz") || document.body;
+    return document.querySelector(".modal-backdropz, .modal-backdrop") || document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz") || document.body;
   }
 
-  // (2026-10-05) Position the portal list over the trigger rect
+  // (2026-07-13) Apply fixed !important portal styles; was overridden by css
   function positionPortalList(el) {
     if (!_portalList) return;
     const rect = el.getBoundingClientRect();
     const vpH = window.innerHeight;
     const listH = _portalList.offsetHeight || 200;
     const spaceBelow = vpH - rect.bottom;
-    _portalList.style.position = "fixed";
-    _portalList.style.left = rect.left + "px";
-    _portalList.style.width = rect.width + "px";
-    _portalList.style.zIndex = "2147483647";
-    _portalList.style.pointerEvents = "auto";
+    _portalList.style.setProperty("display", "block", "important");
+    _portalList.style.setProperty("visibility", "visible", "important");
+    _portalList.style.setProperty("opacity", "1", "important");
+    _portalList.style.setProperty("position", "fixed", "important");
+    _portalList.style.setProperty("left", rect.left + "px", "important");
+    _portalList.style.setProperty("width", rect.width + "px", "important");
+    _portalList.style.setProperty("z-index", "2147483647", "important");
+    _portalList.style.setProperty("pointer-events", "auto", "important");
+    _portalList.style.setProperty("right", "auto", "important");
     if (spaceBelow < listH && rect.top > listH) {
       // open upward
-      _portalList.style.top = (rect.top - listH) + "px";
-      _portalList.style.bottom = "";
+      _portalList.style.setProperty("top", (rect.top - listH) + "px", "important");
+      _portalList.style.setProperty("bottom", "auto", "important");
     } else {
-      _portalList.style.top = rect.bottom + "px";
-      _portalList.style.bottom = "";
+      _portalList.style.setProperty("top", rect.bottom + "px", "important");
+      _portalList.style.setProperty("bottom", "auto", "important");
     }
   }
 
   function detachPortalList() {
     if (_portalList && _activeEl) {
-      // (2026-10-05) Return list to its original .ui-select parent; was orphaning it
-      _portalList.style.display = "";
+      _portalList.style.removeProperty("display");
+      _portalList.style.removeProperty("visibility");
+      _portalList.style.removeProperty("opacity");
+      _portalList.style.removeProperty("position");
+      _portalList.style.removeProperty("left");
+      _portalList.style.removeProperty("top");
+      _portalList.style.removeProperty("bottom");
+      _portalList.style.removeProperty("right");
+      _portalList.style.removeProperty("width");
+      _portalList.style.removeProperty("z-index");
+      _portalList.style.removeProperty("pointer-events");
       _portalList.classList.remove("ui-select-portal-list", "ui-select-portal-listz");
       try { _activeEl.appendChild(_portalList); } catch(e){}
     } else if (_portalList && _portalList.parentElement) {
@@ -107,19 +120,13 @@ const UISelect = (() => {
         el.classList.add("open");
         _activeEl = el;
         _activeList = list;
-        // (2026-10-05) Teleport list into portal; was inline DOM causing stacking issues
+        // (2026-07-13) Teleport list & clean inline styles on close; was static append
         const portal = getPortal();
-        portal.style.setProperty("pointer-events", "auto", "important");
-        // Clone-free: just move the node
+        if (portal && portal !== document.body) portal.style.setProperty("pointer-events", "auto", "important");
         portal.appendChild(list);
         list.classList.add("ui-select-portal-list", "ui-select-portal-listz");
-        list.style.display = "block";
-        list.style.position = "fixed";
-        list.style.zIndex = "2147483647";
-        list.style.pointerEvents = "auto";
         _portalList = list;
         positionPortalList(el);
-        // Re-position on scroll (modal body scrolls)
         _positionTimer = setInterval(() => positionPortalList(el), 100);
       }
     };
@@ -130,18 +137,10 @@ const UISelect = (() => {
         el.dataset.value = opt.dataset.v;
         const lbl = el.querySelector(".ui-select-label, .ui-select-labelz");
         if (lbl) lbl.textContent = opt.textContent;
-        el.querySelectorAll(".ui-select-opt, .ui-select-optz").forEach(o => o.classList.toggle("active", o === opt));
-        // (2026-10-05) Return list back to el before closing; was detaching
+        list.querySelectorAll(".ui-select-opt, .ui-select-optz").forEach(o => o.classList.toggle("active", o === opt));
         if (list.parentElement !== el) el.appendChild(list);
-        list.style.display = "";
-        list.classList.remove("ui-select-portal-list", "ui-select-portal-listz");
         el.classList.remove("open");
         detachPortalList();
-        // (2026-10-05) Reset portal ptr-events if no modals open
-        if (!document.querySelector(".modal-backdropz")) {
-          const portal = getPortal();
-          if (portal && (portal.id === "cap-modal-portal" || portal.id === "cap-modal-portalz")) portal.style.setProperty("pointer-events", "none", "important");
-        }
         onChange?.(opt.dataset.v);
       };
     });
