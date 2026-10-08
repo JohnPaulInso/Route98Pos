@@ -84,7 +84,7 @@ async function runInventorySyncTest() {
     await pageA.fill('#f-stock', '25');
     logPass('Device A Input', 'Entered initial stock: 25');
 
-    const saveBtn = pageA.locator('.modalz .btn-primary, button:has-text("Add Product")').first();
+    const saveBtn = pageA.locator('.modal-foot button.btn-primary').first();
     await saveBtn.click();
     logPass('Device A Button Click', 'Clicked [Add Product] save button');
 
@@ -119,15 +119,15 @@ async function runInventorySyncTest() {
     await searchA.fill(testBarcode);
     await pageA.waitForTimeout(500);
 
-    const editBtn = pageA.locator(`button[data-edit-id], tr:has-text("${testBarcode}") button:has-text("Edit")`).first();
+    const editBtn = pageA.locator(`tr:has-text("${testBarcode}") button[data-edit], button[data-edit]`).first();
     if (await editBtn.count() > 0) {
       await editBtn.click();
       logPass('Device A Button Click', 'Clicked [Edit Product]');
 
-      await pageA.fill('#prod-name, input[name="name"]', testUpdatedName);
+      await pageA.fill('#f-name, #prod-name', testUpdatedName);
       logPass('Device A Input', `Updated name to: ${testUpdatedName}`);
 
-      const imgInput = pageA.locator('#prod-image-url, input[name="imageUrl"]').first();
+      const imgInput = pageA.locator('#f-image, #prod-image-url').first();
       if (await imgInput.count() > 0) {
         await imgInput.fill(testImageUrl);
         logPass('Device A Input', `Updated image link to: ${testImageUrl}`);
@@ -135,7 +135,7 @@ async function runInventorySyncTest() {
         logSkip('Image URL Input', 'Field not present in modal form');
       }
 
-      const saveEditBtn = pageA.locator('#btn-save-product, button:has-text("Save Product"), button:has-text("Save")').first();
+      const saveEditBtn = pageA.locator('.modal-foot button.btn-primary').first();
       await saveEditBtn.click();
       logPass('Device A Button Click', 'Saved edited product details');
     } else {

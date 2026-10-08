@@ -60,7 +60,7 @@ const DB = (() => {
       return val;
     }catch(e){ console.warn("DB read failed", key, e); return fallback; }
   }
-  // (2026-07-13) Cache in-memory & flag silent sync writes; was uncached write
+  // (2026-07-13) Recover from quota error by purging backups; was uncaught fail
   function write(key, value, silent = false){
     memCache.set(key, value);
     if(key === KEYS.sales) cachedProcessedSales = null;
@@ -69,6 +69,12 @@ const DB = (() => {
     try{
       localStorage.setItem(key, JSON.stringify(value));
     }catch(e){
+      if(key !== KEYS.backups){
+        try{
+          localStorage.removeItem(KEYS.backups);
+          localStorage.setItem(key, JSON.stringify(value));
+        }catch(err){}
+      }
       console.warn("DB write failed for key:", key, e);
     }
     // (2026-07-13) Post message to crossTabSync channel; was local storage only
@@ -924,11 +930,11 @@ const DB = (() => {
   }
 
   // ---------- product helpers ----------
-  // (2026-07-13) Set updatedAt & record tombstone on product edits; was untracked
+  // (2026-07-13) Guarantee timestamps on new product; was overwritten by spread
   function addProduct(p){
     const products = getProducts();
     const now = Date.now();
-    const newProduct = { id: Utils.uid("prod"), createdAt: now, updatedAt: now, ...p };
+    const newProduct = { id: Utils.uid("prod"), ...p, createdAt: p?.createdAt || now, updatedAt: now };
     products.push(newProduct);
     setProducts(products);
     
@@ -1116,7 +1122,16 @@ const DB = (() => {
   }
 
   function getBackups(){ return read(KEYS.backups, []); }
-  function setBackups(b){ return write(KEYS.backups, b); }
+  // (2026-07-13) Cap local backups metadata only to avoid quota; was raw dump
+  function setBackups(b){
+    const sanitized = (b || []).slice(0, 5).map(x => {
+      if(!x) return x;
+      const copy = { ...x };
+      delete copy.data;
+      return copy;
+    });
+    return write(KEYS.backups, sanitized);
+  }
 
   // (2026-07-13) Fix recursive backup nesting & add buildSnapshotAt; was bloat
   function saveBackup(rec){

@@ -70,10 +70,13 @@ const Sync = (() => {
   function mergeArray3Way(baseArr = [], localArr = [], remoteArr = [], idKey = "id", tsKey = "updatedAt"){
     const isSales = idKey === "receiptNo";
     const delSaleIds = isSales && DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : new Set();
+    // (2026-07-13) Multi-attribute key fallback for items; was id only
     const getKey = (item) => {
       if(!item) return "";
       if(isSales) return String(item.receiptNo || item.id || "").trim().replace(/^TXN-/i, "");
-      return String(item[idKey] || item.id || "");
+      const primary = String(item[idKey] ?? "");
+      if(primary) return primary;
+      return String(item.id || (item.barcode && item.barcode !== "—" && item.barcode !== "-" ? ("bc:" + item.barcode) : "") || (item.name ? ("name:" + item.name.trim().toLowerCase()) : ""));
     };
 
     const baseMap = new Map();
@@ -258,13 +261,16 @@ const Sync = (() => {
       manualSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       recentImported.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       
-      // (2026-07-13) Prioritize newest sales in cloud sync; was unsorted slice
-      const syncSales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 1000);
+      // (2026-07-13) Cap snapshot payload under 750KB; was 1000 sales over 1MB limit
+      const syncSales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 400);
 
-      // (2026-07-13) Include deletedSaleIds in cloud snapshot; was sales only
       const cloudSnap = {
         ...finalSnap,
         sales: syncSales,
+        restockLogs: (finalSnap.restockLogs || []).slice(0, 100),
+        stockLog: (finalSnap.stockLog || []).slice(0, 100),
+        voidLogs: (finalSnap.voidLogs || []).slice(0, 100),
+        backups: (finalSnap.backups || []).slice(0, 5),
         deletedSaleIds: Array.from(DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : []),
         isPartialSalesSync: true,
         exportedAt: Date.now()
@@ -325,12 +331,16 @@ const Sync = (() => {
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
 
-      // (2026-07-13) Pull and sync backups collection unconditionally; was skipped
+      // (2026-07-13) Pull backups metadata only to avoid quota; was raw snapshot
       try {
         const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
         if(!backupsSnap.empty){
           const cloudBackups = [];
-          backupsSnap.forEach(d => cloudBackups.push(d.data()));
+          backupsSnap.forEach(d => {
+            const b = { ...d.data() };
+            delete b.data;
+            cloudBackups.push(b);
+          });
           if(cloudBackups.length){
             const existing = DB.getBackups();
             const existingIds = new Set(existing.map(x => x.id));
@@ -341,7 +351,7 @@ const Sync = (() => {
               }
             });
             merged.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-            DB.setBackups(merged);
+            DB.setBackups(merged.slice(0, 5));
           }
         }
       } catch(e) {
@@ -558,25 +568,26 @@ const Sync = (() => {
       const settings = DB.getSettings();
       if(!settings.firebaseConfig) return DB.getBackups();
       const { db: database, mod } = await ensureFirebase();
+      // (2026-07-13) Strip data payload from cloud backups; was storing heavy snapshots
       const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
       if(!backupsSnap.empty){
         const cloudBackups = [];
-        backupsSnap.forEach(d => cloudBackups.push(d.data()));
+        backupsSnap.forEach(d => {
+          const b = { ...d.data() };
+          delete b.data;
+          cloudBackups.push(b);
+        });
         if(cloudBackups.length){
           const existing = DB.getBackups();
           const bMap = new Map();
           existing.forEach(b => { if(b && b.id) bMap.set(b.id, b); });
           cloudBackups.forEach(b => {
-            if(b && b.id){
-              if(!bMap.has(b.id)) bMap.set(b.id, b);
-              else {
-                const old = bMap.get(b.id);
-                if(b.data && !old.data) bMap.set(b.id, { ...old, data: b.data });
-              }
+            if(b && b.id && !bMap.has(b.id)){
+              bMap.set(b.id, b);
             }
           });
           const merged = Array.from(bMap.values()).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-          DB.setBackups(merged);
+          DB.setBackups(merged.slice(0, 5));
           return merged;
         }
       }

@@ -943,9 +943,10 @@ const RealtimeSync = (() => {
       }
     });
     
-    // Listen for product updates/changes
+    // (2026-07-13) Ignore self device echo & repaint table only; was view rerender
     const onChildChangedListener = realtimeMod.onChildChanged(productsRef, (snapshot) => {
       const updatedProduct = snapshot.val();
+      if (!updatedProduct || (updatedProduct.deviceId && updatedProduct.deviceId === deviceId)) return;
       const localProducts = DB.getProducts();
       const index = localProducts.findIndex(p => p.id === updatedProduct.id);
       
@@ -957,7 +958,6 @@ const RealtimeSync = (() => {
                     `stock: ${oldStock} → ${newStock}`);
         
         localProducts[index] = updatedProduct;
-        // (2026-07-13) Set products via DB & rerender table; was direct setItem
         DB.setProducts(localProducts);
         
         if (updatedProduct.deviceId && updatedProduct.deviceId !== deviceId) {
@@ -967,7 +967,6 @@ const RealtimeSync = (() => {
         const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
         if (typeof Inventory !== 'undefined' && curV === 'inventory') {
           if (Inventory.renderTable) Inventory.renderTable();
-          if (Inventory.render) Inventory.render();
         }
       } else {
         // (2026-07-13) Add missing changed product to DB; was dropped on index -1
