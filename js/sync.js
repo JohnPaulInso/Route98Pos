@@ -48,9 +48,12 @@ const Sync = (() => {
     firestoreMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
     const apps = getApps();
     app = apps.length > 0 ? getApp() : initializeApp(settings.firebaseConfig);
-    // (2026-07-13) Use force long-polling on Firestore; was default WebChannel stream
+    // (2026-07-13) Memory cache for live Firestore; was persistent IndexedDB
     try {
-      db = firestoreMod.initializeFirestore(app, { experimentalForceLongPolling: true });
+      db = firestoreMod.initializeFirestore(app, {
+        experimentalForceLongPolling: true,
+        localCache: firestoreMod.memoryLocalCache ? firestoreMod.memoryLocalCache() : undefined
+      });
     } catch(e) {
       db = firestoreMod.getFirestore(app);
     }
@@ -345,15 +348,19 @@ const Sync = (() => {
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
-      // (2026-07-13) Auto-reconnect Firestore on offline pull; was unhandled fail
+      // (2026-07-13) Pull latest from server first; was cached getDoc only
       let snapDoc = null;
       try {
-        snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
+        if(mod.getDocFromServer){
+          snapDoc = await mod.getDocFromServer(mod.doc(database, "minimart_snapshots", "store"));
+        } else {
+          snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
+        }
       } catch(e) {
         if(String(e?.message||"").includes("offline") && mod.enableNetwork){
           await mod.enableNetwork(database).catch(()=>{});
-          snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store")).catch(()=>null);
         }
+        snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store")).catch(()=>null);
       }
       if(snapDoc && snapDoc.exists()){
         const remoteData = snapDoc.data();
@@ -745,8 +752,10 @@ const Sync = (() => {
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
+      // (2026-07-13) Skip stale cached onSnapshot; was processing cached docs
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
         if(docSnap.metadata?.hasPendingWrites) return;
+        if(docSnap.metadata?.fromCache) return;
         if(docSnap.exists()){
           const remoteData = docSnap.data();
           if(lastPushedExportedAt && remoteData.exportedAt === lastPushedExportedAt) return;
