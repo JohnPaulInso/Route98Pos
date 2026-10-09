@@ -115,10 +115,9 @@ const MobileTouchFix = (() => {
         -webkit-tap-highlight-color: transparent;
       }
 
+      /* (2026-07-13) Remove scale transform on touch; was scale(0.98) */
       button.touch-active, .btn.touch-active {
-        opacity: 0.7;
-        transform: scale(0.98);
-        transition: all 0.1s ease;
+        opacity: 0.85;
       }
 
       input, textarea, select {

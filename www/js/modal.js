@@ -12,9 +12,10 @@ const Modal = (() => {
     toRemove.forEach(bd => {
       if(bd && bd.remove) bd.remove();
     });
+// (2026-07-13) Sept 14 modal scroll lock; was backbutton listener
     if(!document.querySelector(".modal-backdrop, .modal-backdropz")){
-      document.body.classList.remove("scroll-locked", "modal-open", "modal-openz");
-      document.documentElement.classList.remove("scroll-locked", "modal-open", "modal-openz");
+      document.body.classList.remove("scroll-locked");
+      document.documentElement.classList.remove("scroll-locked");
     }
     if(typeof onClosed === "function") onClosed();
   }
@@ -22,7 +23,7 @@ const Modal = (() => {
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "" }){
     close();
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
-    document.body.classList.add("scroll-locked", "modal-open");
+    document.body.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
     const extra = modalClass ? `${modalClass}-backdrop modal-${modalClass}-backdrop` : "";
     backdrop.className = `modal-backdrop modal-backdropz ${extra}`.trim();
@@ -58,24 +59,6 @@ const Modal = (() => {
       ],
       onClose: onCancel
     });
-  }
-
-  document.addEventListener("backbutton", (e) => {
-    const bds = document.querySelectorAll(".modal-backdrop, .modal-backdropz");
-    if(bds.length){
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    }
-  }, false);
-
-  if(window.Capacitor?.Plugins?.App?.addListener){
-    window.Capacitor.Plugins.App.addListener("backButton", () => {
-      const bds = document.querySelectorAll(".modal-backdrop, .modal-backdropz");
-      if(bds.length){
-        close();
-      }
-    }).catch(() => {});
   }
 
   return { open, close, confirm };

@@ -45,15 +45,14 @@ body.scroll-locked .topbar {
   pointer-events: none !important;
 }
 
-/* (2026-07-13) Disable root pointer-events when modal open; was interactive */
+/* (2026-07-13) Allow root pointer events; was pointer-events: none */
 html.modal-open #root,
 html.modal-openz #root,
 body.modal-open #root,
 body.modal-openz #root,
 html.scroll-locked #root,
 body.scroll-locked #root {
-  z-index: 0 !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
 }
 
 /* Γ£à CRITICAL FIX: Portal must allow pointer events when modals present */
@@ -555,17 +554,12 @@ select,
 /* ===== WebView hardening ===== */
 /* A stuck modal-open/scroll-locked class can no longer kill the UI.
    The full-screen backdrop already blocks touches underneath. */
+/* (2026-07-13) Allow root pointer events; was pointer-events: none */
 html.modal-open #root,
 html.modal-openz #root, body.modal-open #root,
 body.modal-openz #root,
-html.scroll-locked #root, body.scroll-locked #root,
-/* (2026-07-13) Disable topbar clicks during open modal; was pointer-events */
-html.modal-open .topbar,
-html.modal-openz .topbar, body.modal-open .topbar,
-body.modal-openz .topbar,
-html.scroll-locked .topbar, body.scroll-locked .topbar {
-  pointer-events: none !important;
-  z-index: 0 !important;
+html.scroll-locked #root, body.scroll-locked #root {
+  pointer-events: auto !important;
 }
 /* (2026-07-13) Block cart touch during modal open; was pointer-events auto */
 html.modal-open .pos-cart,
