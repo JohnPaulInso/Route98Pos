@@ -1949,5 +1949,6 @@ const POS = (() => {
 
   function resetSearch(){ searchTerm = ""; }
 
-  return { render, addByBarcode, printByRecord: printReceipt, resetSearch };
+  // (2026-07-13) Export renderCatalog & renderHeldButton; was missing
+  return { render, addByBarcode, printByRecord: printReceipt, resetSearch, renderCatalog, renderHeldButton };
 })();

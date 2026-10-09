@@ -323,8 +323,8 @@ const App = (() => {
     else Auth.render();
   }
 
-  // (2026-07-13) Expose currentView getter on App; was getter method only
-  return { init, boot, navigate, rerenderCurrentView, paintTopbar, getCurrentView: () => currentView, get currentView() { return currentView; } };
+  // (2026-07-13) Export paintNav for live badge refreshes; was omitted
+  return { init, boot, navigate, rerenderCurrentView, paintTopbar, paintNav, getCurrentView: () => currentView, get currentView() { return currentView; } };
 })();
 
 // (2026-07-13) Horizontal mouse wheel scroll for category-chips; was default vertical

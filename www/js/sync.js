@@ -200,6 +200,13 @@ const Sync = (() => {
             };
           });
         }
+        // (2026-07-13) Merge pumps and settings in 3-way sync; was overwritten
+        if(remoteCfg.pumps || curCfg.pumps){
+          const pMap = new Map();
+          (remoteCfg.pumps || []).forEach(p => { if(p?.id) pMap.set(p.id, p); });
+          (curCfg.pumps || []).forEach(p => { if(p?.id) pMap.set(p.id, p); });
+          mergedCfg.pumps = Array.from(pMap.values());
+        }
         merged.fuelConfig = mergedCfg;
       }
 
@@ -211,6 +218,20 @@ const Sync = (() => {
       merged.shift = remoteTs >= localTs ? remoteShift : localShift;
     } else {
       merged.shift = remoteShift || localShift || null;
+    }
+
+    if(remote.settings || local.settings){
+      const remS = remote.settings || {};
+      const locS = local.settings || {};
+      const remTs = remS.updatedAt || 0;
+      const locTs = locS.updatedAt || 0;
+      merged.settings = {
+        ...remS,
+        ...locS,
+        ...(remTs >= locTs ? remS : locS),
+        theme: locS.theme || remS.theme || "light",
+        lastView: locS.lastView || remS.lastView || "pos"
+      };
     }
 
     const dayKeys = new Set([...Object.keys(remote.dayBalances || {}), ...Object.keys(local.dayBalances || {})]);
@@ -251,6 +272,9 @@ const Sync = (() => {
         finalSnap = threeWayMerge(baseline, finalSnap, remoteData);
         DB.restoreSnapshot(finalSnap);
       }
+      // (2026-07-13) Harmonize export timestamps & self-echo guard; was mismatch
+      const exportTime = Date.now();
+      finalSnap.exportedAt = exportTime;
       DB.setSyncBaseline(finalSnap);
 
       const localSales = finalSnap.sales || [];
@@ -278,13 +302,15 @@ const Sync = (() => {
         restockLogs: (finalSnap.restockLogs || []).slice(0, 100),
         stockLog: (finalSnap.stockLog || []).slice(0, 100),
         voidLogs: (finalSnap.voidLogs || []).slice(0, 100),
-        backups: (finalSnap.backups || []).slice(0, 5),
+        // (2026-07-13) Keep all backup summaries in snapshot; was capped at 5
+        backups: finalSnap.backups || [],
         deletedSaleIds: Array.from(DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : []),
         isPartialSalesSync: true,
-        exportedAt: Date.now()
+        exportedAt: exportTime
       };
 
       try {
+        lastPushedExportedAt = exportTime;
         await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), cloudSnap, { merge:false });
       } catch(setErr) {
         if(String(setErr?.message||"").includes("offline") && mod.enableNetwork){
@@ -377,7 +403,8 @@ const Sync = (() => {
               }
             });
             merged.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-            DB.setBackups(merged.slice(0, 5));
+            // (2026-07-13) Save all merged cloud backups; was capped at 5
+            DB.setBackups(merged);
           }
         }
       } catch(e) {
@@ -501,19 +528,8 @@ const Sync = (() => {
     } finally {
       isSyncing = false;
       paintStatus();
-      // (2026-07-13) Refresh inventory & POS on pullSnapshot; was App.rerender only
-      App.rerenderCurrentView?.();
-      if(typeof Inventory !== "undefined" && Inventory.renderTable){
-        Inventory.renderTable();
-      }
-      if(typeof POS !== "undefined" && POS.renderCatalog){
-        POS.renderCatalog();
-      }
-      // (2026-07-13) Safe view check in pullSnapshot; was App.currentView
-      const curView = typeof App !== "undefined" && (App.getCurrentView ? App.getCurrentView() : App.currentView);
-      if(typeof Reports !== "undefined" && Reports.render && curView === "reports"){
-        Reports.render();
-      }
+      // (2026-07-13) Multi-view refresh helper after pull sync; was POS only
+      refreshViewsAfterSync();
     }
   }
 
@@ -613,7 +629,8 @@ const Sync = (() => {
             }
           });
           const merged = Array.from(bMap.values()).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-          DB.setBackups(merged.slice(0, 5));
+          // (2026-07-13) Store all fetched cloud backups; was capped at 5
+          DB.setBackups(merged);
           return merged;
         }
       }
@@ -682,31 +699,61 @@ const Sync = (() => {
     debounceTimer = setTimeout(() => pushSnapshot(), 800);
   }
 
-  // (2026-07-13) Sync realtime snapshot immediately to new clients. Prev: skipped 1st
+  // (2026-07-13) Multi-view refresh helper after realtime sync; was POS only
   let unsubSnapshot = null;
+  let lastPushedExportedAt = 0;
+
+  function refreshViewsAfterSync(){
+    const curV = typeof App !== "undefined" && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+    App.paintNav?.();
+    App.paintTopbar?.();
+    App.rerenderCurrentView?.();
+    if(typeof Inventory !== "undefined" && Inventory.renderTable && curV === "inventory"){
+      Inventory.renderTable();
+    }
+    if(typeof POS !== "undefined"){
+      if(POS.renderCatalog) POS.renderCatalog();
+      if(POS.renderHeldButton) POS.renderHeldButton();
+    }
+    if(typeof Shift !== "undefined" && Shift.render && curV === "shift"){
+      Shift.render();
+    }
+    if(typeof Reports !== "undefined" && Reports.render && curV === "reports"){
+      Reports.render();
+    }
+    if(typeof Expenses !== "undefined" && Expenses.render && curV === "expenses"){
+      Expenses.render();
+    }
+    if(typeof Gas !== "undefined" && Gas.render && (curV === "gasoline" || curV === "fuel")){
+      Gas.render();
+    }
+    if(typeof Settings !== "undefined" && Settings.render && curV === "settings"){
+      Settings.render();
+    }
+    if(typeof Venue !== "undefined" && Venue.render && curV === "venue"){
+      Venue.render();
+    }
+    if(typeof Restaurant !== "undefined" && Restaurant.render && curV === "restaurant"){
+      Restaurant.render();
+    }
+  }
+
   async function startRealtimeListener(){
     try{
       const settings = DB.getSettings();
-      if(!settings.firebaseConfig || !settings.autoSync) return;
+      if(!settings.firebaseConfig || settings.autoSync === false) return;
       const { db: database, mod } = await ensureFirebase();
       if(unsubSnapshot) unsubSnapshot();
 
-      // (2026-07-13) Auto-retry onSnapshot & repaint inventory; was unrecovered fail
       unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
         if(docSnap.metadata?.hasPendingWrites) return;
         if(docSnap.exists()){
           const remoteData = docSnap.data();
-          // (2026-07-13) Compare full content in onSnapshot; was checking length only
+          if(lastPushedExportedAt && remoteData.exportedAt === lastPushedExportedAt) return;
           DB.invalidateCache?.();
           const baseline = DB.getSyncBaseline();
           const localSnap = DB.snapshot();
-          const localProds = localSnap.products || [];
-          const remProds = remoteData.products || [];
-          const localSales = localSnap.sales || [];
-          const remSales = remoteData.sales || [];
-          const prodsSame = localProds.length === remProds.length && JSON.stringify(localProds) === JSON.stringify(remProds);
-          const salesSame = localSales.length === remSales.length && JSON.stringify(localSales) === JSON.stringify(remSales);
-          if(baseline && remoteData.exportedAt && baseline.exportedAt === remoteData.exportedAt && prodsSame && salesSame) return;
+          if(baseline && remoteData.exportedAt && baseline.exportedAt === remoteData.exportedAt) return;
           isSyncing = true;
           try {
             const merged = threeWayMerge(baseline, localSnap, remoteData);
@@ -714,21 +761,7 @@ const Sync = (() => {
             DB.setSyncBaseline(merged);
             DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
             paintStatus();
-            App.rerenderCurrentView?.();
-            if(typeof Inventory !== "undefined" && Inventory.renderTable){
-              Inventory.renderTable();
-            }
-            if(typeof POS !== "undefined" && POS.renderCatalog){
-              POS.renderCatalog();
-            }
-            // (2026-07-13) Safe view check on realtime sync; was App.currentView
-            const curV = typeof App !== "undefined" && (App.getCurrentView ? App.getCurrentView() : App.currentView);
-            if(typeof Shift !== "undefined" && Shift.render && curV === "shift"){
-              Shift.render();
-            }
-            if(typeof Reports !== "undefined" && Reports.render && curV === "reports"){
-              Reports.render();
-            }
+            refreshViewsAfterSync();
           } finally {
             isSyncing = false;
           }

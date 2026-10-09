@@ -546,7 +546,8 @@ const DB = (() => {
   }
   const setFuelConfig  = (v) => write(KEYS.fuelConfig, v);
   const getSettings    = () => read(KEYS.settings, DEFAULT_SETTINGS);
-  const setSettings    = (v) => write(KEYS.settings, v);
+  // (2026-07-13) Attach updatedAt to settings writes; was untracked
+  const setSettings    = (v) => write(KEYS.settings, { ...v, updatedAt: v?.updatedAt || Date.now() });
   const getUsers       = () => read(KEYS.users, DEFAULT_USERS);
   const setUsers       = (v) => write(KEYS.users, v);
   // (2026-07-13) Cashier roster fetched from users role=cashier; was raw list
@@ -1122,13 +1123,16 @@ const DB = (() => {
   }
 
   function getBackups(){ return read(KEYS.backups, []); }
-  // (2026-07-13) Cap local backups metadata only to avoid quota; was raw dump
+  // (2026-07-13) Retain all backups metadata; was capped at 5
   function setBackups(b){
-    const sanitized = (b || []).slice(0, 5).map(x => {
-      if(!x) return x;
+    const seen = new Set();
+    const sanitized = [];
+    (b || []).forEach(x => {
+      if(!x || !x.id || seen.has(x.id)) return;
+      seen.add(x.id);
       const copy = { ...x };
       delete copy.data;
-      return copy;
+      sanitized.push(copy);
     });
     return write(KEYS.backups, sanitized);
   }
