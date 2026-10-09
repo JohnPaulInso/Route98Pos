@@ -1353,20 +1353,25 @@
     pointer-events: auto !important;
   }
   
+  /* (2026-07-13) Literal centered fixed position on modal; was relative position */
+  .modal,
   .modalz {
-    max-width: 100% !important;
-    width: 100% !important;
-    max-height: 95vh !important;
-    border-radius: 16px !important; /* ✅ Fully rounded on all corners */
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
     margin: 0 !important;
-    /* (2026-07-13) Disable slideUpModal animation; was freezing in WebView */
+    max-width: 640px !important;
+    width: calc(100% - 32px) !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important;
     animation: none !important;
-    transform: none !important;
-    position: relative !important;
     z-index: 2147483647 !important;
     pointer-events: auto !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   
   @keyframes slideUpModal {

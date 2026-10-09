@@ -87,6 +87,7 @@ body.scroll-locked #root {
   touch-action: auto !important;
 }
 
+/* (2026-07-13) Literal centered fixed position on modal; was relative position */
 .modal,
 .modalz,
 .modal.modal-wide,
@@ -95,23 +96,27 @@ body.scroll-locked #root {
 .modal.modal-receipt-dialog,
 .modal.modal-product-history,
 .modal.modal-slide-left {
-  position: relative !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
   z-index: 2147483647 !important;
   pointer-events: auto !important;
   touch-action: auto !important;
   background: var(--paper, #ffffff) !important;
   opacity: 1 !important;
   visibility: visible !important;
-  transform: none !important;
   animation: none !important;
   -webkit-animation: none !important;
-  max-height: 92vh;
+  max-height: 90vh !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: visible !important;
-  border-radius: 16px !important; /* Γ£à Fully rounded corners on all sides */
-  width: 100%;
-  max-width: 640px;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 16px !important;
+  width: calc(100% - 32px) !important;
+  max-width: 640px !important;
 }
 
 /* (2026-07-13) Modal flex structure & static foot; was fixed overflow */

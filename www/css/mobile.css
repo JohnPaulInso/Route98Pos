@@ -336,16 +336,21 @@
     justify-content: center !important;
   }
 
+  /* (2026-07-13) Literal centered fixed position on modal; was relative position */
+  .modal,
   .modalz {
-    max-width: 100%;
-    width: 100%;
-    max-height: 95vh;
-    border-radius: 16px; /* ✅ Fully rounded on all corners */
-    margin: 0;
-    /* (2026-07-13) Disable slide-up modal animation; was freezing in WebView */
-    animation: none;
-    transform: none;
-    overflow-y: auto;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    max-width: 640px !important;
+    width: calc(100% - 32px) !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important;
+    animation: none !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .modal-widez {

@@ -51,8 +51,9 @@ const Modalz = (() => {
 
     const mInner = backdrop.querySelector(".modalz, .modal");
     if (mInner) {
-      const maxW = wide ? "min(860px, 92vw)" : "640px";
-      mInner.style.cssText = `position:relative!important;z-index:2147483647!important;width:100%!important;max-width:${maxW}!important;max-height:90vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;background:var(--paper-raised,#ffffff)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;transform:none!important;animation:none!important;-webkit-animation:none!important;`;
+      const maxW = wide ? "min(860px, calc(100vw - 32px))" : "640px";
+      // (2026-07-13) Literal centered fixed position on modal; was relative position
+      mInner.style.cssText = `position:fixed!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:2147483647!important;width:calc(100% - 32px)!important;max-width:${maxW}!important;max-height:90vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;background:var(--paper-raised,#ffffff)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;animation:none!important;-webkit-animation:none!important;`;
     }
 
     document.body.appendChild(backdrop);
