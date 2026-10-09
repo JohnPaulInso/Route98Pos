@@ -13,8 +13,9 @@ const UISelect = (() => {
   let _portalList = null;
   let _positionTimer = null;
 
+  // (2026-07-13) Teleport dropdowns to document.body; was modal-backdrop
   function getPortal() {
-    return document.querySelector(".modal-backdropz, .modal-backdrop") || document.getElementById("cap-modal-portal") || document.getElementById("cap-modal-portalz") || document.body;
+    return document.body;
   }
 
   // (2026-07-13) Apply fixed !important portal styles; was overridden by css

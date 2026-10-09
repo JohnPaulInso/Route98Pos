@@ -481,10 +481,14 @@ html.modal-open #root,
 html.modal-openz #root, body.modal-open #root,
 body.modal-openz #root,
 html.scroll-locked #root, body.scroll-locked #root,
+/* (2026-07-13) Disable topbar clicks during open modal; was pointer-events */
 html.modal-open .topbar,
 html.modal-openz .topbar, body.modal-open .topbar,
 body.modal-openz .topbar,
-html.scroll-locked .topbar, body.scroll-locked .topbar,
+html.scroll-locked .topbar, body.scroll-locked .topbar {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
 html.modal-open .pos-cart,
 html.modal-openz .pos-cart, body.modal-open .pos-cart,
 body.modal-openz .pos-cart,
@@ -509,12 +513,19 @@ html.scroll-locked .pos-cart, body.scroll-locked .pos-cart {
   }
 }
 
+/* (2026-07-13) Lower topbar & stack view-head for dropdowns; was 2B z-index */
 @media (max-width: 767px) {
-  /* remove the layers that trap dropdowns */
-  #root, .main-col, .view, .view-body, #view-root,
-  .view-head, .rpt-view-head, .inv-tools-dropdown-wrap {
+  #root, .main-col, .view, .view-body, #view-root {
     z-index: auto !important;
   }
-  /* topbar holds the breadcrumb menu, so keep it above cart (92) and nav (95) */
-  .topbar { z-index: 2000000000 !important; }
+  .view-head, .rpt-view-head, .inv-tools-dropdown-wrap {
+    position: relative !important;
+    z-index: 500 !important;
+  }
+  /* (2026-07-13) Allow dropdown menus outside inv-actions; was overflow: auto */
+  #inv-actions {
+    overflow: visible !important;
+    overflow-x: visible !important;
+  }
+  .topbar { z-index: 200 !important; }
 }

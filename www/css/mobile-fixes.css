@@ -1341,10 +1341,11 @@
   }
 
   /* ============ MODALS - SLIDE UP & FULLY INTERACTIVE ============ */
+  /* (2026-07-13) Elevate mobile modal z-index to max; was 99999/100000 */
   .modal-backdropz {
     padding: 0 !important;
     align-items: flex-end !important;
-    z-index: 99999 !important;
+    z-index: 2147483646 !important;
     position: fixed !important;
     inset: 0 !important;
     display: flex !important;
@@ -1361,7 +1362,7 @@
     animation: none !important;
     transform: none !important;
     position: relative !important;
-    z-index: 100000 !important;
+    z-index: 2147483647 !important;
     pointer-events: auto !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1893,8 +1894,8 @@
   }
 
   /* ============ UI SELECT DROPDOWN ============ */
-  /* (2026-07-13) Align UISelect list to parent width; was left:50% translate */
-  .ui-select-list {
+  /* (2026-07-13) Exclude portal lists from fixed width/left; was all lists */
+  .ui-select:not(.ui-select-portal-list) .ui-select-list:not(.ui-select-portal-list):not(.ui-select-portal-listz) {
     max-width: 100% !important;
     width: 100% !important;
     max-height: 60vh !important;
@@ -3430,8 +3431,11 @@
   .inv-desktop-actions {
     display: none !important;
   }
+  /* (2026-07-13) Prevent dropdown clip in inv-actions; was overflow-x: auto */
   #inv-actions {
     width: 100% !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
   }
   .inv-mobile-actions {
     display: flex !important;
