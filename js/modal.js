@@ -4,7 +4,6 @@
 // or Escape, and animates in/out.
 // ============================================================
 const Modalz = (() => {
-  let isHandlingHistoryPop = false;
 
   // (2026-07-13) Add z suffix to modal classes & ids; was standard names
   // (2026-07-13) Modal close without history back; was popstate history.back
@@ -230,15 +229,7 @@ const Modalz = (() => {
     }
   }
 
-  window.addEventListener("popstate", () => {
-    if(isHandlingHistoryPop){
-      isHandlingHistoryPop = false;
-      return;
-    }
-    isHandlingHistoryPop = true;
-    handleUniversalBack();
-    setTimeout(() => { isHandlingHistoryPop = false; }, 260);
-  });
+  // (2026-07-13) Native back listeners only; was popstate history listener
 
   document.addEventListener("backbutton", (e) => {
     if(handleUniversalBack()){

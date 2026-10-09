@@ -328,10 +328,12 @@
     background: var(--paper-dim);
   }
 
-  /* ============ MODALS MOBILE ============ */
+  /* (2026-07-13) Center modal backdrop on mobile; was flex-end without padding */
+  .modal-backdrop,
   .modal-backdropz {
-    padding: 16px; /* ✅ Add padding so modal doesn't touch edges */
-    align-items: center; /* ✅ Center modal vertically */
+    padding: 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .modalz {
