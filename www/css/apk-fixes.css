@@ -57,11 +57,17 @@ body.scroll-locked #root {
 }
 
 /* Γ£à CRITICAL FIX: Portal must allow pointer events when modals present */
-/* (2026-07-13) Modal backdrop direct body styling; was portal container */
+/* (2026-07-13) Unified modal CSS for APK & web; was conflicting modal rules */
 .modal-backdrop,
 .modal-backdropz,
 .modal-product-form-backdrop,
-.modal-loy-dialog-backdrop {
+.modal-product-formz-backdrop,
+.modal-product-formz-backdropz,
+.modal-loy-dialog-backdrop,
+.modal-loy-dialogz-backdrop,
+.modal-loy-dialogz-backdropz,
+.modal-receipt-dialog-backdrop,
+.modal-receipt-dialogz-backdrop {
   position: fixed !important;
   inset: 0 !important;
   top: 0 !important;
@@ -70,75 +76,140 @@ body.scroll-locked #root {
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  z-index: 2147483647 !important;
+  background: rgba(10, 13, 30, 0.65) !important;
+  z-index: 2147483640 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 16px !important;
-  background: rgba(0, 0, 0, 0.55) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  animation: none !important;
+  -webkit-animation: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  animation: none !important;
-  -webkit-animation: none !important;
-  -webkit-tap-highlight-color: transparent;
-  pointer-events: auto !important;
-  touch-action: auto !important;
 }
 
-/* (2026-07-13) Literal centered fixed position on modal; was relative position */
 .modal,
 .modalz,
-.modal.modal-wide,
-.modal.modal-product-form,
-.modal.modal-loy-dialog,
-.modal.modal-receipt-dialog,
-.modal.modal-product-history,
-.modal.modal-slide-left {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  margin: 0 !important;
+.modal-wide,
+.modal-widez,
+.modal-product-form,
+.modal-product-formz,
+.modal-loy-dialog,
+.modal-loy-dialogz,
+.modal-receipt-dialog,
+.modal-receipt-dialogz,
+.modal-product-history,
+.modal-product-historyz,
+.modal-slide-left,
+.modal-slide-leftz {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  margin: auto !important;
   z-index: 2147483647 !important;
-  pointer-events: auto !important;
-  touch-action: auto !important;
-  background: var(--paper, #ffffff) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  animation: none !important;
-  -webkit-animation: none !important;
+  width: 100% !important;
+  max-width: 640px !important;
   max-height: 90vh !important;
+  background: var(--paper-raised, #ffffff) !important;
+  color: var(--ink, #0f172a) !important;
+  border-radius: 16px !important;
+  border: none !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  border-radius: 16px !important;
-  width: calc(100% - 32px) !important;
-  max-width: 640px !important;
+  overflow: hidden !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  animation: none !important;
+  -webkit-animation: none !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  box-sizing: border-box !important;
 }
 
-/* (2026-07-13) Modal flex structure & static foot; was fixed overflow */
-.modal .modal-head,
+.modal.modal-wide,
+.modalz.modal-wide,
+.modal.modal-widez,
+.modalz.modal-widez {
+  max-width: min(860px, calc(100vw - 32px)) !important;
+}
+
+.modal-head,
 .modal-headz,
-.modal.modal-product-form .modal-head {
-  position: static !important;
+.modal .modal-head,
+.modalz .modal-headz,
+.modal-product-form .modal-head,
+.modal-product-formz .modal-headz {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 20px !important;
+  border-bottom: 1.5px solid var(--line, #e2e8f0) !important;
+  background: var(--paper-raised, #ffffff) !important;
   flex-shrink: 0 !important;
+  position: static !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.modal-head h3,
+.modal-headz h3 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: var(--ink, #0f172a) !important;
+  margin: 0 !important;
+}
+
+.modal-body,
+.modal-bodyz,
+.modal .modal-body,
+.modalz .modal-bodyz {
+  padding: 20px !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--paper-raised, #ffffff) !important;
+  color: var(--ink, #0f172a) !important;
+  box-sizing: border-box !important;
   width: 100% !important;
 }
 
-.modal .modal-foot,
+.modal-foot,
 .modal-footz,
-.modal.modal-product-form .modal-foot {
-  position: static !important;
+.modal .modal-foot,
+.modalz .modal-footz,
+.modal-product-form .modal-foot,
+.modal-product-formz .modal-footz {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 14px 20px !important;
+  border-top: 1.5px solid var(--line, #e2e8f0) !important;
+  background: var(--paper-raised, #ffffff) !important;
   flex-shrink: 0 !important;
+  position: static !important;
   width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.modal-backdrop.modal-closing {
+.modal-backdrop.modal-closing,
+.modal-backdropz.modal-closingz {
   opacity: 0 !important;
-  transition: opacity 0.08s ease-in !important;
+  pointer-events: none !important;
 }
 .modal-backdrop.modal-closing .modal {
   opacity: 0 !important;

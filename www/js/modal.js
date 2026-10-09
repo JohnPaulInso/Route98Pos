@@ -37,7 +37,7 @@ const Modalz = (() => {
     backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop ${c}-backdropz`).join(" ") : "";
     backdrop.className = `modal-backdrop modal-backdropz ${extraBackdrop}`.trim();
-    backdrop.style.cssText = "position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;background:rgba(10,13,30,0.65)!important;z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;animation:none!important;-webkit-animation:none!important;";
+    backdrop.style.cssText = "position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;background:rgba(10,13,30,0.65)!important;z-index:2147483640!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;animation:none!important;-webkit-animation:none!important;box-sizing:border-box!important;";
 
     backdrop.innerHTML = `
       <div class="modal modalz modalz ${wide ? "modal-wide modal-widez":""} ${modalClass}">
@@ -52,8 +52,8 @@ const Modalz = (() => {
     const mInner = backdrop.querySelector(".modalz, .modal");
     if (mInner) {
       const maxW = wide ? "min(860px, calc(100vw - 32px))" : "640px";
-      // (2026-07-13) Literal centered fixed position on modal; was relative position
-      mInner.style.cssText = `position:fixed!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;z-index:2147483647!important;width:calc(100% - 32px)!important;max-width:${maxW}!important;max-height:90vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;background:var(--paper-raised,#ffffff)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;animation:none!important;-webkit-animation:none!important;`;
+      // (2026-07-13) Centered relative modal dialog styles; was fixed offsets
+      mInner.style.cssText = `position:relative!important;margin:auto!important;z-index:2147483647!important;width:100%!important;max-width:${maxW}!important;max-height:90vh!important;overflow:hidden!important;background:var(--paper-raised,#ffffff)!important;color:var(--ink,#0f172a)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;transform:none!important;animation:none!important;-webkit-animation:none!important;box-sizing:border-box!important;`;
     }
 
     document.body.appendChild(backdrop);
