@@ -126,7 +126,9 @@ body.scroll-locked #root {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: hidden !important;
+  /* (2026-07-13) Modal overflow-y scroll; was overflow hidden */
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   visibility: visible !important;
   opacity: 1 !important;
   animation: none !important;

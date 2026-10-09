@@ -390,15 +390,15 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
 }
 .modal .ui-select-list,
 .modalz .ui-select-list{ z-index:10002; }
-/* (2026-07-13) Literal centered fixed position on modal; was relative position */
-.modal,
-.modalz{
-  background:var(--paper-raised); border-radius:var(--r-lg); width:calc(100% - 32px); max-width:640px;
-  max-height:92vh; overflow-y:auto; overflow-x:hidden; box-shadow:var(--shadow-lg);
-  animation:none; opacity:1;
-  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); margin:0;
-  display:flex; flex-direction:column;
-}
+  /* (2026-07-13) Center modal with relative auto margins; was fixed 50% */
+  .modal,
+  .modalz{
+    background:var(--paper-raised); border-radius:var(--r-lg); width:100%; max-width:640px;
+    max-height:92vh; overflow-y:auto; overflow-x:hidden; box-shadow:var(--shadow-lg);
+    animation:none; opacity:1;
+    position:relative; margin:auto; top:auto; left:auto; right:auto; bottom:auto; transform:none;
+    display:flex; flex-direction:column;
+  }
 .modal-backdropz.modal-closingz .modalz{
   animation:modal-pop-out .08s ease-in forwards;
 }

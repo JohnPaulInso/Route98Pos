@@ -26,8 +26,9 @@ const Modalz = (() => {
     }
   }
 
-  // (2026-07-13) Modal open without history push; was window.history.pushState
+  // (2026-07-13) Sept 14 modal DOM logic; was inline style and click dismiss
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
+    close();
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     document.body.classList.add("scroll-locked", "modal-openz", "modal-open");
     document.documentElement.classList.add("scroll-locked", "modal-openz", "modal-open");
@@ -37,38 +38,26 @@ const Modalz = (() => {
     backdrop._preventBackdropClose = preventBackdropClose;
     const extraBackdrop = modalClass ? modalClass.trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop ${c}-backdropz`).join(" ") : "";
     backdrop.className = `modal-backdrop modal-backdropz ${extraBackdrop}`.trim();
-    backdrop.style.cssText = "position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;background:rgba(10,13,30,0.65)!important;z-index:2147483640!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;animation:none!important;-webkit-animation:none!important;box-sizing:border-box!important;";
 
     backdrop.innerHTML = `
-      <div class="modal modalz modalz ${wide ? "modal-wide modal-widez":""} ${modalClass}">
-        <div class="modal-head modal-headz modal-headz">
+      <div class="modal modalz ${wide ? "modal-wide modal-widez":""} ${modalClass || ""}">
+        <div class="modal-head modal-headz">
           <h3>${title}</h3>
-          <button class="icon-btn" id="modal-xz">${Icons.get("x", { size:16 })}</button>
+          <button class="icon-btn" id="modal-x">${Icons.get("x", { size:16 })}</button>
         </div>
-        <div class="modal-body modal-bodyz modal-bodyz">${body}</div>
-        ${actions.length ? `<div class="modal-foot modal-footz modal-footz">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
+        <div class="modal-body modal-bodyz">${body}</div>
+        ${actions.length ? `<div class="modal-foot modal-footz">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-i="${i}">${a.label}</button>`).join("")}</div>` : ""}
       </div>`;
-
-    const mInner = backdrop.querySelector(".modalz, .modal");
-    if (mInner) {
-      const maxW = wide ? "min(860px, calc(100vw - 32px))" : "640px";
-      // (2026-07-13) Centered relative modal dialog styles; was fixed offsets
-      mInner.style.cssText = `position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;margin:auto!important;z-index:2147483647!important;width:100%!important;max-width:${maxW}!important;max-height:90vh!important;overflow:hidden!important;background:var(--paper-raised,#ffffff)!important;color:var(--ink,#0f172a)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;transform:none!important;animation:none!important;-webkit-animation:none!important;box-sizing:border-box!important;`;
-    }
 
     document.body.appendChild(backdrop);
 
-    // (2026-07-13) Guard backdrop dismissal with 350ms delay; was no delay
-    const openTs = Date.now();
-    const dismissHandler = (e) => {
-      if(Date.now() - openTs < 350) return;
+    backdrop.addEventListener("mousedown", (e) => {
       if(e.target === backdrop && !preventBackdropClose){
         close(backdrop, onClose);
       }
-    };
-    backdrop.addEventListener("mousedown", dismissHandler);
-    backdrop.addEventListener("click", dismissHandler);
-    const xBtn = backdrop.querySelector("#modal-xz");
+    });
+
+    const xBtn = backdrop.querySelector("#modal-x, #modal-xz");
     if(xBtn) {
       xBtn.onclick = (e) => {
         e.stopPropagation();
