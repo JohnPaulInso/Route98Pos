@@ -489,11 +489,13 @@ html.scroll-locked .topbar, body.scroll-locked .topbar {
   pointer-events: none !important;
   z-index: 0 !important;
 }
+/* (2026-07-13) Block cart touch during modal open; was pointer-events auto */
 html.modal-open .pos-cart,
 html.modal-openz .pos-cart, body.modal-open .pos-cart,
 body.modal-openz .pos-cart,
 html.scroll-locked .pos-cart, body.scroll-locked .pos-cart {
-  pointer-events: auto !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
 }
 
 /* Works without :has() support */

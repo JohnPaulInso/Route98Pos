@@ -1341,10 +1341,11 @@
   }
 
   /* ============ MODALS - SLIDE UP & FULLY INTERACTIVE ============ */
-  /* (2026-07-13) Elevate mobile modal z-index to max; was 99999/100000 */
+  /* (2026-07-13) Center modal backdrop on mobile; was flex-end without padding */
   .modal-backdropz {
-    padding: 0 !important;
-    align-items: flex-end !important;
+    padding: 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
     z-index: 2147483646 !important;
     position: fixed !important;
     inset: 0 !important;

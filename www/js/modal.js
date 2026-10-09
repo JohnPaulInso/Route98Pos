@@ -7,37 +7,31 @@ const Modalz = (() => {
   let isHandlingHistoryPop = false;
 
   // (2026-07-13) Add z suffix to modal classes & ids; was standard names
-  // (2026-07-13) Direct body attach and instant modal show; was portal routing
+  // (2026-07-13) Modal close without history back; was popstate history.back
   function close(targetBd, onClosed){
     if(typeof targetBd === "function"){ onClosed = targetBd; targetBd = null; }
-    const bds = document.querySelectorAll(".modal-backdropz");
+    const bds = document.querySelectorAll(".modal-backdropz, .modal-backdrop");
     const bd = targetBd || (bds.length ? bds[bds.length - 1] : null);
     if(bd){
-      if(!isHandlingHistoryPop && window.history.state?.modalOpen){
-        isHandlingHistoryPop = true;
-        window.history.back();
-        setTimeout(() => { isHandlingHistoryPop = false; }, 80);
-      }
       bd.remove();
-      if(!document.querySelector(".modal-backdropz")){
-        document.body.classList.remove("scroll-locked", "modal-openz");
-        document.documentElement.classList.remove("scroll-locked", "modal-openz");
+      if(!document.querySelector(".modal-backdropz, .modal-backdrop")){
+        document.body.classList.remove("scroll-locked", "modal-openz", "modal-open");
+        document.documentElement.classList.remove("scroll-locked", "modal-openz", "modal-open");
       }
       if(typeof onClosed === "function") onClosed();
       else if(typeof bd._onClose === "function") bd._onClose();
     } else {
-      document.body.classList.remove("scroll-locked", "modal-openz");
-      document.documentElement.classList.remove("scroll-locked", "modal-openz");
+      document.body.classList.remove("scroll-locked", "modal-openz", "modal-open");
+      document.documentElement.classList.remove("scroll-locked", "modal-openz", "modal-open");
       if(typeof onClosed === "function") onClosed();
     }
   }
 
-  // (2026-07-13) Instant mobile modal display directly on body; was portal routing
+  // (2026-07-13) Modal open without history push; was window.history.pushState
   function open({ title, body, actions = [], wide = false, onClose, modalClass = "", preventBackdropClose = false }){
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
-    try { window.history.pushState({ modalOpen: true, modalId: Date.now() }, ""); } catch(e){}
-    document.body.classList.add("scroll-locked", "modal-openz");
-    document.documentElement.classList.add("scroll-locked", "modal-openz");
+    document.body.classList.add("scroll-locked", "modal-openz", "modal-open");
+    document.documentElement.classList.add("scroll-locked", "modal-openz", "modal-open");
 
     const backdrop = document.createElement("div");
     backdrop._onClose = onClose;
@@ -64,12 +58,11 @@ const Modalz = (() => {
 
     document.body.appendChild(backdrop);
 
-    const openTs = Date.now();
-    backdrop.addEventListener("click", (e) => { 
-      if(Date.now() - openTs < 200) return;
-      if(e.target === backdrop && !preventBackdropClose){ 
-        close(backdrop, onClose); 
-      } 
+    // (2026-07-13) Dismiss on backdrop mousedown; was delayed click listener
+    backdrop.addEventListener("mousedown", (e) => {
+      if(e.target === backdrop && !preventBackdropClose){
+        close(backdrop, onClose);
+      }
     });
     const xBtn = backdrop.querySelector("#modal-xz");
     if(xBtn) {
