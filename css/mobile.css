@@ -336,14 +336,16 @@
     justify-content: center !important;
   }
 
-  /* (2026-07-13) Literal centered fixed position on modal; was relative position */
+  /* (2026-07-13) Center modal with relative auto margins; was fixed 50% */
   .modal,
   .modalz {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: auto !important;
     max-width: 640px !important;
     width: calc(100% - 32px) !important;
     max-height: 90vh !important;

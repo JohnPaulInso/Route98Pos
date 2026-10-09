@@ -53,17 +53,21 @@ const Modalz = (() => {
     if (mInner) {
       const maxW = wide ? "min(860px, calc(100vw - 32px))" : "640px";
       // (2026-07-13) Centered relative modal dialog styles; was fixed offsets
-      mInner.style.cssText = `position:relative!important;margin:auto!important;z-index:2147483647!important;width:100%!important;max-width:${maxW}!important;max-height:90vh!important;overflow:hidden!important;background:var(--paper-raised,#ffffff)!important;color:var(--ink,#0f172a)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;transform:none!important;animation:none!important;-webkit-animation:none!important;box-sizing:border-box!important;`;
+      mInner.style.cssText = `position:relative!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;margin:auto!important;z-index:2147483647!important;width:100%!important;max-width:${maxW}!important;max-height:90vh!important;overflow:hidden!important;background:var(--paper-raised,#ffffff)!important;color:var(--ink,#0f172a)!important;border-radius:var(--r-lg,16px)!important;box-shadow:var(--shadow-lg,0 20px 25px -5px rgba(0,0,0,0.3))!important;display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;transform:none!important;animation:none!important;-webkit-animation:none!important;box-sizing:border-box!important;`;
     }
 
     document.body.appendChild(backdrop);
 
-    // (2026-07-13) Dismiss on backdrop mousedown; was delayed click listener
-    backdrop.addEventListener("mousedown", (e) => {
+    // (2026-07-13) Guard backdrop dismissal with 350ms delay; was no delay
+    const openTs = Date.now();
+    const dismissHandler = (e) => {
+      if(Date.now() - openTs < 350) return;
       if(e.target === backdrop && !preventBackdropClose){
         close(backdrop, onClose);
       }
-    });
+    };
+    backdrop.addEventListener("mousedown", dismissHandler);
+    backdrop.addEventListener("click", dismissHandler);
     const xBtn = backdrop.querySelector("#modal-xz");
     if(xBtn) {
       xBtn.onclick = (e) => {
