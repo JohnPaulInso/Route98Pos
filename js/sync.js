@@ -234,10 +234,18 @@ const Sync = (() => {
       DB.setSyncMeta({ ...meta, status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
-      // Read remote snapshot first to pull/sync before pushing
-      const snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
+      // (2026-07-13) Auto-reconnect Firestore on offline error; was unhandled fail
+      let snapDoc = null;
+      try {
+        snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
+      } catch(e) {
+        if(String(e?.message||"").includes("offline") && mod.enableNetwork){
+          await mod.enableNetwork(database).catch(()=>{});
+          snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store")).catch(()=>null);
+        }
+      }
       let finalSnap = DB.snapshot();
-      if(snapDoc.exists()){
+      if(snapDoc && snapDoc.exists()){
         const remoteData = snapDoc.data();
         const baseline = DB.getSyncBaseline();
         finalSnap = threeWayMerge(baseline, finalSnap, remoteData);
@@ -276,7 +284,16 @@ const Sync = (() => {
         exportedAt: Date.now()
       };
 
-      await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), cloudSnap, { merge:false });
+      try {
+        await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), cloudSnap, { merge:false });
+      } catch(setErr) {
+        if(String(setErr?.message||"").includes("offline") && mod.enableNetwork){
+          await mod.enableNetwork(database).catch(()=>{});
+          await mod.setDoc(mod.doc(database, "minimart_snapshots", "store"), cloudSnap, { merge:false });
+        } else {
+          throw setErr;
+        }
+      }
       DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
     }catch(err){
       console.error("Firestore sync failed", err);
@@ -302,9 +319,17 @@ const Sync = (() => {
       DB.setSyncMeta({ ...DB.getSyncMeta(), status:"syncing" }); paintStatus();
       const { db: database, mod } = await ensureFirebase();
 
-      // Check master snapshot first and apply 3-way merge
-      const snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
-      if(snapDoc.exists()){
+      // (2026-07-13) Auto-reconnect Firestore on offline pull; was unhandled fail
+      let snapDoc = null;
+      try {
+        snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store"));
+      } catch(e) {
+        if(String(e?.message||"").includes("offline") && mod.enableNetwork){
+          await mod.enableNetwork(database).catch(()=>{});
+          snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store")).catch(()=>null);
+        }
+      }
+      if(snapDoc && snapDoc.exists()){
         const remoteData = snapDoc.data();
         const baseline = DB.getSyncBaseline();
         const localSnap = DB.snapshot();
@@ -312,7 +337,8 @@ const Sync = (() => {
         DB.restoreSnapshot(merged);
         DB.setSyncBaseline(merged);
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
-      // (2026-07-13) Fix fallback block syntax in pullSnapshot; was premature brace
+      } else if(!snapDoc) {
+        DB.setSyncMeta({ ...DB.getSyncMeta(), status:"idle" });
       } else {
         DB.setSyncMeta({ ...DB.getSyncMeta(), status:"idle" });
         // Fallback: Read individual collections (only on first-time setup)
@@ -710,7 +736,8 @@ const Sync = (() => {
       }, (err) => {
         console.warn("Firestore onSnapshot error:", err);
         unsubSnapshot = null;
-        setTimeout(() => startRealtimeListener(), 4000);
+        try { if(mod.enableNetwork) mod.enableNetwork(database); } catch(enErr){}
+        setTimeout(() => startRealtimeListener(), 2000);
       });
     }catch(err){
       console.warn("Could not start Firestore onSnapshot:", err);
