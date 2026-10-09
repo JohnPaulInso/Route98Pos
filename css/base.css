@@ -440,28 +440,28 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
     padding:10px 18px !important; 
   }
 }
-.modal-headz{ display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1.5px solid var(--line); position:sticky; top:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
-.modal-headz h3{ display:flex; align-items:center; gap:10px; font-size:1.35rem; font-weight:850; letter-spacing:-.01em; color:var(--ink); }
-.modal-headz h3 .ic-svg{ color:var(--brand); }
-.modal-bodyz{ padding:22px 24px; font-size:1.05rem; flex:1; overflow:visible; }
-.modal-bodyz .table-wrap{ overflow:visible; }
-.modal-bodyz .audit-disc-card:last-child{ margin-bottom:60px; }
-.modal-footz{ display:flex; justify-content:flex-end; align-items:center; gap:10px; padding:16px 24px; border-top:1.5px solid var(--line); position:sticky; bottom:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
-.modalz .field{ margin-bottom:14px; }
-.modalz .field label{ font-size:.90rem; font-weight:850; color:var(--ink); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
-.modalz .input, .modalz textarea.input{ font-size:1.10rem; font-weight:600; padding:11px 14px; border-radius:10px; }
-.modalz .ui-select-btn{ font-size:1.10rem; font-weight:650; padding:11px 14px; border-radius:10px; }
-.modalz .ui-select-opt{ font-size:1.02rem; padding:9px 12px; }
-.modalz .btn{ font-size:1.05rem; font-weight:750; padding:10px 20px; border-radius:10px; }
-.modalz .btn.btn-sm{ font-size:.90rem; padding:7px 12px; border-radius:8px; }
-.modalz .btn.btn-lg{ font-size:1.18rem; padding:14px 24px; }
-.modalz .chip{ font-size:.90rem; font-weight:800; padding:7px 14px; }
-.modalz table.data th{ font-size:.84rem; padding:12px 14px; font-weight:850; letter-spacing:.04em; }
-.modalz table.data td{ font-size:1.05rem; padding:12px 14px; }
+/* (2026-07-13) Dual standard and z selectors for modal elements; was z-only */
+.modal-head, .modal-headz{ display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1.5px solid var(--line); position:sticky; top:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
+.modal-head h3, .modal-headz h3{ display:flex; align-items:center; gap:10px; font-size:1.35rem; font-weight:850; letter-spacing:-.01em; color:var(--ink); }
+.modal-head h3 .ic-svg, .modal-headz h3 .ic-svg{ color:var(--brand); }
+.modal-body, .modal-bodyz{ padding:22px 24px; font-size:1.05rem; flex:1; overflow:visible; }
+.modal-body .table-wrap, .modal-bodyz .table-wrap{ overflow:visible; }
+.modal-body .audit-disc-card:last-child, .modal-bodyz .audit-disc-card:last-child{ margin-bottom:60px; }
+.modal-foot, .modal-footz{ display:flex; justify-content:flex-end; align-items:center; gap:10px; padding:16px 24px; border-top:1.5px solid var(--line); position:sticky; bottom:0; z-index:10; background:var(--paper-raised); flex-shrink:0; }
+.modal .field, .modalz .field{ margin-bottom:14px; }
+.modal .field label, .modalz .field label{ font-size:.90rem; font-weight:850; color:var(--ink); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+.modal .input, .modal textarea.input, .modalz .input, .modalz textarea.input{ font-size:1.10rem; font-weight:600; padding:11px 14px; border-radius:10px; }
+.modal .ui-select-btn, .modalz .ui-select-btn{ font-size:1.10rem; font-weight:650; padding:11px 14px; border-radius:10px; }
+.modal .ui-select-opt, .modalz .ui-select-opt{ font-size:1.02rem; padding:9px 12px; }
+.modal .btn, .modalz .btn{ font-size:1.05rem; font-weight:750; padding:10px 20px; border-radius:10px; }
+.modal .btn.btn-sm, .modalz .btn.btn-sm{ font-size:.90rem; padding:7px 12px; border-radius:8px; }
+.modal .btn.btn-lg, .modalz .btn.btn-lg{ font-size:1.18rem; padding:14px 24px; }
+.modal .chip, .modalz .chip{ font-size:.90rem; font-weight:800; padding:7px 14px; }
+.modal table.data th, .modalz table.data th{ font-size:.84rem; padding:12px 14px; font-weight:850; letter-spacing:.04em; }
+.modal table.data td, .modalz table.data td{ font-size:1.05rem; padding:12px 14px; }
 @keyframes pop-in{ from{ opacity:0; transform:translateY(8px) scale(.98);} to{ opacity:1; transform:none; } }
-body.scroll-lockedz{ overflow:hidden; }
-/* (2026-10-05) APK: html.scroll-lockedz used instead of body to avoid clipping fixed modals */
-html.scroll-lockedz body{ overflow:hidden; }
+body.scroll-locked, body.scroll-lockedz{ overflow:hidden; }
+html.scroll-locked body, html.scroll-lockedz body{ overflow:hidden; }
 
 /* ============ TOAST ============ */
 /* (2026-07-13) Position toasts on left for PC view; was bottom-right */
