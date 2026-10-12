@@ -73,7 +73,9 @@ const Sync = (() => {
   function mergeArray3Way(baseArr = [], localArr = [], remoteArr = [], idKey = "id", tsKey = "updatedAt"){
     const isSales = idKey === "receiptNo";
     const delSaleIds = isSales && DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : new Set();
-    // (2026-07-13) Multi-attribute key fallback for items; was id only
+    // (2026-07-13) Retain sales and shift logs in merge; was dropping shift logs
+    const isShiftLogs = idKey === "id" && tsKey === "openedAt";
+    const delShiftIds = isShiftLogs && DB.getDeletedShiftLogIds ? DB.getDeletedShiftLogIds() : new Set();
     const getKey = (item) => {
       if(!item) return "";
       if(isSales) return String(item.receiptNo || item.id || "").trim().replace(/^TXN-/i, "");
@@ -124,6 +126,9 @@ const Sync = (() => {
           const clean = sId.replace(/^TXN-/i, "");
           const isDeleted = delSaleIds.has(sId) || delSaleIds.has(sId.toLowerCase()) || delSaleIds.has(clean) || delSaleIds.has(clean.toLowerCase());
           if(!isDeleted) merged.push(localItem);
+        } else if(isShiftLogs){
+          const sId = String(localItem.id || "").trim();
+          if(!delShiftIds.has(sId)) merged.push(localItem);
         } else if(baseItem){
           if(JSON.stringify(localItem) !== JSON.stringify(baseItem)){
             merged.push(localItem);
@@ -137,6 +142,9 @@ const Sync = (() => {
           const clean = sId.replace(/^TXN-/i, "");
           const isDeleted = delSaleIds.has(sId) || delSaleIds.has(sId.toLowerCase()) || delSaleIds.has(clean) || delSaleIds.has(clean.toLowerCase());
           if(!isDeleted) merged.push(remoteItem);
+        } else if(isShiftLogs){
+          const sId = String(remoteItem.id || "").trim();
+          if(!delShiftIds.has(sId)) merged.push(remoteItem);
         } else if(baseItem){
           if(JSON.stringify(remoteItem) !== JSON.stringify(baseItem)){
             merged.push(remoteItem);
@@ -400,33 +408,7 @@ const Sync = (() => {
         DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
       }
 
-      // (2026-07-13) Pull backups metadata only to avoid quota; was raw snapshot
-      try {
-        const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
-        if(!backupsSnap.empty){
-          const cloudBackups = [];
-          backupsSnap.forEach(d => {
-            const b = { ...d.data() };
-            delete b.data;
-            cloudBackups.push(b);
-          });
-          if(cloudBackups.length){
-            const existing = DB.getBackups();
-            const existingIds = new Set(existing.map(x => x.id));
-            const merged = [...existing];
-            cloudBackups.forEach(b => {
-              if(!existingIds.has(b.id)){
-                merged.push(b);
-              }
-            });
-            merged.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-            // (2026-07-13) Save all merged cloud backups; was capped at 5
-            DB.setBackups(merged);
-          }
-        }
-      } catch(e) {
-        console.warn("Could not pull backups collection:", e);
-      }
+      // (2026-07-13) Omit querying backups collection in pull; was burning read quota
 
       // (2026-07-13) Pull subcollections only on first-time setup; was redundant on every pull
       if(!snapDoc.exists()){
@@ -627,8 +609,10 @@ const Sync = (() => {
       const settings = DB.getSettings();
       if(!settings.firebaseConfig) return DB.getBackups();
       const { db: database, mod } = await ensureFirebase();
-      // (2026-07-13) Strip data payload from cloud backups; was storing heavy snapshots
-      const backupsSnap = await mod.getDocs(mod.collection(database, "backups"));
+      // (2026-07-13) Query at most 10 cloud backups to conserve reads; was all docs
+      const bCol = mod.collection(database, "backups");
+      const bQ = (mod.query && mod.limit) ? mod.query(bCol, mod.limit(10)) : bCol;
+      const backupsSnap = await mod.getDocs(bQ);
       if(!backupsSnap.empty){
         const cloudBackups = [];
         backupsSnap.forEach(d => {
@@ -708,12 +692,12 @@ const Sync = (() => {
     }
   }
 
-  // (2026-07-13) Faster auto-sync debounce for live devices; was 4000ms delay
+  // (2026-07-13) Batch auto-sync debounce to 4s to reduce reads/writes; was 800ms
   function scheduleAutoSync(){
     const settings = DB.getSettings();
     if(!settings.autoSync || !settings.firebaseConfig) return;
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => pushSnapshot(), 800);
+    debounceTimer = setTimeout(() => pushSnapshot(), 4000);
   }
 
   // (2026-07-13) Multi-view refresh helper after realtime sync; was POS only
@@ -889,18 +873,14 @@ const Sync = (() => {
     // (2026-07-13) Auto-pull cloud snapshot on launch; was skipped if local exists
     pullSnapshot();
 
-    // (2026-07-13) Invalidate cache & pull on visibilitychange; was idle in tab
+    // (2026-07-13) Throttle visibility pull to 10m & omit focus pull; was quota drain
     document.addEventListener("visibilitychange", () => {
       if(!document.hidden){
-        DB.invalidateCache?.();
-        startRealtimeListener();
-        pullSnapshot();
+        const lastSync = DB.getSyncMeta()?.lastSynced || 0;
+        if(Date.now() - lastSync > 10 * 60 * 1000){
+          pullSnapshot();
+        }
       }
-    });
-    // (2026-07-13) Auto-pull on window focus in split-screen; was visibility only
-    window.addEventListener("focus", () => {
-      DB.invalidateCache?.();
-      pullSnapshot();
     });
   }
 

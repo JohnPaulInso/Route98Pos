@@ -207,126 +207,157 @@ const Reports = (() => {
   // (2026-07-13) Shared TXN ID formatter; was inline per-call, inconsistent
   function fmtTxnId(id){ const c=(id||"").replace(/[^a-zA-Z0-9]/g,"").toUpperCase().slice(-8); return `TXN-${c||"00000000"}`; }
 
-  // (2026-07-13) Support onClose callback in openReceiptModal; was no navigation
+  // (2026-07-13) Safe openReceiptModal with fallback; was unhandled throws
   function openReceiptModal(sale, opts = {}){
     if(!sale) return;
-    const settings = DB.getSettings();
-    const txnId = fmtTxnId(sale.id);
-    const allProds = DB.getProducts();
+    try {
+      const settings = (DB.getSettings ? DB.getSettings() : {}) || {};
+      const txnId = fmtTxnId(sale.id || sale.receiptNo || "");
+      const allProds = (DB.getProducts ? DB.getProducts() : []) || [];
+      let rawItems = sale.items;
+      if(typeof rawItems === "string"){
+        try { rawItems = JSON.parse(rawItems); } catch(e){ rawItems = []; }
+      }
+      const saleItems = Array.isArray(rawItems) ? rawItems : [];
 
-    const body = `
-      <div class="card" style="margin-bottom:14px;background:var(--paper-dim);padding:14px 18px;border-radius:var(--r-lg);">
-        <div class="flex-between" style="margin-bottom:8px;align-items:center;">
-          <span class="text-sm text-faint" style="font-weight:700;text-transform:uppercase;">Transaction ID</span>
-          <button type="button" class="btn btn-sm" id="btn-copy-txnid" style="background:var(--brand-tint);color:var(--brand-deep);border:1.5px solid var(--brand);font-family:var(--font-mono);font-size:1.2rem;font-weight:900;letter-spacing:.04em;padding:4px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;" title="Click to copy Transaction ID">
-            <span id="txnid-text">${txnId}</span>
-            <span id="txnid-icon" style="display:flex;align-items:center;">${Icons.get("clipboard",{size:14})}</span>
-          </button>
-        </div>
-        <div class="flex-between" style="margin-bottom:6px;"><span class="text-sm text-faint" style="font-weight:700;">Date & Time</span><strong style="font-size:1rem;">${Utils.fmtDate(sale.ts)}</strong></div>
-        <div class="flex-between" style="margin-bottom:6px;"><span class="text-sm text-faint" style="font-weight:700;">Cashier</span><strong style="font-size:1.05rem;">${Utils.escapeHtml(sale.cashier || "Cashier")}</strong></div>
-        <div class="flex-between" style="align-items:center;${sale.refCode ? "margin-bottom:6px;" : ""}"><span class="text-sm text-faint" style="font-weight:700;">Payment Method</span><span class="badge badge-brand" style="font-size:.92rem;font-weight:800;padding:4px 12px;border-radius:10px;">${sale.method}</span></div>
-        ${sale.refCode ? `
-          <div class="flex-between" style="align-items:center;"><span class="text-sm text-faint" style="font-weight:700;">Reference No.</span><strong class="mono" style="font-size:1.1rem;color:var(--brand-deep);">${Utils.escapeHtml(sale.refCode)}</strong></div>
-        ` : ""}
-      </div>
-      <h4 style="font-size:var(--fs-sm);margin-bottom:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);">Items Purchased (${sale.items ? sale.items.length : 0})</h4>
-      <!-- (2026-07-13) Responsive receipt modal table; was small on desktop -->
-      <div class="table-wrap receipt-modal-table-wrap" style="max-height:340px;overflow-y:auto;overflow-x:hidden;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r-md);width:100%;">
-        <table class="receipt-items-table" style="width:100%;min-width:0;max-width:100%;table-layout:fixed;">
-          <thead>
-            <tr style="text-transform:uppercase;letter-spacing:.02em;">
-              <th class="receipt-item-product-col" style="text-align:left;">Product</th>
-              <th class="receipt-item-qty-col" style="text-align:center;">Qty</th>
-              <th class="receipt-item-price-col" style="text-align:right;">Price</th>
-              <th class="receipt-item-total-col" style="text-align:right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${(sale.items || []).map(l => {
-              const matched = allProds.find(p => p.id === l.productId) || {};
-              const img = l.imageUrl || matched.imageUrl;
-              const cat = l.category || matched.category;
-              return `
-              <tr>
-                <td class="receipt-item-product-col" style="white-space:normal;word-break:break-word;">
-                  <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-                    <div class="prod-thumb-sm receipt-item-thumb" style="border-radius:6px;flex-shrink:0;border:1px solid var(--line);">
-                      ${Utils.productThumb({ ...l, imageUrl: img, category: cat }, { iconSize:18 })}
-                    </div>
-                    <div style="min-width:0;flex:1;">
-                      <strong class="receipt-item-name" style="display:block;white-space:normal;word-break:break-word;overflow:visible;">${Utils.escapeHtml(l.name)}</strong>
-                      ${l.unitType==="pack" ? `<span class="badge badge-brand receipt-item-badge" style="margin-top:2px;">PACK (${l.piecesPerPack||1})</span>` : l.isCustom ? `<span class="badge badge-neutral receipt-item-badge" style="margin-top:2px;">Custom</span>` : ""}
-                    </div>
-                  </div>
-                </td>
-                <td class="receipt-item-qty-col mono" style="text-align:center;font-weight:800;">${l.qty}</td>
-                <td class="receipt-item-price-col mono text-faint" style="text-align:right;font-weight:600;white-space:nowrap;">${Utils.money(l.price)}</td>
-                <td class="receipt-item-total-col mono" style="text-align:right;font-weight:800;color:var(--brand-deep);white-space:nowrap;">${Utils.money(l.price * l.qty)}</td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-      <div class="totals-summary" style="background:var(--paper-raised);border:1.5px solid var(--line-strong);border-radius:var(--r-lg);padding:12px 16px;">
-        <div class="totals-row" style="font-size:0.95rem;margin-bottom:4px;"><span>Subtotal</span><span class="mono" style="font-weight:700;">${Utils.money(sale.subtotal ?? sale.total)}</span></div>
-        ${sale.discountAmt ? `<div class="totals-row" style="font-size:0.95rem;margin-bottom:4px;"><span class="text-faint">Discount</span><span class="mono font-bold" style="color:var(--danger);">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
-        ${settings.vatEnabled && sale.vat ? `<div class="totals-row" style="font-size:0.92rem;margin-bottom:4px;"><span>VAT incl. (${settings.vatRate}%)</span><span class="mono font-bold">${Utils.money(sale.vat)}</span></div>` : ""}
-        <div class="totals-row grand" style="padding-top:6px;margin-top:4px;border-top:1.5px solid var(--line);">
-          <span style="font-size:1.05rem;font-weight:800;">Total Paid</span>
-          <span class="mono" style="font-size:1.35rem;font-weight:900;color:var(--brand);">${Utils.money(sale.total)}</span>
-        </div>
-        ${sale.method === "Cash" && sale.tendered !== undefined ? `
-          <div class="totals-row" style="margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;font-size:0.95rem;">
-            <span class="text-faint" style="font-weight:700;">Cash Tendered</span>
-            <span class="mono font-bold" style="font-size:1.05rem;">${Utils.money(sale.tendered)}</span>
+      const body = `
+        <div class="card" style="margin-bottom:14px;background:var(--paper-dim);padding:14px 18px;border-radius:var(--r-lg);">
+          <div class="flex-between" style="margin-bottom:8px;align-items:center;">
+            <span class="text-sm text-faint" style="font-weight:700;text-transform:uppercase;">Transaction ID</span>
+            <button type="button" class="btn btn-sm" id="btn-copy-txnid" style="background:var(--brand-tint);color:var(--brand-deep);border:1.5px solid var(--brand);font-family:var(--font-mono);font-size:1.2rem;font-weight:900;letter-spacing:.04em;padding:4px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;" title="Click to copy Transaction ID">
+              <span id="txnid-text">${txnId}</span>
+              <span id="txnid-icon" style="display:flex;align-items:center;">${Icons.get("clipboard",{size:14})}</span>
+            </button>
           </div>
-          <div class="totals-row" style="margin-top:4px;font-size:1rem;">
-            <span style="font-weight:800;color:var(--success-deep);">Change Given</span>
-            <span class="mono font-bold" style="font-size:1.15rem;font-weight:900;color:var(--success-deep);">${Utils.money(sale.change || 0)}</span>
+          <div class="flex-between" style="margin-bottom:6px;"><span class="text-sm text-faint" style="font-weight:700;">Date & Time</span><strong style="font-size:1rem;">${Utils.fmtDate(sale.ts)}</strong></div>
+          <div class="flex-between" style="margin-bottom:6px;"><span class="text-sm text-faint" style="font-weight:700;">Cashier</span><strong style="font-size:1.05rem;">${Utils.escapeHtml(sale.cashier || "Cashier")}</strong></div>
+          <div class="flex-between" style="align-items:center;${sale.refCode ? "margin-bottom:6px;" : ""}"><span class="text-sm text-faint" style="font-weight:700;">Payment Method</span><span class="badge badge-brand" style="font-size:.92rem;font-weight:800;padding:4px 12px;border-radius:10px;">${sale.method || "Cash"}</span></div>
+          ${sale.refCode ? `
+            <div class="flex-between" style="align-items:center;"><span class="text-sm text-faint" style="font-weight:700;">Reference No.</span><strong class="mono" style="font-size:1.1rem;color:var(--brand-deep);">${Utils.escapeHtml(sale.refCode)}</strong></div>
+          ` : ""}
+        </div>
+        <h4 style="font-size:var(--fs-sm);margin-bottom:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);">Items Purchased (${saleItems.length})</h4>
+        <!-- (2026-07-13) Responsive receipt modal table; was small on desktop -->
+        <div class="table-wrap receipt-modal-table-wrap" style="max-height:340px;overflow-y:auto;overflow-x:hidden;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r-md);width:100%;">
+          <table class="receipt-items-table" style="width:100%;min-width:0;max-width:100%;table-layout:fixed;">
+            <thead>
+              <tr style="text-transform:uppercase;letter-spacing:.02em;">
+                <th class="receipt-item-product-col" style="text-align:left;">Product</th>
+                <th class="receipt-item-qty-col" style="text-align:center;">Qty</th>
+                <th class="receipt-item-price-col" style="text-align:right;">Price</th>
+                <th class="receipt-item-total-col" style="text-align:right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${saleItems.map(l => {
+                if(!l) return "";
+                const lName = String(l.name || "").trim().toLowerCase();
+                const matched = allProds.find(p => p && ((l.productId && p.id === l.productId) || (lName && p.name && String(p.name).trim().toLowerCase() === lName))) || {};
+                const img = l.imageUrl || matched.imageUrl;
+                const cat = l.category || matched.category;
+                const lQty = Number(l.qty) || 1;
+                const ppp = Number(l.piecesPerPack || matched.piecesPerPack) || 1;
+                const pieces = (l.unitType === "pack" && ppp > 1) ? lQty * ppp : lQty;
+                const sBefore = (l.stockBefore !== undefined && l.stockBefore !== null) ? Number(l.stockBefore) : ((matched.stock !== undefined && matched.stock !== null) ? Utils.round2(Number(matched.stock) + pieces) : null);
+                const sAfter = (l.stockAfter !== undefined && l.stockAfter !== null) ? Number(l.stockAfter) : ((matched.stock !== undefined && matched.stock !== null) ? Number(matched.stock) : null);
+                const showStockChip = sBefore !== null && sAfter !== null && !isNaN(sBefore) && !isNaN(sAfter) && !l.isCustom;
+                const price = Number(l.price) || 0;
+                return `
+                <tr>
+                  <td class="receipt-item-product-col" style="white-space:normal;word-break:break-word;">
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                      <div class="prod-thumb-sm receipt-item-thumb" style="border-radius:6px;flex-shrink:0;border:1px solid var(--line);">
+                        ${(Utils.productThumb ? Utils.productThumb({ ...l, imageUrl: img, category: cat }, { iconSize:18 }) : "")}
+                      </div>
+                      <div style="min-width:0;flex:1;">
+                        <strong class="receipt-item-name" style="display:block;white-space:normal;word-break:break-word;overflow:visible;">${Utils.escapeHtml(l.name || "Item")}</strong>
+                        <!-- (2026-07-13) Display stock before/after chip in receipt; was name only -->
+                        ${showStockChip ? `<span class="receipt-item-stock-chip" style="display:inline-block;padding:1px 6px;margin-top:2px;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.75rem;line-height:1.3;white-space:nowrap;">Stock: ${sBefore} → ${sAfter}</span>` : ""}
+                        ${l.unitType==="pack" ? `<span class="badge badge-brand receipt-item-badge" style="margin-top:2px;">PACK (${ppp})</span>` : l.isCustom ? `<span class="badge badge-neutral receipt-item-badge" style="margin-top:2px;">Custom</span>` : ""}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="receipt-item-qty-col mono" style="text-align:center;font-weight:800;">${lQty}</td>
+                  <td class="receipt-item-price-col mono text-faint" style="text-align:right;font-weight:600;white-space:nowrap;">${Utils.money(price)}</td>
+                  <td class="receipt-item-total-col mono" style="text-align:right;font-weight:800;color:var(--brand-deep);white-space:nowrap;">${Utils.money(price * lQty)}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="totals-summary" style="background:var(--paper-raised);border:1.5px solid var(--line-strong);border-radius:var(--r-lg);padding:12px 16px;">
+          <div class="totals-row" style="font-size:0.95rem;margin-bottom:4px;"><span>Subtotal</span><span class="mono" style="font-weight:700;">${Utils.money(sale.subtotal ?? sale.total)}</span></div>
+          ${sale.discountAmt ? `<div class="totals-row" style="font-size:0.95rem;margin-bottom:4px;"><span class="text-faint">Discount</span><span class="mono font-bold" style="color:var(--danger);">-${Utils.money(sale.discountAmt)}</span></div>` : ""}
+          ${settings.vatEnabled && sale.vat ? `<div class="totals-row" style="font-size:0.92rem;margin-bottom:4px;"><span>VAT incl. (${settings.vatRate}%)</span><span class="mono font-bold">${Utils.money(sale.vat)}</span></div>` : ""}
+          <div class="totals-row grand" style="padding-top:6px;margin-top:4px;border-top:1.5px solid var(--line);">
+            <span style="font-size:1.05rem;font-weight:800;">Total Paid</span>
+            <span class="mono" style="font-size:1.35rem;font-weight:900;color:var(--brand);">${Utils.money(sale.total)}</span>
           </div>
-        ` : ""}
-      </div>`;
+          ${sale.method === "Cash" && sale.tendered !== undefined ? `
+            <div class="totals-row" style="margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;font-size:0.95rem;">
+              <span class="text-faint" style="font-weight:700;">Cash Tendered</span>
+              <span class="mono font-bold" style="font-size:1.05rem;">${Utils.money(sale.tendered)}</span>
+            </div>
+            <div class="totals-row" style="margin-top:4px;font-size:1rem;">
+              <span style="font-weight:800;color:var(--success-deep);">Change Given</span>
+              <span class="mono font-bold" style="font-size:1.15rem;font-weight:900;color:var(--success-deep);">${Utils.money(sale.change || 0)}</span>
+            </div>
+          ` : ""}
+        </div>`;
 
-    // (2026-07-13) Edit sale, void logs & restock rollbacks for Admin; was delete only
-    const actions = [
-      { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modalz.close(opts.onClose); } }
-    ];
-    if(Auth.isAdmin()){
-      actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modalz.close(); openEditSaleModal(sale); } });
-      actions.push({ label: "Delete Sale", cls: "btn-danger btn-lg", onClick: () => { Modalz.close(); deleteSaleRecord(sale.id); } });
-    }
-    // (2026-07-13) Line break print receipt button on mobile; was standard button
-    actions.push({ label: "Print Receipt", cls: "btn-primary btn-lg btn-print-receipt", onClick: () => { POS.printByRecord(sale); } });
+      // (2026-07-13) Edit sale, void logs & restock rollbacks for Admin; was delete only
+      const actions = [
+        { label: "Close", cls: "btn-ghost btn-lg", onClick: () => { Modalz.close(opts.onClose); } }
+      ];
+      if(Auth.isAdmin()){
+        actions.push({ label: "Edit Sale", cls: "btn-outline btn-lg", onClick: () => { Modalz.close(); openEditSaleModal(sale); } });
+        actions.push({ label: "Delete Sale", cls: "btn-danger btn-lg", onClick: () => { Modalz.close(); deleteSaleRecord(sale.id); } });
+      }
+      // (2026-07-13) Line break print receipt button on mobile; was standard button
+      actions.push({ label: "Print Receipt", cls: "btn-primary btn-lg btn-print-receipt", onClick: () => { POS.printByRecord(sale); } });
 
-    const modal = Modalz.open({
-      title: `${Icons.get("receipt",{size:18})} Receipt & Transaction Details`,
-      body,
-      wide: true,
-      actions,
-      modalClass: `modal-receipt-dialog ${opts.modalClass || ""}`,
-      onClose: opts.onClose
-    });
+      const modal = Modalz.open({
+        title: `${Icons.get("receipt",{size:18})} Receipt & Transaction Details`,
+        body,
+        wide: true,
+        actions,
+        // (2026-07-13) Trim receipt modalClass; was untrimmed template string
+        modalClass: `modal-receipt-dialog ${opts.modalClass || ""}`.trim(),
+        onClose: opts.onClose
+      });
 
-    const copyBtn = modal.querySelector("#btn-copy-txnid");
-    if(copyBtn){
-      copyBtn.onclick = async () => {
-        try{
-          if(navigator.clipboard && navigator.clipboard.writeText){
-            await navigator.clipboard.writeText(txnId);
-          } else {
-            const ta = document.createElement("textarea");
-            ta.value = txnId; document.body.appendChild(ta);
-            ta.select(); document.execCommand("copy"); ta.remove();
+      const copyBtn = modal ? modal.querySelector("#btn-copy-txnid") : null;
+      if(copyBtn){
+        copyBtn.onclick = async () => {
+          try{
+            if(navigator.clipboard && navigator.clipboard.writeText){
+              await navigator.clipboard.writeText(txnId);
+            } else {
+              const ta = document.createElement("textarea");
+              ta.value = txnId; document.body.appendChild(ta);
+              ta.select(); document.execCommand("copy"); ta.remove();
+            }
+            const iconEl = copyBtn.querySelector("#txnid-icon");
+            if(iconEl) iconEl.innerHTML = Icons.get("check-circle",{size:14});
+            Utils.toast(`Copied ${txnId} to clipboard!`, "success", 1500);
+            setTimeout(() => { if(iconEl) iconEl.innerHTML = Icons.get("clipboard",{size:14}); }, 1800);
+          }catch(err){
+            Utils.toast(`Transaction ID: ${txnId}`, "info", 2000);
           }
-          const iconEl = copyBtn.querySelector("#txnid-icon");
-          if(iconEl) iconEl.innerHTML = Icons.get("check-circle",{size:14});
-          Utils.toast(`Copied ${txnId} to clipboard!`, "success", 1500);
-          setTimeout(() => { if(iconEl) iconEl.innerHTML = Icons.get("clipboard",{size:14}); }, 1800);
-        }catch(err){
-          Utils.toast(`Transaction ID: ${txnId}`, "info", 2000);
-        }
-      };
+        };
+      }
+    } catch(err) {
+      console.error("Receipt modal error:", err);
+      try {
+        Modalz.open({
+          title: `Receipt Details`,
+          body: `<div style="padding:16px;"><h4>Transaction: ${Utils.escapeHtml(String(sale.receiptNo || sale.id || "N/A"))}</h4><p>Total: ${Utils.money(sale.total || 0)}</p><p>Cashier: ${Utils.escapeHtml(sale.cashier || "Cashier")}</p><p>Date: ${Utils.fmtDate(sale.ts)}</p></div>`,
+          actions: [{ label: "Close", cls: "btn-ghost", onClick: () => Modalz.close(opts.onClose) }],
+          onClose: opts.onClose
+        });
+      } catch(modalErr){
+        console.error("Fallback modal error:", modalErr);
+      }
     }
   }
 
@@ -2076,11 +2107,15 @@ const Reports = (() => {
   // (2026-07-13) Add pagination & open/close balances; was unpaginated no balances
   // (2026-09-24) Receipt search state variable
   let receiptSearchTerm = "";
+  // (2026-07-13) Cache paged & history sales for click lookup; was unmapped
+  let currentPagedSales = [];
+  let currentHistorySales = [];
 
   function historyTable(){
     const r = getActiveRange();
     const filterFn = getReportFilterFn();
     let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+    currentHistorySales = sales;
     
     // (2026-09-24) Apply search filter by TXN ID or item names
     if(receiptSearchTerm && receiptSearchTerm.trim()){
@@ -2180,7 +2215,9 @@ const Reports = (() => {
     if(receiptPage < 1) receiptPage = 1;
 
     const startIdx = (receiptPage - 1) * receiptRPP;
+    // (2026-07-13) Store currentPagedSales reference; was local-only slice
     const pagedSales = sales.slice(startIdx, startIdx + receiptRPP);
+    currentPagedSales = pagedSales;
 
     // (2026-07-13) Show receipt select toolbar only when items checked; was always
     return `
@@ -2302,24 +2339,25 @@ const Reports = (() => {
           const dispItems = sItems.slice(0, 3);
           const moreCount = sItems.length - 3;
           const fullTitle = sItems.map(it => `@${it.qty}x ${it.name}`).join("\n");
-          return `<tr class="${isChecked ? "selected-row" : ""}" style="${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
+          // (2026-07-13) Inline row & button receipt click; was unhandled delegated
+          return `<tr class="receipt-row ${isChecked ? "selected-row" : ""}" data-sale-idx="${idx}" data-sale-row-id="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="if(!event.target.closest('.receipt-select-cell, input, [data-edit-sale-row], [data-reprint], [data-delete-sale]')) Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');" style="cursor:pointer;${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
           <td style="width:32px;text-align:center;" class="receipt-select-cell">
-            <input type="checkbox" class="receipt-select-chk" data-sale-id="${s.id}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
+            <input type="checkbox" class="receipt-select-chk" data-sale-id="${Utils.escapeHtml(String(s.id || ''))}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
           </td>
           <!-- (2026-07-13) Show row num & txn id; was row num truncated -->
-          <td class="receipt-col-txn" style="cursor:pointer;" data-view-receipt="${s.id}">
+          <td class="receipt-col-txn" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">
             <div style="display:flex;flex-direction:column;gap:1px;line-height:1.15;min-width:0;">
               <span class="mono font-bold receipt-row-num" style="font-size:0.72rem;color:var(--ink);">#${sales.length - (startIdx + idx)}</span>
               <span class="mono receipt-txn-code" style="font-size:0.62rem;font-weight:700;color:var(--brand-deep);white-space:nowrap;">${s.receiptNo ? `#${s.receiptNo}` : fmtTxnId(s.id)}</span>
             </div>
           </td>
           <!-- (2026-07-13) Add column classes for PC width tuning; was unclassed td -->
-          <td class="desktop-only receipt-col-time" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.fmtDate(s.ts)}</td>
-          <td class="desktop-only receipt-col-txnid mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${fmtTxnId(s.id)}</td>
-          <td class="desktop-only receipt-col-source" style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
-          <td class="receipt-col-items" style="cursor:pointer;" data-view-receipt="${s.id}">
+          <td class="desktop-only receipt-col-time" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">${Utils.fmtDate(s.ts)}</td>
+          <td class="desktop-only receipt-col-txnid mono font-bold" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">${fmtTxnId(s.id)}</td>
+          <td class="desktop-only receipt-col-source" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');"><span class="badge ${isImp ? "badge-neutral" : "badge-brand"}" style="font-size:0.75rem;font-weight:800;">${isImp ? "Imported" : "Manual"}</span></td>
+          <td class="receipt-col-items" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="if(!event.target.closest('button')) Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">
             <div style="display:flex;flex-direction:column;gap:3px;max-width:100%;">
-              <button class="btn btn-xs btn-outline" style="padding:1px 6px;font-size:0.7rem;align-self:flex-start;">${Icons.get("receipt",{size:11})} ${sItems.length} item(s)</button>
+              <button class="btn btn-xs btn-outline receipt-items-btn" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');" type="button" style="padding:1px 6px;font-size:0.7rem;align-self:flex-start;cursor:pointer;">${Icons.get("receipt",{size:11})} ${sItems.length} item(s)</button>
               <div class="receipt-items-list" style="font-size:0.68rem;color:var(--ink-soft);line-height:1.25;display:flex;flex-direction:column;gap:1px;" title="${Utils.escapeHtml(fullTitle)}">
                 ${dispItems.map(it => `<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">@${it.qty}x ${Utils.escapeHtml(it.name)}</span>`).join("")}
                 ${moreCount > 0 ? `<span style="color:var(--brand-deep);font-weight:700;font-size:0.65rem;display:block;">+${moreCount} more...</span>` : ""}
@@ -2329,16 +2367,16 @@ const Reports = (() => {
               </div>
             </div>
           </td>
-          <td class="receipt-col-total mono font-bold" style="cursor:pointer;" data-view-receipt="${s.id}">${Utils.money(s.total)}</td>
-          <td class="desktop-only receipt-col-method" style="cursor:pointer;" data-view-receipt="${s.id}"><span class="badge badge-neutral">${s.method}</span></td>
-          <td class="desktop-only receipt-col-cashier" style="cursor:pointer;" data-view-receipt="${s.id}">${s.cashier || "Cashier"}</td>
-          <!-- (2026-07-13) Larger tinted action buttons on PC; was small ghost -->
+          <td class="receipt-col-total mono font-bold" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">${Utils.money(s.total)}</td>
+          <td class="desktop-only receipt-col-method" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');"><span class="badge badge-neutral">${s.method}</span></td>
+          <td class="desktop-only receipt-col-cashier" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">${s.cashier || "Cashier"}</td>
+          <!-- (2026-07-13) Show View Receipt on desktop & mobile; was mobile-only hidden -->
           <td class="receipt-col-actions" style="text-align:right;">
             <div class="receipt-actions-cluster" style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end;">
-              <button class="btn btn-xs btn-outline mobile-only" data-view-receipt="${s.id}" title="View Receipt">${Icons.get("receipt",{size:13})}</button>
-              <button class="btn btn-sm desktop-only receipt-btn-edit" data-edit-sale-row="${s.id}" title="Edit Sale">${Icons.get("edit",{size:15})}</button>
-              <button class="btn btn-sm desktop-only receipt-btn-reprint" data-reprint="${s.id}" title="Reprint">${Icons.get("printer",{size:15})}</button>
-              <button class="btn btn-sm receipt-btn-delete" data-delete-sale="${s.id}" title="Delete Sale">${Icons.get("trash",{size:15})}</button>
+              <button class="btn btn-sm btn-outline receipt-btn-view" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');" title="View Receipt" style="color:var(--brand);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;">${Icons.get("receipt",{size:15})}</button>
+              <button class="btn btn-sm desktop-only receipt-btn-edit" data-edit-sale-row="${Utils.escapeHtml(String(s.id || ''))}" title="Edit Sale">${Icons.get("edit",{size:15})}</button>
+              <button class="btn btn-sm desktop-only receipt-btn-reprint" data-reprint="${Utils.escapeHtml(String(s.id || ''))}" title="Reprint">${Icons.get("printer",{size:15})}</button>
+              <button class="btn btn-sm receipt-btn-delete" data-delete-sale="${Utils.escapeHtml(String(s.id || ''))}" title="Delete Sale">${Icons.get("trash",{size:15})}</button>
             </div>
           </td>
         </tr>`;
@@ -2511,8 +2549,8 @@ const Reports = (() => {
                   <tr style="font-size:0.86rem;">
                     <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 8px;white-space:nowrap;">${Utils.fmtDate(l.ts)}</td>
                     <td class="mono font-bold void-col-txn" style="padding:8px 8px;word-break:break-all;max-width:120px;line-height:1.3;white-space:normal;">${Utils.escapeHtml(l.origTxnId)}</td>
-                    <!-- (2026-07-13) Render formatted stock changes in void summary; was plain text -->
-                    <td style="max-width:280px;padding:8px 10px;font-size:0.85rem;word-wrap:break-word;white-space:normal;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}" style="display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical;overflow:hidden;word-wrap:break-word;line-height:1.4;max-height:9em;">${Utils.escapeHtml(l.itemSummary).replace(/\(Stock:\s*([0-9.]+)\s*→\s*([0-9.]+)\)/g, '<span style="display:inline-block;padding:2px 6px;margin:2px 0;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.80rem;">Stock: $1 → $2</span>')}</div></td>
+                    <!-- (2026-07-13) Support negative stock chips & unclip summary; was [0-9.] & 9em -->
+                    <td style="max-width:320px;padding:8px 10px;font-size:0.85rem;word-break:break-word;white-space:normal;vertical-align:top;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}" style="display:block;overflow:visible;word-break:break-word;overflow-wrap:anywhere;line-height:1.65;max-width:320px;">${Utils.escapeHtml(l.itemSummary).replace(/\(Stock:\s*(-?[0-9.]+)\s*(?:→|->|-&gt;)\s*(-?[0-9.]+)\)/gi, '<span class="void-stock-chip" style="display:inline-block;padding:1px 6px;margin:1px 3px;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.78rem;line-height:1.3;vertical-align:middle;white-space:nowrap;">Stock: $1 → $2</span>')}</div></td>
                     <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};white-space:nowrap;">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
                     <td style="padding:8px 10px;font-size:0.85rem;word-break:break-word;">${Utils.escapeHtml(l.admin || "Admin")}</td>
                     <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;word-break:break-word;max-width:140px;white-space:normal;">${Utils.escapeHtml(l.reason)}</td>
@@ -3133,7 +3171,8 @@ const Reports = (() => {
     try {
       const trendCtx = document.getElementById("ov-chart-trend")?.getContext("2d");
       if(trendCtx){
-        const trendData = stats?.trend || Analytics.computeTrendData(periodKey);
+        // (2026-07-13) Pass active range & filter to trend chart; was periodKey string
+        const trendData = stats?.trend || Analytics.computeTrendData(getActiveRange(), { filterFn: getReportFilterFn() });
         const store = trendData?.store || trendData?.storeData || [];
         const labels = trendData?.labels || [];
         const timestamps = trendData?.timestamps || trendData?.dayStarts || [];
@@ -3200,10 +3239,14 @@ const Reports = (() => {
                   display: false,
                   drawBorder: false
                 },
+                // (2026-07-13) Auto-skip x-ticks for 24h hourly trend; was crowded labels
                 ticks: {
                   font: { size: 11, weight: '600' },
                   color: '#64748b',
-                  padding: 8
+                  padding: 8,
+                  autoSkip: true,
+                  maxTicksLimit: 8,
+                  maxRotation: 0
                 }
               },
               y: {
@@ -3608,6 +3651,8 @@ const Reports = (() => {
               ${Icons.get("trending-up",{size:18})} Revenue Trend
             </h3>
             <select class="input" id="trend-period-select" style="height:32px;padding:2px 10px;font-size:var(--fs-xs);font-weight:700;border-radius:var(--r-md);background:var(--paper-raised);border:1px solid var(--line);color:var(--ink);cursor:pointer;width:auto;">
+              <!-- (2026-07-13) Support custom date option in trend select; was standard only -->
+              ${periodKey === "custom" ? `<option value="custom" selected>${activeRange?.label || "Custom Date"}</option>` : ""}
               ${PERIOD_FILTERS.map(([k, lbl]) => `<option value="${k}" ${periodKey === k ? "selected" : ""}>${lbl}</option>`).join("")}
             </select>
           </div>
@@ -4275,10 +4320,11 @@ const Reports = (() => {
       if(tab === "history") {
         addBackToTopButton();
         
-        // Create charts for Receipts page
-        const r = getActiveRange();
-        const filterFn = getReportFilterFn();
-        const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
+        // (2026-07-13) Safe chart init; was unhandled throws blocking listeners
+        try {
+          const r = getActiveRange();
+          const filterFn = getReportFilterFn();
+          const sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end && filterFn(s));
         
         // Payment Methods Pie Chart
         const payPieCtx = document.getElementById("receipts-payment-pie")?.getContext("2d");
@@ -4482,15 +4528,84 @@ const Reports = (() => {
               }
             }
           });
+          }
+        } catch(chartErr) {
+          console.warn("Receipts chart error:", chartErr);
         }
       }
       
+      // (2026-07-13) Delegated & resilient receipt click handling; was strict eq
+      const findSale = (sid, rNo, idx) => {
+        if(idx !== undefined && idx !== null && idx !== "" && Array.isArray(currentPagedSales) && currentPagedSales[Number(idx)]) {
+          return currentPagedSales[Number(idx)];
+        }
+        if(!sid && !rNo) return null;
+        const sStr = String(sid || "").trim();
+        const rStr = String(rNo || "").trim();
+        const norm = (v) => String(v || "").replace(/^TXN-?/i, "").trim().toLowerCase();
+        const clean = (v) => String(v || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const sNorm = norm(sStr);
+        const rNorm = norm(rStr);
+        const sClean = clean(sStr);
+        const rClean = clean(rStr);
+        const matchFn = (x) => {
+          if(!x) return false;
+          const xId = String(x.id || "").trim();
+          const xRNo = String(x.receiptNo || "").trim();
+          if((sStr && (xId === sStr || xRNo === sStr)) || (rStr && (xId === rStr || xRNo === rStr))) return true;
+          const xIdNorm = norm(xId);
+          const xRNoNorm = norm(xRNo);
+          if((sNorm && (xIdNorm === sNorm || xRNoNorm === sNorm)) || (rNorm && (xIdNorm === rNorm || xRNoNorm === rNorm))) return true;
+          const xIdClean = clean(xId);
+          const xRNoClean = clean(xRNo);
+          if((sClean && (xIdClean === sClean || xRNoClean === sClean)) || (rClean && (xIdClean === rClean || xRNoClean === rClean))) return true;
+          return false;
+        };
+        const curList = (Array.isArray(currentHistorySales) && currentHistorySales.length) ? currentHistorySales : (Array.isArray(currentPagedSales) ? currentPagedSales : []);
+        return curList.find(matchFn) || (DB.getSales ? DB.getSales().find(matchFn) : null);
+      };
+
+      const rptBody = document.getElementById("report-body");
+      if(rptBody && !rptBody._hasReceiptClickDelegation){
+        rptBody._hasReceiptClickDelegation = true;
+        rptBody.addEventListener("click", (e) => {
+          if(e.target.closest(".receipt-select-cell, .receipt-btn-edit, .receipt-btn-reprint, .receipt-btn-delete, input[type='checkbox'], [data-edit-sale-row], [data-reprint], [data-delete-sale]")) return;
+          const row = e.target.closest(".receipt-row");
+          const viewTarget = e.target.closest("[data-view-receipt]") || row;
+          if(!viewTarget && !row) return;
+          const sid = (viewTarget && (viewTarget.dataset.viewReceipt || viewTarget.dataset.saleRowId)) || (row ? (row.dataset.viewReceipt || row.dataset.saleRowId) : "");
+          const rNo = (viewTarget && viewTarget.dataset.receiptNo) || (row ? row.dataset.receiptNo : "");
+          const idx = (viewTarget && viewTarget.dataset.saleIdx !== undefined) ? viewTarget.dataset.saleIdx : (row ? row.dataset.saleIdx : null);
+          const s = findSale(sid, rNo, idx);
+          if(s) {
+            e.stopPropagation();
+            openReceiptModal(s);
+          }
+        });
+      }
+
       document.querySelectorAll("[data-period]").forEach(chip => {
         chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; receiptPage = 1; fuelSalesPage = 1; render(); };
       });
-      document.querySelectorAll("[data-view-receipt]").forEach(b=>b.onclick=()=>{
-        const s = DB.getSales().find(x=>x.id===b.dataset.viewReceipt);
-        if(s) openReceiptModal(s);
+      document.querySelectorAll(".receipt-row").forEach(tr => {
+        tr.onclick = (e) => {
+          if(e.target.closest(".receipt-select-cell, .receipt-btn-edit, .receipt-btn-reprint, .receipt-btn-delete, input[type='checkbox']")) return;
+          const sid = tr.dataset.saleRowId;
+          const rNo = tr.dataset.receiptNo;
+          const idx = tr.dataset.saleIdx;
+          const s = findSale(sid, rNo, idx);
+          if(s) openReceiptModal(s);
+        };
+      });
+      document.querySelectorAll("[data-view-receipt]").forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const sid = b.dataset.viewReceipt;
+          const rNo = b.dataset.receiptNo;
+          const idx = b.dataset.saleIdx;
+          const s = findSale(sid, rNo, idx);
+          if(s) openReceiptModal(s);
+        };
       });
       // (2026-07-13) Pin-gate edit & delete actions; was direct call
       document.querySelectorAll("[data-edit-sale-row]").forEach(b=>b.onclick=(e)=>{
@@ -4834,6 +4949,26 @@ const Reports = (() => {
 
   }
 
+  // (2026-07-13) Resilient receipt lookup by index, id, or receiptNo; was index only
+  function viewReceiptByIndex(idx, idOrReceiptNo){
+    let s = null;
+    const numIdx = Number(idx);
+    if(!isNaN(numIdx)){
+      s = (Array.isArray(currentPagedSales) && currentPagedSales[numIdx]) ? currentPagedSales[numIdx] :
+          ((Array.isArray(currentHistorySales) && currentHistorySales[numIdx]) ? currentHistorySales[numIdx] : null);
+    }
+    if(!s && (idOrReceiptNo || typeof idx === "string")){
+      const targetId = String(idOrReceiptNo || idx || "").trim();
+      const all = (DB.getSales ? DB.getSales() : []) || [];
+      s = all.find(x => x && (x.id === targetId || x.receiptNo === targetId || String(x.id).includes(targetId)));
+    }
+    if(!s && !isNaN(numIdx) && DB.getSales){
+      const all = DB.getSales();
+      s = all[numIdx] || null;
+    }
+    if(s) openReceiptModal(s);
+  }
+
   // (2026-07-13) Export date picker modal & range helpers; was private only
   return { 
     render,
@@ -4844,6 +4979,8 @@ const Reports = (() => {
     fmtDateRangeLabel,
     shiftPeriod,
     openReceiptModal,
+    viewReceiptByIndex,
+    viewReceipt: (idOrIdx) => viewReceiptByIndex(idOrIdx, idOrIdx),
     navigateToReceipts,
     navigateToSalesByItem,
     navigateToVoidAudit,
@@ -4853,3 +4990,6 @@ const Reports = (() => {
     deleteSaleRecord
   };
 })();
+// (2026-07-13) Expose Reports to window for onclick handlers; was script-scoped
+window.Reports = Reports;
+

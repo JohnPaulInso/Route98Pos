@@ -87,8 +87,13 @@ const Inventory = (() => {
       <div class="prod-form-image-section">
         <div class="image-preview prod-form-preview" id="img-preview">${Utils.productThumb(initial || { category: cats[0] }, { iconSize:36 })}</div>
         <div class="field" style="width:100%;">
-          <label>Image URL <span class="text-faint" style="text-transform:none;font-weight:500;">(paste photo link — optional)</span></label>
+          <div class="flex-between" style="align-items:center;margin-bottom:4px;">
+            <label style="margin-bottom:0;">Image URL <span class="text-faint" style="text-transform:none;font-weight:500;">(paste photo link — optional)</span></label>
+            <!-- (2026-07-13) Add Google Images search button; was static label -->
+            <button type="button" class="btn btn-xs btn-outline" id="btn-google-img-search" style="font-size:0.75rem;padding:2px 8px;display:inline-flex;align-items:center;gap:4px;" title="Search Google Images in new tab">${Icons.get("search",{size:12})} <span>Google Images</span></button>
+          </div>
           <input class="input" id="f-image" value="${initial?.imageUrl?Utils.escapeHtml(initial.imageUrl):""}" placeholder="https://…">
+          <div id="f-img-suggestions" style="margin-top:6px;display:none;"></div>
         </div>
       </div>
       <div class="field">
@@ -188,6 +193,119 @@ const Inventory = (() => {
     modal.querySelector("#f-scan-btn").onclick = () => Scanner.openCameraScan((code)=>{ modal.querySelector("#f-barcode").value = code; if(!isEdit) saveDraft(); });
     modal.querySelector("#f-image").addEventListener("input", Utils.debounce(()=>updatePreview(modal), 250));
     modal.querySelector("#f-name").focus();
+
+    // (2026-07-13) Auto-detect product name for image suggestions; was manual link
+    async function detectAndSuggestImage(rawName){
+      const name = (rawName || "").trim();
+      const suggWrap = modal.querySelector("#f-img-suggestions");
+      const googleBtn = modal.querySelector("#btn-google-img-search");
+      if(!suggWrap) return;
+      if(googleBtn){
+        googleBtn.onclick = () => {
+          const q = name ? `${name} Philippines product packaging white background` : "retail product packaging white background";
+          window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`, "_blank");
+        };
+      }
+      if(!name || name.length < 2){
+        suggWrap.innerHTML = "";
+        suggWrap.style.display = "none";
+        return;
+      }
+
+      const suggestions = [];
+      const seenUrls = new Set();
+      const prods = (typeof DB !== "undefined" && DB.getProducts) ? DB.getProducts() : [];
+      const lower = name.toLowerCase();
+      const tokens = lower.split(/\s+/).filter(t => t.length > 2);
+
+      for(const p of prods){
+        if(p.imageUrl && p.imageUrl.startsWith("http") && !seenUrls.has(p.imageUrl)){
+          const pName = (p.name || "").toLowerCase();
+          if(pName === lower || pName.includes(lower) || lower.includes(pName) || (tokens.length && tokens.every(t => pName.includes(t)))){
+            seenUrls.add(p.imageUrl);
+            suggestions.push({ url: p.imageUrl, label: p.name, source: "Catalog" });
+            if(suggestions.length >= 3) break;
+          }
+        }
+      }
+
+      try {
+        const resp = await fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(name)}&gsrlimit=3&prop=pageimages&pithumbsize=400&format=json&origin=*`, { signal: AbortSignal.timeout ? AbortSignal.timeout(3000) : undefined });
+        if(resp.ok){
+          const data = await resp.json();
+          const pages = Object.values(data.query?.pages || {});
+          for(const pg of pages){
+            const src = pg.thumbnail?.source;
+            if(src && !seenUrls.has(src)){
+              seenUrls.add(src);
+              suggestions.push({ url: src, label: pg.title || name, source: "Online" });
+              if(suggestions.length >= 4) break;
+            }
+          }
+        }
+      } catch(err){}
+
+      if(!suggestions.length){
+        suggWrap.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;color:var(--ink-faint);background:var(--paper-dim);padding:4px 8px;border-radius:6px;border:1px dashed var(--line);">
+            <span>No sample images found for "${Utils.escapeHtml(name)}"</span>
+            <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(name + ' Philippines product packaging white background')}" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">
+              ${Icons.get("external-link",{size:11})} Google Images
+            </a>
+          </div>`;
+        suggWrap.style.display = "block";
+        return;
+      }
+
+      const imgInp = modal.querySelector("#f-image");
+      if(imgInp && !imgInp.value.trim() && suggestions.length > 0){
+        imgInp.value = suggestions[0].url;
+        updatePreview(modal);
+        if(!isEdit) saveDraft();
+      }
+
+      suggWrap.innerHTML = `
+        <div style="background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-top:4px;">
+          <div class="flex-between" style="align-items:center;margin-bottom:6px;">
+            <span class="text-xs text-faint" style="font-weight:700;">Suggested Image Addresses (${suggestions.length})</span>
+            <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(name + ' Philippines product packaging white background')}" target="_blank" rel="noopener" class="text-xs" style="color:var(--brand);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">
+              ${Icons.get("search",{size:11})} Search Google
+            </a>
+          </div>
+          <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;">
+            ${suggestions.map(s => `
+              <button type="button" class="btn-sugg-img" data-url="${Utils.escapeHtml(s.url)}" style="border:1.5px solid ${imgInp && imgInp.value.trim() === s.url ? 'var(--brand)' : 'var(--line)'};background:white;border-radius:6px;padding:2px;cursor:pointer;flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;" title="${Utils.escapeHtml(s.label)} (${s.source})">
+                <img src="${Utils.escapeHtml(s.url)}" alt="sample" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentElement.style.display='none';">
+              </button>
+            `).join("")}
+          </div>
+        </div>`;
+      suggWrap.style.display = "block";
+
+      suggWrap.querySelectorAll(".btn-sugg-img").forEach(btn => {
+        btn.onclick = () => {
+          const u = btn.dataset.url;
+          if(imgInp){
+            imgInp.value = u;
+            updatePreview(modal);
+            if(!isEdit) saveDraft();
+            suggWrap.querySelectorAll(".btn-sugg-img").forEach(b => b.style.borderColor = b.dataset.url === u ? "var(--brand)" : "var(--line)");
+          }
+        };
+      });
+    }
+
+    const nameInput = modal.querySelector("#f-name");
+    const debouncedSuggest = Utils.debounce((val) => detectAndSuggestImage(val), 350);
+    nameInput.addEventListener("input", (e) => debouncedSuggest(e.target.value));
+    if(nameInput.value.trim()) detectAndSuggestImage(nameInput.value.trim());
+    const googleBtn = modal.querySelector("#btn-google-img-search");
+    if(googleBtn){
+      googleBtn.onclick = () => {
+        const q = nameInput.value.trim() ? `${nameInput.value.trim()} Philippines product packaging white background` : "retail product packaging white background";
+        window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`, "_blank");
+      };
+    }
 
     function saveDraft(){
       if(isEdit) return;

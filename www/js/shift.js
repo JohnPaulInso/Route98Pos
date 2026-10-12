@@ -4,43 +4,104 @@
 const Shift = (() => {
   let activeTab = "active"; // "active" | "logs" | "staff"
   let isRecovering = false;
+  let lastLogsCloudSyncTs = 0;
 
-  // (2026-07-13) Recover shifts via Firestore and RTDB; was RTDB-only gate
-  async function recoverShiftFromCloud(){
+  // (2026-07-13) Multi-source cloud sync for shift logs; was RTDB-only overwrite
+  async function recoverShiftFromCloud(silent = false){
     if(isRecovering) return;
     isRecovering = true;
+    lastLogsCloudSyncTs = Date.now();
     
     try {
-      console.log("[Shift] Attempting to recover shift data from cloud...");
+      console.log("[Shift] Attempting to recover shift data from cloud & backups...");
+      const deletedIds = DB.getDeletedShiftLogIds ? DB.getDeletedShiftLogIds() : new Set();
+      const logsMap = new Map();
 
-      if(typeof Sync !== "undefined" && Sync.pullSnapshot){
-        await Sync.pullSnapshot(true);
+      const ingestLogs = (list) => {
+        if(!Array.isArray(list)) return;
+        list.forEach(l => {
+          if(!l || !l.id) return;
+          const idStr = String(l.id).trim();
+          if(deletedIds.has(idStr)) return;
+          const existing = logsMap.get(idStr);
+          if(!existing){
+            logsMap.set(idStr, l);
+          } else {
+            const exTs = existing.updatedAt || existing.closedAt || existing.openedAt || 0;
+            const incTs = l.updatedAt || l.closedAt || l.openedAt || 0;
+            logsMap.set(idStr, incTs >= exTs ? { ...existing, ...l } : { ...l, ...existing });
+          }
+        });
+      };
+
+      ingestLogs(DB.getShiftLogs ? DB.getShiftLogs() : []);
+
+      if(DB.getBackups){
+        const backups = DB.getBackups();
+        if(Array.isArray(backups)){
+          backups.forEach(b => {
+            if(b?.data?.shiftLogs) ingestLogs(b.data.shiftLogs);
+          });
+        }
+      }
+
+      // (2026-07-13) Skip heavy Firestore pull on silent shift recovery; was quota drain
+      if(!silent && typeof Sync !== "undefined" && Sync.pullSnapshot){
+        try {
+          await Sync.pullSnapshot(true);
+          ingestLogs(DB.getShiftLogs ? DB.getShiftLogs() : []);
+          if(DB.getBackups){
+            const backups = DB.getBackups();
+            if(Array.isArray(backups)){
+              backups.forEach(b => {
+                if(b?.data?.shiftLogs) ingestLogs(b.data.shiftLogs);
+              });
+            }
+          }
+        } catch(e){
+          console.warn("[Shift] Firestore pull warning:", e);
+        }
       }
       
       if(typeof RealtimeSync !== 'undefined' && RealtimeSync.init){
-        await RealtimeSync.init();
-        if(RealtimeSync.getShiftFromCloud){
-          const cloudShift = await RealtimeSync.getShiftFromCloud();
-          if(cloudShift && cloudShift.status === 'open'){
-            DB.setShift(cloudShift);
+        try {
+          await RealtimeSync.init();
+          if(RealtimeSync.getShiftFromCloud){
+            const cloudShift = await RealtimeSync.getShiftFromCloud();
+            // (2026-07-13) Ingest closed cloud shifts & auto-rerender logs; was open-only
+            if(cloudShift && cloudShift.status === 'open'){
+              DB.setShift(cloudShift);
+            } else if(cloudShift && cloudShift.status === 'closed' && (cloudShift.id || cloudShift.openedAt)){
+              ingestLogs([cloudShift]);
+            }
           }
-        }
-        if(RealtimeSync.getShiftLogsFromCloud){
-          const cloudLogs = await RealtimeSync.getShiftLogsFromCloud();
-          if(cloudLogs && cloudLogs.length > 0){
-            DB.setShiftLogs(cloudLogs);
+          if(RealtimeSync.getShiftLogsFromCloud){
+            const cloudLogs = await RealtimeSync.getShiftLogsFromCloud();
+            if(Array.isArray(cloudLogs)) ingestLogs(cloudLogs);
           }
+        } catch(e){
+          console.warn("[Shift] RealtimeSync warning:", e);
         }
       }
 
-      const logs = DB.getShiftLogs ? DB.getShiftLogs() : [];
-      if(logs.length > 0){
-        Utils.toast(`Recovered ${logs.length} shift logs from cloud`, "success");
+      const mergedLogs = Array.from(logsMap.values()).sort((a,b) => (b.openedAt || b.closedAt || 0) - (a.openedAt || a.closedAt || 0));
+      const initialCount = (DB.getShiftLogs ? DB.getShiftLogs() : []).length;
+      if(DB.setShiftLogs){
+        DB.setShiftLogs(mergedLogs);
+      }
+
+      if(!silent){
+        Utils.toast(`Synced ${mergedLogs.length} shift logs from cloud`, "success");
+      }
+      if(activeTab === "logs"){
+        render();
       }
       return DB.getShift ? DB.getShift() : null;
     } catch(err){
       console.error("[Shift] Failed to recover from cloud:", err);
-      Utils.toast("Failed to recover shift data from cloud", "error");
+      if(!silent){
+        Utils.toast("Failed to recover shift data from cloud", "error");
+      }
     } finally {
       isRecovering = false;
     }
@@ -201,6 +262,25 @@ const Shift = (() => {
           
           // Save locally first for instant response
           DB.setShift(shiftRecord);
+          // (2026-07-13) Register ongoing shift in logs; was omitted
+          if(DB.saveShiftLog){
+            DB.saveShiftLog({
+              id: shiftRecord.id,
+              openedAt: nowTs,
+              updatedAt: nowTs,
+              duration: "Ongoing",
+              cashier: currentUser,
+              openingCash,
+              cashSales: 0,
+              totalSales: 0,
+              totalCount: 0,
+              expectedCash: openingCash,
+              actualCash: null,
+              variance: null,
+              status: "open",
+              notes: "Shift in progress"
+            });
+          }
           
           const todayKey = new Date().toLocaleDateString("en-CA");
           const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
@@ -208,7 +288,6 @@ const Shift = (() => {
           if(DB.setDayBalances) DB.setDayBalances(dayBalances);
           localStorage.setItem("pos_cashier", currentUser);
           Utils.toast(`Shift opened for ${currentUser} with ${Utils.money(openingCash)} float.`, "success");
-          Utils.openCashDrawer();
           Modalz.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
           render();
@@ -289,13 +368,61 @@ const Shift = (() => {
             RealtimeSync.openShift(active);
           }
           
-          Utils.openCashDrawer();
           Utils.toast(`Recorded ${isPayIn ? 'Pay In' : 'Pay Out'} of ${Utils.money(amt)}.`, "success");
           Modalz.close();
           render();
         }}
       ]
     });
+  }
+
+  // (2026-07-13) Print shift summary receipt on close; was drawer kick only
+  function printShiftReceipt(log){
+    if(!log) return;
+    const settings = (DB.getSettings ? DB.getSettings() : {}) || {};
+    let win = document.getElementById("receipt-print");
+    if(!win){
+      win = document.createElement("div");
+      win.id = "receipt-print";
+      document.body.appendChild(win);
+    }
+    const openedStr = new Date(log.openedAt).toLocaleString("en-PH", { month:"short", day:"numeric", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    const closedStr = new Date(log.closedAt || Date.now()).toLocaleString("en-PH", { month:"short", day:"numeric", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    const diff = Number(log.variance || 0);
+    const diffSign = diff >= 0 ? "+" : "";
+    win.innerHTML = `
+      <div class="receipt">
+        <div class="center">
+          <strong>${Utils.escapeHtml(settings.businessName || "Route 98")}</strong><br>
+          ${Utils.escapeHtml(settings.address || "Cabangcalan, Dakit, Bogo City, Cebu")}<br>
+          ${settings.tin ? `TIN: ${Utils.escapeHtml(settings.tin)}<br>` : ""}
+          <strong style="display:inline-block;margin-top:3px;font-size:1.05em;">*** SHIFT SUMMARY REPORT ***</strong>
+        </div>
+        <hr>
+        <div class="row"><span>Cashier:</span><strong>${Utils.escapeHtml(log.cashier || "Cashier")}</strong></div>
+        <div class="row"><span>Time In:</span><span>${openedStr}</span></div>
+        <div class="row"><span>Time Out:</span><span>${closedStr}</span></div>
+        <div class="row"><span>Duration:</span><span>${log.duration || "—"}</span></div>
+        <hr>
+        <div class="row"><span>Starting Float:</span><span>${Utils.money(log.openingCash || 0)}</span></div>
+        <div class="row"><span>Cash Sales:</span><span>${Utils.money(log.cashSales || 0)}</span></div>
+        ${log.gcashSales ? `<div class="row"><span>GCash Sales:</span><span>${Utils.money(log.gcashSales)}</span></div>` : ""}
+        ${log.cardSales ? `<div class="row"><span>Card Sales:</span><span>${Utils.money(log.cardSales)}</span></div>` : ""}
+        ${log.otherSales ? `<div class="row"><span>Other Sales:</span><span>${Utils.money(log.otherSales)}</span></div>` : ""}
+        <div class="row" style="font-weight:700;"><span>TOTAL SALES:</span><span>${Utils.money(log.totalSales || 0)}</span></div>
+        <div class="row"><span>Transactions:</span><span>${log.totalCount || 0}</span></div>
+        ${log.cashIn ? `<div class="row"><span>Cash In / Add:</span><span>+${Utils.money(log.cashIn)}</span></div>` : ""}
+        ${log.cashOut ? `<div class="row"><span>Cash Out / Exp:</span><span>-${Utils.money(log.cashOut)}</span></div>` : ""}
+        <hr>
+        <div class="row" style="font-weight:700;"><span>EXPECTED CASH:</span><span>${Utils.money(log.expectedCash || 0)}</span></div>
+        <div class="row" style="font-weight:700;"><span>ACTUAL COUNT:</span><span>${Utils.money(log.actualCash || 0)}</span></div>
+        <div class="row" style="font-weight:800;font-size:1.08em;"><span>VARIANCE:</span><span>${diffSign}${Utils.money(diff)}</span></div>
+        ${log.notes ? `<hr><div class="row"><span>Notes:</span><span>${Utils.escapeHtml(log.notes)}</span></div>` : ""}
+        <hr>
+        <div class="center" style="font-size:0.85em;margin-top:2px;">Printed: ${new Date().toLocaleTimeString("en-PH", { hour:"2-digit", minute:"2-digit" })}</div>
+      </div>
+    `;
+    setTimeout(() => window.print(), 150);
   }
 
   // (2026-07-13) Close shift modal with cash counting & variance calculation; was manual
@@ -401,7 +528,8 @@ const Shift = (() => {
           // Close shift locally first for instant response
           DB.setShift({ openedAt: null, openingCash: 0, cashier: null, status: "closed", closedAt });
 
-          Utils.openCashDrawer();
+          // (2026-07-13) Print shift summary receipt on close; was drawer kick
+          printShiftReceipt(logRecord);
 
           if(typeof Sync !== "undefined" && Sync.createDailyBackup){
             Sync.createDailyBackup("shift_close");
@@ -410,6 +538,8 @@ const Shift = (() => {
           Utils.toast(`Shift for ${logRecord.cashier} closed. Variance: ${variance >= 0 ? "+" : ""}${Utils.money(variance)}`, "success");
           Modalz.close();
           if(typeof App !== "undefined" && App.paintTopbar) App.paintTopbar();
+          // (2026-07-13) Switch activeTab to logs upon shift close; was active tab
+          activeTab = "logs";
           render();
           
           // (2026-07-13) Guard RealtimeSync.closeShift safely; was bare call
@@ -438,10 +568,38 @@ const Shift = (() => {
     if(!root) return;
 
     const activeShift = getActiveShift();
-    let shiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
+    let rawShiftLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
     const allCashiers = DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"];
     const totals = activeShift ? calculateShiftTotals(activeShift) : null;
-    // (2026-07-13) Manual-only cloud shift log recovery; was auto-pull on render
+    // (2026-07-13) Include active shift in shiftLogs list; was omitted
+    let shiftLogs = [...rawShiftLogs];
+    if(activeShift && activeShift.openedAt){
+      const activeIdx = shiftLogs.findIndex(l => String(l.id) === String(activeShift.id));
+      const activeLogEntry = {
+        id: activeShift.id || "shift_active",
+        cashier: activeShift.cashier || "Cashier",
+        openedAt: activeShift.openedAt,
+        closedAt: null,
+        duration: fmtDuration(activeShift.openedAt) + " (Ongoing)",
+        openingCash: activeShift.openingCash || 0,
+        cashSales: totals ? totals.cashSales : 0,
+        totalSales: totals ? totals.totalSales : 0,
+        expectedCash: totals ? totals.expectedCash : (activeShift.openingCash || 0),
+        actualCash: null,
+        variance: null,
+        notes: "Shift in progress",
+        status: "open"
+      };
+      if(activeIdx >= 0){
+        shiftLogs[activeIdx] = { ...shiftLogs[activeIdx], ...activeLogEntry };
+      } else {
+        shiftLogs.unshift(activeLogEntry);
+      }
+    }
+    // (2026-07-13) Auto-sync cloud shift logs on logs tab; was manual-only
+    if(activeTab === "logs" && Date.now() - lastLogsCloudSyncTs > 15000){
+      setTimeout(() => { recoverShiftFromCloud(true); }, 50);
+    }
 
     root.innerHTML = `
       <!-- (2026-07-13) Lock shift view full width to stabilize nav tabs; was shifting -->
@@ -470,7 +628,7 @@ const Shift = (() => {
           </div>
         </div>
 
-        ${activeTab === "active" ? renderActiveTab(activeShift, totals) : ""}
+        ${activeTab === "active" ? renderActiveTab(activeShift, totals, shiftLogs) : ""}
         ${activeTab === "logs" ? renderLogsTab(shiftLogs) : ""}
         ${activeTab === "staff" ? renderStaffTab(allCashiers, activeShift, shiftLogs) : ""}
 
@@ -479,18 +637,22 @@ const Shift = (() => {
 
     // Tab switcher events
     document.getElementById("tab-shift-active")?.addEventListener("click", () => { activeTab = "active"; render(); });
-    document.getElementById("tab-shift-logs")?.addEventListener("click", () => { activeTab = "logs"; render(); });
+    // (2026-07-13) Auto-sync on logs tab button click; was render only
+    document.getElementById("tab-shift-logs")?.addEventListener("click", () => {
+      activeTab = "logs";
+      render();
+      recoverShiftFromCloud(true);
+    });
     document.getElementById("tab-shift-staff")?.addEventListener("click", () => { activeTab = "staff"; render(); });
 
-    // (2026-10-01) Manual recovery button for shift logs
-    document.getElementById("recover-shifts-btn")?.addEventListener("click", async () => {
-      const btn = document.getElementById("recover-shifts-btn");
-      if(btn){
+    // (2026-07-13) Shift logs cloud sync action buttons; was recover-shifts-btn only
+    root.querySelectorAll("#btn-sync-shift-logs, #recover-shifts-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
         btn.disabled = true;
-        btn.innerHTML = `${Icons.get("loader",{size:16})} Recovering...`;
-      }
-      await recoverShiftFromCloud();
-      render();
+        btn.innerHTML = `${Icons.get("loader",{size:14})} Syncing...`;
+        await recoverShiftFromCloud(false);
+        render();
+      });
     });
 
     // Action button listeners
@@ -581,24 +743,95 @@ const Shift = (() => {
         });
       });
     }
+
+    // (2026-07-13) Wire print and navigation buttons for shift logs; was unhandled
+    root.querySelectorAll("[data-print-shift-log]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const logId = btn.getAttribute("data-print-shift-log");
+        const log = (DB.getShiftLogs ? DB.getShiftLogs() : []).find(l => String(l.id) === String(logId));
+        if(log) printShiftReceipt(log);
+      });
+    });
+    root.querySelectorAll("[data-goto-active-shift]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        activeTab = "active";
+        render();
+      });
+    });
+    document.getElementById("btn-view-all-shift-logs")?.addEventListener("click", () => {
+      activeTab = "logs";
+      render();
+    });
   }
 
-  // (2026-07-13) Render active shift card and drawer metrics; was missing
-  function renderActiveTab(active, totals){
+  // (2026-07-13) Render previous shift logs card in active and closed view; was active-only
+  function renderPreviousShiftLogsCard(closedLogs = [], totalCount = 0){
+    if(!closedLogs || !closedLogs.length) return "";
+    return `
+      <div class="card" style="padding:16px 20px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);box-shadow:var(--shadow-xs);margin-bottom:18px;">
+        <div class="flex-between" style="margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:10px;">
+          <h4 style="margin:0;font-size:1.05rem;font-weight:800;color:var(--ink);">Previous Shift Logs</h4>
+          <button class="btn btn-xs btn-outline font-bold" id="btn-view-all-shift-logs" type="button">View All (${totalCount || closedLogs.length})</button>
+        </div>
+        <div class="table-wrap" style="max-height:260px;overflow-y:auto;border-radius:8px;border:1px solid var(--line);">
+          <table class="data" style="width:100%;">
+            <thead>
+              <tr style="background:var(--paper-dim);">
+                <th style="padding:8px 12px;font-size:0.75rem;">Closed Date</th>
+                <th style="padding:8px 12px;font-size:0.75rem;">Cashier</th>
+                <th style="padding:8px 12px;font-size:0.75rem;">Duration</th>
+                <th style="padding:8px 12px;font-size:0.75rem;text-align:right;">Sales</th>
+                <th style="padding:8px 12px;font-size:0.75rem;text-align:right;">Variance</th>
+                <th style="padding:8px 12px;font-size:0.75rem;text-align:center;">Print</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${closedLogs.slice(0, 10).map(l => {
+                const diff = Number(l.variance || 0);
+                const diffColor = diff < -0.01 ? "var(--danger)" : diff > 0.01 ? "var(--warning-deep)" : "var(--success-deep)";
+                const ts = l.closedAt || l.openedAt || Date.now();
+                const d = (!isNaN(new Date(ts).getTime())) ? new Date(ts) : new Date();
+                return `
+                  <tr>
+                    <td class="text-xs" style="padding:8px 12px;">${d.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})} ${d.toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"})}</td>
+                    <td style="padding:8px 12px;"><strong>${Utils.escapeHtml(l.cashier || "Cashier")}</strong></td>
+                    <td class="text-xs text-faint" style="padding:8px 12px;">${l.duration || "—"}</td>
+                    <td class="mono font-bold text-xs" style="padding:8px 12px;text-align:right;color:var(--brand);">${Utils.money(l.totalSales || 0)}</td>
+                    <td class="mono font-bold text-xs" style="padding:8px 12px;text-align:right;color:${diffColor};">${diff >= 0 ? "+" : ""}${Utils.money(diff)}</td>
+                    <td style="padding:8px 12px;text-align:center;">
+                      <button class="btn btn-xs btn-outline" data-print-shift-log="${l.id}" title="Print Receipt">${Icons.get("printer",{size:12})}</button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // (2026-07-13) Show previous logs on inactive view; was empty state only
+  function renderActiveTab(active, totals, shiftLogs = []){
+    const closedLogs = (shiftLogs || []).filter(l => l && l.status !== "open");
     if(!active){
       return `
-        <div class="card" style="padding:56px 24px;text-align:center;background:var(--paper-dim);border:2px dashed var(--line);border-radius:18px;box-shadow:var(--shadow-sm);max-width:640px;margin:24px auto;">
-          <div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg, rgba(79,70,229,0.12), rgba(99,102,241,0.22));color:var(--brand);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 4px 12px rgba(79,70,229,0.15);">
-            ${Icons.get("lock",{size:38})}
+        <div class="card" style="padding:48px 24px;text-align:center;background:var(--paper-dim);border:2px dashed var(--line);border-radius:18px;box-shadow:var(--shadow-sm);max-width:640px;margin:16px auto 20px;">
+          <div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg, rgba(79,70,229,0.12), rgba(99,102,241,0.22));color:var(--brand);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 4px 12px rgba(79,70,229,0.15);">
+            ${Icons.get("lock",{size:32})}
           </div>
-          <h3 style="font-size:1.4rem;font-weight:800;margin:0 0 8px;color:var(--ink);">No Shift Currently Open</h3>
-          <p class="text-sm text-faint" style="max-width:460px;margin:0 auto 24px;line-height:1.5;">
+          <h3 style="font-size:1.35rem;font-weight:800;margin:0 0 8px;color:var(--ink);">No Shift Currently Open</h3>
+          <p class="text-sm text-faint" style="max-width:460px;margin:0 auto 20px;line-height:1.5;">
             The cash register drawer is locked and there is no cashier logged into this register session. Open a shift to set the cash float and begin ringing up sales.
           </p>
-          <button class="btn btn-primary btn-lg font-bold" id="btn-open-new-shift" style="padding:12px 32px;border-radius:12px;box-shadow:0 4px 14px rgba(79,70,229,0.35);">
+          <button class="btn btn-primary btn-lg font-bold" id="btn-open-new-shift" style="padding:10px 28px;border-radius:12px;box-shadow:0 4px 14px rgba(79,70,229,0.35);">
             ${Icons.get("clock",{size:18})} Open Shift (Time In)
           </button>
         </div>
+
+        ${renderPreviousShiftLogsCard(closedLogs, shiftLogs.length)}
       `;
     }
 
@@ -766,16 +999,25 @@ const Shift = (() => {
           </div>
         `}
       </div>
+
+      <!-- (2026-07-13) Recent shift history summary card; was duplicate inline -->
+      ${renderPreviousShiftLogsCard(closedLogs, shiftLogs.length)}
     `;
   }
 
-  // (2026-07-13) Add mobile detailed table-card for shift logs; was wide table
+  // (2026-07-13) Show sync button in logs header & empty state; was empty only
   function renderLogsTab(logs){
+    const syncBtn = `
+      <button class="btn btn-sm btn-outline" id="btn-sync-shift-logs" style="display:inline-flex;align-items:center;gap:6px;">
+        ${Icons.get("cloud-download",{size:14})} <span>Sync Cloud History</span>
+      </button>
+    `;
+
     if(!logs || !logs.length){
       return `
         <div class="card" style="padding:48px 24px;text-align:center;background:var(--paper-dim);border:2px dashed var(--line);border-radius:16px;">
           <p class="text-faint text-sm" style="margin-bottom:16px;">No past shift logs archived yet. Closed shifts will appear here with drawer balances & variances.</p>
-          <button class="btn btn-primary" id="recover-shifts-btn" style="display:inline-flex;align-items:center;gap:6px;">
+          <button class="btn btn-primary" id="btn-sync-shift-logs" style="display:inline-flex;align-items:center;gap:6px;">
             ${Icons.get("cloud-download",{size:16})} Recover from Cloud
           </button>
         </div>
@@ -784,13 +1026,17 @@ const Shift = (() => {
 
     return `
       <div class="card shift-logs-wrapper" style="padding:16px 20px;border-radius:12px;background:var(--paper-raised);">
-        <h4 style="margin:0 0 12px;font-size:1.05rem;font-weight:800;color:var(--ink);">Shift History & Cashier Time Records</h4>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <h4 style="margin:0;font-size:1.05rem;font-weight:800;color:var(--ink);">Shift History & Cashier Time Records</h4>
+          ${syncBtn}
+        </div>
         <div class="table-wrap shift-desktop-table">
           <table class="data" style="width:100%;">
             <thead>
               <tr>
                 <th>Date & Time</th>
                 <th>Cashier</th>
+                <th>Status</th>
                 <th>Duration</th>
                 <th>Starting Float</th>
                 <th>Total Sales</th>
@@ -798,30 +1044,44 @@ const Shift = (() => {
                 <th>Actual Cash</th>
                 <th>Variance (Over/Short)</th>
                 <th>Notes</th>
+                <th style="text-align:center;">Print</th>
                 <!-- (2026-07-13) Admin-only delete column; was no delete -->
                 ${Auth.isAdmin() ? `<th style="text-align:center;">Del</th>` : ""}
               </tr>
             </thead>
             <tbody>
               ${logs.map(log => {
+                const isOpen = log.status === "open";
                 const diff = Number(log.variance || 0);
                 const diffColor = diff < -0.01 ? "var(--danger)" : diff > 0.01 ? "var(--warning-deep)" : "var(--success-deep)";
+                // (2026-07-13) Safe date parsing for shift log row; was raw new Date
+                const tsOpen = log.openedAt || log.closedAt || Date.now();
+                const dOpen = (!isNaN(new Date(tsOpen).getTime())) ? new Date(tsOpen) : new Date();
+                const closeStr = log.closedAt && !isNaN(new Date(log.closedAt).getTime()) ? new Date(log.closedAt).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "Active";
                 return `
-                  <tr>
+                  <tr style="${isOpen ? 'background:rgba(16,185,129,0.06);' : ''}">
                     <td class="text-xs">
-                      <div>${new Date(log.openedAt).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</div>
-                      <div class="text-faint">${new Date(log.openedAt).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"})} – ${log.closedAt ? new Date(log.closedAt).toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}) : "Now"}</div>
+                      <div>${dOpen.toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"})}</div>
+                      <div class="text-faint">${dOpen.toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"})} – ${closeStr}</div>
                     </td>
                     <td><strong>${Utils.escapeHtml(log.cashier || "Cashier")}</strong></td>
-                    <td class="text-xs text-faint">${log.duration || "—"}</td>
+                    <td>
+                      <span class="badge ${isOpen ? 'badge-success' : 'badge-neutral'}" style="font-size:0.68rem;padding:2px 8px;font-weight:800;">
+                        ${isOpen ? 'ACTIVE' : 'CLOSED'}
+                      </span>
+                    </td>
+                    <td class="text-xs text-faint">${log.duration || (isOpen ? "Ongoing" : "—")}</td>
                     <td class="mono text-xs">${Utils.money(log.openingCash || 0)}</td>
                     <td class="mono font-bold text-xs" style="color:var(--brand);">${Utils.money(log.totalSales || 0)}</td>
                     <td class="mono text-xs">${Utils.money(log.expectedCash || 0)}</td>
-                    <td class="mono font-bold text-xs">${Utils.money(log.actualCash || 0)}</td>
-                    <td class="mono font-bold text-xs" style="color:${diffColor};">${diff >= 0 ? "+" : ""}${Utils.money(diff)}</td>
-                    <td class="text-xs text-soft">${Utils.escapeHtml(log.notes || "—")}</td>
+                    <td class="mono font-bold text-xs">${isOpen ? '<span class="badge badge-neutral" style="font-size:0.68rem;">In Progress</span>' : Utils.money(log.actualCash || 0)}</td>
+                    <td class="mono font-bold text-xs" style="color:${diffColor};">${isOpen ? '<span class="text-faint">—</span>' : `${diff >= 0 ? "+" : ""}${Utils.money(diff)}`}</td>
+                    <td class="text-xs text-soft">${Utils.escapeHtml(log.notes || (isOpen ? "Active shift" : "—"))}</td>
+                    <td style="text-align:center;">
+                      ${isOpen ? `<button class="btn btn-xs btn-primary font-bold" data-goto-active-shift="1">View</button>` : `<button class="btn btn-xs btn-outline" data-print-shift-log="${log.id}" title="Print shift receipt">${Icons.get("printer",{size:13})}</button>`}
+                    </td>
                     <!-- (2026-07-13) Admin delete cell per log row; was no delete -->
-                    ${Auth.isAdmin() ? `<td style="text-align:center;"><button class="btn btn-xs btn-ghost text-danger" data-delete-shift-log="${log.id}" title="Delete shift log">${Icons.get("trash",{size:12})}</button></td>` : ""}
+                    ${Auth.isAdmin() ? `<td style="text-align:center;">${isOpen ? "—" : `<button class="btn btn-xs btn-ghost text-danger" data-delete-shift-log="${log.id}" title="Delete shift log">${Icons.get("trash",{size:12})}</button>`}</td>` : ""}
                   </tr>
                 `;
               }).join("")}
@@ -832,24 +1092,29 @@ const Shift = (() => {
         <!-- Mobile detailed table cards for shift history -->
         <div class="shift-mobile-cards">
           ${logs.map(log => {
+            const isOpen = log.status === "open";
             const diff = Number(log.variance || 0);
             const diffColor = diff < -0.01 ? "var(--danger)" : diff > 0.01 ? "var(--warning-deep)" : "var(--success-deep)";
-            const openedStr = new Date(log.openedAt).toLocaleDateString("en-PH", {month:"short", day:"numeric", year:"numeric"});
-            const openTimeStr = new Date(log.openedAt).toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit"});
-            const closeTimeStr = log.closedAt ? new Date(log.closedAt).toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit"}) : "Now";
+            // (2026-07-13) Safe date parsing for shift log card; was raw new Date
+            const tsOpen = log.openedAt || log.closedAt || Date.now();
+            const dOpen = (!isNaN(new Date(tsOpen).getTime())) ? new Date(tsOpen) : new Date();
+            const openedStr = dOpen.toLocaleDateString("en-PH", {month:"short", day:"numeric", year:"numeric"});
+            const openTimeStr = dOpen.toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit"});
+            const closeTimeStr = log.closedAt && !isNaN(new Date(log.closedAt).getTime()) ? new Date(log.closedAt).toLocaleTimeString("en-PH", {hour:"2-digit", minute:"2-digit"}) : "Now";
             return `
               <div class="shift-log-card">
                 <div class="shift-card-top">
                   <div>
                     <div class="shift-card-title">${openedStr}</div>
-                    <div class="shift-card-sub">${openTimeStr} – ${closeTimeStr} · <strong>${log.duration || "—"}</strong></div>
+                    <div class="shift-card-sub">${openTimeStr} – ${closeTimeStr} · <strong>${log.duration || (isOpen ? "Ongoing" : "—")}</strong></div>
                   </div>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <span class="badge shift-cashier-badge">
-                      ${Utils.escapeHtml(log.cashier || "Cashier")}
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="badge ${isOpen ? 'badge-success' : 'shift-cashier-badge'}" style="${isOpen ? 'font-weight:800;font-size:0.7rem;' : ''}">
+                      ${isOpen ? 'ACTIVE' : Utils.escapeHtml(log.cashier || "Cashier")}
                     </span>
+                    ${!isOpen ? `<button class="btn btn-xs btn-outline" data-print-shift-log="${log.id}" title="Print shift receipt">${Icons.get("printer",{size:13})}</button>` : `<button class="btn btn-xs btn-primary font-bold" data-goto-active-shift="1">View</button>`}
                     <!-- (2026-07-13) Admin delete button on mobile card; was no delete -->
-                    ${Auth.isAdmin() ? `<button class="btn btn-xs btn-ghost text-danger" data-delete-shift-log="${log.id}" title="Delete shift log">${Icons.get("trash",{size:13})}</button>` : ""}
+                    ${Auth.isAdmin() && !isOpen ? `<button class="btn btn-xs btn-ghost text-danger" data-delete-shift-log="${log.id}" title="Delete shift log">${Icons.get("trash",{size:13})}</button>` : ""}
                   </div>
                 </div>
                 <table class="shift-card-table">
@@ -988,8 +1253,8 @@ const Shift = (() => {
         forceCloseActiveShift("Force closed tab/window");
       }
     };
+    // (2026-07-13) Use pagehide only for tab exit; was unload violation
     window.addEventListener("pagehide", onForceClose);
-    window.addEventListener("unload", onForceClose);
 
     const isReload = (window.performance && performance.getEntriesByType && performance.getEntriesByType("navigation")[0]?.type === "reload") ||
                      (window.performance && performance.navigation && performance.navigation.type === 1) ||
@@ -1043,5 +1308,6 @@ const Shift = (() => {
     });
   }
 
-  return { render, openStartShiftModal, openEndShiftModal, getActiveShift, forceCloseActiveShift };
+  // (2026-07-13) Export recoverShiftFromCloud API; was unexported
+  return { render, openStartShiftModal, openEndShiftModal, getActiveShift, forceCloseActiveShift, recoverShiftFromCloud };
 })();

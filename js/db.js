@@ -75,13 +75,14 @@ const DB = (() => {
     try{
       localStorage.setItem(key, JSON.stringify(value));
     }catch(e){
-      if(key !== KEYS.backups){
-        try{
-          localStorage.removeItem(KEYS.backups);
-          localStorage.setItem(key, JSON.stringify(value));
-        }catch(err){}
+      // (2026-07-13) Evict syncBaseline and heavy backups on quota exceeded; was warn only
+      try{
+        localStorage.removeItem(KEYS.syncBaseline);
+        localStorage.removeItem(KEYS.backups);
+        localStorage.setItem(key, JSON.stringify(value));
+      }catch(err){
+        console.warn("DB write failed for key:", key, e);
       }
-      console.warn("DB write failed for key:", key, e);
     }
     // (2026-07-13) Post message to crossTabSync channel; was local storage only
     crossTabSync?.postMessage({ key, ts: Date.now() });
@@ -788,8 +789,8 @@ const DB = (() => {
     return shift;
   };
   const setShift       = (v) => write(KEYS.shift, v);
-  // (2026-07-13) Persistent tombstone tracking for shift logs; was absent
-  const getDeletedShiftLogIds = () => new Set(read(KEYS.deletedShiftLogIds, []));
+  // (2026-07-13) Robust shift log persistence & un-tombstone; was strict equality
+  const getDeletedShiftLogIds = () => new Set(read(KEYS.deletedShiftLogIds, []).filter(Boolean).map(x => String(x).trim()));
   const markShiftLogDeleted = (id) => {
     if(!id) return;
     const s = getDeletedShiftLogIds();
@@ -799,22 +800,55 @@ const DB = (() => {
   const getShiftLogs   = () => {
     const deleted = getDeletedShiftLogIds();
     const raw = read(KEYS.shiftLogs, []);
-    return deleted.size ? raw.filter(l => l && !deleted.has(String(l.id).trim())) : raw;
+    return deleted.size ? raw.filter(l => l && l.id && !deleted.has(String(l.id).trim())) : (raw || []).filter(l => l && l.id);
   };
   const setShiftLogs   = (v) => {
     const deleted = getDeletedShiftLogIds();
-    const clean = (v || []).filter(l => l && !deleted.has(String(l.id).trim()));
+    const clean = (v || []).filter(l => l && l.id && !deleted.has(String(l.id).trim()));
     return write(KEYS.shiftLogs, clean);
   };
-  const saveShiftLog   = (item) => {
+  // (2026-07-13) Add mergeShiftLogs helper; was overwriting logs array
+  const mergeShiftLogs = (incoming) => {
     const deleted = getDeletedShiftLogIds();
-    if(deleted.has(String(item.id).trim())){
-      deleted.delete(String(item.id).trim());
+    const current = getShiftLogs();
+    const map = new Map();
+    (current || []).forEach(l => {
+      if(l && l.id && !deleted.has(String(l.id).trim())){
+        map.set(String(l.id).trim(), l);
+      }
+    });
+    (incoming || []).forEach(l => {
+      if(l && l.id && !deleted.has(String(l.id).trim())){
+        const existing = map.get(String(l.id).trim());
+        if(!existing){
+          map.set(String(l.id).trim(), l);
+        } else {
+          const exTs = existing.updatedAt || existing.closedAt || existing.openedAt || 0;
+          const incTs = l.updatedAt || l.closedAt || l.openedAt || 0;
+          map.set(String(l.id).trim(), incTs >= exTs ? { ...existing, ...l } : { ...l, ...existing });
+        }
+      }
+    });
+    const merged = Array.from(map.values()).sort((a,b) => (b.openedAt || b.closedAt || 0) - (a.openedAt || a.closedAt || 0));
+    setShiftLogs(merged);
+    return merged;
+  };
+  // (2026-07-13) Auto-sync saved shift log to cloud; was local save only
+  const saveShiftLog   = (item) => {
+    if(!item) return null;
+    item.id = item.id || Utils.uid("shift");
+    const sId = String(item.id).trim();
+    const deleted = getDeletedShiftLogIds();
+    if(deleted.has(sId)){
+      deleted.delete(sId);
       write(KEYS.deletedShiftLogIds, Array.from(deleted), true);
     }
-    const logs = getShiftLogs().filter(l => l.id !== item.id);
+    const logs = getShiftLogs().filter(l => l && String(l.id).trim() !== sId);
     logs.unshift(item);
     setShiftLogs(logs);
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.saveShiftLogToCloud){
+      RealtimeSync.saveShiftLogToCloud(item).catch(() => {});
+    }
     return item;
   };
   // (2026-07-13) Delete shift log and mark tombstone; was local filter only
@@ -830,9 +864,24 @@ const DB = (() => {
   const setDayBalances = (v) => write(KEYS.dayBalances, v || {});
   const getSyncMeta    = () => read(KEYS.syncMeta, { lastSynced:null, status:"idle" });
   const setSyncMeta    = (v) => write(KEYS.syncMeta, v);
-  // (2026-07-13) Baseline snapshot accessors for 3-way merge; was none
-  const getSyncBaseline = () => read(KEYS.syncBaseline, null);
-  const setSyncBaseline = (v) => write(KEYS.syncBaseline, v);
+  // (2026-07-13) Store sync baseline in memory & sessionStorage; was filling localStorage
+  let inMemorySyncBaseline = null;
+  const getSyncBaseline = () => {
+    if(inMemorySyncBaseline) return inMemorySyncBaseline;
+    try {
+      const stored = sessionStorage.getItem(KEYS.syncBaseline) || localStorage.getItem(KEYS.syncBaseline);
+      if(stored) inMemorySyncBaseline = JSON.parse(stored);
+    } catch(e){}
+    return inMemorySyncBaseline;
+  };
+  const setSyncBaseline = (v) => {
+    inMemorySyncBaseline = v;
+    try {
+      localStorage.removeItem(KEYS.syncBaseline);
+      sessionStorage.setItem(KEYS.syncBaseline, JSON.stringify(v));
+    } catch(e){}
+    return v;
+  };
   // (2026-07-13) Add current cart persistence methods; was in-memory only
   const getSavedCart   = () => read(KEYS.currentCart, { cart: [], discount: { type:"percent", value:0 } });
   const saveCart       = (v) => write(KEYS.currentCart, v);
@@ -1174,6 +1223,7 @@ const DB = (() => {
 
   function getBackups(){ return read(KEYS.backups, []); }
   // (2026-07-13) Retain all backups metadata; was capped at 5
+  // (2026-07-13) Cap backup summaries to 10 to prevent quota exceeded; was unbounded
   function setBackups(b){
     const seen = new Set();
     const sanitized = [];
@@ -1184,7 +1234,8 @@ const DB = (() => {
       delete copy.data;
       sanitized.push(copy);
     });
-    return write(KEYS.backups, sanitized);
+    const capped = sanitized.slice(0, 10);
+    return write(KEYS.backups, capped);
   }
 
   // (2026-07-13) Fix recursive backup nesting & add buildSnapshotAt; was bloat
@@ -1201,8 +1252,10 @@ const DB = (() => {
     return setBackups(list);
   }
 
+  // (2026-07-13) Limit historical backups to recent 7 days; was all history
   function populateHistoricalBackups(){
     const currentBackups = getBackups();
+    if(currentBackups && currentBackups.length >= 7) return;
     const allSales = getSales();
     if(!allSales || !allSales.length) return;
     const salesByDay = new Map();
@@ -1211,7 +1264,7 @@ const DB = (() => {
       if(!salesByDay.has(d)) salesByDay.set(d, []);
       salesByDay.get(d).push(s);
     });
-    const sortedDays = Array.from(salesByDay.keys()).sort();
+    const sortedDays = Array.from(salesByDay.keys()).sort().slice(-7);
     const existingDates = new Set(currentBackups.map(b => new Date(b.createdAt || 0).toLocaleDateString("en-CA")));
     let addedAny = false;
     let cumulativeCount = 0;
@@ -1241,7 +1294,7 @@ const DB = (() => {
     });
     if(addedAny){
       currentBackups.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      setBackups(currentBackups);
+      setBackups(currentBackups.slice(0, 7));
     }
   }
 
@@ -1446,9 +1499,21 @@ const DB = (() => {
     if(snap.shiftLogs && Array.isArray(snap.shiftLogs)){
       const deletedIds = getDeletedShiftLogIds();
       const localLogs = getShiftLogs();
+      // (2026-07-13) Update existing shift logs on snapshot merge; was omit if exists
       const logMap = new Map();
-      localLogs.forEach(l => { if(l?.id && !deletedIds.has(String(l.id).trim())) logMap.set(String(l.id), l); });
-      snap.shiftLogs.forEach(l => { if(l?.id && !deletedIds.has(String(l.id).trim()) && !logMap.has(String(l.id))) logMap.set(String(l.id), l); });
+      localLogs.forEach(l => { if(l?.id && !deletedIds.has(String(l.id).trim())) logMap.set(String(l.id).trim(), l); });
+      snap.shiftLogs.forEach(l => {
+        if(!l?.id || deletedIds.has(String(l.id).trim())) return;
+        const sId = String(l.id).trim();
+        const existing = logMap.get(sId);
+        if(!existing){
+          logMap.set(sId, l);
+        } else {
+          const exTs = existing.updatedAt || existing.closedAt || existing.openedAt || 0;
+          const incTs = l.updatedAt || l.closedAt || l.openedAt || 0;
+          logMap.set(sId, incTs >= exTs ? { ...existing, ...l } : { ...l, ...existing });
+        }
+      });
       setShiftLogs(Array.from(logMap.values()).sort((a, b) => (b.openedAt || 0) - (a.openedAt || 0)));
     }
     // (2026-07-13) Restore dayBalances from snapshot; was omitted
@@ -1488,7 +1553,8 @@ const DB = (() => {
     getRestaurantBookings, setRestaurantBookings, addRestaurantBooking, updateRestaurantBooking, deleteRestaurantBooking,
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
     getBackups, setBackups, saveBackup, deleteBackup, buildSnapshotAt, populateHistoricalBackups,
-    getShift, setShift, getShiftLogs, setShiftLogs, saveShiftLog, deleteShiftLog,
+    // (2026-07-13) Export mergeShiftLogs; was omitted
+    getShift, setShift, getShiftLogs, setShiftLogs, mergeShiftLogs, saveShiftLog, deleteShiftLog,
     getDeletedShiftLogIds, markShiftLogDeleted,
     getDayBalances, setDayBalances,
     getSyncMeta, setSyncMeta,

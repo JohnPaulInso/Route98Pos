@@ -813,8 +813,10 @@ const POS = (() => {
       }
       if(p){
         const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? line.qty * p.piecesPerPack : line.qty;
-        // (2026-07-13) Deduct stock & sync to cloud immediately; was setProducts only
-        p.stock = Utils.round2(p.stock - pieces);
+        // (2026-07-13) Track stock before/after on line; was unrecorded
+        line.stockBefore = p.stock || 0;
+        p.stock = Utils.round2((p.stock || 0) - pieces);
+        line.stockAfter = p.stock;
         p.updatedAt = Date.now();
         if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
           RealtimeSync.syncSingleProduct(p);

@@ -25,7 +25,8 @@ const Modal = (() => {
     if(typeof UISelect !== "undefined" && UISelect.closeAll) UISelect.closeAll();
     document.body.classList.add("scroll-locked");
     const backdrop = document.createElement("div");
-    const extra = modalClass ? `${modalClass}-backdrop modal-${modalClass}-backdrop` : "";
+    // (2026-07-13) Safe modal extra classes; was string interpolation space bug
+    const extra = (modalClass || "").trim().split(/\s+/).filter(Boolean).map(c => `${c}-backdrop modal-${c}-backdrop`).join(" ");
     backdrop.className = `modal-backdrop modal-backdropz ${extra}`.trim();
     backdrop.innerHTML = `
       <div class="modal modalz ${wide ? "modal-wide modal-widez":""} ${modalClass || ""}">

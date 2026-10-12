@@ -9,6 +9,10 @@ const RealtimeSync = (() => {
   let realtimeMod = null;
   let listeners = new Map();
   let isInitialized = false;
+  // (2026-07-13) Safe view getter using window.App; was direct App reference
+  function getAppCurrentView() {
+    return (typeof window !== "undefined" && window.App) ? (window.App.getCurrentView ? window.App.getCurrentView() : window.App.currentView) : null;
+  }
   
   // Offline sync queue
   const SYNC_QUEUE_KEY = 'mm_syncQueue';
@@ -271,9 +275,9 @@ const RealtimeSync = (() => {
         }
         
         // Refresh UI
-        if (typeof App !== 'undefined' && App.paintTopbar) App.paintTopbar();
-        // (2026-07-13) Safe view check in realtime shift sync; was App.currentView
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        if (typeof window !== 'undefined' && window.App?.paintTopbar) window.App.paintTopbar();
+        // (2026-07-13) Safe view check in realtime shift sync; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Shift !== 'undefined' && Shift.render && curV === 'shift') {
           Shift.render();
         }
@@ -281,6 +285,29 @@ const RealtimeSync = (() => {
     });
     
     listeners.set('shift', unsubscribe);
+    return unsubscribe;
+  }
+
+  // (2026-07-13) Subscribe to cloud shift logs; was unlistened
+  async function subscribeToShiftLogs(callback) {
+    await init();
+    if (!realtimeDB || typeof DB === 'undefined') return;
+    const logsRef = realtimeMod.ref(realtimeDB, 'shift/logs');
+    const unsubscribe = realtimeMod.onValue(logsRef, (snapshot) => {
+      if(!snapshot.exists()) return;
+      const logsObj = snapshot.val();
+      const logs = Object.values(logsObj || {}).filter(l => l && (l.id || l.openedAt));
+      if(logs.length && DB.mergeShiftLogs){
+        DB.mergeShiftLogs(logs);
+        // (2026-07-13) Safe view check in shift logs sync; was bare App.currentView
+        const curV = getAppCurrentView();
+        if(typeof Shift !== 'undefined' && Shift.render && curV === 'shift'){
+          Shift.render();
+        }
+        if(callback) callback(logs);
+      }
+    });
+    listeners.set('shiftLogs', unsubscribe);
     return unsubscribe;
   }
 
@@ -343,6 +370,19 @@ const RealtimeSync = (() => {
         deviceId: getDeviceId(),
         closedBy: Auth.currentUser()?.name || 'Unknown'
       });
+      // (2026-07-13) Archive closed shift to cloud logs; was current-only update
+      if(closeData && (closeData.id || closeData.openedAt)){
+        const logId = String(closeData.id || `shift_${closeData.openedAt}`).trim();
+        const logRef = realtimeMod.ref(realtimeDB, `shift/logs/${logId}`);
+        await realtimeMod.set(logRef, {
+          ...closeData,
+          id: logId,
+          status: 'closed',
+          closedAt: closeData.closedAt || Date.now(),
+          updatedAt: Date.now(),
+          deviceId: getDeviceId()
+        }).catch(err => console.warn("Failed saving closed shift log:", err));
+      }
       
       // Also update local
       DB.setShift({ status: 'closed', closedAt: Date.now(), updatedAt: Date.now() });
@@ -704,7 +744,8 @@ const RealtimeSync = (() => {
 
       if(hasChanges){
         DB.setProducts(updated);
-        App.rerenderCurrentView?.();
+        // (2026-07-13) Guard window.App.rerenderCurrentView; was bare App call
+        if(typeof window !== "undefined" && window.App?.rerenderCurrentView) window.App.rerenderCurrentView();
         if(callback) callback(updated);
       }
     });
@@ -810,8 +851,8 @@ const RealtimeSync = (() => {
           Utils.toast('Restock logs updated from another device', 'info', 2000);
         }
         
-        // (2026-07-13) Safe view check in restock logs sync; was App.currentView
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        // (2026-07-13) Safe view check in restock logs sync; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Reports !== 'undefined' && curV === 'reports') {
           Reports.render();
         }
@@ -918,8 +959,8 @@ const RealtimeSync = (() => {
           Utils.toast('Expenses updated from another device', 'info', 2000);
         }
         
-        // (2026-07-13) Safe view check in expenses sync; was App.currentView
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        // (2026-07-13) Safe view check in expenses sync; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Expenses !== 'undefined' && curV === 'expenses') {
           Expenses.render();
         }
@@ -958,7 +999,8 @@ const RealtimeSync = (() => {
           Utils.toast(`New product: ${newProduct.name}`, 'info', 2000);
         }
         
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        // (2026-07-13) Safe view check in product addition; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Inventory !== 'undefined' && curV === 'inventory') {
           if (Inventory.renderTable) Inventory.renderTable();
           else if (Inventory.render) Inventory.render();
@@ -993,7 +1035,8 @@ const RealtimeSync = (() => {
           Utils.toast(`Updated: ${updatedProduct.name} (stock: ${newStock})`, 'info', 2000);
         }
         
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        // (2026-07-13) Safe view check in product change; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Inventory !== 'undefined' && curV === 'inventory') {
           if (Inventory.renderTable) Inventory.renderTable();
         }
@@ -1001,7 +1044,8 @@ const RealtimeSync = (() => {
         // (2026-07-13) Add missing changed product to DB; was dropped on index -1
         localProducts.push(updatedProduct);
         DB.setProducts(localProducts);
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        // (2026-07-13) Safe view check on missing product; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Inventory !== 'undefined' && curV === 'inventory') {
           if (Inventory.renderTable) Inventory.renderTable();
         }
@@ -1026,7 +1070,8 @@ const RealtimeSync = (() => {
           Utils.toast('Product deleted on another device', 'info', 2000);
         }
         
-        const curV = typeof App !== 'undefined' && (App.getCurrentView ? App.getCurrentView() : App.currentView);
+        // (2026-07-13) Safe view check in product removal; was bare App.currentView
+        const curV = getAppCurrentView();
         if (typeof Inventory !== 'undefined' && curV === 'inventory') {
           if (Inventory.renderTable) Inventory.renderTable();
           else if (Inventory.render) Inventory.render();
@@ -1265,7 +1310,9 @@ const RealtimeSync = (() => {
     init,
     
     // Shift management
+    // (2026-07-13) Export & auto-listen cloud shift logs; was unexported
     subscribeToShift,
+    subscribeToShiftLogs,
     openShift,
     closeShift,
     getShiftFromCloud,
@@ -1336,6 +1383,7 @@ if (document.readyState === 'loading') {
       RealtimeSync.init().then(() => {
         RealtimeSync.registerDevice();
         RealtimeSync.subscribeToShift();
+        RealtimeSync.subscribeToShiftLogs();
         RealtimeSync.subscribeToAllProducts();
         RealtimeSync.subscribeToRestockLogs();
         RealtimeSync.subscribeToExpenses();
@@ -1355,6 +1403,7 @@ if (document.readyState === 'loading') {
     RealtimeSync.init().then(() => {
       RealtimeSync.registerDevice();
       RealtimeSync.subscribeToShift();
+      RealtimeSync.subscribeToShiftLogs();
       RealtimeSync.subscribeToAllProducts();
       RealtimeSync.subscribeToRestockLogs();
       RealtimeSync.subscribeToExpenses();

@@ -262,21 +262,32 @@ const Analytics = (() => {
     const fuelCfg = DB.getFuelConfig();
 
     const pKey = r.key;
+    const dStartObj = new Date(r.start);
+    const dEndObj = new Date(r.end);
+    const now = new Date();
+    const isToday = (pKey === "today") ||
+      (dStartObj.getFullYear() === now.getFullYear() &&
+       dStartObj.getMonth() === now.getMonth() &&
+       dStartObj.getDate() === now.getDate() &&
+       dEndObj.getFullYear() === now.getFullYear() &&
+       dEndObj.getMonth() === now.getMonth() &&
+       dEndObj.getDate() === now.getDate());
+    const isSingleDay = isToday || (pKey === "yesterday") ||
+      (dStartObj.getFullYear() === dEndObj.getFullYear() &&
+       dStartObj.getMonth() === dEndObj.getMonth() &&
+       dStartObj.getDate() === dEndObj.getDate()) ||
+      (r.end - r.start <= 86400000 + 5000 && pKey !== "all" && r.start > 86400000);
 
-    if(pKey === "today"){
-      // 8 time slots across the 24 hours of today
+    // (2026-07-13) Hourly chart for today; was multi-hour slots
+    if(isSingleDay){
       const baseDate = new Date(r.start);
-      const hours = [6, 9, 12, 15, 18, 21, 24];
-      let prevTs = r.start;
-      for(let i = 0; i < hours.length; i++){
-        const h = hours[i];
-        const slotEnd = h === 24 ? r.end : new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), h, 0, 0, 0).getTime();
-        const slotStart = prevTs;
-        prevTs = slotEnd;
-
+      for(let h = 0; h < 24; h++){
+        const slotStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), h, 0, 0, 0).getTime();
+        const slotEnd = slotStart + 3600000;
         dayStarts.push(slotStart);
-        const labelText = h === 24 ? "12 AM" : h === 12 ? "12 PM" : h > 12 ? `${h - 12} PM` : `${h} AM`;
-        labels.push(labelText);
+        const ampm = h >= 12 ? "PM" : "AM";
+        const h12 = h % 12 || 12;
+        labels.push(`${h12} ${ampm}`);
 
         const sSum = allSales.filter(s => { const ts = getSaleTs(s); return ts >= slotStart && ts < slotEnd; }).reduce((sum,x)=>sum+getSaleTotal(x),0);
         const fSum = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= slotStart && ts < slotEnd; }).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
