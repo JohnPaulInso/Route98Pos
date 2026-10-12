@@ -73,17 +73,16 @@
 <script src="js/settings.js"></script>
 <script src="js/app.js"></script>
 <!-- (2026-07-13) Remove nonexistent modal watchdog; was modal-watchdog.js -->
-<!-- (2026-07-13) Purge stale service worker & cache on app load; was caching -->
+<!-- (2026-07-13) Register service worker for offline web mode; was purging -->
 <script>
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      for(let r of regs) r.unregister();
-    }).catch(() => {});
-  }
-  if("caches" in window){
-    caches.keys().then(keys => {
-      for(let k of keys) caches.delete(k);
-    }).catch(() => {});
+  if("serviceWorker" in navigator && window.location.protocol.startsWith("http")){
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").then((reg) => {
+        reg.update().catch(() => {});
+      }).catch((err) => {
+        console.warn("ServiceWorker registration error:", err);
+      });
+    });
   }
 </script>
 <!-- (2026-07-13) Remove cap-modal-portal; was portal div container -->

@@ -490,7 +490,12 @@ const Reports = (() => {
                 const pieces = (origLine.unitType === "pack" && ppp > 1) ? (diffQty * ppp) : diffQty;
                 const beforeStock = p.stock || 0;
                 const afterStock = Utils.round2(beforeStock + pieces);
+                // (2026-07-13) Sync restored stock on void; was local mutation only
                 p.stock = afterStock;
+                p.updatedAt = Date.now();
+                if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+                  RealtimeSync.syncSingleProduct(p);
+                }
                 stockChanges.push(`${diffQty}x ${p.name || origLine.name} (Stock: ${beforeStock} → ${afterStock})`);
               } else {
                 stockChanges.push(`${diffQty}x ${origLine.name}`);
@@ -651,7 +656,12 @@ const Reports = (() => {
             const pieces = (line.unitType === "pack" && ppp > 1) ? (line.qty * ppp) : line.qty;
             const beforeStock = p.stock || 0;
             const afterStock = Utils.round2(beforeStock + pieces);
+            // (2026-07-13) Sync restored stock on sale delete; was local mutation only
             p.stock = afterStock;
+            p.updatedAt = Date.now();
+            if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+              RealtimeSync.syncSingleProduct(p);
+            }
             stockChanges.push(`${line.qty}x ${p.name || line.name} (Stock: ${beforeStock} → ${afterStock})`);
           } else {
             stockChanges.push(`${line.qty}x ${line.name}`);
@@ -738,7 +748,12 @@ const Reports = (() => {
                 const pieces = (line.unitType === "pack" && ppp > 1) ? (line.qty * ppp) : line.qty;
                 const beforeStock = p.stock || 0;
                 const afterStock = Utils.round2(beforeStock + pieces);
+                // (2026-07-13) Sync restored stock on bulk delete; was local mutation only
                 p.stock = afterStock;
+                p.updatedAt = Date.now();
+                if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+                  RealtimeSync.syncSingleProduct(p);
+                }
                 stockChanges.push(`${line.qty}x ${p.name || line.name} (Stock: ${beforeStock} → ${afterStock})`);
               } else {
                 stockChanges.push(`${line.qty}x ${line.name}`);
@@ -2362,16 +2377,19 @@ const Reports = (() => {
     }
   }
 
-  // (2026-07-13) Safely destroy charts by ID; was destroy overviewCharts only
+  // (2026-07-13) Safely destroy all charts & clear timers; was overview only
+  let chartBuildTimer = null;
+  let chartRetryCount = 0;
   function destroyOverviewCharts(){
+    if(chartBuildTimer){ clearTimeout(chartBuildTimer); chartBuildTimer = null; }
+    chartRetryCount = 0;
     Object.values(overviewCharts).forEach(c => { try { c?.destroy(); } catch(e){} });
     overviewCharts = {};
-    ["ov-chart-trend", "ov-chart-category", "ov-chart-revenue-bar", "ov-chart-category-pie", "ov-chart-top-products"].forEach(id => {
-      try {
-        const c = typeof Chart !== "undefined" ? Chart.getChart(id) : null;
-        if(c) c.destroy();
-      } catch(e){}
-    });
+    if(typeof Chart !== "undefined" && Chart.instances){
+      Object.keys(Chart.instances).forEach(k => {
+        try { Chart.instances[k]?.destroy(); } catch(e){}
+      });
+    }
   }
 
   function openDayDrilldown(dayStart){
@@ -2886,18 +2904,23 @@ const Reports = (() => {
     });
   }
 
-  // (2026-07-13) Safe chart builder with ready poll & reflow wait; was 0x0 blank
+  // (2026-07-13) Safe chart builder with retry cap & timer clear; was infinite loop
   function buildOverviewCharts(stats){
+    if(chartBuildTimer){ clearTimeout(chartBuildTimer); chartBuildTimer = null; }
     destroyOverviewCharts();
     if(typeof Chart === "undefined"){
-      setTimeout(() => { if(typeof Chart !== "undefined") buildOverviewCharts(stats); }, 100);
+      chartBuildTimer = setTimeout(() => { if(typeof Chart !== "undefined") buildOverviewCharts(stats); }, 100);
       return;
     }
     const trendEl = document.getElementById("ov-chart-trend");
     if(trendEl && trendEl.offsetWidth === 0){
-      setTimeout(() => buildOverviewCharts(stats), 60);
+      if(chartRetryCount < 10){
+        chartRetryCount++;
+        chartBuildTimer = setTimeout(() => buildOverviewCharts(stats), 100);
+      }
       return;
     }
+    chartRetryCount = 0;
 
     // 1. Trend Line Chart
     try {
@@ -3585,6 +3608,7 @@ const Reports = (() => {
 
   // ---------------- shell ----------------
   function render(){
+    destroyOverviewCharts();
     persistRangeState();
     updateTopbarBreadcrumb();
     
@@ -3667,6 +3691,8 @@ const Reports = (() => {
       // Create pie chart for Sales by Item
       const itemsPieCtx = document.getElementById("items-chart-pie")?.getContext("2d");
       if(itemsPieCtx && typeof Chart !== "undefined"){
+        const prevItemsPie = Chart.getChart("items-chart-pie");
+        if(prevItemsPie) { try { prevItemsPie.destroy(); } catch(e){} }
         const r = getActiveRange();
         const filterFn = getReportFilterFn();
         const stats = Analytics.computeStats(r, { filterFn });
@@ -3818,6 +3844,8 @@ const Reports = (() => {
       // Create charts for Sales by Category
       const revPieCtx = document.getElementById("category-revenue-pie")?.getContext("2d");
       if(revPieCtx && typeof Chart !== "undefined"){
+        const prevRevPie = Chart.getChart("category-revenue-pie");
+        if(prevRevPie) { try { prevRevPie.destroy(); } catch(e){} }
         const r = getActiveRange();
         const filterFn = getReportFilterFn();
         const stats = Analytics.computeStats(r, { filterFn });
@@ -3876,6 +3904,8 @@ const Reports = (() => {
       
       const marginBarCtx = document.getElementById("category-margin-bar")?.getContext("2d");
       if(marginBarCtx && typeof Chart !== "undefined"){
+        const prevMarginBar = Chart.getChart("category-margin-bar");
+        if(prevMarginBar) { try { prevMarginBar.destroy(); } catch(e){} }
         const r = getActiveRange();
         const filterFn = getReportFilterFn();
         const stats = Analytics.computeStats(r, { filterFn });
@@ -4054,7 +4084,8 @@ const Reports = (() => {
           
           const colors = { 'Cash': '#10B981', 'GCash': '#3B82F6', 'Card': '#8B5CF6', 'Other': '#F59E0B' };
           const methods = Object.keys(paymentMap);
-          
+          const prevPayPie = Chart.getChart("receipts-payment-pie");
+          if(prevPayPie) { try { prevPayPie.destroy(); } catch(e){} }
           new Chart(payPieCtx, {
             type: "doughnut",
             data: {
@@ -4150,7 +4181,8 @@ const Reports = (() => {
             days = sortedEntries.map(e => e[0]);
             amounts = sortedEntries.map(e => e[1]);
           }
-          
+          const prevTrendLine = Chart.getChart("receipts-trend-line");
+          if(prevTrendLine) { try { prevTrendLine.destroy(); } catch(e){} }
           new Chart(trendLineCtx, {
             type: "line",
             data: {

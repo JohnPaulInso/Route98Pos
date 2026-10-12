@@ -315,5 +315,24 @@ const Utils = (() => {
     }
   }
 
-  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound, openCashDrawer };
+  // (2026-07-13) Ignore punctuation in search matching; was strict includes
+  function matchesSearch(target, query){
+    if(!query || !String(query).trim()) return true;
+    if(!target) return false;
+    const qRaw = String(query).toLowerCase().trim();
+    const tRaw = String(target).toLowerCase();
+    if(tRaw.includes(qRaw)) return true;
+    const qNorm = qRaw.replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+    if(!qNorm) return true;
+    const tNorm = tRaw.replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+    if(tNorm.includes(qNorm)) return true;
+    const qCol = qRaw.replace(/[^\p{L}\p{N}]/gu, "");
+    const tCol = tRaw.replace(/[^\p{L}\p{N}]/gu, "");
+    if(qCol && tCol.includes(qCol)) return true;
+    const tokens = qNorm.split(" ").filter(Boolean);
+    return tokens.length > 0 && tokens.every(tok => tNorm.includes(tok) || (qCol && tCol.includes(tok)));
+  }
+
+  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound, openCashDrawer, matchesSearch };
 })();
+

@@ -102,16 +102,20 @@ const Sync = (() => {
         const remoteTs = remoteItem[tsKey] || remoteItem.ts || remoteItem.updatedAt || remoteItem.timestamp || remoteItem.openedAt || remoteItem.createdAt || 0;
         const baseTs = baseItem ? (baseItem[tsKey] || baseItem.ts || baseItem.updatedAt || baseItem.timestamp || baseItem.openedAt || baseItem.createdAt || 0) : 0;
         if(!baseItem){
-          // (2026-07-13) Favor newer timestamp between local and remote; was local win
-          merged.push(remoteTs >= localTs ? remoteItem : localItem);
+          // (2026-07-13) Favor local on tie or newer ts; was remote win
+          merged.push(localTs >= remoteTs ? localItem : remoteItem);
         } else {
-          // (2026-07-13) Pick remote on newer ts or unedited local; was stale clobber
-          if(remoteTs > localTs || localTs <= baseTs){
-            merged.push(remoteItem);
-          } else if(localTs > remoteTs){
+          // (2026-07-13) Preserve local product edits in 3-way merge; was remote clobber
+          const localChanged = JSON.stringify(localItem) !== JSON.stringify(baseItem);
+          const remoteChanged = JSON.stringify(remoteItem) !== JSON.stringify(baseItem);
+          if(localChanged && !remoteChanged){
             merged.push(localItem);
-          } else {
+          } else if(!localChanged && remoteChanged){
             merged.push(remoteItem);
+          } else if(localTs >= remoteTs){
+            merged.push({ ...remoteItem, ...localItem });
+          } else {
+            merged.push({ ...localItem, ...remoteItem });
           }
         }
       } else if(localItem && !remoteItem){
@@ -156,7 +160,10 @@ const Sync = (() => {
     merged.products = mergeArray3Way(base.products, local.products, remote.products, "id", "updatedAt");
     // (2026-07-13) Sort merged sales newest first; was unsorted order
     merged.sales = mergeArray3Way(base.sales, local.sales, remote.sales, "receiptNo", "ts").sort((a,b)=>(b.ts||0)-(a.ts||0));
-    merged.shiftLogs = mergeArray3Way(base.shiftLogs, local.shiftLogs, remote.shiftLogs, "id", "openedAt");
+    // (2026-07-13) Merge deletedShiftLogIds and filter shiftLogs; was resurrecting
+    merged.deletedShiftLogIds = Array.from(new Set([...(base.deletedShiftLogIds || []), ...(local.deletedShiftLogIds || []), ...(remote.deletedShiftLogIds || [])]));
+    const delShiftSet = new Set(merged.deletedShiftLogIds);
+    merged.shiftLogs = mergeArray3Way(base.shiftLogs, local.shiftLogs, remote.shiftLogs, "id", "openedAt").filter(l => l && !delShiftSet.has(String(l.id).trim()));
     merged.fuelSales = mergeArray3Way(base.fuelSales, local.fuelSales, remote.fuelSales, "id", "ts");
     merged.expenses = mergeArray3Way(base.expenses, local.expenses, remote.expenses, "id", "ts");
     // (2026-07-13) Keep void logs sorted descending in merge; was unsorted
@@ -308,6 +315,7 @@ const Sync = (() => {
         // (2026-07-13) Keep all backup summaries in snapshot; was capped at 5
         backups: finalSnap.backups || [],
         deletedSaleIds: Array.from(DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : []),
+        deletedShiftLogIds: Array.from(DB.getDeletedShiftLogIds ? DB.getDeletedShiftLogIds() : []),
         isPartialSalesSync: true,
         exportedAt: exportTime
       };
@@ -323,6 +331,8 @@ const Sync = (() => {
           throw setErr;
         }
       }
+      // (2026-07-13) Drain offline queue on snapshot sync; was re-connect only
+      await syncOfflineQueue().catch(()=>{});
       DB.setSyncMeta({ lastSynced: Date.now(), status:"idle" });
     }catch(err){
       console.error("Firestore sync failed", err);
@@ -850,13 +860,16 @@ const Sync = (() => {
       if(e.detail?.key === DB.KEYS.syncMeta || e.detail?.key === DB.KEYS.syncBaseline || e.detail?.key === DB.KEYS.backups || e.detail?.key === DB.KEYS.currentCart) return;
       scheduleAutoSync();
     });
-    // (2026-07-13) Pull cloud first then push offline updates; was push first
+    // (2026-07-13) Drain offline queue & push updates on online; was pull first
     window.addEventListener("online", async () => {
       paintStatus();
       try {
-        await pullSnapshot();
+        if(typeof RealtimeSync !== "undefined" && RealtimeSync.processQueue){
+          await RealtimeSync.processQueue().catch(()=>{});
+        }
         await syncOfflineQueue();
         await pushSnapshot(true);
+        await pullSnapshot(true);
       } catch(e) {
         console.warn("Reconnection sync error:", e);
       }

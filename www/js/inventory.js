@@ -22,13 +22,8 @@ const Inventory = (() => {
       const prodCatLower = (p.category || "").trim().toLowerCase();
       const matchCat = catFilterLower === "all" || prodCatLower === catFilterLower;
       const term = searchTerm.toLowerCase();
-      // (2026-07-13) Include category name in inventory search; was brand/distributor
-      const matchSearch = !term ||
-        p.name.toLowerCase().includes(term) ||
-        (p.brand||"").toLowerCase().includes(term) ||
-        (p.distributor||"").toLowerCase().includes(term) ||
-        (p.category||"").toLowerCase().includes(term) ||
-        (p.barcode||"").includes(searchTerm);
+      // (2026-07-13) Ignore punctuation in search matching; was strict includes
+      const matchSearch = Utils.matchesSearch(`${p.name || ""} ${p.brand || ""} ${p.distributor || ""} ${p.category || ""} ${p.barcode || ""}`, searchTerm);
       const matchStock = stockFilter === "all" ||
         (stockFilter === "in" && p.stock > 0) ||
         (stockFilter === "low" && p.stock > 0 && p.stock <= p.lowStockThreshold) ||
@@ -102,14 +97,15 @@ const Inventory = (() => {
           <button type="button" class="btn btn-ghost btn-icon barcode-camera-btn" id="f-scan-btn" title="Scan with camera">${Icons.get("camera",{size:17})}</button>
         </div>
       </div>
+      <!-- (2026-07-13) Add fixed peso prefix to price inputs; was plain inputs -->
       <div class="input-row form-two-col">
-        <div class="field"><label>Cost price</label><input class="input" id="f-cost" type="number" step="0.01" value="${initial?.cost??""}" placeholder="0.00"></div>
+        <div class="field"><label>Cost price</label><div class="input-peso-wrap" style="position:relative;display:flex;align-items:center;width:100%;"><span class="peso-prefix-symbol" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);line-height:1;color:var(--ink-soft);font-weight:700;font-size:1.05rem;pointer-events:none;user-select:none;z-index:2;">₱</span><input class="input" id="f-cost" type="number" step="0.01" value="${initial?.cost??""}" placeholder="0.00" style="padding-left:32px;width:100%;"></div></div>
         <div class="field">
           <label style="display:flex;justify-content:space-between;align-items:center;">
             <span>Selling price</span>
             <span id="f-profit-badge" class="badge badge-green" style="display:none;font-size:.70rem;padding:2px 6px;text-transform:none;font-weight:800;"></span>
           </label>
-          <input class="input" id="f-price" type="number" step="0.01" value="${initial?.price??""}" placeholder="0.00">
+          <div class="input-peso-wrap" style="position:relative;display:flex;align-items:center;width:100%;"><span class="peso-prefix-symbol" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);line-height:1;color:var(--ink-soft);font-weight:700;font-size:1.05rem;pointer-events:none;user-select:none;z-index:2;">₱</span><input class="input" id="f-price" type="number" step="0.01" value="${initial?.price??""}" placeholder="0.00" style="padding-left:32px;width:100%;"></div>
         </div>
       </div>
       <div class="input-row form-two-col">
@@ -141,13 +137,13 @@ const Inventory = (() => {
             </div>
             <div class="field">
               <label>Pack Selling Price</label>
-              <input class="input" id="f-pack-price" type="number" min="0" step="0.01" value="${initial?.packPrice ?? (initial?.price ? initial.price * 10 : "")}" placeholder="e.g. 90.00">
+              <div class="input-peso-wrap" style="position:relative;display:flex;align-items:center;width:100%;"><span class="peso-prefix-symbol" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);line-height:1;color:var(--ink-soft);font-weight:700;font-size:1.05rem;pointer-events:none;user-select:none;z-index:2;">₱</span><input class="input" id="f-pack-price" type="number" min="0" step="0.01" value="${initial?.packPrice ?? (initial?.price ? initial.price * 10 : "")}" placeholder="e.g. 90.00" style="padding-left:32px;width:100%;"></div>
             </div>
           </div>
           <div class="input-row form-two-col" style="margin-top:8px;">
             <div class="field">
               <label>Pack Cost Price</label>
-              <input class="input" id="f-pack-cost" type="number" min="0" step="0.01" value="${initial?.packCost ?? (initial?.cost ? initial.cost * 10 : "")}" placeholder="e.g. 70.00">
+              <div class="input-peso-wrap" style="position:relative;display:flex;align-items:center;width:100%;"><span class="peso-prefix-symbol" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);line-height:1;color:var(--ink-soft);font-weight:700;font-size:1.05rem;pointer-events:none;user-select:none;z-index:2;">₱</span><input class="input" id="f-pack-cost" type="number" min="0" step="0.01" value="${initial?.packCost ?? (initial?.cost ? initial.cost * 10 : "")}" placeholder="e.g. 70.00" style="padding-left:32px;width:100%;"></div>
             </div>
             <div class="field">
               <label>Pack Barcode <span class="text-faint">(optional)</span></label>
@@ -1790,10 +1786,9 @@ const Inventory = (() => {
     function handleSearch(term){
       term = (term || "").trim().toLowerCase();
       if(!term){ resultsBox.style.display = "none"; resultsBox.innerHTML = ""; return; }
+      // (2026-07-13) Ignore punctuation in search matching; was strict includes
       const matches = allProducts.filter(p =>
-        (p.barcode || "").toLowerCase() === term ||
-        p.name.toLowerCase().includes(term) ||
-        (p.brand || "").toLowerCase().includes(term)
+        Utils.matchesSearch(`${p.barcode || ""} ${p.name || ""} ${p.brand || ""}`, term)
       ).slice(0, 8);
 
       if(!matches.length){
@@ -2144,6 +2139,13 @@ const Inventory = (() => {
         const p = DB.getProducts().find(x => x.id === row.dataset.prodRow);
         if(p) openProductTransactionsModal(p);
       }, true);
+      // (2026-07-13) Inventory row context menu to edit & add to cart; was none
+      row.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const p = DB.getProducts().find(x => x.id === row.dataset.prodRow);
+        if(p) showProductContextMenu(e, p);
+      });
     });
 
     getInvElements("[data-history]").forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); openProductTransactionsModal(DB.getProducts().find(p=>p.id===b.dataset.history)); });
@@ -2185,6 +2187,115 @@ const Inventory = (() => {
         pag.innerHTML = "";
       }
     }
+  }
+
+  // (2026-07-13) Helper to add item to POS cart from inventory; was missing
+  function addProductToCart(product, qty = 1, unitType = "piece"){
+    if(typeof POS !== "undefined" && POS.addToCart){
+      POS.addToCart(product, qty, unitType);
+    } else {
+      const state = DB.getSavedCart ? DB.getSavedCart() : { cart: [], discount: { type:"percent", value:0 } };
+      const currentCart = Array.isArray(state.cart) ? state.cart : [];
+      const isPack = unitType === "pack";
+      const piecesPerPack = product.piecesPerPack > 1 ? product.piecesPerPack : 1;
+      const packPrice = product.packPrice || (product.price * piecesPerPack);
+      const price = isPack ? packPrice : product.price;
+      const line = currentCart.find(l => l.productId === product.id && l.unitType === unitType);
+      if(line){
+        line.qty += qty;
+      } else {
+        currentCart.push({
+          productId: product.id,
+          name: product.name,
+          price,
+          qty,
+          unitType,
+          unit: isPack ? (product.packUnit || "pack") : (product.unit || "pc"),
+          piecesPerPack: isPack ? piecesPerPack : 1,
+          imageUrl: product.imageUrl,
+          category: product.category
+        });
+      }
+      state.cart = currentCart;
+      if(DB.saveCart) DB.saveCart(state);
+    }
+    Utils.Sound.beep();
+    Utils.toast(`Added ${product.name}${unitType === "pack" ? " (Pack)" : ""} to POS cart`, "success", 1200);
+  }
+
+  function showProductContextMenu(e, p){
+    document.getElementById("inv-context-menu")?.remove();
+    const menu = document.createElement("div");
+    menu.className = "inv-context-menu";
+    menu.id = "inv-context-menu";
+    const hasPack = p.piecesPerPack > 1;
+    menu.innerHTML = `
+      <div class="inv-context-header">
+        <strong>${Utils.escapeHtml(p.name)}</strong>
+        <span class="mono text-xs text-faint">${Utils.money(p.price)}${p.unit ? `/${p.unit}` : ""} · Stock: ${p.stock}</span>
+      </div>
+      <button type="button" class="inv-context-item" data-action="cart">
+        ${Icons.get("cart",{size:15})} <span>Add to POS Cart</span>
+      </button>
+      ${hasPack ? `
+      <button type="button" class="inv-context-item" data-action="cart-pack">
+        ${Icons.get("package",{size:15})} <span>Add Full Pack (${p.piecesPerPack} pcs)</span>
+      </button>` : ""}
+      <button type="button" class="inv-context-item" data-action="edit">
+        ${Icons.get("edit",{size:15})} <span>Edit Product</span>
+      </button>
+      <button type="button" class="inv-context-item" data-action="stock">
+        ${Icons.get("box",{size:15})} <span>Adjust Stock</span>
+      </button>
+      <button type="button" class="inv-context-item" data-action="history">
+        ${Icons.get("clock",{size:15})} <span>View Stock History</span>
+      </button>
+    `;
+    document.body.appendChild(menu);
+
+    const mWidth = 220;
+    const mHeight = hasPack ? 230 : 190;
+    let posX = e.clientX;
+    let posY = e.clientY;
+    if(posX + mWidth > window.innerWidth - 8) posX = Math.max(8, window.innerWidth - mWidth - 8);
+    if(posY + mHeight > window.innerHeight - 8) posY = Math.max(8, window.innerHeight - mHeight - 8);
+    menu.style.left = `${posX}px`;
+    menu.style.top = `${posY}px`;
+
+    const closeMenu = () => {
+      menu.remove();
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", closeMenu, true);
+    };
+    const onDocClick = (ev) => { if(!menu.contains(ev.target)) closeMenu(); };
+    const onKeyDown = (ev) => { if(ev.key === "Escape") closeMenu(); };
+    setTimeout(() => {
+      document.addEventListener("click", onDocClick);
+      document.addEventListener("keydown", onKeyDown);
+      window.addEventListener("scroll", closeMenu, true);
+    }, 10);
+
+    menu.querySelector("[data-action='cart']")?.addEventListener("click", () => {
+      closeMenu();
+      addProductToCart(p, 1, "piece");
+    });
+    menu.querySelector("[data-action='cart-pack']")?.addEventListener("click", () => {
+      closeMenu();
+      addProductToCart(p, 1, "pack");
+    });
+    menu.querySelector("[data-action='edit']")?.addEventListener("click", () => {
+      closeMenu();
+      openProductForm(p);
+    });
+    menu.querySelector("[data-action='stock']")?.addEventListener("click", () => {
+      closeMenu();
+      openStockAdjust(p);
+    });
+    menu.querySelector("[data-action='history']")?.addEventListener("click", () => {
+      closeMenu();
+      openProductTransactionsModal(p);
+    });
   }
 
   // (2026-07-13) Guard inventory view for admin only; was cashier accessible
@@ -2229,8 +2340,8 @@ const Inventory = (() => {
         <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
       </div>
       <div class="inv-toolbar" style="position:relative;z-index:1;">
-        <!-- (2026-07-13) Flex center input-icon-wrap for clear X; was uncentered -->
-        <div class="input-icon-wrap" style="position:relative;display:flex;align-items:center;width:320px;z-index:1;">
+        <!-- (2026-07-13) Set 38px height on input-icon-wrap; was auto height -->
+        <div class="input-icon-wrap" style="position:relative;display:flex;align-items:center;width:320px;height:38px;z-index:1;">
           ${Icons.get("search",{size:15})}
           <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
           <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:14})}</button>

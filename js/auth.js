@@ -12,10 +12,22 @@ const Auth = (() => {
   function currentUser(){ return session; }
   function isAdmin(){ return session?.role === "admin"; }
 
-  function logout(){
+  // (2026-07-13) Guard logout against active open shift; was unverified logout
+  function logout(force = false){
+    if(!force){
+      const activeShift = (typeof Shift !== "undefined" && Shift.getActiveShift) ? Shift.getActiveShift() : (DB.getShift?.()?.status === "open" ? DB.getShift() : null);
+      if(activeShift){
+        Modalz.alert({
+          title: "Active Shift In Progress",
+          message: `Logging out is not allowed while a shift is open (${activeShift.cashier || "Cashier"}). Please end your shift first.`
+        });
+        return false;
+      }
+    }
     session = null;
     sessionStorage.removeItem("mm_session");
     render();
+    return true;
   }
 
   function restoreSession(){

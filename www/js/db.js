@@ -18,8 +18,8 @@ const DB = (() => {
     deletedSaleIds: NS+"deletedSaleIds", // (2026-09-24) Track deleted sale IDs to prevent re-sync
     // (2026-07-13) Add deletedProductIds tombstone key; was untracked deletes
     deletedProductIds: NS+"deletedProductIds",
-    // (2026-07-13) Store baseline snapshot for 3-way merge; was shiftLogs only
-    shiftLogs: NS+"shiftLogs", syncBaseline: NS+"syncBaseline"
+    // (2026-07-13) Add deletedShiftLogIds tombstone; was unpersisted
+    shiftLogs: NS+"shiftLogs", deletedShiftLogIds: NS+"deletedShiftLogIds", syncBaseline: NS+"syncBaseline"
   };
 
   const memCache = new Map();
@@ -56,13 +56,19 @@ const DB = (() => {
     try{
       const raw = localStorage.getItem(key);
       const val = raw ? JSON.parse(raw) : fallback;
-      memCache.set(key, val);
+      if(key !== KEYS.backups && key !== KEYS.syncBaseline){
+        memCache.set(key, val);
+      }
       return val;
     }catch(e){ console.warn("DB read failed", key, e); return fallback; }
   }
-  // (2026-07-13) Recover from quota error by purging backups; was uncaught fail
+  // (2026-07-13) Exclude bulky snapshots from permanent memCache; was caching all
   function write(key, value, silent = false){
-    memCache.set(key, value);
+    if(key !== KEYS.backups && key !== KEYS.syncBaseline){
+      memCache.set(key, value);
+    } else {
+      memCache.delete(key);
+    }
     if(key === KEYS.sales) cachedProcessedSales = null;
     if(key === KEYS.products) cachedProducts = null;
     if(key === KEYS.categories) cachedCategories = null;
@@ -761,18 +767,41 @@ const DB = (() => {
     return shift;
   };
   const setShift       = (v) => write(KEYS.shift, v);
-  // (2026-07-13) Deduplicate shift log on save; was pushing duplicates
-  const getShiftLogs   = () => read(KEYS.shiftLogs, []);
-  const setShiftLogs   = (v) => write(KEYS.shiftLogs, v || []);
+  // (2026-07-13) Persistent tombstone tracking for shift logs; was absent
+  const getDeletedShiftLogIds = () => new Set(read(KEYS.deletedShiftLogIds, []));
+  const markShiftLogDeleted = (id) => {
+    if(!id) return;
+    const s = getDeletedShiftLogIds();
+    s.add(String(id).trim());
+    write(KEYS.deletedShiftLogIds, Array.from(s), true);
+  };
+  const getShiftLogs   = () => {
+    const deleted = getDeletedShiftLogIds();
+    const raw = read(KEYS.shiftLogs, []);
+    return deleted.size ? raw.filter(l => l && !deleted.has(String(l.id).trim())) : raw;
+  };
+  const setShiftLogs   = (v) => {
+    const deleted = getDeletedShiftLogIds();
+    const clean = (v || []).filter(l => l && !deleted.has(String(l.id).trim()));
+    return write(KEYS.shiftLogs, clean);
+  };
   const saveShiftLog   = (item) => {
+    const deleted = getDeletedShiftLogIds();
+    if(deleted.has(String(item.id).trim())){
+      deleted.delete(String(item.id).trim());
+      write(KEYS.deletedShiftLogIds, Array.from(deleted), true);
+    }
     const logs = getShiftLogs().filter(l => l.id !== item.id);
     logs.unshift(item);
     setShiftLogs(logs);
     return item;
   };
-  // (2026-07-13) Delete single shift log by id; was no delete function
+  // (2026-07-13) Delete shift log and mark tombstone; was local filter only
   const deleteShiftLog = (id) => {
-    const logs = getShiftLogs().filter(l => l.id !== id);
+    if(!id) return;
+    const sId = String(id).trim();
+    markShiftLogDeleted(sId);
+    const logs = getShiftLogs().filter(l => l && String(l.id).trim() !== sId);
     setShiftLogs(logs);
   };
   // (2026-07-13) Store daily starting and ending balances; was transient shift
@@ -1246,8 +1275,9 @@ const DB = (() => {
       dayBalances:getDayBalances(), backups:getBackups().map(b=>{const c={...b};delete c.data;return c;}).slice(0,30), voidLogs:getVoidLogs(), shift:read(KEYS.shift, null), shiftLogs:getShiftLogs(), cashiers:getCashiers(),
       customItems: getCustomItems ? getCustomItems() : [],
       deletedSaleIds: Array.from(getDeletedSaleIds ? getDeletedSaleIds() : []),
-      // (2026-07-13) Include deletedProductIds in DB snapshot; was omitted
       deletedProductIds: Array.from(getDeletedProductIds ? getDeletedProductIds() : []),
+      // (2026-07-13) Include deletedShiftLogIds in DB snapshot; was omitted
+      deletedShiftLogIds: Array.from(getDeletedShiftLogIds ? getDeletedShiftLogIds() : []),
       exportedAt: Date.now(), version:3
     };
   }
@@ -1386,11 +1416,18 @@ const DB = (() => {
         setShift(snap.shift);
       }
     }
+    // (2026-07-13) Merge deletedShiftLogIds and filter shiftLogs; was resurrecting
+    if(snap.deletedShiftLogIds && Array.isArray(snap.deletedShiftLogIds)){
+      const curDel = getDeletedShiftLogIds();
+      snap.deletedShiftLogIds.forEach(id => { if(id) curDel.add(String(id).trim()); });
+      write(KEYS.deletedShiftLogIds, Array.from(curDel), true);
+    }
     if(snap.shiftLogs && Array.isArray(snap.shiftLogs)){
+      const deletedIds = getDeletedShiftLogIds();
       const localLogs = getShiftLogs();
       const logMap = new Map();
-      localLogs.forEach(l => { if(l?.id) logMap.set(String(l.id), l); });
-      snap.shiftLogs.forEach(l => { if(l?.id && !logMap.has(String(l.id))) logMap.set(String(l.id), l); });
+      localLogs.forEach(l => { if(l?.id && !deletedIds.has(String(l.id).trim())) logMap.set(String(l.id), l); });
+      snap.shiftLogs.forEach(l => { if(l?.id && !deletedIds.has(String(l.id).trim()) && !logMap.has(String(l.id))) logMap.set(String(l.id), l); });
       setShiftLogs(Array.from(logMap.values()).sort((a, b) => (b.openedAt || 0) - (a.openedAt || 0)));
     }
     // (2026-07-13) Restore dayBalances from snapshot; was omitted
@@ -1431,6 +1468,7 @@ const DB = (() => {
     getFuelDeliveries, setFuelDeliveries, addFuelDelivery,
     getBackups, setBackups, saveBackup, deleteBackup, buildSnapshotAt, populateHistoricalBackups,
     getShift, setShift, getShiftLogs, setShiftLogs, saveShiftLog, deleteShiftLog,
+    getDeletedShiftLogIds, markShiftLogDeleted,
     getDayBalances, setDayBalances,
     getSyncMeta, setSyncMeta,
     // (2026-07-13) Export sync baseline methods; was omitted from return

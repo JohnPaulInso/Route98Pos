@@ -551,7 +551,7 @@ const Shift = (() => {
       });
     });
 
-    // (2026-07-13) Wire shift log delete buttons; was no delete handler
+    // (2026-07-13) Delete shift log across local, realtime & cloud; was local only
     if(Auth.isAdmin()){
       root.querySelectorAll("[data-delete-shift-log]").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -561,8 +561,14 @@ const Shift = (() => {
             title: "Delete Shift Log?",
             message: "This will permanently remove this shift history record. This cannot be undone.",
             danger: true,
-            onConfirm: () => {
+            onConfirm: async () => {
               if(DB.deleteShiftLog) DB.deleteShiftLog(logId);
+              if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteShiftLogFromCloud){
+                await RealtimeSync.deleteShiftLogFromCloud(logId).catch(e => console.warn(e));
+              }
+              if(typeof Sync !== "undefined" && Sync.pushSnapshot){
+                Sync.pushSnapshot(true).catch(e => console.warn(e));
+              }
               Utils.toast("Shift log deleted.", "success");
               render();
             }
@@ -919,5 +925,118 @@ const Shift = (() => {
     `;
   }
 
-  return { render, openStartShiftModal, openEndShiftModal, getActiveShift };
+  // (2026-07-13) Auto-close shift forcefully on unload; was unclosed
+  function forceCloseActiveShift(reason = "Forced tab close"){
+    const active = getActiveShift();
+    if(!active) return;
+    const totals = calculateShiftTotals(active);
+    const expected = totals.expectedCash;
+    const closedAt = Date.now();
+    const logRecord = {
+      id: active.id || Utils.uid("shift"),
+      openedAt: active.openedAt,
+      closedAt,
+      duration: fmtDuration(active.openedAt, closedAt),
+      cashier: active.cashier || "Cashier",
+      openingCash: totals.openingCash,
+      cashSales: totals.cashSales,
+      gcashSales: totals.gcashSales,
+      cardSales: totals.cardSales,
+      otherSales: totals.otherSales,
+      totalSales: totals.totalSales,
+      totalCount: totals.totalCount,
+      cashIn: totals.cashIn,
+      cashOut: totals.cashOut,
+      expectedCash: expected,
+      actualCash: expected,
+      variance: 0,
+      notes: reason,
+      status: "closed"
+    };
+    if(DB.saveShiftLog) DB.saveShiftLog(logRecord);
+    const todayKey = new Date().toLocaleDateString("en-CA");
+    const dayBalances = DB.getDayBalances ? DB.getDayBalances() : {};
+    dayBalances[todayKey] = { ...(dayBalances[todayKey] || {}), endingBalance: expected };
+    if(DB.setDayBalances) DB.setDayBalances(dayBalances);
+    DB.setShift({ openedAt: null, openingCash: 0, cashier: null, status: "closed", closedAt });
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.closeShift){
+      try { RealtimeSync.closeShift(logRecord); } catch(e){}
+    }
+  }
+
+  // (2026-07-13) Tolerate reload & auto-close shift on exit; was closing on reload
+  if(typeof window !== "undefined"){
+    window.addEventListener("beforeunload", (e) => {
+      const active = getActiveShift();
+      if(active){
+        sessionStorage.setItem("mm_reloading_shift", JSON.stringify(active));
+        e.preventDefault();
+        e.returnValue = "You have an active shift in progress. Please end your shift before closing.";
+        return e.returnValue;
+      }
+    });
+
+    const onForceClose = () => {
+      const active = getActiveShift();
+      if(active){
+        sessionStorage.setItem("mm_active_shift_backup", JSON.stringify(active));
+        forceCloseActiveShift("Force closed tab/window");
+      }
+    };
+    window.addEventListener("pagehide", onForceClose);
+    window.addEventListener("unload", onForceClose);
+
+    const isReload = (window.performance && performance.getEntriesByType && performance.getEntriesByType("navigation")[0]?.type === "reload") ||
+                     (window.performance && performance.navigation && performance.navigation.type === 1) ||
+                     Boolean(sessionStorage.getItem("mm_reloading_shift"));
+
+    const shiftBackupStr = sessionStorage.getItem("mm_active_shift_backup") || sessionStorage.getItem("mm_reloading_shift");
+    if(isReload && shiftBackupStr){
+      try {
+        const restoredShift = JSON.parse(shiftBackupStr);
+        if(restoredShift && restoredShift.status === "open"){
+          const logs = (DB.getShiftLogs ? DB.getShiftLogs() : []).filter(l => !(l.notes === "Force closed tab/window" && (Date.now() - (l.closedAt || 0)) < 45000));
+          if(DB.setShiftLogs) DB.setShiftLogs(logs);
+          DB.setShift(restoredShift);
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.openShift){
+            RealtimeSync.openShift(restoredShift).catch(()=>{});
+          }
+        }
+      } catch(e){}
+    } else {
+      const active = getActiveShift();
+      if(active && !sessionStorage.getItem("mm_browser_session_active")){
+        forceCloseActiveShift("Force closed / Browser shutdown");
+      }
+    }
+    sessionStorage.removeItem("mm_reloading_shift");
+    sessionStorage.removeItem("mm_active_shift_backup");
+    sessionStorage.setItem("mm_browser_session_active", "1");
+
+    if(window.Capacitor?.Plugins?.App){
+      window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+        const active = getActiveShift();
+        if(active && !canGoBack){
+          Modalz.alert({
+            title: "End Shift Required",
+            message: "You have an active shift in progress. You must end your shift first before closing the app."
+          });
+          if(typeof App !== "undefined" && App.navigate) App.navigate("shift");
+        }
+      });
+    }
+    document.addEventListener("backbutton", (e) => {
+      const active = getActiveShift();
+      if(active){
+        e.preventDefault();
+        Modalz.alert({
+          title: "End Shift Required",
+          message: "You have an active shift in progress. You must end your shift first before closing the app."
+        });
+        if(typeof App !== "undefined" && App.navigate) App.navigate("shift");
+      }
+    });
+  }
+
+  return { render, openStartShiftModal, openEndShiftModal, getActiveShift, forceCloseActiveShift };
 })();

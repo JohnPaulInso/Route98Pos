@@ -273,7 +273,16 @@ const App = (() => {
     document.getElementById("btn-bn-more")?.addEventListener("click", openMobileNav);
     // (2026-07-13) Click shift indicator to open shift management; was no handler
     document.getElementById("topbar-shift-indicator")?.addEventListener("click", () => navigate("shift"));
+    // (2026-07-13) Check active shift before logout confirm; was direct confirm
     document.getElementById("user-chip").onclick = () => {
+      const activeShift = (typeof Shift !== "undefined" && Shift.getActiveShift) ? Shift.getActiveShift() : (DB.getShift?.()?.status === "open" ? DB.getShift() : null);
+      if(activeShift){
+        Modalz.alert({
+          title: "Active Shift In Progress",
+          message: "You have an active shift in progress. Please end your shift first in the Shift menu."
+        });
+        return;
+      }
       Modalz.confirm({ title:"Log out?", message:`Sign out ${Auth.currentUser()?.name}?`, onConfirm: () => Auth.logout() });
     };
     const themeBtn = document.getElementById("theme-toggle-btn");

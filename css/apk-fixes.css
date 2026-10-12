@@ -325,12 +325,15 @@ select {
   visibility: visible !important;
   opacity: 1 !important;
 }
-/* (2026-07-13) Fix portal select list position; was absolute */
+/* (2026-07-13) Fix dropdown width; was min-width 100% viewport */
 .ui-select-portal-list,
 .ui-select-portal-listz {
   position: fixed !important;
   right: auto !important;
   bottom: auto !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 16px) !important;
+  box-sizing: border-box !important;
 }
 
 .ui-select-opt {

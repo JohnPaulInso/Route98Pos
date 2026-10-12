@@ -45,8 +45,14 @@ const Scanner = (() => {
       buffer = "";
       if(code.length >= 3){
         if(scanInput){
-          scanInput.value = "";
-          if(typeof Pos !== "undefined" && Pos.resetSearch) Pos.resetSearch();
+          // (2026-07-13) Retain search value on barcode scan; was resetting search
+          const activeSearch = (typeof POS !== "undefined" && POS.getSearchTerm) ? POS.getSearchTerm() : "";
+          if(activeSearch){
+            scanInput.value = activeSearch;
+          } else {
+            scanInput.value = "";
+            if(typeof POS !== "undefined" && POS.resetSearch) POS.resetSearch();
+          }
         }
         e.preventDefault();
         flashBanner(code);
@@ -57,18 +63,32 @@ const Scanner = (() => {
       return;
     }
 
+    // (2026-07-13) Native typing in scan targets; was reversing & hijacking input
     if(e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey){
-      if(gap > FAST_KEY_THRESHOLD + 40){
-        buffer = e.key;
-      } else {
-        buffer += e.key;
+      if(activeEl === scanInput){
+        if(gap < 45) buffer += e.key;
+        else buffer = e.key;
+        return;
       }
 
-      if(scanInput && activeEl !== scanInput){
+      if(gap < 45){
+        buffer += e.key;
+      } else {
+        buffer = e.key;
+      }
+
+      if(scanInput && !["INPUT","TEXTAREA","SELECT"].includes(activeEl?.tagName)){
         scanInput.focus();
       }
     }
   }
+
+  function consumeBuffer(){
+    const b = buffer.length >= 3 ? buffer.trim() : "";
+    buffer = "";
+    return b;
+  }
+  function getBuffer(){ return buffer; }
 
   function init(){
     document.addEventListener("keydown", handleGlobalKeydown);
@@ -227,5 +247,5 @@ const Scanner = (() => {
     return { stop };
   }
 
-  return { init, setContext, clearContext, openCameraScan, openContinuousScan };
+  return { init, setContext, clearContext, openCameraScan, openContinuousScan, consumeBuffer, getBuffer };
 })();

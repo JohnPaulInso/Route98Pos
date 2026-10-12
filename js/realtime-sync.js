@@ -194,8 +194,8 @@ const RealtimeSync = (() => {
       isInitialized = true;
       
       console.log('[RealtimeSync] ✅ Firebase Realtime Database initialized successfully!');
-      console.log('[RealtimeSync] 🌐 Database URL:', settings.firebaseConfig.databaseURL);
-      Utils.toast('Firebase connected!', 'success', 2000);
+      // (2026-07-13) Suppress Firebase connected toast; was noisy popup
+      // Utils.toast('Firebase connected!', 'success', 2000);
       
       // Process any queued operations
       if (syncQueue.length > 0) {
@@ -369,6 +369,7 @@ const RealtimeSync = (() => {
     }
   }
 
+  // (2026-07-13) Filter deleted shift logs in cloud retrieval; was resurrecting
   async function getShiftLogsFromCloud() {
     await init();
     if (!realtimeDB) return [];
@@ -378,7 +379,10 @@ const RealtimeSync = (() => {
       const snapshot = await realtimeMod.get(logsRef);
       if (snapshot.exists()) {
         const logsObj = snapshot.val();
-        return Object.values(logsObj).sort((a, b) => (b.openedAt || 0) - (a.openedAt || 0));
+        const deletedIds = typeof DB !== 'undefined' && DB.getDeletedShiftLogIds ? DB.getDeletedShiftLogIds() : new Set();
+        return Object.values(logsObj)
+          .filter(l => l && l.id && !deletedIds.has(String(l.id).trim()))
+          .sort((a, b) => (b.openedAt || 0) - (a.openedAt || 0));
       }
       return [];
     } catch (error) {
@@ -402,6 +406,21 @@ const RealtimeSync = (() => {
       console.log("[RealtimeSync] Shift log saved to cloud:", logData.id);
     } catch (error) {
       console.error("Failed to save shift log to cloud:", error);
+    }
+  }
+
+  // (2026-07-13) Delete shift log from cloud database; was unhandled
+  async function deleteShiftLogFromCloud(logId) {
+    if (!logId) return;
+    const cleanId = String(logId).trim();
+    await init();
+    if (!realtimeDB) return;
+    try {
+      const logRef = realtimeMod.ref(realtimeDB, `shift/logs/${cleanId}`);
+      await realtimeMod.remove(logRef);
+      console.log("[RealtimeSync] Shift log removed from cloud:", cleanId);
+    } catch (error) {
+      console.error("Failed to delete shift log from cloud:", error);
     }
   }
 
@@ -539,7 +558,9 @@ const RealtimeSync = (() => {
           packCost: Number(product.packCost) || 0,
           packBarcode: product.packBarcode || '',
           updatedAt: product.updatedAt || Date.now(),
-          createdAt: product.createdAt || Date.now()
+          // (2026-07-13) Include deviceId in syncAllProducts; was missing self-echo id
+          createdAt: product.createdAt || Date.now(),
+          deviceId: getDeviceId()
         };
         
         updates[sanitizedId] = cleanProduct;
@@ -664,7 +685,8 @@ const RealtimeSync = (() => {
         } else {
           const cTs = cp.updatedAt || cp.createdAt || 0;
           const lTs = lp.updatedAt || lp.createdAt || 0;
-          if(cTs > lTs || JSON.stringify(lp) !== JSON.stringify(cp)){
+          // (2026-07-13) Sync cloud products on newer ts only; was overwriting local
+          if(cTs > lTs){
             updated.push({ ...lp, ...cp });
             hasChanges = true;
           } else {
@@ -675,6 +697,7 @@ const RealtimeSync = (() => {
 
       localProds.forEach(lp => {
         if(!cloudMap.has(lp.id) && !deletedIds.has(lp.id)){
+          updated.push(lp);
           hasChanges = true;
         }
       });
@@ -951,13 +974,19 @@ const RealtimeSync = (() => {
       const index = localProducts.findIndex(p => p.id === updatedProduct.id);
       
       if (index !== -1) {
-        const oldStock = localProducts[index].stock;
+        // (2026-07-13) Prevent cloud overwrite of newer local edits; was blind replace
+        const localProduct = localProducts[index];
+        const localTs = localProduct.updatedAt || localProduct.createdAt || 0;
+        const cloudTs = updatedProduct.updatedAt || updatedProduct.createdAt || 0;
+        if (localTs > cloudTs) return;
+
+        const oldStock = localProduct.stock;
         const newStock = updatedProduct.stock;
         
         console.log('[RealtimeSync] 🔄 Product changed from cloud:', updatedProduct.name, 
                     `stock: ${oldStock} → ${newStock}`);
         
-        localProducts[index] = updatedProduct;
+        localProducts[index] = { ...localProduct, ...updatedProduct };
         DB.setProducts(localProducts);
         
         if (updatedProduct.deviceId && updatedProduct.deviceId !== deviceId) {
@@ -1242,6 +1271,7 @@ const RealtimeSync = (() => {
     getShiftFromCloud,
     getShiftLogsFromCloud,
     saveShiftLogToCloud,
+    deleteShiftLogFromCloud,
     
     // POS
     getNextReceiptNumber,
@@ -1334,3 +1364,13 @@ if (document.readyState === 'loading') {
     });
   }, 100);
 }
+
+// (2026-07-13) Process sync queue on network reconnection; was no listener
+window.addEventListener("online", () => {
+  if (typeof RealtimeSync !== "undefined") {
+    RealtimeSync.init().then(() => {
+      RealtimeSync.processQueue();
+    }).catch(() => {});
+  }
+});
+

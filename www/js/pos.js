@@ -151,6 +151,7 @@ const POS = (() => {
         });
         renderCart(true);
       }
+      if(DB.saveCart) DB.saveCart({ cart, discount });
       Utils.Sound.beep();
       return true;
     } else {
@@ -175,6 +176,8 @@ const POS = (() => {
         });
         renderCart(true);
       }
+      // (2026-07-13) Auto-persist cart state on adding item; was foot element only
+      if(DB.saveCart) DB.saveCart({ cart, discount });
       Utils.Sound.beep();
       return true;
     }
@@ -192,10 +195,14 @@ const POS = (() => {
     }
     lastAddedBarcode = clean;
     lastAddedTime = now;
+    // (2026-07-13) Retain search value on barcode scan; was resetting search
     const search = document.getElementById("pos-search");
     if(search){
-      search.value = "";
-      searchTerm = "";
+      if(!searchTerm){
+        search.value = "";
+      } else {
+        search.value = searchTerm;
+      }
     }
     const product = DB.findByBarcode(clean);
     if(!product){
@@ -719,9 +726,11 @@ const POS = (() => {
     const isCash = sale.method === "Cash";
     const settings = DB.getSettings();
 
-    // (2026-07-13) Auto-open cash drawer on sale completion; was manual open only
+    // (2026-07-13) Check autoPrintReceipt setting before print; was unconditional
     Utils.openCashDrawer();
-    printReceipt(sale);
+    if(settings.autoPrintReceipt !== false){
+      printReceipt(sale);
+    }
 
     const body = `
       <div style="text-align:center;padding:10px 0 16px;">
@@ -804,9 +813,12 @@ const POS = (() => {
       }
       if(p){
         const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? line.qty * p.piecesPerPack : line.qty;
-        // (2026-07-13) Set updatedAt on stock deduction for multi-device sync. Prev: no ts
+        // (2026-07-13) Deduct stock & sync to cloud immediately; was setProducts only
         p.stock = Utils.round2(p.stock - pieces);
         p.updatedAt = Date.now();
+        if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+          RealtimeSync.syncSingleProduct(p);
+        }
       }
     });
     DB.setProducts(products);
@@ -826,8 +838,8 @@ const POS = (() => {
       cashier: modal.querySelector("#checkout-cashier-select")?.value || (Auth.currentUser()?.name) || localStorage.getItem("pos_cashier") || "Rosella"
     };
     const sales = DB.getSales(); sales.unshift(sale); DB.setSales(sales);
-    // (2026-07-13) Queue offline transaction only when offline; was all sales
-    if(!navigator.onLine && DB.queueOfflineTransaction) DB.queueOfflineTransaction(sale);
+    // (2026-07-13) Queue transaction for offline sync safety; was online check
+    if(DB.queueOfflineTransaction) DB.queueOfflineTransaction(sale);
     if(activeHeldId){
       DB.setHeldSales(DB.getHeldSales().filter(x => x.id !== activeHeldId));
       activeHeldId = null;
@@ -836,6 +848,7 @@ const POS = (() => {
 
     Modalz.close();
     clearCart();
+    renderCatalog();
     Utils.Sound.cashChime();
     Utils.toast(`Sale complete — ${Utils.money(t.grand)}`, "success");
     
@@ -1021,11 +1034,8 @@ const POS = (() => {
     return products.filter(p => {
       const prodCatLower = (p.category || "").trim().toLowerCase();
       const matchCat = activeCatLower === "all" || prodCatLower === activeCatLower;
-      const matchSearch = !term ||
-        p.name.toLowerCase().includes(term) ||
-        (p.brand||"").toLowerCase().includes(term) ||
-        (p.category||"").toLowerCase().includes(term) ||
-        p.barcode?.includes(searchTerm);
+      // (2026-07-13) Ignore punctuation in search matching; was strict includes
+      const matchSearch = Utils.matchesSearch(`${p.name || ""} ${p.brand || ""} ${p.category || ""} ${p.barcode || ""}`, searchTerm);
       return matchCat && matchSearch;
     });
   }
@@ -1793,14 +1803,24 @@ const POS = (() => {
       if(e.key === "Enter"){
         e.preventDefault();
         e.stopPropagation();
-        const clean = String(search.value || "").trim();
+        // (2026-07-13) Isolate scanned barcode from search input; was concatenated
+        const scanBuf = (typeof Scanner !== "undefined" && Scanner.consumeBuffer) ? Scanner.consumeBuffer() : "";
+        let clean = scanBuf || String(search.value || "").trim();
         if(clean){
-          const matched = DB.findByBarcode(clean);
+          let matched = DB.findByBarcode(clean);
+          if(!matched && clean.length > 5){
+            const trailingCode = (clean.match(/(\d{5,})$/) || [])[1];
+            if(trailingCode && DB.findByBarcode(trailingCode)){
+              clean = trailingCode;
+              matched = DB.findByBarcode(trailingCode);
+            }
+          }
           if(matched){
             addByBarcode(clean);
           } else {
             const allProducts = DB.getProducts();
-            const filtered = allProducts.filter(p => (p.name||"").toLowerCase().includes(clean.toLowerCase()) || (p.brand||"").toLowerCase().includes(clean.toLowerCase()) || (p.barcode||"") === clean);
+            // (2026-07-13) Ignore punctuation in search matching; was strict includes
+            const filtered = allProducts.filter(p => Utils.matchesSearch(`${p.name || ""} ${p.brand || ""} ${p.barcode || ""}`, clean));
             if(filtered.length >= 1){
               if(filtered[0].piecesPerPack > 1){
                 promptDualUnitSale(filtered[0]);
@@ -1833,8 +1853,12 @@ const POS = (() => {
               });
             }
           }
-          search.value = "";
-          onSearchChange("");
+          if(scanBuf && searchTerm){
+            search.value = searchTerm;
+          } else if(!searchTerm){
+            search.value = "";
+            onSearchChange("");
+          }
         }
       }
     });
@@ -1949,6 +1973,6 @@ const POS = (() => {
 
   function resetSearch(){ searchTerm = ""; }
 
-  // (2026-07-13) Export renderCatalog & renderHeldButton; was missing
-  return { render, addByBarcode, printByRecord: printReceipt, resetSearch, renderCatalog, renderHeldButton };
+  // (2026-07-13) Export getSearchTerm; was missing
+  return { render, addByBarcode, printByRecord: printReceipt, resetSearch, getSearchTerm: () => searchTerm, renderCatalog, renderHeldButton, addToCart };
 })();

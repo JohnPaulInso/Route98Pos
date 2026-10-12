@@ -632,6 +632,15 @@ input#cash-input::-webkit-input-placeholder{
 .rpt-menu-item{ display:flex; align-items:center; justify-content:space-between; padding:8px 14px; font-size:var(--fs-sm); font-weight:600; color:var(--ink); cursor:pointer; transition:background var(--transition); }
 .rpt-menu-item:hover{ background:var(--paper-dim); }
 .rpt-menu-item.active{ color:var(--brand); background:var(--brand-tint); }
+/* (2026-07-13) Inventory right-click context menu; was none */
+.inv-context-menu{ position:fixed; z-index:99999; min-width:210px; background:var(--paper-raised); border:1.5px solid var(--line); border-radius:var(--r-md); box-shadow:0 12px 32px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08); padding:6px 0; font-family:var(--font); animation:fadeIn 0.12s ease-out; }
+.inv-context-header{ padding:8px 14px 6px; border-bottom:1px solid var(--line); margin-bottom:4px; display:flex; flex-direction:column; gap:2px; }
+.inv-context-header strong{ font-size:var(--fs-sm); font-weight:800; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px; }
+.inv-context-item{ width:100%; display:flex; align-items:center; gap:10px; padding:8px 14px; background:transparent; border:none; color:var(--ink); font-size:var(--fs-sm); font-weight:600; text-align:left; cursor:pointer; transition:background var(--transition); }
+.inv-context-item:hover{ background:var(--paper-dim); color:var(--brand-deep); }
+.inv-context-item svg{ flex-shrink:0; color:var(--ink-soft); }
+.inv-context-item:hover svg{ color:var(--brand); }
+.inv-context-divider{ height:1px; background:var(--line); margin:4px 0; }
 /* (2026-07-13) Loyverse custom range picker style; was basic modal */
 .modal-loy-dialogz{ max-width:460px; width:auto; border-radius:4px; overflow:hidden; background:var(--paper-raised); box-shadow:0 8px 30px rgba(0,0,0,0.22); padding:0; border:none; }
 .modal-loy-dialogz .modal-headz{ display:none; }
@@ -689,14 +698,14 @@ input#cash-input::-webkit-input-placeholder{
 .card-pagination .pg-select{ border:none; border-bottom:1px solid var(--line); border-radius:0; background:transparent; color:var(--ink); font-weight:600; font-size:0.88rem; padding:2px 6px; cursor:pointer; outline:none; }
 .card-pagination .pg-select:focus{ border-bottom-color:var(--brand); }
 
-/* (2026-07-13) Center inventory clear-search button; was shifted low/right */
+/* (2026-07-13) Align inventory search clear X; was misaligned */
 .inv-toolbar{ display:flex; gap:10px; margin-bottom:6px; align-items:center; flex-wrap:wrap; }
-.inv-toolbar .input-icon-wrap{ position:relative; display:flex; align-items:center; flex-shrink:0; }
-.inv-toolbar .input-icon-wrap .ic-svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
-.inv-toolbar .input-icon-wrap .input{ display:block; width:100%; padding-left:38px; padding-right:38px; }
+.inv-toolbar .input-icon-wrap{ position:relative; display:flex; align-items:center; flex-shrink:0; height:38px; }
+.inv-toolbar .input-icon-wrap > .ic-svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); pointer-events:none; z-index:2; }
+.inv-toolbar .input-icon-wrap .input{ display:block; width:100%; height:38px; padding-left:38px; padding-right:38px; border-radius:20px; box-sizing:border-box; }
 .inv-toolbar .input-icon-wrap .clear-search-btn,
 #btn-clear-inv-search{ 
-  position:absolute; right:10px; top:50%; transform:translateY(-50%); 
+  position:absolute; right:12px; top:50%; transform:translateY(-50%); 
   background:var(--paper-dim); border:1px solid var(--line); color:var(--ink-soft); 
   cursor:pointer; padding:0; margin:0; border-radius:50%; width:24px; height:24px; 
   display:none; align-items:center; justify-content:center; 
@@ -704,12 +713,12 @@ input#cash-input::-webkit-input-placeholder{
 }
 .inv-toolbar .input-icon-wrap .clear-search-btn svg,
 #btn-clear-inv-search svg{ 
-  display:block; width:14px; height:14px; margin:0; 
+  display:block; position:static; width:14px; height:14px; margin:auto; 
 }
 .inv-toolbar .input-icon-wrap .clear-search-btn:hover,
 #btn-clear-inv-search:hover{ background:var(--danger-tint); border-color:var(--danger); color:var(--danger); transform:translateY(-50%) scale(1.08); }
 .inv-toolbar .input-icon-wrap .clear-search-btn.visible,
-#btn-clear-inv-search.visible{ display:flex; }
+#btn-clear-inv-search.visible{ display:flex !important; }
 .inv-toolbar .ui-select{ min-width:150px; flex-shrink:0; }
 .inv-toolbar .btn-icon{ width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center; }
 

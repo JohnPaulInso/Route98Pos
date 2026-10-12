@@ -603,7 +603,9 @@
     height: 12px !important;
   }
 
-  .pos-search-wrap .clear-search-btn.visible {
+  .clear-search-btn.visible,
+  .pos-search-wrap .clear-search-btn.visible,
+  #btn-clear-inv-search.visible {
     display: flex !important;
   }
 
@@ -5215,15 +5217,17 @@
   border-radius: 6px !important;
 }
 
-/* (2026-07-13) Line break print receipt button on mobile; was single row */
-.modal-receipt-dialogz .modal-footz,
-.modal-footz:has(.btn-print-receipt) {
-  flex-wrap: wrap !important;
-}
-.modal-footz .btn-print-receipt {
-  flex: 1 0 100% !important;
-  width: 100% !important;
-  order: 10 !important;
+/* (2026-07-13) Align print receipt in desktop row; was full-width break */
+@media (max-width: 640px) {
+  .modal-receipt-dialogz .modal-footz,
+  .modal-footz:has(.btn-print-receipt) {
+    flex-wrap: wrap !important;
+  }
+  .modal-footz .btn-print-receipt {
+    flex: 1 0 100% !important;
+    width: 100% !important;
+    order: 10 !important;
+  }
 }
 
 /* (2026-07-13) Reduce reports side padding & add top margin; was 10px pad */
@@ -5312,11 +5316,18 @@
   padding-right: 32px !important;
 }
 
-/* (2026-07-13) Fix inventory search input padding-left; was 14px overlapping */
+/* (2026-07-13) Fix inventory search height & clear X; was misaligned */
 #inv-search,
 .inv-toolbar .input-icon-wrap .input {
   padding-left: 38px !important;
-  padding-right: 36px !important;
+  padding-right: 38px !important;
+  height: 38px !important;
+  border-radius: 20px !important;
+}
+#btn-clear-inv-search {
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
 }
 
 /* (2026-07-13) Extra bottom margin for inventory pagination bar; was 0 */
