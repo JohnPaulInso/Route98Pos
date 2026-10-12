@@ -551,28 +551,33 @@ const Shift = (() => {
       });
     });
 
-    // (2026-07-13) Delete shift log across local, realtime & cloud; was local only
+    // (2026-07-13) Auto-delete shift log row with snapshot sync; was confirm modal
     if(Auth.isAdmin()){
       root.querySelectorAll("[data-delete-shift-log]").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const logId = btn.getAttribute("data-delete-shift-log");
-          Modalz.confirm({
-            title: "Delete Shift Log?",
-            message: "This will permanently remove this shift history record. This cannot be undone.",
-            danger: true,
-            onConfirm: async () => {
-              if(DB.deleteShiftLog) DB.deleteShiftLog(logId);
-              if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteShiftLogFromCloud){
-                await RealtimeSync.deleteShiftLogFromCloud(logId).catch(e => console.warn(e));
-              }
-              if(typeof Sync !== "undefined" && Sync.pushSnapshot){
-                Sync.pushSnapshot(true).catch(e => console.warn(e));
-              }
-              Utils.toast("Shift log deleted.", "success");
-              render();
-            }
-          });
+          const tr = btn.closest("tr");
+          const card = btn.closest(".shift-log-card") || document.querySelector(`.shift-log-card [data-delete-shift-log="${logId}"]`)?.closest(".shift-log-card");
+          if(tr) tr.remove();
+          if(card) card.remove();
+          if(DB.deleteShiftLog) DB.deleteShiftLog(logId);
+          const currentLogs = DB.getShiftLogs ? DB.getShiftLogs() : [];
+          const tabLogsBtn = document.getElementById("tab-shift-logs");
+          if(tabLogsBtn){
+            const span = tabLogsBtn.querySelector("span");
+            if(span) span.textContent = `Shift Logs (${currentLogs.length})`;
+          }
+          if(typeof Sync !== "undefined" && Sync.pushSnapshot){
+            Sync.pushSnapshot(true).catch(e => console.warn(e));
+          }
+          if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteShiftLogFromCloud){
+            RealtimeSync.deleteShiftLogFromCloud(logId).catch(e => console.warn(e));
+          }
+          Utils.toast("Shift log deleted.", "info", 900);
+          if(!currentLogs.length){
+            render();
+          }
         });
       });
     }

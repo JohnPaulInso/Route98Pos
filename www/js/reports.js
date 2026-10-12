@@ -330,6 +330,210 @@ const Reports = (() => {
     }
   }
 
+  // (2026-07-13) Modal to add custom receipt for specific dates; was none
+  function openAddCustomReceiptModal(){
+    const now = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    const localNow = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const cashiers = (DB.getCashiers ? DB.getCashiers() : ["Rosella", "Niño"]).filter(Boolean);
+    const prods = (DB.getProducts ? DB.getProducts() : []).sort((a,b)=>a.name.localeCompare(b.name));
+
+    const body = `
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field">
+            <label style="font-weight:700;display:block;margin-bottom:4px;font-size:.84rem;">Date & Time *</label>
+            <input type="datetime-local" class="input" id="cr-date" value="${localNow}" required style="font-weight:700;">
+          </div>
+          <div class="field">
+            <label style="font-weight:700;display:block;margin-bottom:4px;font-size:.84rem;">Cashier / Staff</label>
+            <select class="input" id="cr-cashier">
+              ${cashiers.map(c => `<option value="${Utils.escapeHtml(c)}">${Utils.escapeHtml(c)}</option>`).join("")}
+              <option value="Admin">Admin</option>
+              <option value="Owner">Owner</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field">
+            <label style="font-weight:700;display:block;margin-bottom:4px;font-size:.84rem;">Payment Method</label>
+            <select class="input" id="cr-method">
+              <option value="Cash">Cash</option>
+              <option value="GCash">GCash</option>
+              <option value="Card">Card</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label style="font-weight:700;display:block;margin-bottom:4px;font-size:.84rem;">Ref # / Notes (Optional)</label>
+            <input type="text" class="input mono" id="cr-ref" placeholder="e.g. GCash Ref #">
+          </div>
+        </div>
+
+        <div style="border-top:1px dashed var(--line);padding-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+            <label style="font-weight:800;font-size:.88rem;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin:0;">Receipt Items</label>
+            <select class="input" id="cr-quick-add-prod" style="max-width:240px;height:30px;font-size:.78rem;padding:2px 8px;">
+              <option value="">+ Quick Add Catalog Product</option>
+              ${prods.map(p => `<option value="${p.id}" data-name="${Utils.escapeHtml(p.name)}" data-price="${p.price||0}" data-cost="${p.cost||0}" data-cat="${Utils.escapeHtml(p.category||'General')}">${Utils.escapeHtml(p.name)} (${Utils.money(p.price)})</option>`).join("")}
+            </select>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--paper-dim);">
+            <table style="width:100%;border-collapse:collapse;font-size:.84rem;" id="cr-items-table">
+              <thead>
+                <tr style="background:var(--paper-raised);border-bottom:1px solid var(--line);text-align:left;color:var(--ink-faint);font-size:.74rem;text-transform:uppercase;">
+                  <th style="padding:6px 10px;">Item Description</th>
+                  <th style="padding:6px 8px;width:70px;text-align:center;">Qty</th>
+                  <th style="padding:6px 8px;width:95px;text-align:right;">Price</th>
+                  <th style="padding:6px 10px;width:95px;text-align:right;">Total</th>
+                  <th style="padding:6px 8px;width:36px;text-align:center;"></th>
+                </tr>
+              </thead>
+              <tbody id="cr-items-tbody"></tbody>
+            </table>
+          </div>
+          <button type="button" class="btn btn-xs btn-outline font-bold" id="cr-add-blank-row" style="margin-top:8px;">
+            ${Icons.get("plus",{size:13})} Add Custom Line
+          </button>
+        </div>
+
+        <div style="background:var(--paper-dim);border:1.5px solid var(--line-strong);border-radius:var(--r-md);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+          <span style="font-weight:800;font-size:.9rem;color:var(--ink-soft);text-transform:uppercase;">Grand Total</span>
+          <span class="mono font-bold" id="cr-total-display" style="font-size:1.4rem;color:var(--brand-deep);">₱0.00</span>
+        </div>
+      </div>
+    `;
+
+    const modal = Modalz.open({
+      title: `${Icons.get("receipt",{size:18})} Add Custom Receipt`,
+      body,
+      wide: true,
+      actions: [
+        { label: "Cancel", cls: "btn-ghost btn-lg" },
+        {
+          label: "Save Receipt",
+          cls: "btn-primary btn-lg font-bold",
+          onClick: () => {
+            const dateVal = modal.querySelector("#cr-date")?.value;
+            if(!dateVal){
+              Utils.toast("Please select a date and time.", "warn");
+              return false;
+            }
+            const ts = new Date(dateVal).getTime();
+            if(isNaN(ts)){
+              Utils.toast("Invalid date selected.", "warn");
+              return false;
+            }
+            const rows = modal.querySelectorAll(".cr-row");
+            const items = [];
+            let subtotal = 0;
+            rows.forEach(r => {
+              const name = r.querySelector(".cr-name-inp")?.value.trim();
+              const qty = parseFloat(r.querySelector(".cr-qty-inp")?.value) || 1;
+              const price = parseFloat(r.querySelector(".cr-price-inp")?.value) || 0;
+              const cost = parseFloat(r.dataset.cost) || 0;
+              const category = r.dataset.category || "General";
+              const productId = r.dataset.productId || "";
+              if(name && qty > 0){
+                items.push({ name, qty, price, cost, category, productId, total: price * qty });
+                subtotal += price * qty;
+              }
+            });
+            if(!items.length){
+              Utils.toast("Please add at least one item.", "warn");
+              return false;
+            }
+            const cleanId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const txnId = `TXN-${cleanId}`;
+            const cashier = modal.querySelector("#cr-cashier")?.value || "Rosella";
+            const method = modal.querySelector("#cr-method")?.value || "Cash";
+            const refCode = modal.querySelector("#cr-ref")?.value.trim() || "";
+
+            const sale = {
+              id: txnId,
+              receiptNo: cleanId,
+              ts,
+              cashier,
+              method,
+              refCode,
+              items,
+              subtotal: Utils.round2(subtotal),
+              total: Utils.round2(subtotal),
+              tendered: Utils.round2(subtotal),
+              change: 0,
+              isCustomReceipt: true
+            };
+            const sales = DB.getSales();
+            sales.push(sale);
+            sales.sort((a,b) => (b.ts || 0) - (a.ts || 0));
+            DB.setSales(sales);
+            if(typeof Sync !== "undefined" && Sync.pushSnapshot){
+              Sync.pushSnapshot(true).catch(e => console.warn(e));
+            }
+            Utils.toast("Custom receipt added successfully.", "success");
+            Modalz.close();
+            render();
+          }
+        }
+      ]
+    });
+
+    const tbody = modal.querySelector("#cr-items-tbody");
+    const totalEl = modal.querySelector("#cr-total-display");
+
+    function recalcTotal(){
+      let grand = 0;
+      tbody.querySelectorAll(".cr-row").forEach(r => {
+        const q = parseFloat(r.querySelector(".cr-qty-inp")?.value) || 0;
+        const p = parseFloat(r.querySelector(".cr-price-inp")?.value) || 0;
+        const line = q * p;
+        r.querySelector(".cr-line-total").textContent = Utils.money(line);
+        grand += line;
+      });
+      totalEl.textContent = Utils.money(grand);
+    }
+
+    function addRow(item = {}){
+      const tr = document.createElement("tr");
+      tr.className = "cr-row";
+      tr.dataset.productId = item.productId || "";
+      tr.dataset.cost = item.cost || 0;
+      tr.dataset.category = item.category || "General";
+      tr.innerHTML = `
+        <td style="padding:6px 8px;"><input type="text" class="input cr-name-inp" value="${Utils.escapeHtml(item.name||'')}" placeholder="Item name" style="height:30px;font-size:.84rem;padding:2px 8px;"></td>
+        <td style="padding:6px 8px;"><input type="number" class="input cr-qty-inp" value="${item.qty||1}" min="1" step="1" style="height:30px;width:60px;text-align:center;font-size:.84rem;padding:2px 4px;"></td>
+        <td style="padding:6px 8px;"><input type="number" class="input mono cr-price-inp" value="${item.price||0}" min="0" step="0.01" style="height:30px;width:85px;text-align:right;font-size:.84rem;padding:2px 6px;"></td>
+        <td style="padding:6px 10px;text-align:right;" class="mono font-bold cr-line-total">${Utils.money((item.qty||1)*(item.price||0))}</td>
+        <td style="padding:6px 6px;text-align:center;"><button type="button" class="btn btn-xs btn-ghost text-danger cr-del-btn" style="padding:2px;">${Icons.get("trash",{size:13})}</button></td>
+      `;
+      tbody.appendChild(tr);
+      tr.querySelector(".cr-del-btn").onclick = () => { tr.remove(); recalcTotal(); };
+      tr.querySelector(".cr-qty-inp").oninput = recalcTotal;
+      tr.querySelector(".cr-price-inp").oninput = recalcTotal;
+      tr.querySelector(".cr-name-inp").oninput = recalcTotal;
+      recalcTotal();
+    }
+
+    addRow({ name: "Custom Item", qty: 1, price: 0 });
+
+    modal.querySelector("#cr-add-blank-row")?.addEventListener("click", () => addRow({ name: "", qty: 1, price: 0 }));
+
+    modal.querySelector("#cr-quick-add-prod")?.addEventListener("change", (e) => {
+      const opt = e.target.selectedOptions[0];
+      if(opt && opt.value){
+        addRow({
+          productId: opt.value,
+          name: opt.dataset.name,
+          price: parseFloat(opt.dataset.price) || 0,
+          cost: parseFloat(opt.dataset.cost) || 0,
+          category: opt.dataset.cat || "General",
+          qty: 1
+        });
+        e.target.value = "";
+      }
+    });
+  }
+
   function openFuelSaleModal(fuelSale){
     if(!fuelSale) return;
     const settings = DB.getSettings();
@@ -2020,16 +2224,9 @@ const Reports = (() => {
         </div>
       ` : ""}
       </div>
-      <!-- (2026-07-13) Integrated search input with internal icons; was misaligned -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;">
-          ${receiptSearchTerm ? `
-            <div style="font-size:0.85rem;color:var(--ink-soft);">
-              <strong style="color:var(--brand-deep);">${sales.length}</strong> result(s) found for "<strong>${Utils.escapeHtml(receiptSearchTerm)}</strong>"
-            </div>
-          ` : ""}
-        </div>
-        <div style="position:relative;width:100%;display:flex;align-items:center;">
+      <!-- (2026-07-13) Add custom receipt button & search bar; was search only -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
+        <div style="position:relative;flex:1;min-width:240px;display:flex;align-items:center;">
           <span style="position:absolute;left:10px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-faint);pointer-events:none;z-index:2;">
             ${Icons.get("search",{size:15})}
           </span>
@@ -2045,7 +2242,15 @@ const Reports = (() => {
             ${Icons.get("x",{size:14})}
           </button>
         </div>
+        <button type="button" class="btn btn-primary btn-sm font-bold" id="btn-add-custom-receipt" style="height:36px;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
+          ${Icons.get("plus",{size:15})} Add Custom Receipt
+        </button>
       </div>
+      ${receiptSearchTerm ? `
+        <div style="font-size:0.85rem;color:var(--ink-soft);margin-bottom:8px;">
+          <strong style="color:var(--brand-deep);">${sales.length}</strong> result(s) found for "<strong>${Utils.escapeHtml(receiptSearchTerm)}</strong>"
+        </div>
+      ` : ""}
       ${sales.length ? `
         <div class="table-wrap receipt-table-wrap"><table class="data receipt-data-table"><thead><tr>
           <th style="width:32px;text-align:center;" class="receipt-select-cell"><input type="checkbox" id="receipt-select-all" ${allChecked ? "checked" : ""} title="Select All Receipts" style="cursor:pointer;width:16px;height:16px;vertical-align:middle;"></th>
@@ -2672,7 +2877,8 @@ const Reports = (() => {
 
   // (2026-07-13) Add opening/closing cash & totals row; was sales-only table
   let dailySalesPage = 1;
-  let dailySalesRPP = 10;
+  // (2026-07-13) Default daily sales to 25 rows per page; was 10
+  let dailySalesRPP = 25;
 
   // (2026-07-13) Hide refunds & discounts cols by default; was true
   let showDailyRefunds = false;
@@ -2837,7 +3043,8 @@ const Reports = (() => {
     const nextBtn = document.getElementById("ds-pg-next");
     if(nextBtn){
       nextBtn.onclick = () => {
-        if(dailySalesPage < 1){ dailySalesPage++; renderDailySalesTable(stats); }
+        // (2026-07-13) Fix next page check; was dailySalesPage < 1
+        if(dailySalesPage < totalPages){ dailySalesPage++; renderDailySalesTable(stats); }
       };
     }
     const pageInp = document.getElementById("ds-pg-page-inp");
@@ -2855,7 +3062,7 @@ const Reports = (() => {
     const rppSel = document.getElementById("ds-pg-rpp");
     if(rppSel){
       rppSel.onchange = (e) => {
-        dailySalesRPP = parseInt(e.target.value, 10) || 100;
+        dailySalesRPP = parseInt(e.target.value, 10) || 25;
         dailySalesPage = 1;
         renderDailySalesTable(stats);
       };
@@ -4570,6 +4777,8 @@ const Reports = (() => {
         receiptPage = 1;
         render();
       });
+      // (2026-07-13) Wire add custom receipt button click; was missing
+      document.getElementById("btn-add-custom-receipt")?.addEventListener("click", () => openAddCustomReceiptModal());
       
       // (2026-07-13) Save daily starting & ending balance to DB; was shift only
       const startInp = document.getElementById("inp-receipt-starting-cash");
@@ -4638,6 +4847,8 @@ const Reports = (() => {
     navigateToReceipts,
     navigateToSalesByItem,
     navigateToVoidAudit,
+    // (2026-07-13) Expose openAddCustomReceiptModal in Reports API; was private
+    openAddCustomReceiptModal,
     // (2026-07-13) Expose deleteSaleRecord in Reports API; was private only
     deleteSaleRecord
   };

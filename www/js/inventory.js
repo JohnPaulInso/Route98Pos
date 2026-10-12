@@ -7,6 +7,8 @@ const Inventory = (() => {
   let sortBy = "name";
   let sortOrder = "asc";
   let stockFilter = "all"; // all | in | low | out
+  // (2026-07-13) Add invViewMode state; was list view only
+  let invViewMode = localStorage.getItem("mm_inv_view_mode") || "list"; // list | grid
 
   function brandList(){
     return [...new Set(DB.getProducts().map(p=>p.brand).filter(Boolean))].sort();
@@ -32,7 +34,14 @@ const Inventory = (() => {
     });
     items.sort((a,b) => {
       let res = 0;
-      if(sortBy === "name") res = a.name.localeCompare(b.name);
+      // (2026-07-13) Prioritize # items first in name sort; was standard locale
+      if(sortBy === "name"){
+        const aHash = String(a.name||"").trim().startsWith("#");
+        const bHash = String(b.name||"").trim().startsWith("#");
+        if(aHash && !bHash) res = -1;
+        else if(!aHash && bHash) res = 1;
+        else res = a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+      }
       else if(sortBy === "barcode") res = (a.barcode||"").localeCompare(b.barcode||"");
       else if(sortBy === "category") res = (a.category||"").localeCompare(b.category||"");
       else if(sortBy === "cost") res = (a.cost||0) - (b.cost||0);
@@ -319,6 +328,9 @@ const Inventory = (() => {
     Utils.toast(product ? "Product updated." : "Product added.", "success");
     Modalz.close();
     renderTable();
+    // (2026-07-13) Re-render POS catalog on product save; was inventory table only
+    if(typeof POS !== "undefined" && POS.renderCatalog) POS.renderCatalog();
+    if(typeof App !== "undefined" && App.rerenderCurrentView) App.rerenderCurrentView();
     
     // Force immediate sync to cloud (bypasses debounce)
     console.log('[Inventory] Forcing immediate sync after save');
@@ -2039,7 +2051,80 @@ const Inventory = (() => {
       }).join("") : `<div class="empty">${Icons.get("package",{size:34})}<h3>No products match</h3><p>Try clearing filters or add a new product.</p></div>`;
     }
 
-    const getInvElements = (selector) => document.querySelectorAll(`#inv-tbody ${selector}, #inv-mobile-cards ${selector}`);
+    // (2026-07-13) Render grid cards or toggle table view; was table only
+    const tableWrap = document.getElementById("inv-table-wrap");
+    const gridWrap = document.getElementById("inv-grid-wrap");
+    if(tableWrap) tableWrap.style.setProperty("display", invViewMode === "grid" ? "none" : "block", "important");
+    if(gridWrap){
+      gridWrap.style.setProperty("display", invViewMode === "grid" ? "grid" : "none", "important");
+      if(invViewMode === "grid"){
+        gridWrap.innerHTML = items.length ? items.map(p => {
+          const pct = p.lowStockThreshold ? Math.min(100, Math.round((p.stock/(p.lowStockThreshold*3))*100)) : 100;
+          const low = p.stock <= p.lowStockThreshold;
+          const isSelected = selectedIds.has(p.id);
+          const hasDual = p.piecesPerPack > 1;
+          const fullPacks = hasDual ? Math.floor(p.stock / p.piecesPerPack) : 0;
+          const loose = hasDual ? p.stock % p.piecesPerPack : 0;
+          const packPrice = p.packPrice || (p.price * (p.piecesPerPack || 1));
+          const potentialRev = (p.stock || 0) * (p.price || 0);
+          const unitProfit = (p.price || 0) - (p.cost || 0);
+          const potentialProfit = Math.max(0, (p.stock || 0) * unitProfit);
+          const marginPct = (p.price || 0) > 0 ? (unitProfit / p.price) * 100 : 0;
+          const stockBadgeClass = p.stock <= 0 ? "badge-rust" : low ? "badge-amber" : "badge-green";
+          const stockStatusText = p.stock <= 0 ? "Out of stock" : low ? "Low stock" : "OK";
+
+          return `
+          <div class="inv-grid-card ${p.stock<=0 ? "out-of-stock" : low ? "low-stock" : ""} ${isSelected ? "inv-card-selected" : ""}" data-prod-row="${p.id}" ${selectMode ? `data-select-row="${p.id}" style="cursor:pointer;"` : `style="cursor:pointer;"`}>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                ${selectMode ? `<input type="checkbox" class="inv-checkbox inv-item-check" data-id="${p.id}" ${isSelected?"checked":""} style="margin:0;">` : ""}
+                <span class="prod-thumb-sm" data-preview-img="${p.id}" style="width:44px;height:44px;flex-shrink:0;cursor:pointer;border-radius:10px;overflow:hidden;" title="Click to view image">${Utils.productThumb(p, { iconSize:22 })}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                <span class="badge ${stockBadgeClass} font-bold" style="font-size:.70rem;padding:2px 7px;">${stockStatusText}</span>
+                <span class="badge badge-brand" style="font-size:.68rem;padding:2px 6px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${Utils.escapeHtml(p.category)}">${Utils.escapeHtml(p.category)}</span>
+              </div>
+            </div>
+            
+            <div style="min-width:0;margin-top:2px;">
+              <strong data-copy-name="${Utils.escapeHtml(p.name)}" style="font-size:.92rem;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;color:var(--ink);" title="Click to copy name">${Utils.escapeHtml(p.name)}</strong>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                <span class="mono text-faint" style="font-size:.76rem;letter-spacing:-.01em;">${p.barcode ? Utils.escapeHtml(p.barcode) : "—"}</span>
+                ${p.brand ? `<span style="font-size:.74rem;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">· ${Utils.escapeHtml(p.brand)}</span>` : ""}
+              </div>
+            </div>
+
+            <div style="background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:auto;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="mono" style="font-size:1.02rem;font-weight:850;color:var(--ink);line-height:1.1;">${Utils.money(p.price)}<span class="text-xs text-faint font-normal">/pc</span></div>
+                ${hasDual ? `<div class="mono" style="font-size:.72rem;color:var(--brand-deep);font-weight:750;">${Utils.money(packPrice)}/pk (${p.piecesPerPack}pcs)</div>` : `<div class="text-xs text-faint mono" style="font-size:.70rem;">Cost: ${Utils.money(p.cost)}</div>`}
+              </div>
+              <div style="text-align:right;">
+                <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+                  <strong class="mono" style="font-size:1.02rem;font-weight:850;color:var(--ink);">${p.stock}</strong>
+                  <span class="text-xs text-faint font-bold">${p.unit||"pc"}</span>
+                </div>
+                <div class="text-xs mono" style="font-size:.68rem;color:var(--success-deep);font-weight:750;">+${Utils.money(potentialProfit)} (${marginPct.toFixed(0)}%)</div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:6px;margin-top:2px;">
+              <div class="stock-bar ${low?"low":""}" style="width:50px;height:6px;flex-shrink:0;"><i style="width:${pct}%"></i></div>
+              <div style="display:flex;gap:2px;">
+                <button class="btn btn-xs btn-ghost" data-history="${p.id}" title="Past Transactions" style="height:28px;width:28px;padding:0;">${Icons.get("clock",{size:13})}</button>
+                <button class="btn btn-xs btn-ghost" data-adj="${p.id}" title="Adjust stock" style="height:28px;width:28px;padding:0;">${Icons.get("package",{size:13})}</button>
+                <button class="btn btn-xs btn-ghost" data-edit="${p.id}" title="Edit" style="height:28px;width:28px;padding:0;">${Icons.get("edit",{size:13})}</button>
+                <button class="btn btn-xs btn-ghost" data-del="${p.id}" title="Delete" style="height:28px;width:28px;padding:0;">${Icons.get("trash",{size:13})}</button>
+              </div>
+            </div>
+          </div>`;
+        }).join("") : `<div class="empty" style="grid-column:1/-1;">${Icons.get("package",{size:34})}<h3>No products match</h3><p>Try clearing filters or add a new product.</p></div>`;
+      } else {
+        gridWrap.innerHTML = "";
+      }
+    }
+
+    const getInvElements = (selector) => document.querySelectorAll(`#inv-tbody ${selector}, #inv-mobile-cards ${selector}, #inv-grid-wrap ${selector}`);
 
     if(selectMode){
       getInvElements("[data-select-row]").forEach(row => {
@@ -2081,9 +2166,9 @@ const Inventory = (() => {
       }, { passive: true });
     });
     
-    // Remove touch-active when touching outside table
+    // (2026-07-13) Remove touch-active when outside table or grid; was table/mobile
     document.addEventListener("touchstart", (e) => {
-      if (!e.target.closest("#inv-tbody, #inv-mobile-cards")) {
+      if (!e.target.closest("#inv-tbody, #inv-mobile-cards, #inv-grid-wrap")) {
         if (currentTouchedRow) {
           currentTouchedRow.classList.remove("touch-active");
           currentTouchedRow = null;
@@ -2350,6 +2435,11 @@ const Inventory = (() => {
         <div id="inv-stock-filter-wrap"></div>
         <div id="inv-sort-wrap"></div>
         <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
+        <!-- (2026-07-13) Add list/grid toggle on right of inv-toolbar; was none -->
+        <div class="inv-view-toggle" id="inv-view-toggle" style="margin-left:auto;display:flex;align-items:center;background:var(--paper-dim);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:2px;gap:2px;flex-shrink:0;">
+          <button type="button" class="btn btn-xs btn-icon ${invViewMode==='list'?'btn-primary':'btn-ghost'}" id="btn-inv-view-list" title="List View" style="height:32px;width:34px;padding:0;border-radius:6px;">${Icons.get("list",{size:16})}</button>
+          <button type="button" class="btn btn-xs btn-icon ${invViewMode==='grid'?'btn-primary':'btn-ghost'}" id="btn-inv-view-grid" title="Grid View" style="height:32px;width:34px;padding:0;border-radius:6px;">${Icons.get("grid",{size:16})}</button>
+        </div>
       </div>
       <!-- (2026-07-13) Zero bottom margin & pad on inv-cat-chips; was 10px -->
       <div class="category-chips" id="inv-cat-chips" style="width:100%;margin-bottom:0;padding-bottom:0;"></div>
@@ -2361,6 +2451,7 @@ const Inventory = (() => {
           <tfoot id="inv-tfoot"></tfoot>
         </table>
       </div>
+      <div class="inv-grid-wrap" id="inv-grid-wrap"></div>
       <div class="inv-mobile-cards" id="inv-mobile-cards"></div>
       <div id="inv-pagination" class="pagination-bar" style="display:none;"></div>
       <input type="file" id="inv-import-file" accept=".csv,.json" class="hidden">`;
@@ -2435,6 +2526,28 @@ const Inventory = (() => {
       { value:"name", label:"Sort: Name" }, { value:"brand", label:"Sort: Brand" }, { value:"stock", label:"Sort: Stock" }, { value:"price", label:"Sort: Price" }, { value:"potential", label:"Sort: Potential Rev" }, { value:"profit", label:"Sort: Potential Profit" }
     ], "name");
     UISelect.bind("inv-sort", (v)=>{ sortBy=v; currentPage=1; renderTable(); });
+
+    // (2026-07-13) Bind list/grid toggle buttons; was table view only
+    const btnList = document.getElementById("btn-inv-view-list");
+    const btnGrid = document.getElementById("btn-inv-view-grid");
+    if(btnList && btnGrid){
+      btnList.onclick = () => {
+        if(invViewMode === "list") return;
+        invViewMode = "list";
+        localStorage.setItem("mm_inv_view_mode", "list");
+        btnList.className = "btn btn-xs btn-icon btn-primary";
+        btnGrid.className = "btn btn-xs btn-icon btn-ghost";
+        renderTable();
+      };
+      btnGrid.onclick = () => {
+        if(invViewMode === "grid") return;
+        invViewMode = "grid";
+        localStorage.setItem("mm_inv_view_mode", "grid");
+        btnList.className = "btn btn-xs btn-icon btn-ghost";
+        btnGrid.className = "btn btn-xs btn-icon btn-primary";
+        renderTable();
+      };
+    }
 
     Scanner.setContext((code)=>{ document.getElementById("inv-search").value = code; searchTerm = code; currentPage=1; renderTable(); });
     renderTable();

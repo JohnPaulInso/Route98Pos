@@ -298,7 +298,7 @@ const Utils = (() => {
     }
   };
 
-  // (2026-07-13) Open drawer without triggering printer dialog; was iframe print
+  // (2026-07-13) Web printer kick fallback for drawer; was Android/bridge only
   function openCashDrawer(){
     try {
       Sound.cashChime();
@@ -310,6 +310,20 @@ const Utils = (() => {
         window.printerBridge.openDrawer();
         return;
       }
+      const frame = document.createElement("iframe");
+      frame.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;";
+      document.body.appendChild(frame);
+      const fdoc = frame.contentWindow.document;
+      fdoc.open();
+      fdoc.write("<!DOCTYPE html><html><head><style>@page{size:58mm 10mm;margin:0;}body{margin:0;}</style></head><body>\x1Bp\x00\x19\xFA</body></html>");
+      fdoc.close();
+      setTimeout(() => {
+        try {
+          frame.contentWindow.focus();
+          frame.contentWindow.print();
+        } catch(e){}
+        setTimeout(() => frame.remove(), 2000);
+      }, 150);
     } catch(err){
       console.warn("Cash drawer trigger error:", err);
     }

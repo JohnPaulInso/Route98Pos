@@ -268,10 +268,14 @@ const DB = (() => {
       const curSales = read(KEYS.sales);
       if(!curSales || !curSales.length) write(KEYS.sales, seedSales);
     }
-    // (2026-07-13) Recalculate any remaining zero totals from lines; was 0 total
+    // (2026-07-13) Repair sales totals & normalize timestamps; was zero-only check
     const currentSales = read(KEYS.sales) || [];
     let salesRepaired = false;
     currentSales.forEach(s => {
+      if(s.ts === undefined || typeof s.ts !== "number"){
+        const parsed = (typeof Analytics !== "undefined" && Analytics.parseTs) ? Analytics.parseTs(s.ts ?? s.timestamp ?? s.date ?? s.createdAt) : (new Date(s.ts ?? s.timestamp ?? s.date ?? s.createdAt).getTime() || Date.now());
+        if(!isNaN(parsed) && parsed > 0){ s.ts = parsed; salesRepaired = true; }
+      }
       if((!s.total || s.total === 0) && s.items && s.items.length){
         const sum = Utils.round2(s.items.reduce((acc, it) => acc + ((Number(it.qty) || 1) * (Number(it.price) || 0)), 0));
         if(sum > 0){
@@ -407,12 +411,25 @@ const DB = (() => {
     return Array.from(new Set(Array.from(map.values())));
   }
 
+  // (2026-07-13) Sort products with # items first then A-Z; was unsorted
+  function sortProductsList(list){
+    return (list || []).sort((a,b) => {
+      const aName = String(a?.name || "").trim();
+      const bName = String(b?.name || "").trim();
+      const aHash = aName.startsWith("#");
+      const bHash = bName.startsWith("#");
+      if(aHash && !bHash) return -1;
+      if(!aHash && bHash) return 1;
+      return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: "base" });
+    });
+  }
+
   // (2026-07-13) Cache getProducts and getCategories in-memory; was parsed per read
   const getProducts   = () => {
     if(!cachedProducts) cachedProducts = read(KEYS.products, []);
     return cachedProducts;
   };
-  const setProducts   = (v) => { cachedProducts = null; return write(KEYS.products, dedupeProductList(v)); };
+  const setProducts   = (v) => { cachedProducts = null; return write(KEYS.products, sortProductsList(dedupeProductList(v))); };
   function deduplicateProducts(){
     const current = getProducts();
     const deduped = dedupeProductList(current);
@@ -435,12 +452,16 @@ const DB = (() => {
     return cachedCategories;
   };
   const setCategories = (v) => { cachedCategories = null; return write(KEYS.categories, dedupeCats(v)); };
-  // (2026-07-13) Auto-deduplicate sales by receipt number and id; was raw array
+  // (2026-07-13) Dedupe sales & normalize numeric timestamps; was raw array
   function dedupeSalesList(list){
     if(!Array.isArray(list) || list.length <= 1) return list || [];
     const map = new Map();
     list.forEach(s => {
       if(!s) return;
+      if(s.ts === undefined || typeof s.ts !== "number"){
+        const parsed = (typeof Analytics !== "undefined" && Analytics.parseTs) ? Analytics.parseTs(s.ts ?? s.timestamp ?? s.date ?? s.createdAt) : (new Date(s.ts ?? s.timestamp ?? s.date ?? s.createdAt).getTime() || Date.now());
+        if(!isNaN(parsed) && parsed > 0) s.ts = parsed;
+      }
       const key = String(s.receiptNo || s.id || '').trim();
       if(key && map.has(key)){
         const ex = map.get(key);

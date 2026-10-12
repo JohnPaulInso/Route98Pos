@@ -92,21 +92,61 @@ const Analytics = (() => {
     return trimmed;
   }
 
+  // (2026-07-13) Normalize timestamps & day bucket matching; was strict number ts
+  function parseTs(val){
+    if(!val) return 0;
+    if(typeof val === "number") return val < 10000000000 ? val * 1000 : val;
+    if(typeof val?.toMillis === "function") return val.toMillis();
+    if(typeof val?.seconds === "number") return val.seconds * 1000;
+    const num = Number(val);
+    if(!isNaN(num) && num > 1000000000) return num < 10000000000 ? num * 1000 : num;
+    const parsed = new Date(val).getTime();
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
+  function getSaleTs(s){
+    if(!s) return 0;
+    return parseTs(s.ts ?? s.timestamp ?? s.date ?? s.createdAt);
+  }
+
+  function getSaleTotal(s){
+    if(!s) return 0;
+    const v = s.total ?? s.grand ?? s.amount ?? s.subtotal ?? 0;
+    const n = Number(v);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function inDayBucket(recordTs, dStart, dEnd){
+    if(!recordTs) return false;
+    if(recordTs >= dStart && recordTs < dEnd) return true;
+    const rDate = new Date(recordTs);
+    const bDate = new Date(dStart);
+    return rDate.getFullYear() === bDate.getFullYear() &&
+           rDate.getMonth() === bDate.getMonth() &&
+           rDate.getDate() === bDate.getDate();
+  }
+
   // (2026-07-13) Support custom filterFn in analytics stats; was range-only
   function computeStats(rangeParam, opts = {}){
     const r = getPeriodRange(rangeParam);
-    let sales = DB.getSales().filter(s => s.ts >= r.start && s.ts <= r.end);
-    let fuelSales = DB.getFuelSales().filter(s => s.ts >= r.start && s.ts <= r.end);
+    let sales = DB.getSales().filter(s => {
+      const ts = getSaleTs(s);
+      return ts >= r.start && ts <= r.end;
+    });
+    let fuelSales = DB.getFuelSales().filter(s => {
+      const ts = getSaleTs(s);
+      return ts >= r.start && ts <= r.end;
+    });
     if(opts && typeof opts.filterFn === "function"){
       sales = sales.filter(opts.filterFn);
       fuelSales = fuelSales.filter(opts.filterFn);
     }
     const bookings = (DB.getBookings ? DB.getBookings() : []).filter(b => {
-      const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+      const bTs = getSaleTs(b);
       return bTs >= r.start && bTs <= r.end;
     });
     const restBookings = (DB.getRestaurantBookings ? DB.getRestaurantBookings() : []).filter(b => {
-      const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+      const bTs = getSaleTs(b);
       return bTs >= r.start && bTs <= r.end;
     });
 
@@ -198,7 +238,7 @@ const Analytics = (() => {
     };
   }
 
-  // (2026-07-13) Synchronize trend buckets strictly with active range; was rolling days
+  // (2026-07-13) Normalize timestamps & calendar day buckets; was raw strict ts
   function computeTrendData(rangeParam, opts = {}){
     const r = getPeriodRange(rangeParam);
     const labels = [];
@@ -238,15 +278,15 @@ const Analytics = (() => {
         const labelText = h === 24 ? "12 AM" : h === 12 ? "12 PM" : h > 12 ? `${h - 12} PM` : `${h} AM`;
         labels.push(labelText);
 
-        const sSum = allSales.filter(s => s.ts >= slotStart && s.ts < slotEnd).reduce((sum,x)=>sum+x.total,0);
-        const fSum = allFuel.filter(s => s.ts >= slotStart && s.ts < slotEnd).reduce((sum,x)=>sum+x.amount,0);
-        const fLit = allFuel.filter(s => s.ts >= slotStart && s.ts < slotEnd).reduce((sum,x)=>sum+(x.liters||0),0);
+        const sSum = allSales.filter(s => { const ts = getSaleTs(s); return ts >= slotStart && ts < slotEnd; }).reduce((sum,x)=>sum+getSaleTotal(x),0);
+        const fSum = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= slotStart && ts < slotEnd; }).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+        const fLit = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= slotStart && ts < slotEnd; }).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
         const vSum = bookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          const bTs = getSaleTs(b);
           return bTs >= slotStart && bTs < slotEnd;
         }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
         const rSum = restBookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          const bTs = getSaleTs(b);
           return bTs >= slotStart && bTs < slotEnd;
         }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
 
@@ -265,17 +305,11 @@ const Analytics = (() => {
         dayStarts.push(dStart);
         labels.push(new Date(dStart).toLocaleDateString("en-PH", { weekday: "short", month: "numeric", day: "numeric" }));
 
-        const sSum = allSales.filter(s => s.ts >= dStart && s.ts < dEnd).reduce((sum,x)=>sum+x.total,0);
-        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts < dEnd).reduce((sum,x)=>sum+x.amount,0);
-        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts < dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
-        const vSum = bookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
-          return bTs >= dStart && bTs < dEnd;
-        }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
-        const rSum = restBookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
-          return bTs >= dStart && bTs < dEnd;
-        }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+        const sSum = allSales.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+getSaleTotal(x),0);
+        const fSum = allFuel.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+        const fLit = allFuel.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
+        const vSum = bookings.filter(b => inDayBucket(getSaleTs(b), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
+        const rSum = restBookings.filter(b => inDayBucket(getSaleTs(b), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
 
         storeData.push(Utils.round2(sSum));
         fuelData.push(Utils.round2(fSum));
@@ -296,17 +330,11 @@ const Analytics = (() => {
         dayStarts.push(dStart);
         labels.push(new Date(dStart).toLocaleDateString("en-PH", { month: "short", day: "numeric" }));
 
-        const sSum = allSales.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.total,0);
-        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.amount,0);
-        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
-        const vSum = bookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
-          return bTs >= dStart && bTs <= dEnd;
-        }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
-        const rSum = restBookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
-          return bTs >= dStart && bTs <= dEnd;
-        }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+        const sSum = allSales.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+getSaleTotal(x),0);
+        const fSum = allFuel.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+        const fLit = allFuel.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
+        const vSum = bookings.filter(b => inDayBucket(getSaleTs(b), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
+        const rSum = restBookings.filter(b => inDayBucket(getSaleTs(b), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
 
         storeData.push(Utils.round2(sSum));
         fuelData.push(Utils.round2(fSum));
@@ -326,15 +354,15 @@ const Analytics = (() => {
         dayStarts.push(dStart);
         labels.push(mDate.toLocaleDateString("en-PH", { month: "short", year: "2-digit" }));
 
-        const sSum = allSales.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.total,0);
-        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.amount,0);
-        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
+        const sSum = allSales.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+getSaleTotal(x),0);
+        const fSum = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+        const fLit = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
         const vSum = bookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          const bTs = getSaleTs(b);
           return bTs >= dStart && bTs <= dEnd;
         }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
         const rSum = restBookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          const bTs = getSaleTs(b);
           return bTs >= dStart && bTs <= dEnd;
         }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
 
@@ -355,15 +383,15 @@ const Analytics = (() => {
         dayStarts.push(dStart);
         labels.push(new Date(yr, m, 1).toLocaleDateString("en-PH", { month: "short" }));
 
-        const sSum = allSales.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.total,0);
-        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+x.amount,0);
-        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts <= dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
+        const sSum = allSales.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+getSaleTotal(x),0);
+        const fSum = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+        const fLit = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
         const vSum = bookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          const bTs = getSaleTs(b);
           return bTs >= dStart && bTs <= dEnd;
         }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
         const rSum = restBookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
+          const bTs = getSaleTs(b);
           return bTs >= dStart && bTs <= dEnd;
         }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
 
@@ -375,32 +403,72 @@ const Analytics = (() => {
         profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
       }
     } else {
-      // All Time or custom days
-      const daysCount = 14;
-      for(let i = daysCount - 1; i >= 0; i--){
-        const dStart = Utils.daysAgo(i);
-        const dEnd = dStart + 86400000;
-        dayStarts.push(dStart);
-        labels.push(new Date(dStart).toLocaleDateString("en-PH", { month: "short", day: "numeric" }));
+      // (2026-07-13) Bucket trend across full active date range; was 14 rolling days
+      let rangeStart = r.start;
+      let rangeEnd = r.end || Date.now();
+      if(pKey === "all" || !rangeStart || rangeStart <= 86400000){
+        const allTs = [
+          ...allSales.map(s => getSaleTs(s)),
+          ...allFuel.map(s => getSaleTs(s)),
+          ...bookings.map(b => getSaleTs(b)),
+          ...restBookings.map(b => getSaleTs(b))
+        ].filter(t => typeof t === "number" && !isNaN(t) && t > 0);
+        rangeStart = allTs.length ? Math.min(...allTs) : Utils.daysAgo(13);
+        rangeEnd = allTs.length ? Math.max(...allTs, Date.now()) : Date.now();
+      }
+      const sDay = new Date(rangeStart);
+      sDay.setHours(0, 0, 0, 0);
+      const eDay = new Date(rangeEnd);
+      eDay.setHours(23, 59, 59, 999);
+      const dayDiff = Math.max(1, Math.round((eDay.getTime() - sDay.getTime()) / 86400000));
 
-        const sSum = allSales.filter(s => s.ts >= dStart && s.ts < dEnd).reduce((sum,x)=>sum+x.total,0);
-        const fSum = allFuel.filter(s => s.ts >= dStart && s.ts < dEnd).reduce((sum,x)=>sum+x.amount,0);
-        const fLit = allFuel.filter(s => s.ts >= dStart && s.ts < dEnd).reduce((sum,x)=>sum+(x.liters||0),0);
-        const vSum = bookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
-          return bTs >= dStart && bTs < dEnd;
-        }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
-        const rSum = restBookings.filter(b => {
-          const bTs = typeof b.date === "string" ? new Date(b.date + "T00:00:00").getTime() : (b.ts || new Date(b.date).getTime());
-          return bTs >= dStart && bTs < dEnd;
-        }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+      if(dayDiff <= 90){
+        for(let d = 0; d < dayDiff; d++){
+          const dStart = sDay.getTime() + (d * 86400000);
+          const dEnd = dStart + 86400000;
+          dayStarts.push(dStart);
+          labels.push(new Date(dStart).toLocaleDateString("en-PH", { month: "short", day: "numeric" }));
 
-        storeData.push(Utils.round2(sSum));
-        fuelData.push(Utils.round2(fSum));
-        venueData.push(Utils.round2(vSum));
-        restData.push(Utils.round2(rSum));
-        fuelLitersData.push(Utils.round2(fLit));
-        profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
+          const sSum = allSales.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+getSaleTotal(x),0);
+          const fSum = allFuel.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+          const fLit = allFuel.filter(s => inDayBucket(getSaleTs(s), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
+          const vSum = bookings.filter(b => inDayBucket(getSaleTs(b), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
+          const rSum = restBookings.filter(b => inDayBucket(getSaleTs(b), dStart, dEnd)).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+
+          storeData.push(Utils.round2(sSum));
+          fuelData.push(Utils.round2(fSum));
+          venueData.push(Utils.round2(vSum));
+          restData.push(Utils.round2(rSum));
+          fuelLitersData.push(Utils.round2(fLit));
+          profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
+        }
+      } else {
+        const stepDays = Math.ceil(dayDiff / 30);
+        for(let d = 0; d < dayDiff; d += stepDays){
+          const dStart = sDay.getTime() + (d * 86400000);
+          const dEnd = Math.min(eDay.getTime(), dStart + (stepDays * 86400000));
+          dayStarts.push(dStart);
+          labels.push(new Date(dStart).toLocaleDateString("en-PH", { month: "short", day: "numeric" }));
+
+          const sSum = allSales.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+getSaleTotal(x),0);
+          const fSum = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+          const fLit = allFuel.filter(s => { const ts = getSaleTs(s); return ts >= dStart && ts <= dEnd; }).reduce((sum,x)=>sum+(Number(x.liters)||0),0);
+          const vSum = bookings.filter(b => {
+            const bTs = getSaleTs(b);
+            return bTs >= dStart && bTs <= dEnd;
+          }).reduce((sum,x)=>sum+(Number(x.fee)||0),0);
+          const rSum = restBookings.filter(b => {
+            const bTs = getSaleTs(b);
+            return bTs >= dStart && bTs <= dEnd;
+          }).reduce((sum,x)=>sum+(Number(x.spent||x.fee||x.paid||x.deposit||0)),0);
+
+          storeData.push(Utils.round2(sSum));
+          fuelData.push(Utils.round2(fSum));
+          venueData.push(Utils.round2(vSum));
+          restData.push(Utils.round2(rSum));
+          fuelLitersData.push(Utils.round2(fLit));
+          profitData.push(Utils.round2((sSum * 0.25) + (fSum * 0.10) + vSum + (rSum * 0.62)));
+        }
       }
     }
 
@@ -541,5 +609,5 @@ const Analytics = (() => {
   }
 
   // (2026-07-13) Export computeTrendData & helpers; was salesTrendData only
-  return { getPeriodRange, computeStats, computeTrendData, salesTrendData, topSellers, categoryPL, paymentBreakdown, transactionsOnDay, productCostMap, restockSummary, sanitizeCategory };
+  return { getPeriodRange, computeStats, computeTrendData, salesTrendData, topSellers, categoryPL, paymentBreakdown, transactionsOnDay, productCostMap, restockSummary, sanitizeCategory, parseTs, getSaleTs, getSaleTotal, inDayBucket };
 })();

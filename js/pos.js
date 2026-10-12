@@ -1027,16 +1027,26 @@ const POS = (() => {
   }
 
   // (2026-07-13) Include category name in search filtering; was name/brand/barcode
+  // (2026-07-13) Sort catalog with # items first then A-Z; was unsorted list
   function filteredProducts(){
     const products = DB.getProducts();
     const term = searchTerm.toLowerCase();
     const activeCatLower = (activeCategory || "All").trim().toLowerCase();
-    return products.filter(p => {
+    const list = products.filter(p => {
       const prodCatLower = (p.category || "").trim().toLowerCase();
       const matchCat = activeCatLower === "all" || prodCatLower === activeCatLower;
       // (2026-07-13) Ignore punctuation in search matching; was strict includes
       const matchSearch = Utils.matchesSearch(`${p.name || ""} ${p.brand || ""} ${p.category || ""} ${p.barcode || ""}`, searchTerm);
       return matchCat && matchSearch;
+    });
+    return list.sort((a,b) => {
+      const aName = String(a?.name || "").trim();
+      const bName = String(b?.name || "").trim();
+      const aHash = aName.startsWith("#");
+      const bHash = bName.startsWith("#");
+      if(aHash && !bHash) return -1;
+      if(!aHash && bHash) return 1;
+      return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: "base" });
     });
   }
 
@@ -1359,15 +1369,8 @@ const POS = (() => {
       const hasCustom = customIndices.length > 0;
       const sortedIndices = [...customIndices, ...regularIndices];
 
-      // (2026-07-13) Sticky custom button on top; was hidden when custom added
-      const savedCustomItems = DB.getCustomItems ? DB.getCustomItems() : [];
-      const customDatalistHtml = `
-        <datalist id="custom-cart-item-datalist">
-          ${savedCustomItems.map(ci => `<option value="${Utils.escapeHtml(ci.name)}">${ci.price ? `₱${ci.price}` : ""}</option>`).join("")}
-        </datalist>`;
-      // (2026-07-13) Make custom item slot non-sticky in cart; was sticky top
+      // (2026-07-13) Delete dropdown datalist arrow on custom item; was list attr
       const dottedBtnHtml = `
-        ${customDatalistHtml}
         <!-- (2026-07-13) Compact custom item font sizes; was .82rem & .70rem -->
         <div class="cart-line custom-item-slot-dotted" id="btn-add-custom-dotted" style="position:relative;border:1.5px dashed var(--brand);border-radius:var(--r-md);margin:2px 0 6px;padding:6px 8px;cursor:pointer;background:color-mix(in srgb, var(--brand-tint) 40%, var(--paper-raised));display:flex;align-items:center;gap:8px;">
           <div class="thumb-sm" style="background:var(--brand-tint);flex-shrink:0;"><span style="display:flex;align-items:center;justify-content:center;color:var(--brand);">${Icons.get("plus-circle",{size:17})}</span></div>
@@ -1388,7 +1391,7 @@ const POS = (() => {
             <div class="info" style="flex:1;min-width:0;overflow:hidden;">
               <!-- (2026-07-13) Align /pc and fix custom item row height; was wrapping -->
               <div class="n custom-cart-n-wrap" style="display:flex;align-items:center;">
-                <input type="text" class="custom-cart-name-input" data-name-idx="${idx}" value="${Utils.escapeHtml(l.name)}" placeholder="Custom Item" title="Click to rename" list="custom-cart-item-datalist">
+                <input type="text" class="custom-cart-name-input" data-name-idx="${idx}" value="${Utils.escapeHtml(l.name)}" placeholder="Custom Item" title="Click to rename">
               </div>
               <div class="p custom-cart-p-wrap" style="display:inline-flex;align-items:center;gap:2px;margin-top:1px;font-size:.70rem;color:var(--ink-faint);font-family:var(--font-mono);font-weight:600;line-height:16px;white-space:nowrap;flex-wrap:nowrap;">
                 <span>₱</span><input type="number" class="custom-cart-price-input" data-price-idx="${idx}" value="${l.price}" min="0" step="0.01" title="Edit custom price"><span style="white-space:nowrap;flex-shrink:0;">/ ${l.unit||"pc"}</span>
