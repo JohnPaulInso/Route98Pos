@@ -800,22 +800,22 @@ const POS = (() => {
       return;
     }
 
-    // (2026-07-13) Decrement stock for custom items; was skipping isCustom
+    // (2026-07-13) Subtract inventory stock safely on sale; was unlogged deduct
     const products = DB.getProducts();
     cart.forEach(line => {
-      let p = products.find(x => x.id === line.productId);
+      let p = products.find(x => x && (x.id === line.productId || String(x.id) === String(line.productId)));
       if(line.isCustom && DB.saveCustomItem){
         const savedProd = DB.saveCustomItem(line);
         if(!p && savedProd) p = savedProd;
       }
       if(!p && line.name){
-        p = products.find(x => (x.name||"").trim().toLowerCase() === line.name.trim().toLowerCase());
+        p = products.find(x => x && (x.name||"").trim().toLowerCase() === line.name.trim().toLowerCase());
       }
       if(p){
         const pieces = (line.unitType === "pack" && p.piecesPerPack > 1) ? line.qty * p.piecesPerPack : line.qty;
-        // (2026-07-13) Track stock before/after on line; was unrecorded
-        line.stockBefore = p.stock || 0;
-        p.stock = Utils.round2((p.stock || 0) - pieces);
+        const curStock = (p.stock !== undefined && p.stock !== null) ? Number(p.stock) : 0;
+        line.stockBefore = curStock;
+        p.stock = Utils.round2(curStock - pieces);
         line.stockAfter = p.stock;
         p.updatedAt = Date.now();
         if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){

@@ -207,6 +207,48 @@ const Reports = (() => {
   // (2026-07-13) Shared TXN ID formatter; was inline per-call, inconsistent
   function fmtTxnId(id){ const c=(id||"").replace(/[^a-zA-Z0-9]/g,"").toUpperCase().slice(-8); return `TXN-${c||"00000000"}`; }
 
+  // (2026-07-13) Reconstruct stock change accurately; was naive current stock
+  function computeItemStockChange(item, sale, matchedProduct, allSales){
+    if(!item || item.isCustom) return { show: false, before: null, after: null };
+    if(item.stockBefore !== undefined && item.stockBefore !== null && item.stockAfter !== undefined && item.stockAfter !== null){
+      const b = Number(item.stockBefore);
+      const a = Number(item.stockAfter);
+      if(!isNaN(b) && !isNaN(a)) return { show: true, before: b, after: a };
+    }
+    if(!matchedProduct || matchedProduct.stock === undefined || matchedProduct.stock === null) return { show: false, before: null, after: null };
+    const curStock = Number(matchedProduct.stock) || 0;
+    const itemQty = Number(item.qty) || 1;
+    const ppp = Number(item.piecesPerPack || matchedProduct.piecesPerPack) || 1;
+    const pieces = (item.unitType === "pack" && ppp > 1) ? itemQty * ppp : itemQty;
+    const saleTs = sale ? (Number(sale.ts) || 0) : 0;
+    const itName = String(item.name || "").trim().toLowerCase();
+    const itId = item.productId || matchedProduct.id;
+    let subsequentSold = 0;
+    if(allSales && allSales.length && saleTs > 0){
+      for(const otherSale of allSales){
+        if(!otherSale || (otherSale.id && otherSale.id === sale?.id)) continue;
+        const otherTs = Number(otherSale.ts) || 0;
+        if(otherTs > saleTs){
+          const oItems = otherSale.items || [];
+          for(const oi of oItems){
+            if(!oi) continue;
+            const matchId = itId && (oi.productId === itId || String(oi.productId) === String(itId));
+            const matchName = itName && String(oi.name || "").trim().toLowerCase() === itName;
+            if(matchId || matchName){
+              const oQty = Number(oi.qty) || 1;
+              const oPpp = Number(oi.piecesPerPack) || 1;
+              const oPieces = (oi.unitType === "pack" && oPpp > 1) ? oQty * oPpp : oQty;
+              subsequentSold += oPieces;
+            }
+          }
+        }
+      }
+    }
+    const after = Utils.round2(curStock + subsequentSold);
+    const before = Utils.round2(after + pieces);
+    return { show: true, before, after };
+  }
+
   // (2026-07-13) Safe openReceiptModal with fallback; was unhandled throws
   function openReceiptModal(sale, opts = {}){
     if(!sale) return;
@@ -214,6 +256,7 @@ const Reports = (() => {
       const settings = (DB.getSettings ? DB.getSettings() : {}) || {};
       const txnId = fmtTxnId(sale.id || sale.receiptNo || "");
       const allProds = (DB.getProducts ? DB.getProducts() : []) || [];
+      const allSalesList = (DB.getSales ? DB.getSales() : []) || [];
       let rawItems = sale.items;
       if(typeof rawItems === "string"){
         try { rawItems = JSON.parse(rawItems); } catch(e){ rawItems = []; }
@@ -258,9 +301,10 @@ const Reports = (() => {
                 const lQty = Number(l.qty) || 1;
                 const ppp = Number(l.piecesPerPack || matched.piecesPerPack) || 1;
                 const pieces = (l.unitType === "pack" && ppp > 1) ? lQty * ppp : lQty;
-                const sBefore = (l.stockBefore !== undefined && l.stockBefore !== null) ? Number(l.stockBefore) : ((matched.stock !== undefined && matched.stock !== null) ? Utils.round2(Number(matched.stock) + pieces) : null);
-                const sAfter = (l.stockAfter !== undefined && l.stockAfter !== null) ? Number(l.stockAfter) : ((matched.stock !== undefined && matched.stock !== null) ? Number(matched.stock) : null);
-                const showStockChip = sBefore !== null && sAfter !== null && !isNaN(sBefore) && !isNaN(sAfter) && !l.isCustom;
+                const stockInfo = computeItemStockChange(l, sale, matched, allSalesList);
+                const showStockChip = stockInfo.show;
+                const sBefore = stockInfo.before;
+                const sAfter = stockInfo.after;
                 const price = Number(l.price) || 0;
                 return `
                 <tr>
@@ -2218,6 +2262,7 @@ const Reports = (() => {
     // (2026-07-13) Store currentPagedSales reference; was local-only slice
     const pagedSales = sales.slice(startIdx, startIdx + receiptRPP);
     currentPagedSales = pagedSales;
+    const allProds = (DB.getProducts ? DB.getProducts() : []) || [];
 
     // (2026-07-13) Show receipt select toolbar only when items checked; was always
     return `
@@ -2359,7 +2404,23 @@ const Reports = (() => {
             <div style="display:flex;flex-direction:column;gap:3px;max-width:100%;">
               <button class="btn btn-xs btn-outline receipt-items-btn" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');" type="button" style="padding:1px 6px;font-size:0.7rem;align-self:flex-start;cursor:pointer;">${Icons.get("receipt",{size:11})} ${sItems.length} item(s)</button>
               <div class="receipt-items-list" style="font-size:0.68rem;color:var(--ink-soft);line-height:1.25;display:flex;flex-direction:column;gap:1px;" title="${Utils.escapeHtml(fullTitle)}">
-                ${dispItems.map(it => `<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">@${it.qty}x ${Utils.escapeHtml(it.name)}</span>`).join("")}
+                <!-- (2026-07-13) Add stock change chip to receipt items; was name only -->
+                ${dispItems.map(it => {
+                  const itName = String(it.name || "").trim().toLowerCase();
+                  const matched = allProds.find(p => p && ((it.productId && p.id === it.productId) || (itName && p.name && String(p.name).trim().toLowerCase() === itName))) || {};
+                  const itQty = Number(it.qty) || 1;
+                  const ppp = Number(it.piecesPerPack || matched.piecesPerPack) || 1;
+                  const pieces = (it.unitType === "pack" && ppp > 1) ? itQty * ppp : itQty;
+                  const stockInfo = computeItemStockChange(it, s, matched, sales);
+                  const showStockChip = stockInfo.show;
+                  const sBefore = stockInfo.before;
+                  const sAfter = stockInfo.after;
+                  /* Item row with stock chip */
+                  return `<div class="receipt-item-row" style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-width:0;">
+                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;">@${it.qty}x ${Utils.escapeHtml(it.name)}</span>
+                    ${showStockChip ? `<span class="receipt-item-stock-chip" style="display:inline-block !important;padding:1px 5px !important;background:rgba(47,66,216,0.08) !important;border:1px solid rgba(47,66,216,0.2) !important;border-radius:4px !important;font-weight:700 !important;color:var(--brand-deep) !important;font-size:0.65rem !important;line-height:1.2 !important;white-space:nowrap !important;flex-shrink:0 !important;">Stock: ${sBefore} → ${sAfter}</span>` : ""}
+                  </div>`;
+                }).join("")}
                 ${moreCount > 0 ? `<span style="color:var(--brand-deep);font-weight:700;font-size:0.65rem;display:block;">+${moreCount} more...</span>` : ""}
               </div>
               <div class="receipt-mobile-meta text-xs text-faint" style="font-size:0.65rem;margin-top:2px;">
