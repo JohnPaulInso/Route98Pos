@@ -478,10 +478,15 @@ const Settings = (() => {
     });
 
     wrap.querySelectorAll("[data-download-backup]").forEach(btn => {
-      btn.onclick = () => {
+      btn.onclick = async () => {
         const id = btn.dataset.downloadBackup;
         const item = DB.getBackups().find(x => x.id === id);
-        const snap = item.data || (DB.buildSnapshotAt ? DB.buildSnapshotAt(item.createdAt) : item);
+        let snap = item?.data;
+        if(!snap && typeof Sync !== "undefined" && Sync.fetchBackupDoc){
+          snap = await Sync.fetchBackupDoc(item.id);
+        }
+        if(!snap && DB.buildSnapshotAt) snap = DB.buildSnapshotAt(item.createdAt);
+        if(!snap) snap = item;
         const blob = new Blob([JSON.stringify(snap, null, 2)], { type:"application/json" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
@@ -499,11 +504,18 @@ const Settings = (() => {
           title: "Restore Backup?",
           message: `Restore data snapshot from ${item.dateStr}? Current live data will be replaced with this backup.`,
           danger: true,
-          onConfirm: () => {
-            const snap = item.data || (DB.buildSnapshotAt ? DB.buildSnapshotAt(item.createdAt) : item);
+          // (2026-07-13) Fetch remote cloud backup data on restore; was local-only check
+          onConfirm: async () => {
+            let snap = item.data;
+            if(!snap && typeof Sync !== "undefined" && Sync.fetchBackupDoc){
+              Utils.toast("Fetching cloud backup data...", "info");
+              snap = await Sync.fetchBackupDoc(item.id);
+            }
+            if(!snap && DB.buildSnapshotAt) snap = DB.buildSnapshotAt(item.createdAt);
+            if(!snap) snap = item;
             DB.restoreSnapshot(snap);
             Utils.toast("Backup restored successfully.", "success");
-            App.boot();
+            setTimeout(() => App.boot(), 300);
           }
         });
       };

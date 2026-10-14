@@ -261,6 +261,37 @@ const Sync = (() => {
     return merged;
   }
 
+  // (2026-07-13) Move resolveRemoteSales to module scope; was inside pushSnapshot
+  async function resolveRemoteSales(remoteData, database, mod){
+    if(!remoteData) return remoteData;
+    const chunkCount = Number(remoteData.salesChunkCount || 0);
+    if(chunkCount > 0){
+      try {
+        const promises = [];
+        for(let i = 0; i < chunkCount; i++){
+          promises.push(mod.getDoc(mod.doc(database, "minimart_sales_chunks", `chunk_${i}`)).catch(()=>null));
+        }
+        const docs = await Promise.all(promises);
+        const extra = [];
+        docs.forEach(d => {
+          if(d && d.exists()){
+            const cData = d.data();
+            if(Array.isArray(cData?.sales)) extra.push(...cData.sales);
+          }
+        });
+        if(extra.length){
+          const sMap = new Map();
+          (remoteData.sales || []).forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+          extra.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k && !sMap.has(k)) sMap.set(k, s); });
+          remoteData.sales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+        }
+      } catch(e) {
+        console.warn("Could not fetch remote sales chunks:", e);
+      }
+    }
+    return remoteData;
+  }
+
   // (2026-07-13) Guard pushSnapshot with isSyncing flag; was unbounded recursion
   async function pushSnapshot(force = false){
     const meta = DB.getSyncMeta();
@@ -311,35 +342,6 @@ const Sync = (() => {
       manualSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       recentImported.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       
-  async function resolveRemoteSales(remoteData, database, mod){
-    if(!remoteData) return remoteData;
-    const chunkCount = Number(remoteData.salesChunkCount || 0);
-    if(chunkCount > 0){
-      try {
-        const promises = [];
-        for(let i = 0; i < chunkCount; i++){
-          promises.push(mod.getDoc(mod.doc(database, "minimart_sales_chunks", `chunk_${i}`)).catch(()=>null));
-        }
-        const docs = await Promise.all(promises);
-        const extra = [];
-        docs.forEach(d => {
-          if(d && d.exists()){
-            const cData = d.data();
-            if(Array.isArray(cData?.sales)) extra.push(...cData.sales);
-          }
-        });
-        if(extra.length){
-          const sMap = new Map();
-          (remoteData.sales || []).forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
-          extra.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k && !sMap.has(k)) sMap.set(k, s); });
-          remoteData.sales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
-        }
-      } catch(e) {
-        console.warn("Could not fetch remote sales chunks:", e);
-      }
-    }
-    return remoteData;
-  }
 
       // (2026-07-13) Chunk sales history in sync; was slicing 400 sales dropping dates
       const compactSale = (s) => {
@@ -701,6 +703,23 @@ const Sync = (() => {
     return DB.getBackups();
   }
 
+  // (2026-07-13) Fetch individual cloud backup payload for restore; was missing
+  async function fetchBackupDoc(id){
+    try {
+      const settings = DB.getSettings();
+      if(!settings.firebaseConfig) return null;
+      const { db: database, mod } = await ensureFirebase();
+      const docSnap = await mod.getDoc(mod.doc(database, "backups", id));
+      if(docSnap && docSnap.exists()){
+        const d = docSnap.data();
+        return d?.data || d || null;
+      }
+    } catch(e) {
+      console.warn("Could not fetch backup doc:", id, e);
+    }
+    return null;
+  }
+
   function getNext1159Target(){
     const now = new Date();
     const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0, 0);
@@ -948,6 +967,6 @@ const Sync = (() => {
   return {
     // (2026-07-13) Export pushVoidDoc & syncBackupsToCloud; was unexported
     init, pushSnapshot, pullSnapshot, paintStatus, syncOfflineQueue, deleteSaleDoc, pushVoidDoc,
-    createDailyBackup, checkDailyBackup, syncBackupsToCloud, fetchCloudBackups, getNext1159Target, ensureFirebase, startRealtimeListener
+    createDailyBackup, checkDailyBackup, syncBackupsToCloud, fetchCloudBackups, fetchBackupDoc, getNext1159Target, ensureFirebase, startRealtimeListener
   };
 })();
