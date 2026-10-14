@@ -128,9 +128,9 @@ const DB = (() => {
     lastView: "pos"
   };
 
-  // (2026-07-13) Full staff roster: Rosella/Nino cashiers, others admin; was generic Cashier
+  // (2026-07-13) Set Owner/Admin PIN to 9898 matching Firestore; was 1234
   const DEFAULT_USERS = [
-    { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"1234" },
+    { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"9898" },
     { id:"u_jp",      name:"JP",            role:"admin",   pin:"3333" },
     { id:"u_sharon",  name:"Sharon",        role:"admin",   pin:"4444" },
     { id:"u_ike",     name:"Elaicka / Ike", role:"admin",   pin:"5555" },
@@ -174,9 +174,9 @@ const DB = (() => {
         curUsers = curUsers.filter(u => u.name.toLowerCase() !== "cashier");
         uChanged = true;
       }
-      // Add any missing default staff
+      // (2026-07-13) Seed staff with 9898 admin PIN; was 1234
       const STAFF_SEEDS = [
-        { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"1234" },
+        { id:"u_admin",   name:"Owner/Admin",   role:"admin",   pin:"9898" },
         { id:"u_jp",      name:"JP",            role:"admin",   pin:"3333" },
         { id:"u_sharon",  name:"Sharon",        role:"admin",   pin:"4444" },
         { id:"u_ike",     name:"Elaicka / Ike", role:"admin",   pin:"5555" },
@@ -190,6 +190,11 @@ const DB = (() => {
           uChanged = true;
         }
       });
+      const adminAcc = curUsers.find(u => u.id === "u_admin" || u.name.toLowerCase() === "owner/admin");
+      if(adminAcc && adminAcc.pin === "1234"){
+        adminAcc.pin = "9898";
+        uChanged = true;
+      }
       if(uChanged) write(KEYS.users, curUsers);
     }
     const curFuelCfg = read(KEYS.fuelConfig);
