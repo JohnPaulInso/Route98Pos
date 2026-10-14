@@ -633,12 +633,22 @@ const Sync = (() => {
       const settings = DB.getSettings();
       if(settings.firebaseConfig){
         const { db: database, mod } = await ensureFirebase();
-        const cloudRecord = { ...record };
-        if(cloudRecord.data && JSON.stringify(cloudRecord.data).length > 750000){
-          const compactSales = (cloudRecord.data.sales || []).filter(s => !s.isImported && s.source !== "imported").slice(0, 500);
-          cloudRecord.data = { ...cloudRecord.data, sales: compactSales, isCompacted: true };
+        const metaRecord = JSON.parse(JSON.stringify(localRecord));
+        await mod.setDoc(mod.doc(database, "backups", backupId), metaRecord, { merge:true });
+        const cloudRecord = JSON.parse(JSON.stringify(record));
+        if(cloudRecord.data && Array.isArray(cloudRecord.data.sales)){
+          cloudRecord.data.sales = cloudRecord.data.sales.map(s => {
+            const copy = { ...s };
+            if(Array.isArray(copy.items)){
+              copy.items = copy.items.map(it => {
+                const { imageUrl, ...restIt } = it;
+                return restIt;
+              });
+            }
+            return copy;
+          });
         }
-        await mod.setDoc(mod.doc(database, "backups", backupId), cloudRecord, { merge:true });
+        await mod.setDoc(mod.doc(database, "backups", backupId), cloudRecord, { merge:true }).catch(()=>{});
         syncBackupsToCloud();
       }
     }catch(e){
@@ -653,14 +663,11 @@ const Sync = (() => {
       const settings = DB.getSettings();
       if(!settings.firebaseConfig) return;
       const { db: database, mod } = await ensureFirebase();
-      const localBackups = DB.getBackups().slice(0, 15);
+      const localBackups = DB.getBackups().slice(0, 30);
       for(const b of localBackups){
-        const cloudB = { ...b };
-        if(cloudB.data && JSON.stringify(cloudB.data).length > 750000){
-          const compactSales = (cloudB.data.sales || []).filter(s => !s.isImported && s.source !== "imported").slice(0, 500);
-          cloudB.data = { ...cloudB.data, sales: compactSales, isCompacted: true };
-        }
-        await mod.setDoc(mod.doc(database, "backups", b.id), cloudB, { merge:true }).catch(()=>{});
+        const meta = JSON.parse(JSON.stringify({ ...b }));
+        delete meta.data;
+        await mod.setDoc(mod.doc(database, "backups", b.id), meta, { merge:true }).catch(()=>{});
       }
     }catch(e){
       console.warn("Could not sync backups to cloud:", e);
@@ -671,10 +678,17 @@ const Sync = (() => {
       const settings = DB.getSettings();
       if(!settings.firebaseConfig) return DB.getBackups();
       const { db: database, mod } = await ensureFirebase();
-      // (2026-07-13) Query at most 10 cloud backups to conserve reads; was all docs
+      // (2026-07-13) Order backups descending to load newest first; was limit 10
       const bCol = mod.collection(database, "backups");
-      const bQ = (mod.query && mod.limit) ? mod.query(bCol, mod.limit(10)) : bCol;
-      const backupsSnap = await mod.getDocs(bQ);
+      let backupsSnap;
+      try {
+        const bQ = (mod.query && mod.orderBy && mod.limit)
+          ? mod.query(bCol, mod.orderBy("createdAt", "desc"), mod.limit(50))
+          : ((mod.query && mod.limit) ? mod.query(bCol, mod.limit(50)) : bCol);
+        backupsSnap = await mod.getDocs(bQ);
+      } catch(qErr) {
+        backupsSnap = await mod.getDocs(bCol);
+      }
       if(!backupsSnap.empty){
         const cloudBackups = [];
         backupsSnap.forEach(d => {
@@ -712,7 +726,11 @@ const Sync = (() => {
       const docSnap = await mod.getDoc(mod.doc(database, "backups", id));
       if(docSnap && docSnap.exists()){
         const d = docSnap.data();
-        return d?.data || d || null;
+        let payload = d?.data || d || null;
+        if(typeof payload === "string"){
+          try { payload = JSON.parse(payload); } catch(e){}
+        }
+        return payload;
       }
     } catch(e) {
       console.warn("Could not fetch backup doc:", id, e);

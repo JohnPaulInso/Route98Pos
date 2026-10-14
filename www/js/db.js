@@ -222,8 +222,8 @@ const DB = (() => {
     const seedCatalog = (typeof CATALOG_SEED !== "undefined" && CATALOG_SEED.products) ? CATALOG_SEED : null;
     // (2026-07-13) Restore seedSales variable in DB init; was accidentally removed
     const seedSales = (typeof SALES_SEED !== "undefined" && Array.isArray(SALES_SEED)) ? SALES_SEED : [];
-    // (2026-07-13) Sync Loyverse merge v19; was v18
-    const syncFlagKey = NS + "loyverse_sync_20261001_v19";
+    // (2026-07-13) Sync Loyverse merge v20 with Sept 25 - Oct 4; was v19
+    const syncFlagKey = NS + "loyverse_sync_20261014_v20";
 
     if(!localStorage.getItem(syncFlagKey)){
       if(seedCatalog){

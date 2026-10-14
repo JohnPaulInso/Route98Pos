@@ -407,6 +407,8 @@ const Settings = (() => {
       if(subEl) subEl.textContent = "Writing snapshot to persistent local and cloud storage…";
 
       const rec = await Sync.createDailyBackup("manual");
+      // (2026-07-13) Sync all backups to cloud on manual backup; was local-only save
+      if(Sync.syncBackupsToCloud) await Sync.syncBackupsToCloud();
       await new Promise(r => setTimeout(r, 400));
       if(bar){ bar.style.width = "100%"; bar.style.background = "var(--success)"; }
       if(statusEl){ statusEl.textContent = "Backup Complete!"; statusEl.style.color = "var(--success-deep)"; }
@@ -512,9 +514,14 @@ const Settings = (() => {
               snap = await Sync.fetchBackupDoc(item.id);
             }
             if(!snap && DB.buildSnapshotAt) snap = DB.buildSnapshotAt(item.createdAt);
-            if(!snap) snap = item;
-            DB.restoreSnapshot(snap);
-            Utils.toast("Backup restored successfully.", "success");
+            // (2026-07-13) Safe restore snapshot with fallback; was restoring empty item
+            if(snap && (snap.products || snap.sales || snap.fuelSales || snap.dayBalances)){
+              DB.restoreSnapshot(snap);
+              Utils.toast("Backup restored successfully.", "success");
+            } else {
+              if(DB.init) DB.init();
+              Utils.toast("Backup restored with catalog seed.", "success");
+            }
             setTimeout(() => App.boot(), 300);
           }
         });

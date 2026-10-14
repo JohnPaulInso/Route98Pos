@@ -1,6 +1,13219 @@
 // Auto-generated Loyverse receipts seed
 const SALES_SEED = [
   {
+    "id": "TXN-21678",
+    "receiptNo": "2-1678",
+    "ts": 1790869800000,
+    "date": "01/10/2026 23:50",
+    "total": 148.88,
+    "subtotal": 148.88,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 148.88,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10221",
+        "name": "GREAT TASTE CHOCO",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 15,
+        "cost": 12.5,
+        "total": 15
+      },
+      {
+        "productId": "98000050",
+        "name": "GREAT TASTE WHITE TWIN PACK",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 14,
+        "cost": 10.83,
+        "total": 14
+      },
+      {
+        "productId": "98000001",
+        "name": "ARIEL POWDER TWIN JUMBO PACK FRESH GARDEN BLOOM",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 6,
+        "price": 19.98,
+        "cost": 15.12,
+        "total": 119.88
+      }
+    ]
+  },
+  {
+    "id": "TXN-21677",
+    "receiptNo": "2-1677",
+    "ts": 1790869680000,
+    "date": "01/10/2026 23:48",
+    "total": 68,
+    "subtotal": 68,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 68,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10268",
+        "name": "CHUCKIE 110ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 12.5,
+        "total": 16
+      },
+      {
+        "productId": "10534",
+        "name": "C2 GREEN TEA LEMON 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 34,
+        "cost": 26.65,
+        "total": 34
+      },
+      {
+        "productId": "10214",
+        "name": "MAGIC CREAMS BUTTER",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 9,
+        "cost": 5.55,
+        "total": 18
+      }
+    ]
+  },
+  {
+    "id": "TXN-21676",
+    "receiptNo": "2-1676",
+    "ts": 1790867520000,
+    "date": "01/10/2026 23:12",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10239",
+        "name": "MOUNTAIN DEW (290ML)",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.35,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21675",
+    "receiptNo": "2-1675",
+    "ts": 1790867280000,
+    "date": "01/10/2026 23:08",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21674",
+    "receiptNo": "2-1674",
+    "ts": 1790867100000,
+    "date": "01/10/2026 23:05",
+    "total": 38.5,
+    "subtotal": 38.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10502",
+        "name": "PIC-A ULTIMATE CHEDDAR 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 29.65,
+        "total": 38.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21673",
+    "receiptNo": "2-1673",
+    "ts": 1790866920000,
+    "date": "01/10/2026 23:02",
+    "total": 34,
+    "subtotal": 34,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 34,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10534",
+        "name": "C2 GREEN TEA LEMON 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 34,
+        "cost": 26.65,
+        "total": 34
+      }
+    ]
+  },
+  {
+    "id": "TXN-21672",
+    "receiptNo": "2-1672",
+    "ts": 1790866500000,
+    "date": "01/10/2026 22:55",
+    "total": 3,
+    "subtotal": 3,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 3,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10485",
+        "name": "PLASTIC CUPS",
+        "category": "MISC",
+        "qty": 1,
+        "price": 3,
+        "cost": 0,
+        "total": 3
+      }
+    ]
+  },
+  {
+    "id": "TXN-21671",
+    "receiptNo": "2-1671",
+    "ts": 1790865840000,
+    "date": "01/10/2026 22:44",
+    "total": 645.8,
+    "subtotal": 645.8,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 645.8,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 35,
+        "price": 9.06,
+        "cost": 9.06,
+        "total": 317.1
+      },
+      {
+        "productId": "10230",
+        "name": "REFRESH 500ML",
+        "category": "DRINKS",
+        "qty": 38,
+        "price": 8.65,
+        "cost": 8.65,
+        "total": 328.7
+      }
+    ]
+  },
+  {
+    "id": "TXN-21670",
+    "receiptNo": "2-1670",
+    "ts": 1790865420000,
+    "date": "01/10/2026 22:37",
+    "total": 32.75,
+    "subtotal": 32.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 32.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10215",
+        "name": "MANG JUAN SUKAT SILI 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 19.5,
+        "total": 29.75
+      },
+      {
+        "productId": "10485",
+        "name": "PLASTIC CUPS",
+        "category": "MISC",
+        "qty": 1,
+        "price": 3,
+        "cost": 0,
+        "total": 3
+      }
+    ]
+  },
+  {
+    "id": "TXN-21669",
+    "receiptNo": "2-1669",
+    "ts": 1790864820000,
+    "date": "01/10/2026 22:27",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21668",
+    "receiptNo": "2-1668",
+    "ts": 1790863980000,
+    "date": "01/10/2026 22:13",
+    "total": 554.84,
+    "subtotal": 554.84,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 554.84,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10205",
+        "name": "GREAT TASTE WHITE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.2,
+        "total": 10
+      },
+      {
+        "productId": "10189",
+        "name": "NESCAFE STICK",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 5,
+        "cost": 3.25,
+        "total": 10
+      },
+      {
+        "productId": "10332",
+        "name": "LEMON SQUARE LAVA CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.8,
+        "total": 9.98
+      },
+      {
+        "productId": "10252",
+        "name": "Royal 1.5L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 0,
+        "total": 75
+      },
+      {
+        "productId": "10374",
+        "name": "SKYFLAKES CRACKER",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 9.98,
+        "cost": 6,
+        "total": 19.96
+      },
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.15,
+        "total": 20
+      },
+      {
+        "productId": "10406",
+        "name": "SURF POWDER PURPLE BLOOMS 65G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 6,
+        "price": 10,
+        "cost": 7.25,
+        "total": 60
+      },
+      {
+        "productId": "980000030",
+        "name": "DOWNY GARDEN BLOOM 75ML",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 5,
+        "price": 21.98,
+        "cost": 16.35,
+        "total": 109.9
+      },
+      {
+        "productId": "10525",
+        "name": "PAYLESS PC EXTRA BIG EXTRA HOT",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 20,
+        "cost": 15.75,
+        "total": 20
+      },
+      {
+        "productId": "10461",
+        "name": "VENERANDA HOLIDAY PANCIT CANTON",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 65,
+        "cost": 55.5,
+        "total": 65
+      },
+      {
+        "productId": "10383Q",
+        "name": "PEPSI EXTRA FIZZ 195ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 15,
+        "cost": 11,
+        "total": 30
+      },
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "10212",
+        "name": "MAGIC CREAMS CONDENSED",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 5.55,
+        "total": 9
+      },
+      {
+        "productId": "10365",
+        "name": "CREAMLINE SUNDAE CHOCOLATE120ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 25,
+        "cost": 15.85,
+        "total": 25
+      },
+      {
+        "productId": "10268",
+        "name": "CHUCKIE 110ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 12.5,
+        "total": 16
+      },
+      {
+        "productId": "10189",
+        "name": "NESCAFE STICK",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 5,
+        "cost": 3.25,
+        "total": 5
+      },
+      {
+        "productId": "10205",
+        "name": "GREAT TASTE WHITE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.2,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21667",
+    "receiptNo": "2-1667",
+    "ts": 1790863380000,
+    "date": "01/10/2026 22:03",
+    "total": 75,
+    "subtotal": 75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21666",
+    "receiptNo": "2-1666",
+    "ts": 1790863140000,
+    "date": "01/10/2026 21:59",
+    "total": 51,
+    "subtotal": 51,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 51,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10508",
+        "name": "CREAM-O CHOCOLATE CHIPS",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 11,
+        "cost": 7.98,
+        "total": 11
+      },
+      {
+        "productId": "10213",
+        "name": "MAGIC CREAMS CHOCO",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 5.55,
+        "total": 9
+      },
+      {
+        "productId": "98000136",
+        "name": "DELIGHT PROBIOTIC 100ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 11.4,
+        "total": 16
+      },
+      {
+        "productId": "10193",
+        "name": "YAKULT",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 10,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21665",
+    "receiptNo": "2-1665",
+    "ts": 1790861940000,
+    "date": "01/10/2026 21:39",
+    "total": 55,
+    "subtotal": 55,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 55,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10193",
+        "name": "YAKULT",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 15,
+        "cost": 10,
+        "total": 45
+      },
+      {
+        "productId": "10517",
+        "name": "JACK'NJILL MILKY KNOTS",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.68,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21664",
+    "receiptNo": "2-1664",
+    "ts": 1790861580000,
+    "date": "01/10/2026 21:33",
+    "total": 36,
+    "subtotal": 36,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21663",
+    "receiptNo": "2-1663",
+    "ts": 1790861100000,
+    "date": "01/10/2026 21:25",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21662",
+    "receiptNo": "2-1662",
+    "ts": 1790860260000,
+    "date": "01/10/2026 21:11",
+    "total": 185.5,
+    "subtotal": 185.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 185.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10459",
+        "name": "LUCKY ME PC CHILIMANSI KASALO PACK",
+        "category": "FOOD",
+        "qty": 3,
+        "price": 25,
+        "cost": 19.25,
+        "total": 75
+      },
+      {
+        "productId": "10220",
+        "name": "PIATTOS SOUR CREAM 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 28.8,
+        "total": 38.5
+      },
+      {
+        "productId": "10404",
+        "name": "OISHI FISH CRACKERS 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 33.5,
+        "cost": 25.65,
+        "total": 33.5
+      },
+      {
+        "productId": "10202",
+        "name": "PIATTOS CHEESE 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 28.8,
+        "total": 38.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21661",
+    "receiptNo": "2-1661",
+    "ts": 1790860080000,
+    "date": "01/10/2026 21:08",
+    "total": 217,
+    "subtotal": 217,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 217,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28,
+        "cost": 16.43,
+        "total": 28
+      },
+      {
+        "productId": "98000078",
+        "name": "POCARI SWEAT 350ML",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 45,
+        "cost": 34.25,
+        "total": 135
+      },
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 18,
+        "cost": 9.94,
+        "total": 54
+      }
+    ]
+  },
+  {
+    "id": "TXN-21660",
+    "receiptNo": "2-1660",
+    "ts": 1790858820000,
+    "date": "01/10/2026 20:47",
+    "total": 162.25,
+    "subtotal": 162.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 162.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      },
+      {
+        "productId": "98000056",
+        "name": "NOVA COUNTRY CHEDDAR 38G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 18.25,
+        "cost": 14,
+        "total": 18.25
+      },
+      {
+        "productId": "98000058",
+        "name": "TORTILLOS",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.5,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21659",
+    "receiptNo": "2-1659",
+    "ts": 1790858520000,
+    "date": "01/10/2026 20:42",
+    "total": 43,
+    "subtotal": 43,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 43,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000093",
+        "name": "COBRA  ASTIG CITRUS BLAST 290ML",
+        "category": "MISC",
+        "qty": 2,
+        "price": 21.5,
+        "cost": 16.58,
+        "total": 43
+      }
+    ]
+  },
+  {
+    "id": "TXN-21658",
+    "receiptNo": "2-1658",
+    "ts": 1790857980000,
+    "date": "01/10/2026 20:33",
+    "total": 156.88,
+    "subtotal": 156.88,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 156.88,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10140",
+        "name": "OISHI RINBEE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.75,
+        "total": 9
+      },
+      {
+        "productId": "98000138",
+        "name": "NUTRI STAR CHICKEN BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.25,
+        "total": 10
+      },
+      {
+        "productId": "10150",
+        "name": "RICHEE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11,
+        "cost": 8.5,
+        "total": 11
+      },
+      {
+        "productId": "98000003",
+        "name": "ARIEL TWIN JUMBO POWDER SUNRISE FRESH 66G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 2,
+        "price": 19.98,
+        "cost": 15.12,
+        "total": 39.96
+      },
+      {
+        "productId": "10261",
+        "name": "555 SARDINES 155G",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 26,
+        "cost": 23.45,
+        "total": 26
+      },
+      {
+        "productId": "10017",
+        "name": "PALMOLIVE IM",
+        "category": "BATH ESSENTIALS",
+        "qty": 1,
+        "price": 8.98,
+        "cost": 0,
+        "total": 8.98
+      },
+      {
+        "productId": "980000026",
+        "name": "DOWNY SUNRISE FRESH 26ML",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 3,
+        "price": 8.98,
+        "cost": 6.23,
+        "total": 26.94
+      },
+      {
+        "productId": "10060",
+        "name": "MONGGO",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 25,
+        "cost": 0,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21657",
+    "receiptNo": "2-1657",
+    "ts": 1790856420000,
+    "date": "01/10/2026 20:07",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21656",
+    "receiptNo": "2-1656",
+    "ts": 1790855820000,
+    "date": "01/10/2026 19:57",
+    "total": 110.73,
+    "subtotal": 110.73,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 110.73,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10157",
+        "name": "SWEETCHILI CHPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.5,
+        "cost": 8.25,
+        "total": 11.5
+      },
+      {
+        "productId": "10160",
+        "name": "TATTOOS CORN CHIPS SWEET CORN 58G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12.25,
+        "cost": 10.5,
+        "total": 12.25
+      },
+      {
+        "productId": "10397",
+        "name": "TATTOOS TUBE SPICY PIZZA 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 14.98,
+        "cost": 10.9,
+        "total": 14.98
+      },
+      {
+        "productId": "10275",
+        "name": "MOUNTAIN DEW 1.5L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 72,
+        "cost": 62,
+        "total": 72
+      }
+    ]
+  },
+  {
+    "id": "TXN-21655",
+    "receiptNo": "2-1655",
+    "ts": 1790855160000,
+    "date": "01/10/2026 19:46",
+    "total": 53,
+    "subtotal": 53,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 53,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10085",
+        "name": "SM FLAVORED BEER APPLE",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 53,
+        "cost": 41,
+        "total": 53
+      }
+    ]
+  },
+  {
+    "id": "TXN-21654",
+    "receiptNo": "2-1654",
+    "ts": 1790852400000,
+    "date": "01/10/2026 19:00",
+    "total": 55,
+    "subtotal": 55,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 55,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 44,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21653",
+    "receiptNo": "2-1653",
+    "ts": 1790850900000,
+    "date": "01/10/2026 18:35",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21652",
+    "receiptNo": "2-1652",
+    "ts": 1790847900000,
+    "date": "01/10/2026 17:45",
+    "total": 318,
+    "subtotal": 318,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 318,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10085",
+        "name": "SM FLAVORED BEER APPLE",
+        "category": "DRINKS",
+        "qty": 6,
+        "price": 53,
+        "cost": 41,
+        "total": 318
+      }
+    ]
+  },
+  {
+    "id": "TXN-21651",
+    "receiptNo": "2-1651",
+    "ts": 1790844360000,
+    "date": "01/10/2026 16:46",
+    "total": 103,
+    "subtotal": 103,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 103,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000136",
+        "name": "DELIGHT PROBIOTIC 100ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 16,
+        "cost": 11.4,
+        "total": 32
+      },
+      {
+        "productId": "10268",
+        "name": "CHUCKIE 110ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 12.5,
+        "total": 16
+      },
+      {
+        "productId": "10491",
+        "name": "PRINGLES CHEESY CHEESE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 45.55,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21650",
+    "receiptNo": "2-1650",
+    "ts": 1790843640000,
+    "date": "01/10/2026 16:34",
+    "total": 6,
+    "subtotal": 6,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 6,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10412",
+        "name": "XSAKTO 8G",
+        "category": "SNACKS",
+        "qty": 3,
+        "price": 2,
+        "cost": 0.98,
+        "total": 6
+      }
+    ]
+  },
+  {
+    "id": "TXN-21649",
+    "receiptNo": "2-1649",
+    "ts": 1790843580000,
+    "date": "01/10/2026 16:33",
+    "total": 8.98,
+    "subtotal": 8.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 8.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10019",
+        "name": "PALMOLIVE US",
+        "category": "BATH ESSENTIALS",
+        "qty": 1,
+        "price": 8.98,
+        "cost": 0,
+        "total": 8.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21648",
+    "receiptNo": "2-1648",
+    "ts": 1790843340000,
+    "date": "01/10/2026 16:29",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21647",
+    "receiptNo": "2-1647",
+    "ts": 1790839860000,
+    "date": "01/10/2026 15:31",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 15,
+        "cost": 9.06,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21646",
+    "receiptNo": "2-1646",
+    "ts": 1790838840000,
+    "date": "01/10/2026 15:14",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21645",
+    "receiptNo": "2-1645",
+    "ts": 1790838660000,
+    "date": "01/10/2026 15:11",
+    "total": 120,
+    "subtotal": 120,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 120,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 12,
+        "price": 10,
+        "cost": 8.02,
+        "total": 120
+      }
+    ]
+  },
+  {
+    "id": "TXN-21644",
+    "receiptNo": "2-1644",
+    "ts": 1790835720000,
+    "date": "01/10/2026 14:22",
+    "total": 112,
+    "subtotal": 112,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 112,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 29,
+        "cost": 22.08,
+        "total": 87
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 25,
+        "cost": 0,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21643",
+    "receiptNo": "2-1643",
+    "ts": 1790832360000,
+    "date": "01/10/2026 13:26",
+    "total": 174,
+    "subtotal": 174,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 174,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 6,
+        "price": 29,
+        "cost": 22.08,
+        "total": 174
+      }
+    ]
+  },
+  {
+    "id": "TXN-21642",
+    "receiptNo": "2-1642",
+    "ts": 1790829480000,
+    "date": "01/10/2026 12:38",
+    "total": 84.75,
+    "subtotal": 84.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 84.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21641",
+    "receiptNo": "2-1641",
+    "ts": 1790827740000,
+    "date": "01/10/2026 12:09",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10342",
+        "name": "CREAMLINE JUMBO CONE UBE QUESO 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21640",
+    "receiptNo": "2-1640",
+    "ts": 1790826180000,
+    "date": "01/10/2026 11:43",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21639",
+    "receiptNo": "2-1639",
+    "ts": 1790825460000,
+    "date": "01/10/2026 11:31",
+    "total": 220,
+    "subtotal": 220,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 220,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 220,
+        "cost": 0,
+        "total": 220
+      }
+    ]
+  },
+  {
+    "id": "TXN-21638",
+    "receiptNo": "2-1638",
+    "ts": 1790825340000,
+    "date": "01/10/2026 11:29",
+    "total": 18,
+    "subtotal": 18,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 18,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10212",
+        "name": "MAGIC CREAMS CONDENSED",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 9,
+        "cost": 5.55,
+        "total": 18
+      }
+    ]
+  },
+  {
+    "id": "TXN-21637",
+    "receiptNo": "2-1637",
+    "ts": 1790825100000,
+    "date": "01/10/2026 11:25",
+    "total": 45,
+    "subtotal": 45,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 45,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000078",
+        "name": "POCARI SWEAT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 45,
+        "cost": 34.25,
+        "total": 45
+      }
+    ]
+  },
+  {
+    "id": "TXN-10352",
+    "receiptNo": "1-0352",
+    "ts": 1790822280000,
+    "date": "01/10/2026 10:38",
+    "total": 60,
+    "subtotal": 60,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 60,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-10351",
+    "receiptNo": "1-0351",
+    "ts": 1790819700000,
+    "date": "01/10/2026 09:55",
+    "total": 38.75,
+    "subtotal": 38.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10359",
+        "name": "CREAMLINE PINOY CLASSIC MANGGO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 13.3,
+        "total": 20
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      },
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 8.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-10350",
+    "receiptNo": "1-0350",
+    "ts": 1790815800000,
+    "date": "01/10/2026 08:50",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 14.26,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-10349",
+    "receiptNo": "1-0349",
+    "ts": 1790814180000,
+    "date": "01/10/2026 08:23",
+    "total": 88,
+    "subtotal": 88,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 88,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "980000055",
+        "name": "C2 GREEN TEA LEMON 1L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 58,
+        "cost": 44.42,
+        "total": 58
+      }
+    ]
+  },
+  {
+    "id": "TXN-21636",
+    "receiptNo": "2-1636",
+    "ts": 1790779500000,
+    "date": "30/09/2026 22:45",
+    "total": 65,
+    "subtotal": 65,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 65,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10074",
+        "name": "PAMPERS NB 4PCS",
+        "category": "BABY ESSENTIALS",
+        "qty": 1,
+        "price": 50,
+        "cost": 0,
+        "total": 50
+      },
+      {
+        "productId": "10362",
+        "name": "CREAMLINE MILKY POP LOLLY MILK CHOCO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.88,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21635",
+    "receiptNo": "2-1635",
+    "ts": 1790778900000,
+    "date": "30/09/2026 22:35",
+    "total": 75,
+    "subtotal": 75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21634",
+    "receiptNo": "2-1634",
+    "ts": 1790778360000,
+    "date": "30/09/2026 22:26",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10369",
+        "name": "CREAMLINE MINI CUP CHOCO MARBLE 75ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 12.7,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21633",
+    "receiptNo": "2-1633",
+    "ts": 1790777940000,
+    "date": "30/09/2026 22:19",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21632",
+    "receiptNo": "2-1632",
+    "ts": 1790777340000,
+    "date": "30/09/2026 22:09",
+    "total": 60,
+    "subtotal": 60,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 60,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21631",
+    "receiptNo": "2-1631",
+    "ts": 1790776560000,
+    "date": "30/09/2026 21:56",
+    "total": 168,
+    "subtotal": 168,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 168,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10490",
+        "name": "SNAFFLE CORN CHIPS",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 8,
+        "cost": 5,
+        "total": 8
+      },
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      },
+      {
+        "productId": "98000144",
+        "name": "DUTCH MILL BLUE BERRY JUICE 90ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 15,
+        "cost": 11.7,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21630",
+    "receiptNo": "2-1630",
+    "ts": 1790776320000,
+    "date": "30/09/2026 21:52",
+    "total": 48,
+    "subtotal": 48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "10517",
+        "name": "JACK'NJILL MILKY KNOTS",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.68,
+        "total": 10
+      },
+      {
+        "productId": "10522",
+        "name": "CLOUD 9 OVERLOAD",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 18,
+        "cost": 13.24,
+        "total": 18
+      }
+    ]
+  },
+  {
+    "id": "TXN-21629",
+    "receiptNo": "2-1629",
+    "ts": 1790776080000,
+    "date": "30/09/2026 21:48",
+    "total": 19.98,
+    "subtotal": 19.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 19.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10146",
+        "name": "CRISPY PATATA 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.75,
+        "total": 9.98
+      },
+      {
+        "productId": "98000072",
+        "name": "FISH CRACKERS 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.8,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21628",
+    "receiptNo": "2-1628",
+    "ts": 1790776080000,
+    "date": "30/09/2026 21:48",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21627",
+    "receiptNo": "2-1627",
+    "ts": 1790776020000,
+    "date": "30/09/2026 21:47",
+    "total": 152.25,
+    "subtotal": 152.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 152.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000059",
+        "name": "NOVA COUNTRY CHEDDAR 78G",
+        "category": "SNACKS",
+        "qty": 3,
+        "price": 38.5,
+        "cost": 29.55,
+        "total": 115.5
+      },
+      {
+        "productId": "98000071",
+        "name": "MANG JUAN SUKAT SILI 26G",
+        "category": "SNACKS",
+        "qty": 3,
+        "price": 12.25,
+        "cost": 6.3,
+        "total": 36.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21626",
+    "receiptNo": "2-1626",
+    "ts": 1790774820000,
+    "date": "30/09/2026 21:27",
+    "total": 338.75,
+    "subtotal": 338.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 338.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 145,
+        "cost": 120,
+        "total": 290
+      },
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      },
+      {
+        "productId": "10395",
+        "name": "PEEWEE SIZZLING BBQ 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 23.75,
+        "cost": 18.25,
+        "total": 23.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21625",
+    "receiptNo": "2-1625",
+    "ts": 1790774640000,
+    "date": "30/09/2026 21:24",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21624",
+    "receiptNo": "2-1624",
+    "ts": 1790774160000,
+    "date": "30/09/2026 21:16",
+    "total": 36.5,
+    "subtotal": 36.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      },
+      {
+        "productId": "10157",
+        "name": "SWEETCHILI CHPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.5,
+        "cost": 8.25,
+        "total": 11.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21623",
+    "receiptNo": "2-1623",
+    "ts": 1790774040000,
+    "date": "30/09/2026 21:14",
+    "total": 87.23,
+    "subtotal": 87.23,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 87.23,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10215",
+        "name": "MANG JUAN SUKAT SILI 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 19.5,
+        "total": 29.75
+      },
+      {
+        "productId": "98000072",
+        "name": "FISH CRACKERS 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.8,
+        "total": 10
+      },
+      {
+        "productId": "10137",
+        "name": "OISHI ONION RNGS",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.75,
+        "total": 9
+      },
+      {
+        "productId": "10146",
+        "name": "CRISPY PATATA 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.75,
+        "total": 9.98
+      },
+      {
+        "productId": "10130",
+        "name": "OISHI CRACKLINGS",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.75,
+        "total": 10
+      },
+      {
+        "productId": "10145",
+        "name": "PIATTOS SOUR CREAM 40G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 18.5,
+        "cost": 15.75,
+        "total": 18.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21622",
+    "receiptNo": "2-1622",
+    "ts": 1790773980000,
+    "date": "30/09/2026 21:13",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21621",
+    "receiptNo": "2-1621",
+    "ts": 1790772360000,
+    "date": "30/09/2026 20:46",
+    "total": 80,
+    "subtotal": 80,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 80,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000149",
+        "name": "CHOCOMUCHO RED",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.4,
+        "total": 15
+      },
+      {
+        "productId": "98000147",
+        "name": "CHOCOMUCHO WHITE CARAMEL",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.4,
+        "total": 15
+      },
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21620",
+    "receiptNo": "2-1620",
+    "ts": 1790769540000,
+    "date": "30/09/2026 19:59",
+    "total": 80,
+    "subtotal": 80,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 80,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000076",
+        "name": "POCARI SWEAT 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 44.58,
+        "total": 55
+      },
+      {
+        "productId": "10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 14.26,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21619",
+    "receiptNo": "2-1619",
+    "ts": 1790769360000,
+    "date": "30/09/2026 19:56",
+    "total": 48,
+    "subtotal": 48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 4,
+        "price": 12,
+        "cost": 9.1,
+        "total": 48
+      }
+    ]
+  },
+  {
+    "id": "TXN-21618",
+    "receiptNo": "2-1618",
+    "ts": 1790769300000,
+    "date": "30/09/2026 19:55",
+    "total": 36,
+    "subtotal": 36,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21617",
+    "receiptNo": "2-1617",
+    "ts": 1790769120000,
+    "date": "30/09/2026 19:52",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      },
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.15,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21616",
+    "receiptNo": "2-1616",
+    "ts": 1790768520000,
+    "date": "30/09/2026 19:42",
+    "total": 17,
+    "subtotal": 17,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 17,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000116",
+        "name": "WINSTON WHITE STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.92,
+        "total": 12
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21615",
+    "receiptNo": "2-1615",
+    "ts": 1790766000000,
+    "date": "30/09/2026 19:00",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21614",
+    "receiptNo": "2-1614",
+    "ts": 1790765940000,
+    "date": "30/09/2026 18:59",
+    "total": 109,
+    "subtotal": 109,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 109,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10513",
+        "name": "CREAM-O CRINKLES",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 10,
+        "cost": 6.12,
+        "total": 20
+      },
+      {
+        "productId": "10223",
+        "name": "OVERLOAD CHOCO STRAWBERRY",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10512",
+        "name": "CREAM-O COOKIES AND CREAM",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.12,
+        "total": 10
+      },
+      {
+        "productId": "10510",
+        "name": "CREAM-O DOUBLE CHOCOLATE CHIPS",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 11,
+        "cost": 7.98,
+        "total": 11
+      },
+      {
+        "productId": "98000054",
+        "name": "C2 GREEN TEA APPLE 1L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 58,
+        "cost": 44.42,
+        "total": 58
+      }
+    ]
+  },
+  {
+    "id": "TXN-21613",
+    "receiptNo": "2-1613",
+    "ts": 1790765520000,
+    "date": "30/09/2026 18:52",
+    "total": 60,
+    "subtotal": 60,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 60,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-21612",
+    "receiptNo": "2-1612",
+    "ts": 1790762940000,
+    "date": "30/09/2026 18:09",
+    "total": 228.48,
+    "subtotal": 228.48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 228.48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10500",
+        "name": "PRESTO CHOCO VANILLA PACK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 85,
+        "cost": 53.13,
+        "total": 85
+      },
+      {
+        "productId": "10377",
+        "name": "NISSIN BUTTER COCONUT PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 54.98,
+        "cost": 39.25,
+        "total": 54.98
+      },
+      {
+        "productId": "10220",
+        "name": "PIATTOS SOUR CREAM 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 28.8,
+        "total": 38.5
+      },
+      {
+        "productId": "10441",
+        "name": "NESTLE FRESH MILK 250ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 39.55,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21611",
+    "receiptNo": "2-1611",
+    "ts": 1790762820000,
+    "date": "30/09/2026 18:07",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21610",
+    "receiptNo": "2-1610",
+    "ts": 1790762280000,
+    "date": "30/09/2026 17:58",
+    "total": 46,
+    "subtotal": 46,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 46,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10191",
+        "name": "GATORADE TROPICAL FRUIT 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 46,
+        "cost": 36.58,
+        "total": 46
+      }
+    ]
+  },
+  {
+    "id": "TXN-21609",
+    "receiptNo": "2-1609",
+    "ts": 1790762100000,
+    "date": "30/09/2026 17:55",
+    "total": 36,
+    "subtotal": 36,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10516",
+        "name": "JACK'NJILL BERRY KNOTS",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 6.68,
+        "total": 20
+      },
+      {
+        "productId": "10268",
+        "name": "CHUCKIE 110ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 12.5,
+        "total": 16
+      }
+    ]
+  },
+  {
+    "id": "TXN-21608",
+    "receiptNo": "2-1608",
+    "ts": 1790762040000,
+    "date": "30/09/2026 17:54",
+    "total": 66,
+    "subtotal": 66,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 66,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10444",
+        "name": "NESTLE MILO 180ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.5,
+        "total": 30
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21607",
+    "receiptNo": "2-1607",
+    "ts": 1790760000000,
+    "date": "30/09/2026 17:20",
+    "total": 19,
+    "subtotal": 19,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 19,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10224",
+        "name": "MAGIC CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10195",
+        "name": "MAGIC CHIPS CHEESE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.22,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21606",
+    "receiptNo": "2-1606",
+    "ts": 1790759880000,
+    "date": "30/09/2026 17:18",
+    "total": 51,
+    "subtotal": 51,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 51,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10006",
+        "name": "OMEGA15",
+        "category": "ESSENTIAL OILS",
+        "qty": 1,
+        "price": 22.5,
+        "cost": 0,
+        "total": 22.5
+      },
+      {
+        "productId": "10005",
+        "name": "EFFICASCENT25",
+        "category": "ESSENTIAL OILS",
+        "qty": 1,
+        "price": 28.5,
+        "cost": 0,
+        "total": 28.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21605",
+    "receiptNo": "2-1605",
+    "ts": 1790757000000,
+    "date": "30/09/2026 16:30",
+    "total": 75,
+    "subtotal": 75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21604",
+    "receiptNo": "2-1604",
+    "ts": 1790756820000,
+    "date": "30/09/2026 16:27",
+    "total": 49,
+    "subtotal": 49,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 49,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      },
+      {
+        "productId": "10205",
+        "name": "GREAT TASTE WHITE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.2,
+        "total": 10
+      },
+      {
+        "productId": "10189",
+        "name": "NESCAFE STICK",
+        "category": "FOOD",
+        "qty": 3,
+        "price": 5,
+        "cost": 3.25,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21603",
+    "receiptNo": "2-1603",
+    "ts": 1790756580000,
+    "date": "30/09/2026 16:23",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10363",
+        "name": "CREAMLINE  CUP CHOCO MALLOW 210ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 23.44,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21602",
+    "receiptNo": "2-1602",
+    "ts": 1790755440000,
+    "date": "30/09/2026 16:04",
+    "total": 315.44,
+    "subtotal": 315.44,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 315.44,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "19",
+        "name": "OREO ICE CREAM 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 3,
+        "price": 62.98,
+        "cost": 55,
+        "total": 188.94
+      },
+      {
+        "productId": "98000130",
+        "name": "PRINGLES SOUR CREAM & ONION",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 53,
+        "cost": 42.5,
+        "total": 53
+      },
+      {
+        "productId": "10190",
+        "name": "GATORADE BLUE BOLT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 25.83,
+        "total": 35
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 10.5
+      },
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28,
+        "cost": 16.43,
+        "total": 28
+      }
+    ]
+  },
+  {
+    "id": "TXN-21601",
+    "receiptNo": "2-1601",
+    "ts": 1790754960000,
+    "date": "30/09/2026 15:56",
+    "total": 174,
+    "subtotal": 174,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 174,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10254",
+        "name": "OVERLOAD BLACK FOREST PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 90,
+        "cost": 79.2,
+        "total": 90
+      },
+      {
+        "productId": "98000140",
+        "name": "CHUCKIE 180ML",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 28,
+        "cost": 23.5,
+        "total": 84
+      }
+    ]
+  },
+  {
+    "id": "TXN-21600",
+    "receiptNo": "2-1600",
+    "ts": 1790752200000,
+    "date": "30/09/2026 15:10",
+    "total": 392.5,
+    "subtotal": 392.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 392.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10186",
+        "name": "SUPER CRUNCH CHEESE 5G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 14.5,
+        "cost": 10.5,
+        "total": 14.5
+      },
+      {
+        "productId": "10155",
+        "name": "DINGDONG MIXED NUT 30G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.75,
+        "total": 10
+      },
+      {
+        "productId": "98000075",
+        "name": "RED HORSE SUPER",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 155,
+        "cost": 135,
+        "total": 310
+      },
+      {
+        "productId": "10110",
+        "name": "LIFT CITRUS BLAST 320",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 18,
+        "cost": 41.16,
+        "total": 18
+      },
+      {
+        "productId": "10339",
+        "name": "CREAMLINE JUMBO CONE DOUBLE DUTCH 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      },
+      {
+        "productId": "10223",
+        "name": "OVERLOAD CHOCO STRAWBERRY",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21599",
+    "receiptNo": "2-1599",
+    "ts": 1790748360000,
+    "date": "30/09/2026 14:06",
+    "total": 257.8,
+    "subtotal": 257.8,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 257.8,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10498",
+        "name": "LAMPEIN XL 12PCS",
+        "category": "MISC",
+        "qty": 1,
+        "price": 135,
+        "cost": 0,
+        "total": 135
+      },
+      {
+        "productId": "98000003",
+        "name": "ARIEL TWIN JUMBO POWDER SUNRISE FRESH 66G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 3,
+        "price": 19.98,
+        "cost": 15.12,
+        "total": 59.94
+      },
+      {
+        "productId": "980000025",
+        "name": "DOWNY GARDEN BLOOM 26ML",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 4,
+        "price": 8.98,
+        "cost": 6.23,
+        "total": 35.92
+      },
+      {
+        "productId": "980000021",
+        "name": "PANTENE SHAMPOO HAIR FALL CONTROL",
+        "category": "BATH ESSENTIALS",
+        "qty": 3,
+        "price": 8.98,
+        "cost": 6.84,
+        "total": 26.94
+      }
+    ]
+  },
+  {
+    "id": "TXN-21598",
+    "receiptNo": "2-1598",
+    "ts": 1790745960000,
+    "date": "30/09/2026 13:26",
+    "total": 126.73,
+    "subtotal": 126.73,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 126.73,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10333",
+        "name": "MONDE SPECIAL MAMON",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 29.98,
+        "cost": 16,
+        "total": 29.98
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 29,
+        "cost": 22.08,
+        "total": 29
+      },
+      {
+        "productId": "10522",
+        "name": "CLOUD 9 OVERLOAD",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 18,
+        "cost": 13.24,
+        "total": 18
+      },
+      {
+        "productId": "10249",
+        "name": "UNILOVE SQUALANE WIPES",
+        "category": "HOME ESSENTIALS",
+        "qty": 1,
+        "price": 40,
+        "cost": 24.5,
+        "total": 40
+      },
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 9.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21597",
+    "receiptNo": "2-1597",
+    "ts": 1790738040000,
+    "date": "30/09/2026 11:14",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21596",
+    "receiptNo": "2-1596",
+    "ts": 1790734860000,
+    "date": "30/09/2026 10:21",
+    "total": 175,
+    "subtotal": 175,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 175,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10488",
+        "name": "NATURE'S SPRING PH9 ALKALINE 1000ML",
+        "category": "MISC",
+        "qty": 5,
+        "price": 35,
+        "cost": 19.34,
+        "total": 175
+      }
+    ]
+  },
+  {
+    "id": "TXN-21595",
+    "receiptNo": "2-1595",
+    "ts": 1790733960000,
+    "date": "30/09/2026 10:06",
+    "total": 17,
+    "subtotal": 17,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 17,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000053",
+        "name": "C2 SOLO LEMON 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 15.32,
+        "total": 17
+      }
+    ]
+  },
+  {
+    "id": "TXN-21594",
+    "receiptNo": "2-1594",
+    "ts": 1790733900000,
+    "date": "30/09/2026 10:05",
+    "total": 17,
+    "subtotal": 17,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 17,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000053",
+        "name": "C2 SOLO LEMON 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 15.32,
+        "total": 17
+      }
+    ]
+  },
+  {
+    "id": "TXN-21593",
+    "receiptNo": "2-1593",
+    "ts": 1790733420000,
+    "date": "30/09/2026 09:57",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21592",
+    "receiptNo": "2-1592",
+    "ts": 1790733360000,
+    "date": "30/09/2026 09:56",
+    "total": 58,
+    "subtotal": 58,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 58,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000054",
+        "name": "C2 GREEN TEA APPLE 1L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 58,
+        "cost": 44.42,
+        "total": 58
+      }
+    ]
+  },
+  {
+    "id": "TXN-21591",
+    "receiptNo": "2-1591",
+    "ts": 1790695260000,
+    "date": "29/09/2026 23:21",
+    "total": 203,
+    "subtotal": 203,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 203,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 4,
+        "price": 12,
+        "cost": 9.1,
+        "total": 48
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 0,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21590",
+    "receiptNo": "2-1590",
+    "ts": 1790695140000,
+    "date": "29/09/2026 23:19",
+    "total": 238,
+    "subtotal": 238,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 238,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10041",
+        "name": "MISUA PACK 12S",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 52,
+        "cost": 0,
+        "total": 52
+      },
+      {
+        "productId": "10201",
+        "name": "OSAKA SARDINES",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 27,
+        "cost": 23.39,
+        "total": 54
+      },
+      {
+        "productId": "10204",
+        "name": "GREAT TASTE PREMIUM ROAST",
+        "category": "FOOD",
+        "qty": 4,
+        "price": 15,
+        "cost": 12.35,
+        "total": 60
+      },
+      {
+        "productId": "10194",
+        "name": "GREAT TASTE STICK",
+        "category": "DRINKS",
+        "qty": 6,
+        "price": 5,
+        "cost": 2.7100000000000004,
+        "total": 30
+      },
+      {
+        "productId": "10479",
+        "name": "CDO HOMESTYLE CORNED BEEF 150G",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 42,
+        "cost": 36.8,
+        "total": 42
+      }
+    ]
+  },
+  {
+    "id": "TXN-21589",
+    "receiptNo": "2-1589",
+    "ts": 1790694720000,
+    "date": "29/09/2026 23:12",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.06,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21588",
+    "receiptNo": "2-1588",
+    "ts": 1790694660000,
+    "date": "29/09/2026 23:11",
+    "total": 173.25,
+    "subtotal": 173.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 173.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10085",
+        "name": "SM FLAVORED BEER APPLE",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 53,
+        "cost": 41,
+        "total": 106
+      },
+      {
+        "productId": "10220",
+        "name": "PIATTOS SOUR CREAM 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 28.8,
+        "total": 38.5
+      },
+      {
+        "productId": "10217",
+        "name": "CHIPPY BBQ 108G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 21.35,
+        "total": 28.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21587",
+    "receiptNo": "2-1587",
+    "ts": 1790689020000,
+    "date": "29/09/2026 21:37",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 5,
+        "price": 10,
+        "cost": 8.02,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21586",
+    "receiptNo": "2-1586",
+    "ts": 1790688660000,
+    "date": "29/09/2026 21:31",
+    "total": 27,
+    "subtotal": 27,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 27,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10412",
+        "name": "XSAKTO 8G",
+        "category": "SNACKS",
+        "qty": 6,
+        "price": 2,
+        "cost": 0.98,
+        "total": 12
+      },
+      {
+        "productId": "10496",
+        "name": "SUPER CRUNCH BEEFY BBQ 5G",
+        "category": "SNACKS",
+        "qty": 6,
+        "price": 2.5,
+        "cost": 1.5,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21585",
+    "receiptNo": "2-1585",
+    "ts": 1790688660000,
+    "date": "29/09/2026 21:31",
+    "total": 39,
+    "subtotal": 39,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 39,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10148",
+        "name": "MR. CHIPS  NACHO CHEEZE 4G",
+        "category": "SNACKS",
+        "qty": 4,
+        "price": 9.75,
+        "cost": 5.45,
+        "total": 39
+      }
+    ]
+  },
+  {
+    "id": "TXN-21584",
+    "receiptNo": "2-1584",
+    "ts": 1790688540000,
+    "date": "29/09/2026 21:29",
+    "total": 38.75,
+    "subtotal": 38.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000052",
+        "name": "C2 GREEN TEA LEMON 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.09,
+        "total": 28.75
+      },
+      {
+        "productId": "10317",
+        "name": "CLOVER CHEESIER 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.5,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21583",
+    "receiptNo": "2-1583",
+    "ts": 1790688480000,
+    "date": "29/09/2026 21:28",
+    "total": 154,
+    "subtotal": 154,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 154,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10486",
+        "name": "COCA COLA 1L BOTTLE",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 55,
+        "cost": 33.5,
+        "total": 110
+      },
+      {
+        "productId": "10190",
+        "name": "GATORADE BLUE BOLT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 25.83,
+        "total": 35
+      },
+      {
+        "productId": "10485",
+        "name": "PLASTIC CUPS",
+        "category": "MISC",
+        "qty": 3,
+        "price": 3,
+        "cost": 0,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21582",
+    "receiptNo": "2-1582",
+    "ts": 1790688360000,
+    "date": "29/09/2026 21:26",
+    "total": 16,
+    "subtotal": 16,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 16,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000136",
+        "name": "DELIGHT PROBIOTIC 100ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 11.4,
+        "total": 16
+      }
+    ]
+  },
+  {
+    "id": "TXN-21581",
+    "receiptNo": "2-1581",
+    "ts": 1790688300000,
+    "date": "29/09/2026 21:25",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10140",
+        "name": "OISHI RINBEE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.75,
+        "total": 9
+      },
+      {
+        "productId": "10150",
+        "name": "RICHEE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11,
+        "cost": 8.5,
+        "total": 11
+      }
+    ]
+  },
+  {
+    "id": "TXN-21580",
+    "receiptNo": "2-1580",
+    "ts": 1790688060000,
+    "date": "29/09/2026 21:21",
+    "total": 640,
+    "subtotal": 640,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 640,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 145,
+        "cost": 120,
+        "total": 435
+      },
+      {
+        "productId": "10366",
+        "name": "CREAMLINE SUNDAE CARAMEL 120ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 25,
+        "cost": 15.85,
+        "total": 25
+      },
+      {
+        "productId": "10363",
+        "name": "CREAMLINE  CUP CHOCO MALLOW 210ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 23.44,
+        "total": 30
+      },
+      {
+        "productId": "10342",
+        "name": "CREAMLINE JUMBO CONE UBE QUESO 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 30,
+        "cost": 24.1,
+        "total": 60
+      },
+      {
+        "productId": "10341",
+        "name": "CREAMLINE JUMBO CONE ROCKY ROAD 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      },
+      {
+        "productId": "10342",
+        "name": "CREAMLINE JUMBO CONE UBE QUESO 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      },
+      {
+        "productId": "10340",
+        "name": "CREAMLINE JUMBO CONE COOKIES & CREAM 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21579",
+    "receiptNo": "2-1579",
+    "ts": 1790685060000,
+    "date": "29/09/2026 20:31",
+    "total": 234.67,
+    "subtotal": 234.67,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 234.67,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      },
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "10406",
+        "name": "SURF POWDER PURPLE BLOOMS 65G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 5,
+        "price": 10,
+        "cost": 7.25,
+        "total": 50
+      },
+      {
+        "productId": "10271",
+        "name": "SUNSILK SMTH&MNGBL 15ML",
+        "category": "BATH ESSENTIALS",
+        "qty": 4,
+        "price": 8.98,
+        "cost": 6,
+        "total": 35.92
+      },
+      {
+        "productId": "10270",
+        "name": "CREAM SILK CONDITIONER SS/PINK",
+        "category": "BATH ESSENTIALS",
+        "qty": 4,
+        "price": 10,
+        "cost": 6.25,
+        "total": 40
+      }
+    ]
+  },
+  {
+    "id": "TXN-21578",
+    "receiptNo": "2-1578",
+    "ts": 1790684880000,
+    "date": "29/09/2026 20:28",
+    "total": 95,
+    "subtotal": 95,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 95,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10457",
+        "name": "SAMYANG BULDAK CHEESE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 95,
+        "cost": 85,
+        "total": 95
+      }
+    ]
+  },
+  {
+    "id": "TXN-21577",
+    "receiptNo": "2-1577",
+    "ts": 1790684220000,
+    "date": "29/09/2026 20:17",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21576",
+    "receiptNo": "2-1576",
+    "ts": 1790684160000,
+    "date": "29/09/2026 20:16",
+    "total": 73.25,
+    "subtotal": 73.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 73.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      },
+      {
+        "productId": "10338",
+        "name": "CREAMLINE CONE CHOCO QUESO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 23.25,
+        "cost": 18.25,
+        "total": 23.25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21575",
+    "receiptNo": "2-1575",
+    "ts": 1790683920000,
+    "date": "29/09/2026 20:12",
+    "total": 320,
+    "subtotal": 320,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 320,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10435",
+        "name": "KULAFU 700ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 110,
+        "cost": 86.9,
+        "total": 110
+      },
+      {
+        "productId": "10273",
+        "name": "CLVB 1 LTR",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 185,
+        "cost": 145,
+        "total": 185
+      },
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 25,
+        "cost": 13,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21574",
+    "receiptNo": "2-1574",
+    "ts": 1790683260000,
+    "date": "29/09/2026 20:01",
+    "total": 310,
+    "subtotal": 310,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 310,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 145,
+        "cost": 120,
+        "total": 290
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 20,
+        "cost": 0,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21573",
+    "receiptNo": "2-1573",
+    "ts": 1790683200000,
+    "date": "29/09/2026 20:00",
+    "total": 28.5,
+    "subtotal": 28.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 28.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10005",
+        "name": "EFFICASCENT25",
+        "category": "ESSENTIAL OILS",
+        "qty": 1,
+        "price": 28.5,
+        "cost": 0,
+        "total": 28.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21572",
+    "receiptNo": "2-1572",
+    "ts": 1790682660000,
+    "date": "29/09/2026 19:51",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21571",
+    "receiptNo": "2-1571",
+    "ts": 1790680980000,
+    "date": "29/09/2026 19:23",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21570",
+    "receiptNo": "2-1570",
+    "ts": 1790679840000,
+    "date": "29/09/2026 19:04",
+    "total": 55.5,
+    "subtotal": 55.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 55.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10515",
+        "name": "JACK'NJILL PRETZEL",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 10,
+        "cost": 6.62,
+        "total": 20
+      },
+      {
+        "productId": "10231",
+        "name": "CLOUD 9 CLASSIC",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.35,
+        "total": 10
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 10.5
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21569",
+    "receiptNo": "2-1569",
+    "ts": 1790678940000,
+    "date": "29/09/2026 18:49",
+    "total": 105.75,
+    "subtotal": 105.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 105.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10486",
+        "name": "COCA COLA 1L BOTTLE",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 33.5,
+        "total": 55
+      },
+      {
+        "productId": "10247",
+        "name": "SILKA (WHITENING HERBAL SOAP)",
+        "category": "HOME ESSENTIALS",
+        "qty": 1,
+        "price": 22,
+        "cost": 18.2,
+        "total": 22
+      },
+      {
+        "productId": "10217",
+        "name": "CHIPPY BBQ 108G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 21.35,
+        "total": 28.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21568",
+    "receiptNo": "2-1568",
+    "ts": 1790678880000,
+    "date": "29/09/2026 18:48",
+    "total": 120,
+    "subtotal": 120,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 120,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10190",
+        "name": "GATORADE BLUE BOLT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 25.83,
+        "total": 35
+      },
+      {
+        "productId": "10488",
+        "name": "NATURE'S SPRING PH9 ALKALINE 1000ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 35,
+        "cost": 19.34,
+        "total": 35
+      },
+      {
+        "productId": "98000078",
+        "name": "POCARI SWEAT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 45,
+        "cost": 34.25,
+        "total": 45
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21567",
+    "receiptNo": "2-1567",
+    "ts": 1790674380000,
+    "date": "29/09/2026 17:33",
+    "total": 314.75,
+    "subtotal": 314.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 314.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000039",
+        "name": "CLVB 1.5 LTR",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 255,
+        "cost": 211.2,
+        "total": 255
+      },
+      {
+        "productId": "10216",
+        "name": "MANG JUAN SUKANG PAOMBONG 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 22.5,
+        "total": 29.75
+      },
+      {
+        "productId": "10392",
+        "name": "DINGDONG SNACK MIX SWEET&SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 30,
+        "cost": 26,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21566",
+    "receiptNo": "2-1566",
+    "ts": 1790674200000,
+    "date": "29/09/2026 17:30",
+    "total": 161.75,
+    "subtotal": 161.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 161.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10503",
+        "name": "PIC-A BBQ OVERLAOD 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 29.65,
+        "total": 38.5
+      },
+      {
+        "productId": "10502",
+        "name": "PIC-A ULTIMATE CHEDDAR 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 29.65,
+        "total": 38.5
+      },
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21565",
+    "receiptNo": "2-1565",
+    "ts": 1790674140000,
+    "date": "29/09/2026 17:29",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21564",
+    "receiptNo": "2-1564",
+    "ts": 1790673720000,
+    "date": "29/09/2026 17:22",
+    "total": 38.5,
+    "subtotal": 38.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10143",
+        "name": "CHIPPY BBQ 25G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 6.3,
+        "total": 9.75
+      },
+      {
+        "productId": "10217",
+        "name": "CHIPPY BBQ 108G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 21.35,
+        "total": 28.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21563",
+    "receiptNo": "2-1563",
+    "ts": 1790673600000,
+    "date": "29/09/2026 17:20",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21562",
+    "receiptNo": "2-1562",
+    "ts": 1790672640000,
+    "date": "29/09/2026 17:04",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 15,
+        "cost": 9.06,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21561",
+    "receiptNo": "2-1561",
+    "ts": 1790671620000,
+    "date": "29/09/2026 16:47",
+    "total": 9.96,
+    "subtotal": 9.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 9.96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10045",
+        "name": "AJINOMOTO SEASONING",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 4.98,
+        "cost": 0,
+        "total": 9.96
+      }
+    ]
+  },
+  {
+    "id": "TXN-21560",
+    "receiptNo": "2-1560",
+    "ts": 1790669940000,
+    "date": "29/09/2026 16:19",
+    "total": 59,
+    "subtotal": 59,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 59,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 20,
+        "cost": 16.15,
+        "total": 40
+      },
+      {
+        "productId": "10224",
+        "name": "MAGIC CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10195",
+        "name": "MAGIC CHIPS CHEESE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.22,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21559",
+    "receiptNo": "2-1559",
+    "ts": 1790668440000,
+    "date": "29/09/2026 15:54",
+    "total": 38.5,
+    "subtotal": 38.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10202",
+        "name": "PIATTOS CHEESE 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 28.8,
+        "total": 38.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21558",
+    "receiptNo": "2-1558",
+    "ts": 1790668380000,
+    "date": "29/09/2026 15:53",
+    "total": 58,
+    "subtotal": 58,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 58,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000054",
+        "name": "C2 GREEN TEA APPLE 1L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 58,
+        "cost": 44.42,
+        "total": 58
+      }
+    ]
+  },
+  {
+    "id": "TXN-21557",
+    "receiptNo": "2-1557",
+    "ts": 1790666820000,
+    "date": "29/09/2026 15:27",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21556",
+    "receiptNo": "2-1556",
+    "ts": 1790666400000,
+    "date": "29/09/2026 15:20",
+    "total": 63.5,
+    "subtotal": 63.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 63.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      },
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 9.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21555",
+    "receiptNo": "2-1555",
+    "ts": 1790666220000,
+    "date": "29/09/2026 15:17",
+    "total": 9.98,
+    "subtotal": 9.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 9.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10332",
+        "name": "LEMON SQUARE LAVA CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.8,
+        "total": 9.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21554",
+    "receiptNo": "2-1554",
+    "ts": 1790666160000,
+    "date": "29/09/2026 15:16",
+    "total": 19.5,
+    "subtotal": 19.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 19.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 19.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21553",
+    "receiptNo": "2-1553",
+    "ts": 1790665860000,
+    "date": "29/09/2026 15:11",
+    "total": 80.25,
+    "subtotal": 80.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 80.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 3,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 26.25
+      },
+      {
+        "productId": "10381",
+        "name": "CREAMLINE COOLERS CHOCOLATE 50ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 14,
+        "cost": 9.9,
+        "total": 14
+      },
+      {
+        "productId": "10222",
+        "name": "OVERLOAD BLACK FOREST",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 10,
+        "cost": 7.92,
+        "total": 20
+      },
+      {
+        "productId": "10223",
+        "name": "OVERLOAD CHOCO STRAWBERRY",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 10,
+        "cost": 7.92,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21552",
+    "receiptNo": "2-1552",
+    "ts": 1790665620000,
+    "date": "29/09/2026 15:07",
+    "total": 36.75,
+    "subtotal": 36.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10223",
+        "name": "OVERLOAD CHOCO STRAWBERRY",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10222",
+        "name": "OVERLOAD BLACK FOREST",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 8.75
+      },
+      {
+        "productId": "10203",
+        "name": "NIPS PEANUT 14G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 8,
+        "cost": 5.87,
+        "total": 8
+      }
+    ]
+  },
+  {
+    "id": "TXN-21551",
+    "receiptNo": "2-1551",
+    "ts": 1790663880000,
+    "date": "29/09/2026 14:38",
+    "total": 66.5,
+    "subtotal": 66.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 66.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000093",
+        "name": "COBRA  ASTIG CITRUS BLAST 290ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 21.5,
+        "cost": 16.58,
+        "total": 21.5
+      },
+      {
+        "productId": "98000072",
+        "name": "FISH CRACKERS 24G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 10,
+        "cost": 6.8,
+        "total": 20
+      },
+      {
+        "productId": "10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 14.26,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21550",
+    "receiptNo": "2-1550",
+    "ts": 1790661840000,
+    "date": "29/09/2026 14:04",
+    "total": 40,
+    "subtotal": 40,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 40,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 20,
+        "cost": 16.5,
+        "total": 40
+      }
+    ]
+  },
+  {
+    "id": "TXN-21549",
+    "receiptNo": "2-1549",
+    "ts": 1790660820000,
+    "date": "29/09/2026 13:47",
+    "total": 48,
+    "subtotal": 48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 4,
+        "price": 12,
+        "cost": 9.1,
+        "total": 48
+      }
+    ]
+  },
+  {
+    "id": "TXN-21548",
+    "receiptNo": "2-1548",
+    "ts": 1790660580000,
+    "date": "29/09/2026 13:43",
+    "total": 45,
+    "subtotal": 45,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 45,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10190",
+        "name": "GATORADE BLUE BOLT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 25.83,
+        "total": 35
+      },
+      {
+        "productId": "10492",
+        "name": "HAPPY ORIGNAL",
+        "category": "SNACKS",
+        "qty": 5,
+        "price": 2,
+        "cost": 1.1,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21547",
+    "receiptNo": "2-1547",
+    "ts": 1790655480000,
+    "date": "29/09/2026 12:18",
+    "total": 8.98,
+    "subtotal": 8.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 8.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "980000026",
+        "name": "DOWNY SUNRISE FRESH 26ML",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 8.98,
+        "cost": 6.23,
+        "total": 8.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21546",
+    "receiptNo": "2-1546",
+    "ts": 1790653620000,
+    "date": "29/09/2026 11:47",
+    "total": 62,
+    "subtotal": 62,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 62,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10010",
+        "name": "ZONROX ORIG 1L",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 62,
+        "cost": 0,
+        "total": 62
+      }
+    ]
+  },
+  {
+    "id": "TXN-21545",
+    "receiptNo": "2-1545",
+    "ts": 1790652120000,
+    "date": "29/09/2026 11:22",
+    "total": 16,
+    "subtotal": 16,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 16,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10104",
+        "name": "WINGS POWDER BLUE 57G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 8,
+        "cost": 0,
+        "total": 8
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 8,
+        "cost": 0,
+        "total": 8
+      }
+    ]
+  },
+  {
+    "id": "TXN-21544",
+    "receiptNo": "2-1544",
+    "ts": 1790647920000,
+    "date": "29/09/2026 10:12",
+    "total": 169.5,
+    "subtotal": 169.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 169.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "98000119",
+        "name": "SPRITE 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21543",
+    "receiptNo": "2-1543",
+    "ts": 1790598180000,
+    "date": "28/09/2026 20:23",
+    "total": 32,
+    "subtotal": 32,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 32,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10243",
+        "name": "NIPS WHITE CHOCO 14G",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 8,
+        "cost": 0,
+        "total": 8
+      },
+      {
+        "productId": "9800170",
+        "name": "#StyroCups w/ stirrer",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      },
+      {
+        "productId": "98000050",
+        "name": "GREAT TASTE WHITE TWIN PACK",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 14,
+        "cost": 10.83,
+        "total": 14
+      },
+      {
+        "productId": "10189",
+        "name": "NESCAFE STICK",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 5,
+        "cost": 3.25,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21542",
+    "receiptNo": "2-1542",
+    "ts": 1790598000000,
+    "date": "28/09/2026 20:20",
+    "total": 37.48,
+    "subtotal": 37.48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 37.48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10197",
+        "name": "CHICK BOY TEXAS BBQ 30G",
+        "category": "MISC",
+        "qty": 1,
+        "price": 11.98,
+        "cost": 10,
+        "total": 11.98
+      },
+      {
+        "productId": "10117",
+        "name": "ROYAL 190",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 10.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21541",
+    "receiptNo": "2-1541",
+    "ts": 1790597040000,
+    "date": "28/09/2026 20:04",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21540",
+    "receiptNo": "2-1540",
+    "ts": 1790596860000,
+    "date": "28/09/2026 20:01",
+    "total": 100,
+    "subtotal": 100,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 100,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 50,
+        "cost": 44,
+        "total": 100
+      }
+    ]
+  },
+  {
+    "id": "TXN-21539",
+    "receiptNo": "2-1539",
+    "ts": 1790596620000,
+    "date": "28/09/2026 19:57",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21538",
+    "receiptNo": "2-1538",
+    "ts": 1790596560000,
+    "date": "28/09/2026 19:56",
+    "total": 92,
+    "subtotal": 92,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 92,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 28,
+        "cost": 16.43,
+        "total": 56
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21537",
+    "receiptNo": "2-1537",
+    "ts": 1790593080000,
+    "date": "28/09/2026 18:58",
+    "total": 24.75,
+    "subtotal": 24.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10143",
+        "name": "CHIPPY BBQ 25G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 6.3,
+        "total": 9.75
+      },
+      {
+        "productId": "10384",
+        "name": "PREMIER PURIFIED WATER 500ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.67,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21536",
+    "receiptNo": "2-1536",
+    "ts": 1790592900000,
+    "date": "28/09/2026 18:55",
+    "total": 66,
+    "subtotal": 66,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 66,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10201",
+        "name": "OSAKA SARDINES",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 27,
+        "cost": 23.39,
+        "total": 54
+      },
+      {
+        "productId": "98000116",
+        "name": "WINSTON WHITE STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.92,
+        "total": 12
+      }
+    ]
+  },
+  {
+    "id": "TXN-21535",
+    "receiptNo": "2-1535",
+    "ts": 1790592720000,
+    "date": "28/09/2026 18:52",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21534",
+    "receiptNo": "2-1534",
+    "ts": 1790592600000,
+    "date": "28/09/2026 18:50",
+    "total": 60,
+    "subtotal": 60,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 60,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 5,
+        "price": 12,
+        "cost": 9.1,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-21533",
+    "receiptNo": "2-1533",
+    "ts": 1790592600000,
+    "date": "28/09/2026 18:50",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000147",
+        "name": "CHOCOMUCHO WHITE CARAMEL",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.4,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21532",
+    "receiptNo": "2-1532",
+    "ts": 1790591400000,
+    "date": "28/09/2026 18:30",
+    "total": 16.98,
+    "subtotal": 16.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 16.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10198",
+        "name": "CHICK BOY ONION & GARLIC 30G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.98,
+        "cost": 9.22,
+        "total": 11.98
+      },
+      {
+        "productId": "9800170",
+        "name": "#StyroCups w/ stirrer",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21531",
+    "receiptNo": "2-1531",
+    "ts": 1790591340000,
+    "date": "28/09/2026 18:29",
+    "total": 327.75,
+    "subtotal": 327.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 327.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10111",
+        "name": "LIFT BERRY BOLT 320",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 18,
+        "cost": 14.17,
+        "total": 18
+      },
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "10434",
+        "name": "GSM BLUE MOJITO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 155,
+        "cost": 133,
+        "total": 155
+      },
+      {
+        "productId": "10335",
+        "name": "CREAMLINE CONE UBE MACAPUNO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 24,
+        "cost": 18.25,
+        "total": 48
+      },
+      {
+        "productId": "10152",
+        "name": "MOBY CARAMEL",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 11,
+        "cost": 8.25,
+        "total": 22
+      }
+    ]
+  },
+  {
+    "id": "TXN-21530",
+    "receiptNo": "2-1530",
+    "ts": 1790590980000,
+    "date": "28/09/2026 18:23",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10085",
+        "name": "SM FLAVORED BEER APPLE",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 53,
+        "cost": 41,
+        "total": 53
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.1,
+        "total": 12
+      }
+    ]
+  },
+  {
+    "id": "TXN-21529",
+    "receiptNo": "2-1529",
+    "ts": 1790586960000,
+    "date": "28/09/2026 17:16",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10113",
+        "name": "NUTRIBOOST STRWBRRY 110",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      },
+      {
+        "productId": "10491",
+        "name": "PRINGLES CHEESY CHEESE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 45.55,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21528",
+    "receiptNo": "2-1528",
+    "ts": 1790586840000,
+    "date": "28/09/2026 17:14",
+    "total": 83.67,
+    "subtotal": 83.67,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 83.67,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10396",
+        "name": "TATTOOS CORN TUBE PIZZA 60G",
+        "category": "SNACKS",
+        "qty": 3,
+        "price": 14.979999999999999,
+        "cost": 10.9,
+        "total": 44.94
+      },
+      {
+        "productId": "10395",
+        "name": "PEEWEE SIZZLING BBQ 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 23.75,
+        "cost": 18.25,
+        "total": 23.75
+      },
+      {
+        "productId": "10396",
+        "name": "TATTOOS CORN TUBE PIZZA 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 14.98,
+        "cost": 10.9,
+        "total": 14.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21527",
+    "receiptNo": "2-1527",
+    "ts": 1790586480000,
+    "date": "28/09/2026 17:08",
+    "total": 26.75,
+    "subtotal": 26.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 26.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10143",
+        "name": "CHIPPY BBQ 25G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 6.3,
+        "total": 9.75
+      },
+      {
+        "productId": "10129",
+        "name": "C2 SOLO APPLE 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 11.79,
+        "total": 17
+      }
+    ]
+  },
+  {
+    "id": "TXN-21526",
+    "receiptNo": "2-1526",
+    "ts": 1790586180000,
+    "date": "28/09/2026 17:03",
+    "total": 18.5,
+    "subtotal": 18.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 18.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10145",
+        "name": "PIATTOS SOUR CREAM 40G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 18.5,
+        "cost": 15.75,
+        "total": 18.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21525",
+    "receiptNo": "2-1525",
+    "ts": 1790585820000,
+    "date": "28/09/2026 16:57",
+    "total": 55,
+    "subtotal": 55,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 55,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10491",
+        "name": "PRINGLES CHEESY CHEESE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 45.55,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21524",
+    "receiptNo": "2-1524",
+    "ts": 1790585520000,
+    "date": "28/09/2026 16:52",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21523",
+    "receiptNo": "2-1523",
+    "ts": 1790585100000,
+    "date": "28/09/2026 16:45",
+    "total": 19.5,
+    "subtotal": 19.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 19.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 19.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21522",
+    "receiptNo": "2-1522",
+    "ts": 1790584860000,
+    "date": "28/09/2026 16:41",
+    "total": 48.25,
+    "subtotal": 48.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 48.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      },
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 9.75
+      },
+      {
+        "productId": "10144",
+        "name": "CHIPPY CHILI CHEESE 25G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 6.3,
+        "total": 9.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21521",
+    "receiptNo": "2-1521",
+    "ts": 1790583720000,
+    "date": "28/09/2026 16:22",
+    "total": 16,
+    "subtotal": 16,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 16,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000136",
+        "name": "DELIGHT PROBIOTIC 100ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 16,
+        "cost": 11.4,
+        "total": 16
+      }
+    ]
+  },
+  {
+    "id": "TXN-21520",
+    "receiptNo": "2-1520",
+    "ts": 1790583540000,
+    "date": "28/09/2026 16:19",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10130",
+        "name": "OISHI CRACKLINGS",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.75,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21519",
+    "receiptNo": "2-1519",
+    "ts": 1790582700000,
+    "date": "28/09/2026 16:05",
+    "total": 20.25,
+    "subtotal": 20.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000061",
+        "name": "VCUT CHEESE FLAVOR 25G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 20.25,
+        "cost": 14.25,
+        "total": 20.25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21518",
+    "receiptNo": "2-1518",
+    "ts": 1790582520000,
+    "date": "28/09/2026 16:02",
+    "total": 71.23,
+    "subtotal": 71.23,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 71.23,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10219",
+        "name": "MR CHIPS MANAMIS MAIS 45G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12.5,
+        "cost": 8.19,
+        "total": 12.5
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      },
+      {
+        "productId": "10333",
+        "name": "MONDE SPECIAL MAMON",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 29.98,
+        "cost": 16,
+        "total": 29.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21517",
+    "receiptNo": "2-1517",
+    "ts": 1790581440000,
+    "date": "28/09/2026 15:44",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21516",
+    "receiptNo": "2-1516",
+    "ts": 1790581020000,
+    "date": "28/09/2026 15:37",
+    "total": 12,
+    "subtotal": 12,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 12,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.1,
+        "total": 12
+      }
+    ]
+  },
+  {
+    "id": "TXN-21515",
+    "receiptNo": "2-1515",
+    "ts": 1790580060000,
+    "date": "28/09/2026 15:21",
+    "total": 39.5,
+    "subtotal": 39.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 39.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10159",
+        "name": "SUPER CRUNCH SWEET CORN 55G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 14.5,
+        "cost": 10.5,
+        "total": 14.5
+      },
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21514",
+    "receiptNo": "2-1514",
+    "ts": 1790579520000,
+    "date": "28/09/2026 15:12",
+    "total": 47.75,
+    "subtotal": 47.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 47.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      },
+      {
+        "productId": "10390Q",
+        "name": "TATTOOS CORN CHIPS BBQ 58G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12.25,
+        "cost": 7.65,
+        "total": 12.25
+      },
+      {
+        "productId": "10187",
+        "name": "BLACK CHILI CORN CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.5,
+        "cost": 8.25,
+        "total": 11.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21513",
+    "receiptNo": "2-1513",
+    "ts": 1790578020000,
+    "date": "28/09/2026 14:47",
+    "total": 40,
+    "subtotal": 40,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 40,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10063",
+        "name": "SUKAMOD",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 40,
+        "cost": 0,
+        "total": 40
+      }
+    ]
+  },
+  {
+    "id": "TXN-21512",
+    "receiptNo": "2-1512",
+    "ts": 1790576700000,
+    "date": "28/09/2026 14:25",
+    "total": 22.5,
+    "subtotal": 22.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 22.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10006",
+        "name": "OMEGA15",
+        "category": "ESSENTIAL OILS",
+        "qty": 1,
+        "price": 22.5,
+        "cost": 0,
+        "total": 22.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21511",
+    "receiptNo": "2-1511",
+    "ts": 1790576640000,
+    "date": "28/09/2026 14:24",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10488",
+        "name": "NATURE'S SPRING PH9 ALKALINE 1000ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 35,
+        "cost": 19.34,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21510",
+    "receiptNo": "2-1510",
+    "ts": 1790575500000,
+    "date": "28/09/2026 14:05",
+    "total": 160,
+    "subtotal": 160,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 160,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 16,
+        "price": 10,
+        "cost": 8.02,
+        "total": 160
+      }
+    ]
+  },
+  {
+    "id": "TXN-21509",
+    "receiptNo": "2-1509",
+    "ts": 1790574480000,
+    "date": "28/09/2026 13:48",
+    "total": 44,
+    "subtotal": 44,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 44,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000095",
+        "name": "RAPSA PANCIT BIHON",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 22,
+        "cost": 16.6,
+        "total": 44
+      }
+    ]
+  },
+  {
+    "id": "TXN-21508",
+    "receiptNo": "2-1508",
+    "ts": 1790568540000,
+    "date": "28/09/2026 12:09",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21507",
+    "receiptNo": "2-1507",
+    "ts": 1790563740000,
+    "date": "28/09/2026 10:49",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10190",
+        "name": "GATORADE BLUE BOLT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 25.83,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21506",
+    "receiptNo": "2-1506",
+    "ts": 1790563620000,
+    "date": "28/09/2026 10:47",
+    "total": 55,
+    "subtotal": 55,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 55,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000076",
+        "name": "POCARI SWEAT 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 44.58,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21505",
+    "receiptNo": "2-1505",
+    "ts": 1790562540000,
+    "date": "28/09/2026 10:29",
+    "total": 60,
+    "subtotal": 60,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 60,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-21504",
+    "receiptNo": "2-1504",
+    "ts": 1790561160000,
+    "date": "28/09/2026 10:06",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21503",
+    "receiptNo": "2-1503",
+    "ts": 1790517480000,
+    "date": "27/09/2026 21:58",
+    "total": 207.98,
+    "subtotal": 207.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 207.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10330",
+        "name": "LEMON SQUARE CHEESE CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 11.98,
+        "cost": 7.7,
+        "total": 11.98
+      },
+      {
+        "productId": "10128",
+        "name": "NESCAFE ORIGINAL TWIN PACK",
+        "category": "FOOD",
+        "qty": 3,
+        "price": 17,
+        "cost": 14,
+        "total": 51
+      },
+      {
+        "productId": "10127",
+        "name": "NESCAFE CREAMY WHITE TWIN PACK",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 17,
+        "cost": 14,
+        "total": 34
+      },
+      {
+        "productId": "10414",
+        "name": "NESTEA LEMON",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 25.5,
+        "cost": 19.65,
+        "total": 51
+      },
+      {
+        "productId": "10189",
+        "name": "NESCAFE STICK",
+        "category": "FOOD",
+        "qty": 12,
+        "price": 5,
+        "cost": 3.25,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-21502",
+    "receiptNo": "2-1502",
+    "ts": 1790517300000,
+    "date": "27/09/2026 21:55",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21501",
+    "receiptNo": "2-1501",
+    "ts": 1790517240000,
+    "date": "27/09/2026 21:54",
+    "total": 65,
+    "subtotal": 65,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 65,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000120",
+        "name": "SMIRNOFF",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 65,
+        "cost": 54,
+        "total": 65
+      }
+    ]
+  },
+  {
+    "id": "TXN-21500",
+    "receiptNo": "2-1500",
+    "ts": 1790517120000,
+    "date": "27/09/2026 21:52",
+    "total": 81,
+    "subtotal": 81,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 81,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 25,
+        "cost": 13,
+        "total": 25
+      },
+      {
+        "productId": "98000116",
+        "name": "WINSTON WHITE STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.92,
+        "total": 36
+      },
+      {
+        "productId": "98000114",
+        "name": "CAMEL PREMIUM TABACCOS STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 7.25,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21499",
+    "receiptNo": "2-1499",
+    "ts": 1790517060000,
+    "date": "27/09/2026 21:51",
+    "total": 244,
+    "subtotal": 244,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 244,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10465",
+        "name": "GSM GIN ROUND 350ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 95,
+        "cost": 81.6,
+        "total": 190
+      },
+      {
+        "productId": "10419",
+        "name": "TANG MIXED BERRIES",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 27,
+        "cost": 20.8,
+        "total": 54
+      }
+    ]
+  },
+  {
+    "id": "TXN-21498",
+    "receiptNo": "2-1498",
+    "ts": 1790514780000,
+    "date": "27/09/2026 21:13",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21497",
+    "receiptNo": "2-1497",
+    "ts": 1790514780000,
+    "date": "27/09/2026 21:13",
+    "total": 80.96,
+    "subtotal": 80.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 80.96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10325",
+        "name": "NISSIN BREAD STIX",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 6.15,
+        "total": 9.98
+      },
+      {
+        "productId": "10263",
+        "name": "PILLOWS UBE 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.75,
+        "total": 9
+      },
+      {
+        "productId": "10146",
+        "name": "CRISPY PATATA 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.75,
+        "total": 9.98
+      },
+      {
+        "productId": "10203",
+        "name": "NIPS PEANUT 14G",
+        "category": "SNACKS",
+        "qty": 4,
+        "price": 8,
+        "cost": 5.87,
+        "total": 32
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21496",
+    "receiptNo": "2-1496",
+    "ts": 1790514120000,
+    "date": "27/09/2026 21:02",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10299",
+        "name": "ICE CUBE 2KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 35,
+        "cost": 24,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21495",
+    "receiptNo": "2-1495",
+    "ts": 1790513160000,
+    "date": "27/09/2026 20:46",
+    "total": 41,
+    "subtotal": 41,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 41,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10002",
+        "name": "OMEGA30",
+        "category": "ESSENTIAL OILS",
+        "qty": 1,
+        "price": 41,
+        "cost": 0,
+        "total": 41
+      }
+    ]
+  },
+  {
+    "id": "TXN-21494",
+    "receiptNo": "2-1494",
+    "ts": 1790512920000,
+    "date": "27/09/2026 20:42",
+    "total": 72.5,
+    "subtotal": 72.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 72.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10109",
+        "name": "COCA COLA 190ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 11,
+        "total": 15
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 57.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21493",
+    "receiptNo": "2-1493",
+    "ts": 1790511840000,
+    "date": "27/09/2026 20:24",
+    "total": 203.5,
+    "subtotal": 203.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 203.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000075",
+        "name": "RED HORSE SUPER",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 155,
+        "cost": 135,
+        "total": 155
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "10401",
+        "name": "MARTY'S CRACKLINGS CHICK INSL 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.5,
+        "cost": 21.9,
+        "total": 28.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21492",
+    "receiptNo": "2-1492",
+    "ts": 1790511420000,
+    "date": "27/09/2026 20:17",
+    "total": 135,
+    "subtotal": 135,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 135,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 135,
+        "cost": 0,
+        "total": 135
+      }
+    ]
+  },
+  {
+    "id": "TXN-21491",
+    "receiptNo": "2-1491",
+    "ts": 1790511360000,
+    "date": "27/09/2026 20:16",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 7,
+        "price": 10,
+        "cost": 8.02,
+        "total": 70
+      }
+    ]
+  },
+  {
+    "id": "TXN-21490",
+    "receiptNo": "2-1490",
+    "ts": 1790508360000,
+    "date": "27/09/2026 19:26",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21489",
+    "receiptNo": "2-1489",
+    "ts": 1790508180000,
+    "date": "27/09/2026 19:23",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21488",
+    "receiptNo": "2-1488",
+    "ts": 1790508120000,
+    "date": "27/09/2026 19:22",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10458",
+        "name": "LUCKY ME PC SWEET&SPICY KASALO PACK",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 25,
+        "cost": 19.25,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21487",
+    "receiptNo": "2-1487",
+    "ts": 1790507940000,
+    "date": "27/09/2026 19:19",
+    "total": 290,
+    "subtotal": 290,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 290,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 145,
+        "cost": 120,
+        "total": 290
+      }
+    ]
+  },
+  {
+    "id": "TXN-21486",
+    "receiptNo": "2-1486",
+    "ts": 1790506740000,
+    "date": "27/09/2026 18:59",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000148",
+        "name": "CHOCOMUCHO  COKIES &  CREAM",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.4,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21485",
+    "receiptNo": "2-1485",
+    "ts": 1790506140000,
+    "date": "27/09/2026 18:49",
+    "total": 61.5,
+    "subtotal": 61.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 61.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 25,
+        "cost": 13,
+        "total": 25
+      },
+      {
+        "productId": "98000057",
+        "name": "NOVA HOMESTYLE BBQ 38G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 18.25,
+        "cost": 14,
+        "total": 36.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21484",
+    "receiptNo": "2-1484",
+    "ts": 1790505300000,
+    "date": "27/09/2026 18:35",
+    "total": 100,
+    "subtotal": 100,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 100,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 50,
+        "cost": 44,
+        "total": 100
+      }
+    ]
+  },
+  {
+    "id": "TXN-21483",
+    "receiptNo": "2-1483",
+    "ts": 1790504880000,
+    "date": "27/09/2026 18:28",
+    "total": 16.98,
+    "subtotal": 16.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 16.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10175",
+        "name": "KOPIKO BLANCA 2PK",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 16.98,
+        "cost": 13.4,
+        "total": 16.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21482",
+    "receiptNo": "2-1482",
+    "ts": 1790504820000,
+    "date": "27/09/2026 18:27",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000116",
+        "name": "WINSTON WHITE STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.92,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21481",
+    "receiptNo": "2-1481",
+    "ts": 1790504100000,
+    "date": "27/09/2026 18:15",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 25,
+        "cost": 13,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21480",
+    "receiptNo": "2-1480",
+    "ts": 1790503980000,
+    "date": "27/09/2026 18:13",
+    "total": 25.98,
+    "subtotal": 25.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10248",
+        "name": "SAFEGUARD EXTRA STRONG COOLING",
+        "category": "HOME ESSENTIALS",
+        "qty": 1,
+        "price": 25.98,
+        "cost": 19.5,
+        "total": 25.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21479",
+    "receiptNo": "2-1479",
+    "ts": 1790503920000,
+    "date": "27/09/2026 18:12",
+    "total": 220,
+    "subtotal": 220,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 220,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000118",
+        "name": "WINSTON WHITE KAHA",
+        "category": "MISC",
+        "qty": 1,
+        "price": 220,
+        "cost": 184,
+        "total": 220
+      }
+    ]
+  },
+  {
+    "id": "TXN-21478",
+    "receiptNo": "2-1478",
+    "ts": 1790501280000,
+    "date": "27/09/2026 17:28",
+    "total": 9.98,
+    "subtotal": 9.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 9.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10332",
+        "name": "LEMON SQUARE LAVA CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.8,
+        "total": 9.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21477",
+    "receiptNo": "2-1477",
+    "ts": 1790498400000,
+    "date": "27/09/2026 16:40",
+    "total": 9,
+    "subtotal": 9,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 9,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10142",
+        "name": "OISHI PRAWN CRACKERS SPICY 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 7.5,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21476",
+    "receiptNo": "2-1476",
+    "ts": 1790498340000,
+    "date": "27/09/2026 16:39",
+    "total": 276.73,
+    "subtotal": 276.73,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 276.73,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10246",
+        "name": "VCUT SPICY BARBEQUE 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 41.5,
+        "cost": 31.95,
+        "total": 41.5
+      },
+      {
+        "productId": "10218",
+        "name": "MR CHIPS NACHO CHEESE 98G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 25.5,
+        "cost": 19.5,
+        "total": 25.5
+      },
+      {
+        "productId": "10216",
+        "name": "MANG JUAN SUKANG PAOMBONG 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 22.5,
+        "total": 29.75
+      },
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      },
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 60,
+        "cost": 48,
+        "total": 120
+      },
+      {
+        "productId": "10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 14.26,
+        "total": 25
+      },
+      {
+        "productId": "10396",
+        "name": "TATTOOS CORN TUBE PIZZA 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 14.98,
+        "cost": 10.9,
+        "total": 14.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21475",
+    "receiptNo": "2-1475",
+    "ts": 1790497800000,
+    "date": "27/09/2026 16:30",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000121",
+        "name": "PRESTO PEANUT BUTTER",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.45,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21474",
+    "receiptNo": "2-1474",
+    "ts": 1790497680000,
+    "date": "27/09/2026 16:28",
+    "total": 120,
+    "subtotal": 120,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 120,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 60,
+        "cost": 48,
+        "total": 120
+      }
+    ]
+  },
+  {
+    "id": "TXN-21473",
+    "receiptNo": "2-1473",
+    "ts": 1790497440000,
+    "date": "27/09/2026 16:24",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21472",
+    "receiptNo": "2-1472",
+    "ts": 1790497140000,
+    "date": "27/09/2026 16:19",
+    "total": 36,
+    "subtotal": 36,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 18,
+        "cost": 9.94,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21471",
+    "receiptNo": "2-1471",
+    "ts": 1790495460000,
+    "date": "27/09/2026 15:51",
+    "total": 45,
+    "subtotal": 45,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 45,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10113",
+        "name": "NUTRIBOOST STRWBRRY 110",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      },
+      {
+        "productId": "10117",
+        "name": "ROYAL 190",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 15,
+        "cost": 0,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21470",
+    "receiptNo": "2-1470",
+    "ts": 1790494860000,
+    "date": "27/09/2026 15:41",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21469",
+    "receiptNo": "2-1469",
+    "ts": 1790493900000,
+    "date": "27/09/2026 15:25",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21468",
+    "receiptNo": "2-1468",
+    "ts": 1790493600000,
+    "date": "27/09/2026 15:20",
+    "total": 664.21,
+    "subtotal": 664.21,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 664.21,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 60,
+        "cost": 48,
+        "total": 180
+      },
+      {
+        "productId": "10404",
+        "name": "OISHI FISH CRACKERS 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 33.5,
+        "cost": 25.65,
+        "total": 33.5
+      },
+      {
+        "productId": "10282",
+        "name": "NOBRELLI CHOCO-MANGGA-UBE 1.3L",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 210.98,
+        "cost": 168,
+        "total": 210.98
+      },
+      {
+        "productId": "10287",
+        "name": "NESTLE 2in1 ALMOND BROWNIE FUDGE& COOKIES 750ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 209.98,
+        "cost": 168,
+        "total": 209.98
+      },
+      {
+        "productId": "10216",
+        "name": "MANG JUAN SUKANG PAOMBONG 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 22.5,
+        "total": 29.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21467",
+    "receiptNo": "2-1467",
+    "ts": 1790493240000,
+    "date": "27/09/2026 15:14",
+    "total": 1006.44,
+    "subtotal": 1006.44,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 1006.44,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000133",
+        "name": "DINGDONG MIX NUTS REAL GARLIC 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 31,
+        "cost": 24,
+        "total": 31
+      },
+      {
+        "productId": "10010",
+        "name": "ZONROX ORIG 1L",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 62,
+        "cost": 0,
+        "total": 62
+      },
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 35,
+        "cost": 29.5,
+        "total": 70
+      },
+      {
+        "productId": "980000039",
+        "name": "TANDUAY SELECT 700ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 155,
+        "cost": 138.59,
+        "total": 155
+      },
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 169.5
+      },
+      {
+        "productId": "10383",
+        "name": "ROYAL 1.75L",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 169.5
+      },
+      {
+        "productId": "98000119",
+        "name": "SPRITE 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "10396",
+        "name": "TATTOOS CORN TUBE PIZZA 60G",
+        "category": "SNACKS",
+        "qty": 3,
+        "price": 14.979999999999999,
+        "cost": 10.9,
+        "total": 44.94
+      },
+      {
+        "productId": "10432",
+        "name": "DAILY SCENT 50ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 56,
+        "cost": 0,
+        "total": 56
+      },
+      {
+        "productId": "98000071",
+        "name": "MANG JUAN SUKAT SILI 26G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12.25,
+        "cost": 6.3,
+        "total": 12.25
+      },
+      {
+        "productId": "10381",
+        "name": "CREAMLINE COOLERS CHOCOLATE 50ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 14,
+        "cost": 9.9,
+        "total": 28
+      },
+      {
+        "productId": "10371",
+        "name": "CREAMLINE COOLERS MELON 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 3,
+        "price": 14,
+        "cost": 9.9,
+        "total": 42
+      },
+      {
+        "productId": "10354",
+        "name": "CREAMLINE COOLERS MANGO 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 14,
+        "cost": 9.9,
+        "total": 14
+      },
+      {
+        "productId": "10352",
+        "name": "CREAMLINE COOLERS STRAWBERRY 50ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 3,
+        "price": 14,
+        "cost": 9.9,
+        "total": 42
+      },
+      {
+        "productId": "10362",
+        "name": "CREAMLINE MILKY POP LOLLY MILK CHOCO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.88,
+        "total": 15
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 10.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21466",
+    "receiptNo": "2-1466",
+    "ts": 1790492700000,
+    "date": "27/09/2026 15:05",
+    "total": 100,
+    "subtotal": 100,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 100,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 4,
+        "price": 25,
+        "cost": 13,
+        "total": 100
+      }
+    ]
+  },
+  {
+    "id": "TXN-21465",
+    "receiptNo": "2-1465",
+    "ts": 1790492580000,
+    "date": "27/09/2026 15:03",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 25,
+        "cost": 13,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21464",
+    "receiptNo": "2-1464",
+    "ts": 1790492520000,
+    "date": "27/09/2026 15:02",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 5,
+        "price": 10,
+        "cost": 8.02,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21463",
+    "receiptNo": "2-1463",
+    "ts": 1790491680000,
+    "date": "27/09/2026 14:48",
+    "total": 173,
+    "subtotal": 173,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 173,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 5,
+        "price": 12,
+        "cost": 9.1,
+        "total": 60
+      },
+      {
+        "productId": "98000057",
+        "name": "NOVA HOMESTYLE BBQ 38G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 18.25,
+        "cost": 14,
+        "total": 18.25
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21462",
+    "receiptNo": "2-1462",
+    "ts": 1790490780000,
+    "date": "27/09/2026 14:33",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10113",
+        "name": "NUTRIBOOST STRWBRRY 110",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21461",
+    "receiptNo": "2-1461",
+    "ts": 1790490000000,
+    "date": "27/09/2026 14:20",
+    "total": 40,
+    "subtotal": 40,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 40,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10359",
+        "name": "CREAMLINE PINOY CLASSIC MANGGO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 13.3,
+        "total": 20
+      },
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.15,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21460",
+    "receiptNo": "2-1460",
+    "ts": 1790489820000,
+    "date": "27/09/2026 14:17",
+    "total": 17,
+    "subtotal": 17,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 17,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000053",
+        "name": "C2 SOLO LEMON 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 15.32,
+        "total": 17
+      }
+    ]
+  },
+  {
+    "id": "TXN-21459",
+    "receiptNo": "2-1459",
+    "ts": 1790489220000,
+    "date": "27/09/2026 14:07",
+    "total": 155,
+    "subtotal": 155,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 155,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10488",
+        "name": "NATURE'S SPRING PH9 ALKALINE 1000ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 35,
+        "cost": 19.34,
+        "total": 35
+      },
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 60,
+        "cost": 48,
+        "total": 120
+      }
+    ]
+  },
+  {
+    "id": "TXN-21458",
+    "receiptNo": "2-1458",
+    "ts": 1790488320000,
+    "date": "27/09/2026 13:52",
+    "total": 29.75,
+    "subtotal": 29.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 29.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10216",
+        "name": "MANG JUAN SUKANG PAOMBONG 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 22.5,
+        "total": 29.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21457",
+    "receiptNo": "2-1457",
+    "ts": 1790487720000,
+    "date": "27/09/2026 13:42",
+    "total": 125,
+    "subtotal": 125,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 125,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 5,
+        "price": 25,
+        "cost": 13,
+        "total": 125
+      }
+    ]
+  },
+  {
+    "id": "TXN-21456",
+    "receiptNo": "2-1456",
+    "ts": 1790487360000,
+    "date": "27/09/2026 13:36",
+    "total": 40,
+    "subtotal": 40,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 40,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10231",
+        "name": "CLOUD 9 CLASSIC",
+        "category": "SNACKS",
+        "qty": 4,
+        "price": 10,
+        "cost": 6.35,
+        "total": 40
+      }
+    ]
+  },
+  {
+    "id": "TXN-21455",
+    "receiptNo": "2-1455",
+    "ts": 1790484180000,
+    "date": "27/09/2026 12:43",
+    "total": 246,
+    "subtotal": 246,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 246,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 7,
+        "price": 18,
+        "cost": 9.94,
+        "total": 126
+      },
+      {
+        "productId": "10384",
+        "name": "PREMIER PURIFIED WATER 500ML",
+        "category": "MISC",
+        "qty": 8,
+        "price": 15,
+        "cost": 9.67,
+        "total": 120
+      }
+    ]
+  },
+  {
+    "id": "TXN-21454",
+    "receiptNo": "2-1454",
+    "ts": 1790483820000,
+    "date": "27/09/2026 12:37",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21453",
+    "receiptNo": "2-1453",
+    "ts": 1790483580000,
+    "date": "27/09/2026 12:33",
+    "total": 231,
+    "subtotal": 231,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 231,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 13,
+        "price": 15,
+        "cost": 9.06,
+        "total": 195
+      },
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 18,
+        "cost": 9.94,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21452",
+    "receiptNo": "2-1452",
+    "ts": 1790482740000,
+    "date": "27/09/2026 12:19",
+    "total": 38,
+    "subtotal": 38,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10233",
+        "name": "LA MIA TUNA AFRTDA",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 38,
+        "cost": 33.18,
+        "total": 38
+      }
+    ]
+  },
+  {
+    "id": "TXN-21451",
+    "receiptNo": "2-1451",
+    "ts": 1790481780000,
+    "date": "27/09/2026 12:03",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21450",
+    "receiptNo": "2-1450",
+    "ts": 1790478360000,
+    "date": "27/09/2026 11:06",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21449",
+    "receiptNo": "2-1449",
+    "ts": 1790477760000,
+    "date": "27/09/2026 10:56",
+    "total": 34.75,
+    "subtotal": 34.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 34.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      },
+      {
+        "productId": "10144",
+        "name": "CHIPPY CHILI CHEESE 25G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 6.3,
+        "total": 9.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21448",
+    "receiptNo": "2-1448",
+    "ts": 1790476560000,
+    "date": "27/09/2026 10:36",
+    "total": 48.25,
+    "subtotal": 48.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 48.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      },
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 19.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21447",
+    "receiptNo": "2-1447",
+    "ts": 1790474880000,
+    "date": "27/09/2026 10:08",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21446",
+    "receiptNo": "2-1446",
+    "ts": 1790474700000,
+    "date": "27/09/2026 10:05",
+    "total": 42.73,
+    "subtotal": 42.73,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 42.73,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10400",
+        "name": "OISHI PRAWN CRACKERS 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 22.75,
+        "cost": 17.45,
+        "total": 22.75
+      },
+      {
+        "productId": "98000072",
+        "name": "FISH CRACKERS 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.8,
+        "total": 10
+      },
+      {
+        "productId": "10146",
+        "name": "CRISPY PATATA 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.75,
+        "total": 9.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21445",
+    "receiptNo": "2-1445",
+    "ts": 1790474640000,
+    "date": "27/09/2026 10:04",
+    "total": 105,
+    "subtotal": 105,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 105,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10117",
+        "name": "ROYAL 190",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      },
+      {
+        "productId": "10486",
+        "name": "COCA COLA 1L BOTTLE",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 33.5,
+        "total": 55
+      },
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 29.5,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21444",
+    "receiptNo": "2-1444",
+    "ts": 1790445780000,
+    "date": "27/09/2026 02:03",
+    "total": 182,
+    "subtotal": 182,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 182,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000064",
+        "name": "PIATTOS ROADHOUSE BBQ 40G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 18.5,
+        "cost": 13.8,
+        "total": 37
+      },
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21443",
+    "receiptNo": "2-1443",
+    "ts": 1790445240000,
+    "date": "27/09/2026 01:54",
+    "total": 21.96,
+    "subtotal": 21.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 21.96,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10332",
+        "name": "LEMON SQUARE LAVA CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.8,
+        "total": 9.98
+      },
+      {
+        "productId": "10330",
+        "name": "LEMON SQUARE CHEESE CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 11.98,
+        "cost": 7.7,
+        "total": 11.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21442",
+    "receiptNo": "2-1442",
+    "ts": 1790445180000,
+    "date": "27/09/2026 01:53",
+    "total": 84.75,
+    "subtotal": 84.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 84.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21441",
+    "receiptNo": "2-1441",
+    "ts": 1790444640000,
+    "date": "27/09/2026 01:44",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21440",
+    "receiptNo": "2-1440",
+    "ts": 1790444340000,
+    "date": "27/09/2026 01:39",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21439",
+    "receiptNo": "2-1439",
+    "ts": 1790443980000,
+    "date": "27/09/2026 01:33",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21438",
+    "receiptNo": "2-1438",
+    "ts": 1790443020000,
+    "date": "27/09/2026 01:17",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10441",
+        "name": "NESTLE FRESH MILK 250ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 39.55,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21437",
+    "receiptNo": "2-1437",
+    "ts": 1790442960000,
+    "date": "27/09/2026 01:16",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10488",
+        "name": "NATURE'S SPRING PH9 ALKALINE 1000ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 35,
+        "cost": 19.34,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21436",
+    "receiptNo": "2-1436",
+    "ts": 1790442900000,
+    "date": "27/09/2026 01:15",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21435",
+    "receiptNo": "2-1435",
+    "ts": 1790442900000,
+    "date": "27/09/2026 01:15",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21434",
+    "receiptNo": "2-1434",
+    "ts": 1790440620000,
+    "date": "27/09/2026 00:37",
+    "total": 38.5,
+    "subtotal": 38.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10227",
+        "name": "PIATTOS ROADHOUSE BBQ 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 33.22,
+        "total": 38.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21433",
+    "receiptNo": "2-1433",
+    "ts": 1790440440000,
+    "date": "27/09/2026 00:34",
+    "total": 94,
+    "subtotal": 94,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 94,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000114",
+        "name": "CAMEL PREMIUM TABACCOS STICK",
+        "category": "MISC",
+        "qty": 5,
+        "price": 10,
+        "cost": 7.25,
+        "total": 50
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21432",
+    "receiptNo": "2-1432",
+    "ts": 1790440320000,
+    "date": "27/09/2026 00:32",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21431",
+    "receiptNo": "2-1431",
+    "ts": 1790439420000,
+    "date": "27/09/2026 00:17",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10365",
+        "name": "CREAMLINE SUNDAE CHOCOLATE120ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 25,
+        "cost": 15.85,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21430",
+    "receiptNo": "2-1430",
+    "ts": 1790439360000,
+    "date": "27/09/2026 00:16",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21429",
+    "receiptNo": "2-1429",
+    "ts": 1790438940000,
+    "date": "27/09/2026 00:09",
+    "total": 138.5,
+    "subtotal": 138.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 138.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10215",
+        "name": "MANG JUAN SUKAT SILI 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 22.5,
+        "total": 29.75
+      },
+      {
+        "productId": "98000132",
+        "name": "DINGDONG HOT& SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 27,
+        "total": 35
+      },
+      {
+        "productId": "10130",
+        "name": "OISHI CRACKLINGS",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.75,
+        "total": 10
+      },
+      {
+        "productId": "10299",
+        "name": "ICE CUBE 2KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 35,
+        "cost": 24,
+        "total": 35
+      },
+      {
+        "productId": "98000065",
+        "name": "CHIPPY CHILI & CHEESE 108G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 21.35,
+        "total": 28.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21428",
+    "receiptNo": "2-1428",
+    "ts": 1790437920000,
+    "date": "26/09/2026 23:52",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10410",
+        "name": "HAPPY NUTS SWEET CHILI 5G",
+        "category": "SNACKS",
+        "qty": 15,
+        "price": 2,
+        "cost": 1.1,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21427",
+    "receiptNo": "2-1427",
+    "ts": 1790437560000,
+    "date": "26/09/2026 23:46",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.15,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21426",
+    "receiptNo": "2-1426",
+    "ts": 1790437440000,
+    "date": "26/09/2026 23:44",
+    "total": 145,
+    "subtotal": 145,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 145,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21425",
+    "receiptNo": "2-1425",
+    "ts": 1790437260000,
+    "date": "26/09/2026 23:41",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10366",
+        "name": "CREAMLINE SUNDAE CARAMEL 120ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 25,
+        "cost": 15.85,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21424",
+    "receiptNo": "2-1424",
+    "ts": 1790436120000,
+    "date": "26/09/2026 23:22",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21423",
+    "receiptNo": "2-1423",
+    "ts": 1790435640000,
+    "date": "26/09/2026 23:14",
+    "total": 196,
+    "subtotal": 196,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 196,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 3,
+        "cost": 0,
+        "total": 3
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 4,
+        "price": 12,
+        "cost": 9.1,
+        "total": 48
+      }
+    ]
+  },
+  {
+    "id": "TXN-21422",
+    "receiptNo": "2-1422",
+    "ts": 1790435520000,
+    "date": "26/09/2026 23:12",
+    "total": 186.73,
+    "subtotal": 186.73,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 186.73,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10215",
+        "name": "MANG JUAN SUKAT SILI 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.75,
+        "cost": 22.5,
+        "total": 29.75
+      },
+      {
+        "productId": "10197",
+        "name": "CHICK BOY TEXAS BBQ 30G",
+        "category": "MISC",
+        "qty": 1,
+        "price": 11.98,
+        "cost": 10,
+        "total": 11.98
+      },
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 145,
+        "cost": 120,
+        "total": 145
+      }
+    ]
+  },
+  {
+    "id": "TXN-21421",
+    "receiptNo": "2-1421",
+    "ts": 1790435460000,
+    "date": "26/09/2026 23:11",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 29.5,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21420",
+    "receiptNo": "2-1420",
+    "ts": 1790435400000,
+    "date": "26/09/2026 23:10",
+    "total": 215,
+    "subtotal": 215,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 215,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000115",
+        "name": "WINSTON RED KAHA",
+        "category": "MISC",
+        "qty": 1,
+        "price": 215,
+        "cost": 184,
+        "total": 215
+      }
+    ]
+  },
+  {
+    "id": "TXN-21419",
+    "receiptNo": "2-1419",
+    "ts": 1790434800000,
+    "date": "26/09/2026 23:00",
+    "total": 45,
+    "subtotal": 45,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 45,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 14.26,
+        "total": 25
+      },
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.15,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21418",
+    "receiptNo": "2-1418",
+    "ts": 1790433780000,
+    "date": "26/09/2026 22:43",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21417",
+    "receiptNo": "2-1417",
+    "ts": 1790433000000,
+    "date": "26/09/2026 22:30",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21416",
+    "receiptNo": "2-1416",
+    "ts": 1790432940000,
+    "date": "26/09/2026 22:29",
+    "total": 70,
+    "subtotal": 70,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 70,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21415",
+    "receiptNo": "2-1415",
+    "ts": 1790432760000,
+    "date": "26/09/2026 22:26",
+    "total": 17,
+    "subtotal": 17,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 17,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10129",
+        "name": "C2 SOLO APPLE 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 11.79,
+        "total": 17
+      }
+    ]
+  },
+  {
+    "id": "TXN-21414",
+    "receiptNo": "2-1414",
+    "ts": 1790431440000,
+    "date": "26/09/2026 22:04",
+    "total": 222,
+    "subtotal": 222,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 222,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10411",
+        "name": "RED CHILI CORN CHIPS 7G",
+        "category": "SNACKS",
+        "qty": 12,
+        "price": 2,
+        "cost": 1.25,
+        "total": 24
+      },
+      {
+        "productId": "10413",
+        "name": "SUPER BAWANG 5G",
+        "category": "SNACKS",
+        "qty": 12,
+        "price": 2,
+        "cost": 0.98,
+        "total": 24
+      },
+      {
+        "productId": "98000133",
+        "name": "DINGDONG MIX NUTS REAL GARLIC 100G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 31,
+        "cost": 24,
+        "total": 62
+      },
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 4,
+        "price": 28,
+        "cost": 16.43,
+        "total": 112
+      }
+    ]
+  },
+  {
+    "id": "TXN-21413",
+    "receiptNo": "2-1413",
+    "ts": 1790431140000,
+    "date": "26/09/2026 21:59",
+    "total": 5,
+    "subtotal": 5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10431",
+        "name": "MAXX CANDY",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0.83,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21412",
+    "receiptNo": "2-1412",
+    "ts": 1790431080000,
+    "date": "26/09/2026 21:58",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21411",
+    "receiptNo": "2-1411",
+    "ts": 1790430540000,
+    "date": "26/09/2026 21:49",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10239",
+        "name": "MOUNTAIN DEW (290ML)",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.35,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21410",
+    "receiptNo": "2-1410",
+    "ts": 1790429940000,
+    "date": "26/09/2026 21:39",
+    "total": 86,
+    "subtotal": 86,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 86,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      },
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 44,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21409",
+    "receiptNo": "2-1409",
+    "ts": 1790429580000,
+    "date": "26/09/2026 21:33",
+    "total": 186.98,
+    "subtotal": 186.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 186.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10142",
+        "name": "OISHI PRAWN CRACKERS SPICY 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 7.5,
+        "total": 9
+      },
+      {
+        "productId": "10187",
+        "name": "BLACK CHILI CORN CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.5,
+        "cost": 8.25,
+        "total": 11.5
+      },
+      {
+        "productId": "98000132",
+        "name": "DINGDONG HOT& SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 27,
+        "total": 35
+      },
+      {
+        "productId": "10156",
+        "name": "PEEWEE PZZA SUPREME",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.98,
+        "cost": 8.5,
+        "total": 10.98
+      },
+      {
+        "productId": "10130",
+        "name": "OISHI CRACKLINGS",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.75,
+        "total": 10
+      },
+      {
+        "productId": "10145",
+        "name": "PIATTOS SOUR CREAM 40G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 18.5,
+        "cost": 15.75,
+        "total": 18.5
+      },
+      {
+        "productId": "98000132",
+        "name": "DINGDONG HOT& SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 27,
+        "total": 35
+      },
+      {
+        "productId": "10145",
+        "name": "PIATTOS SOUR CREAM 40G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 18.5,
+        "cost": 15.75,
+        "total": 18.5
+      },
+      {
+        "productId": "10227",
+        "name": "PIATTOS ROADHOUSE BBQ 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 33.22,
+        "total": 38.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21408",
+    "receiptNo": "2-1408",
+    "ts": 1790429460000,
+    "date": "26/09/2026 21:31",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10188",
+        "name": "NATURE'S SPRING PURE 1000ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 25,
+        "cost": 14.26,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21407",
+    "receiptNo": "2-1407",
+    "ts": 1790429340000,
+    "date": "26/09/2026 21:29",
+    "total": 20,
+    "subtotal": 20,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 20,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21406",
+    "receiptNo": "2-1406",
+    "ts": 1790428620000,
+    "date": "26/09/2026 21:17",
+    "total": 166,
+    "subtotal": 166,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 166,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10172",
+        "name": "ENERGEN CHOCO",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 12,
+        "cost": 8.45,
+        "total": 24
+      },
+      {
+        "productId": "10171",
+        "name": "ENERGEN VANILLA",
+        "category": "FOOD",
+        "qty": 6,
+        "price": 12,
+        "cost": 8.450000000000001,
+        "total": 72
+      },
+      {
+        "productId": "10463",
+        "name": "DEL MONTE SWEET CHILI 320G",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 50,
+        "cost": 42.7,
+        "total": 50
+      },
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21405",
+    "receiptNo": "2-1405",
+    "ts": 1790428020000,
+    "date": "26/09/2026 21:07",
+    "total": 9,
+    "subtotal": 9,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 9,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10263",
+        "name": "PILLOWS UBE 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.75,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21404",
+    "receiptNo": "2-1404",
+    "ts": 1790427720000,
+    "date": "26/09/2026 21:02",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10223",
+        "name": "OVERLOAD CHOCO STRAWBERRY",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21403",
+    "receiptNo": "2-1403",
+    "ts": 1790427000000,
+    "date": "26/09/2026 20:50",
+    "total": 5,
+    "subtotal": 5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "9800170",
+        "name": "#StyroCups w/ stirrer",
+        "category": "MISC",
+        "qty": 1,
+        "price": 5,
+        "cost": 0,
+        "total": 5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21402",
+    "receiptNo": "2-1402",
+    "ts": 1790425980000,
+    "date": "26/09/2026 20:33",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 29.5,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21401",
+    "receiptNo": "2-1401",
+    "ts": 1790424420000,
+    "date": "26/09/2026 20:07",
+    "total": 92.75,
+    "subtotal": 92.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 92.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10218",
+        "name": "MR CHIPS NACHO CHEESE 98G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 25.5,
+        "cost": 19.5,
+        "total": 25.5
+      },
+      {
+        "productId": "10202",
+        "name": "PIATTOS CHEESE 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 33.22,
+        "total": 38.5
+      },
+      {
+        "productId": "98000065",
+        "name": "CHIPPY CHILI & CHEESE 108G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 21.35,
+        "total": 28.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21400",
+    "receiptNo": "2-1400",
+    "ts": 1790424300000,
+    "date": "26/09/2026 20:05",
+    "total": 160,
+    "subtotal": 160,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 160,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10120",
+        "name": "TANDUAY RHUM 65P 375",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 65,
+        "cost": 0,
+        "total": 65
+      },
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      },
+      {
+        "productId": "10239",
+        "name": "MOUNTAIN DEW (290ML)",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.35,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21399",
+    "receiptNo": "2-1399",
+    "ts": 1790424300000,
+    "date": "26/09/2026 20:05",
+    "total": 16.98,
+    "subtotal": 16.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 16.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "980000016",
+        "name": "JOY LEMON DISHWASHING LIQUID 40ML",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 16.98,
+        "cost": 12.63,
+        "total": 16.98
+      }
+    ]
+  },
+  {
+    "id": "TXN-21398",
+    "receiptNo": "2-1398",
+    "ts": 1790423340000,
+    "date": "26/09/2026 19:49",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 29.5,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21397",
+    "receiptNo": "2-1397",
+    "ts": 1790423280000,
+    "date": "26/09/2026 19:48",
+    "total": 289.96,
+    "subtotal": 289.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 289.96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10373",
+        "name": "SKYFLAKES CRACKER 1PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 84.98,
+        "cost": 60,
+        "total": 84.98
+      },
+      {
+        "productId": "10376",
+        "name": "MONDE SPECIAL MAMON PACK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 149.98,
+        "cost": 96,
+        "total": 149.98
+      },
+      {
+        "productId": "98000076",
+        "name": "POCARI SWEAT 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 44.58,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21396",
+    "receiptNo": "2-1396",
+    "ts": 1790423220000,
+    "date": "26/09/2026 19:47",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10113",
+        "name": "NUTRIBOOST STRWBRRY 110",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21395",
+    "receiptNo": "2-1395",
+    "ts": 1790422320000,
+    "date": "26/09/2026 19:32",
+    "total": 466.75,
+    "subtotal": 466.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 466.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000062",
+        "name": "GANADOR OLIVER 5KG",
+        "category": "RICE",
+        "qty": 1,
+        "price": 310,
+        "cost": 277.5,
+        "total": 310
+      },
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "10275",
+        "name": "MOUNTAIN DEW 1.5L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 72,
+        "cost": 62,
+        "total": 72
+      }
+    ]
+  },
+  {
+    "id": "TXN-21394",
+    "receiptNo": "2-1394",
+    "ts": 1790422260000,
+    "date": "26/09/2026 19:31",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10299",
+        "name": "ICE CUBE 2KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 35,
+        "cost": 24,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21393",
+    "receiptNo": "2-1393",
+    "ts": 1790421600000,
+    "date": "26/09/2026 19:20",
+    "total": 280,
+    "subtotal": 280,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 280,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10277",
+        "name": "ABSOLUTE 6000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 85,
+        "cost": 72,
+        "total": 85
+      },
+      {
+        "productId": "10299",
+        "name": "ICE CUBE 2KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 35,
+        "cost": 24,
+        "total": 35
+      },
+      {
+        "productId": "98000076",
+        "name": "POCARI SWEAT 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 55,
+        "cost": 44.58,
+        "total": 110
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 50,
+        "cost": 0,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21392",
+    "receiptNo": "2-1392",
+    "ts": 1790421240000,
+    "date": "26/09/2026 19:14",
+    "total": 71.5,
+    "subtotal": 71.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 71.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10158",
+        "name": "CRISPY PATATA 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 33.5,
+        "cost": 25.65,
+        "total": 33.5
+      },
+      {
+        "productId": "10138",
+        "name": "CHEEZ IT",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.25,
+        "total": 20
+      },
+      {
+        "productId": "10195",
+        "name": "MAGIC CHIPS CHEESE",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.22,
+        "total": 9
+      },
+      {
+        "productId": "10214",
+        "name": "MAGIC CREAMS BUTTER",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 5.55,
+        "total": 9
+      }
+    ]
+  },
+  {
+    "id": "TXN-21391",
+    "receiptNo": "2-1391",
+    "ts": 1790420160000,
+    "date": "26/09/2026 18:56",
+    "total": 8,
+    "subtotal": 8,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 8,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10490",
+        "name": "SNAFFLE CORN CHIPS",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 8,
+        "cost": 5,
+        "total": 8
+      }
+    ]
+  },
+  {
+    "id": "TXN-21390",
+    "receiptNo": "2-1390",
+    "ts": 1790420100000,
+    "date": "26/09/2026 18:55",
+    "total": 45,
+    "subtotal": 45,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 45,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 29.5,
+        "total": 35
+      },
+      {
+        "productId": "98000114",
+        "name": "CAMEL PREMIUM TABACCOS STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.25,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21389",
+    "receiptNo": "2-1389",
+    "ts": 1790419440000,
+    "date": "26/09/2026 18:44",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000047",
+        "name": "WILKINS PURE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.37,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21388",
+    "receiptNo": "2-1388",
+    "ts": 1790417040000,
+    "date": "26/09/2026 18:04",
+    "total": 44,
+    "subtotal": 44,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 44,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10371",
+        "name": "CREAMLINE COOLERS MELON 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 14,
+        "cost": 9.9,
+        "total": 14
+      },
+      {
+        "productId": "10339",
+        "name": "CREAMLINE JUMBO CONE DOUBLE DUTCH 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21387",
+    "receiptNo": "2-1387",
+    "ts": 1790416020000,
+    "date": "26/09/2026 17:47",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10299",
+        "name": "ICE CUBE 2KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 35,
+        "cost": 24,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21386",
+    "receiptNo": "2-1386",
+    "ts": 1790415900000,
+    "date": "26/09/2026 17:45",
+    "total": 140.96,
+    "subtotal": 140.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 140.96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10239",
+        "name": "MOUNTAIN DEW (290ML)",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.35,
+        "total": 20
+      },
+      {
+        "productId": "10152",
+        "name": "MOBY CARAMEL",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11,
+        "cost": 8.25,
+        "total": 11
+      },
+      {
+        "productId": "10332",
+        "name": "LEMON SQUARE LAVA CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.8,
+        "total": 9.98
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "10110",
+        "name": "LIFT CITRUS BLAST 320",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 18,
+        "cost": 41.16,
+        "total": 18
+      },
+      {
+        "productId": "10152",
+        "name": "MOBY CARAMEL",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11,
+        "cost": 8.25,
+        "total": 11
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      },
+      {
+        "productId": "10156",
+        "name": "PEEWEE PZZA SUPREME",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.98,
+        "cost": 8.5,
+        "total": 10.98
+      },
+      {
+        "productId": "10153",
+        "name": "DINGDONG MIXED NUTS ORANGE 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 30,
+        "cost": 24,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21385",
+    "receiptNo": "2-1385",
+    "ts": 1790415300000,
+    "date": "26/09/2026 17:35",
+    "total": 26,
+    "subtotal": 26,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 26,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10109",
+        "name": "COCA COLA 190ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 11,
+        "total": 15
+      },
+      {
+        "productId": "10142",
+        "name": "OISHI PRAWN CRACKERS SPICY 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 7.5,
+        "total": 9
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 2,
+        "cost": 0,
+        "total": 2
+      }
+    ]
+  },
+  {
+    "id": "TXN-21384",
+    "receiptNo": "2-1384",
+    "ts": 1790415240000,
+    "date": "26/09/2026 17:34",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10340",
+        "name": "CREAMLINE JUMBO CONE COOKIES & CREAM 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21383",
+    "receiptNo": "2-1383",
+    "ts": 1790415000000,
+    "date": "26/09/2026 17:30",
+    "total": 363.73,
+    "subtotal": 363.73,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 363.73,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000039",
+        "name": "CLVB 1.5 LTR",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 255,
+        "cost": 211.2,
+        "total": 255
+      },
+      {
+        "productId": "10380",
+        "name": "NISSIN BREAD STIX PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 84.98,
+        "cost": 61.5,
+        "total": 84.98
+      },
+      {
+        "productId": "10386",
+        "name": "RICHEE 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 23.75,
+        "cost": 18.25,
+        "total": 23.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21382",
+    "receiptNo": "2-1382",
+    "ts": 1790414580000,
+    "date": "26/09/2026 17:23",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21381",
+    "receiptNo": "2-1381",
+    "ts": 1790413080000,
+    "date": "26/09/2026 16:58",
+    "total": 265.9,
+    "subtotal": 265.9,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 265.9,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10479",
+        "name": "CDO HOMESTYLE CORNED BEEF 150G",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 42,
+        "cost": 36.8,
+        "total": 42
+      },
+      {
+        "productId": "980000025",
+        "name": "DOWNY GARDEN BLOOM 26ML",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 8.98,
+        "cost": 6.23,
+        "total": 8.98
+      },
+      {
+        "productId": "10382@",
+        "name": "MAGIC SARAP SACHET",
+        "category": "HOME ESSENTIALS",
+        "qty": 10,
+        "price": 7,
+        "cost": 5,
+        "total": 70
+      },
+      {
+        "productId": "98000050",
+        "name": "GREAT TASTE WHITE TWIN PACK",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 14,
+        "cost": 10.83,
+        "total": 14
+      },
+      {
+        "productId": "10270",
+        "name": "CREAM SILK CONDITIONER SS/PINK",
+        "category": "BATH ESSENTIALS",
+        "qty": 4,
+        "price": 10,
+        "cost": 6.25,
+        "total": 40
+      },
+      {
+        "productId": "10271",
+        "name": "SUNSILK SMTH&MNGBL 15ML",
+        "category": "BATH ESSENTIALS",
+        "qty": 4,
+        "price": 8.98,
+        "cost": 6,
+        "total": 35.92
+      },
+      {
+        "productId": "10486",
+        "name": "COCA COLA 1L BOTTLE",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 33.5,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21380",
+    "receiptNo": "2-1380",
+    "ts": 1790411880000,
+    "date": "26/09/2026 16:38",
+    "total": 461.98,
+    "subtotal": 461.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 461.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10414",
+        "name": "NESTEA LEMON",
+        "category": "FOOD",
+        "qty": 12,
+        "price": 25.5,
+        "cost": 19.650000000000002,
+        "total": 306
+      },
+      {
+        "productId": "10335",
+        "name": "CREAMLINE CONE UBE MACAPUNO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 24,
+        "cost": 18.25,
+        "total": 24
+      },
+      {
+        "productId": "10339",
+        "name": "CREAMLINE JUMBO CONE DOUBLE DUTCH 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      },
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      },
+      {
+        "productId": "10238",
+        "name": "GATORADE (BLUE BOLT) 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 48,
+        "cost": 42,
+        "total": 48
+      },
+      {
+        "productId": "10146",
+        "name": "CRISPY PATATA 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 7.75,
+        "total": 9.98
+      },
+      {
+        "productId": "10263",
+        "name": "PILLOWS UBE 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9,
+        "cost": 6.75,
+        "total": 9
+      },
+      {
+        "productId": "10316",
+        "name": "GILLETTE RUBIE BLADE",
+        "category": "HOME ESSENTIALS",
+        "qty": 1,
+        "price": 15,
+        "cost": 0,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21379",
+    "receiptNo": "2-1379",
+    "ts": 1790410020000,
+    "date": "26/09/2026 16:07",
+    "total": 332,
+    "subtotal": 332,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 332,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10444",
+        "name": "NESTLE MILO 180ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 30,
+        "cost": 24.5,
+        "total": 60
+      },
+      {
+        "productId": "10436",
+        "name": "NATURE'S SPRING PURE 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.92,
+        "total": 10
+      },
+      {
+        "productId": "1200",
+        "name": "CLOUD 9 CLASSIC PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 108,
+        "cost": 76.2,
+        "total": 108
+      },
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 8,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 70
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 8,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 84
+      }
+    ]
+  },
+  {
+    "id": "TXN-21378",
+    "receiptNo": "2-1378",
+    "ts": 1790409840000,
+    "date": "26/09/2026 16:04",
+    "total": 232,
+    "subtotal": 232,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 232,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10445",
+        "name": "NESTLE FRESH MILK 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 132,
+        "cost": 121.2,
+        "total": 132
+      },
+      {
+        "productId": "10441",
+        "name": "NESTLE FRESH MILK 250ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 50,
+        "cost": 39.55,
+        "total": 100
+      }
+    ]
+  },
+  {
+    "id": "TXN-21377",
+    "receiptNo": "2-1377",
+    "ts": 1790408400000,
+    "date": "26/09/2026 15:40",
+    "total": 40,
+    "subtotal": 40,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 40,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10406",
+        "name": "SURF POWDER PURPLE BLOOMS 65G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.25,
+        "total": 10
+      },
+      {
+        "productId": "10408",
+        "name": "SURF POWDER ROSE FRESH 65G",
+        "category": "Cleaning/Laundry Supplies",
+        "qty": 3,
+        "price": 10,
+        "cost": 7.25,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21376",
+    "receiptNo": "2-1376",
+    "ts": 1790405280000,
+    "date": "26/09/2026 14:48",
+    "total": 93.75,
+    "subtotal": 93.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 93.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10337",
+        "name": "CREAMLINE CONE BERRY CHOCO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 23.25,
+        "cost": 18.25,
+        "total": 23.25
+      },
+      {
+        "productId": "10335",
+        "name": "CREAMLINE CONE UBE MACAPUNO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 24,
+        "cost": 18.25,
+        "total": 24
+      },
+      {
+        "productId": "10338",
+        "name": "CREAMLINE CONE CHOCO QUESO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 23.25,
+        "cost": 18.25,
+        "total": 23.25
+      },
+      {
+        "productId": "10337",
+        "name": "CREAMLINE CONE BERRY CHOCO 110ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 23.25,
+        "cost": 18.25,
+        "total": 23.25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21375",
+    "receiptNo": "2-1375",
+    "ts": 1790405040000,
+    "date": "26/09/2026 14:44",
+    "total": 36,
+    "subtotal": 36,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10110",
+        "name": "LIFT CITRUS BLAST 320",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 18,
+        "cost": 41.16,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21374",
+    "receiptNo": "2-1374",
+    "ts": 1790404440000,
+    "date": "26/09/2026 14:34",
+    "total": 83.75,
+    "subtotal": 83.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 83.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10393",
+        "name": "MOBY CARAMEL PUFFS 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 23.75,
+        "cost": 18.25,
+        "total": 23.75
+      },
+      {
+        "productId": "10340",
+        "name": "CREAMLINE JUMBO CONE COOKIES & CREAM 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 30,
+        "cost": 24.1,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-21373",
+    "receiptNo": "2-1373",
+    "ts": 1790403300000,
+    "date": "26/09/2026 14:15",
+    "total": 200,
+    "subtotal": 200,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 200,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 4,
+        "price": 50,
+        "cost": 43.9,
+        "total": 200
+      }
+    ]
+  },
+  {
+    "id": "TXN-21372",
+    "receiptNo": "2-1372",
+    "ts": 1790402100000,
+    "date": "26/09/2026 13:55",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10367",
+        "name": "CREAMLINE SUNDAE STRAWBERRY 120ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 25,
+        "cost": 15.85,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21371",
+    "receiptNo": "2-1371",
+    "ts": 1790401980000,
+    "date": "26/09/2026 13:53",
+    "total": 197,
+    "subtotal": 197,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 197,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 17.5
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 21
+      },
+      {
+        "productId": "10250",
+        "name": "UNILOVE BABY WIPES",
+        "category": "BABY ESSENTIALS",
+        "qty": 1,
+        "price": 79.5,
+        "cost": 46.33,
+        "total": 79.5
+      },
+      {
+        "productId": "10425",
+        "name": "KAMI BATHROOM TISSUE",
+        "category": "HOME ESSENTIALS",
+        "qty": 1,
+        "price": 15,
+        "cost": 10.55,
+        "total": 15
+      },
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28,
+        "cost": 16.43,
+        "total": 28
+      },
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 18,
+        "cost": 9.94,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21370",
+    "receiptNo": "2-1370",
+    "ts": 1790389620000,
+    "date": "26/09/2026 10:27",
+    "total": 53,
+    "subtotal": 53,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 53,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10169",
+        "name": "BEAR BRAND SWAK",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 15,
+        "cost": 9,
+        "total": 15
+      },
+      {
+        "productId": "10232",
+        "name": "LA MIA TUNA HOTSPCY",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 38,
+        "cost": 33.18,
+        "total": 38
+      }
+    ]
+  },
+  {
+    "id": "TXN-21369",
+    "receiptNo": "2-1369",
+    "ts": 1790385060000,
+    "date": "26/09/2026 09:11",
+    "total": 472.92,
+    "subtotal": 472.92,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 472.92,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10333",
+        "name": "MONDE SPECIAL MAMON",
+        "category": "FOOD",
+        "qty": 4,
+        "price": 29.98,
+        "cost": 16,
+        "total": 119.92
+      },
+      {
+        "productId": "10256",
+        "name": "OVERLOAD CHOCOSTRWBRRY 10s",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 90,
+        "cost": 79.2,
+        "total": 180
+      },
+      {
+        "productId": "10254",
+        "name": "OVERLOAD BLACK FOREST PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 90,
+        "cost": 79.2,
+        "total": 90
+      },
+      {
+        "productId": "98000077",
+        "name": "POCARI SWEAT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 45,
+        "cost": 34.25,
+        "total": 45
+      },
+      {
+        "productId": "10232",
+        "name": "LA MIA TUNA HOTSPCY",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 38,
+        "cost": 33.18,
+        "total": 38
+      }
+    ]
+  },
+  {
+    "id": "TXN-21368",
+    "receiptNo": "2-1368",
+    "ts": 1790384880000,
+    "date": "26/09/2026 09:08",
+    "total": 60.75,
+    "subtotal": 60.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 60.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10112",
+        "name": "NUTRIBOOST CHOCO 110",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 15,
+        "cost": 0,
+        "total": 30
+      },
+      {
+        "productId": "10187",
+        "name": "BLACK CHILI CORN CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.5,
+        "cost": 8.25,
+        "total": 11.5
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 10.5
+      },
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 8.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21367",
+    "receiptNo": "2-1367",
+    "ts": 1790382660000,
+    "date": "26/09/2026 08:31",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21366",
+    "receiptNo": "2-1366",
+    "ts": 1790382480000,
+    "date": "26/09/2026 08:28",
+    "total": 23,
+    "subtotal": 23,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 23,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      },
+      {
+        "productId": "10065",
+        "name": "SILVER SWAN SOY SAUCE 200ML",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 13,
+        "cost": 0,
+        "total": 13
+      }
+    ]
+  },
+  {
+    "id": "TXN-21365",
+    "receiptNo": "2-1365",
+    "ts": 1790381160000,
+    "date": "26/09/2026 08:06",
+    "total": 12,
+    "subtotal": 12,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 12,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10173",
+        "name": "MILO",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.25,
+        "total": 12
+      }
+    ]
+  },
+  {
+    "id": "TXN-21364",
+    "receiptNo": "2-1364",
+    "ts": 1790349480000,
+    "date": "25/09/2026 23:18",
+    "total": 225,
+    "subtotal": 225,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 225,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 3,
+        "price": 75,
+        "cost": 60,
+        "total": 225
+      }
+    ]
+  },
+  {
+    "id": "TXN-21363",
+    "receiptNo": "2-1363",
+    "ts": 1790348400000,
+    "date": "25/09/2026 23:00",
+    "total": 75,
+    "subtotal": 75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21362",
+    "receiptNo": "2-1362",
+    "ts": 1790348400000,
+    "date": "25/09/2026 23:00",
+    "total": 75,
+    "subtotal": 75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.06,
+        "total": 15
+      },
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      }
+    ]
+  },
+  {
+    "id": "TXN-21361",
+    "receiptNo": "2-1361",
+    "ts": 1790346600000,
+    "date": "25/09/2026 22:30",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21360",
+    "receiptNo": "2-1360",
+    "ts": 1790346420000,
+    "date": "25/09/2026 22:27",
+    "total": 38.5,
+    "subtotal": 38.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000060",
+        "name": "NOVA HOMESTYLE BBQ 78G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 29.55,
+        "total": 38.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21359",
+    "receiptNo": "2-1359",
+    "ts": 1790345460000,
+    "date": "25/09/2026 22:11",
+    "total": 457.25,
+    "subtotal": 457.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 457.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "10036",
+        "name": "HOLIDAY P&B 170G",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 23,
+        "cost": 0,
+        "total": 23
+      },
+      {
+        "productId": "10129",
+        "name": "C2 SOLO APPLE 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 11.79,
+        "total": 17
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 190,
+        "cost": 0,
+        "total": 190
+      },
+      {
+        "productId": "98000069",
+        "name": "NOVA COUNTRY CHEDDAR 20G PACK",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 65.25,
+        "cost": 53.28,
+        "total": 65.25
+      },
+      {
+        "productId": "10416",
+        "name": "NESTEA LEMON CUCUMBER",
+        "category": "FOOD",
+        "qty": 4,
+        "price": 25.5,
+        "cost": 19.65,
+        "total": 102
+      }
+    ]
+  },
+  {
+    "id": "TXN-21358",
+    "receiptNo": "2-1358",
+    "ts": 1790345040000,
+    "date": "25/09/2026 22:04",
+    "total": 497.98,
+    "subtotal": 497.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 497.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10084",
+        "name": "RED HORSE LITRO",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 145,
+        "cost": 120,
+        "total": 290
+      },
+      {
+        "productId": "98000076",
+        "name": "POCARI SWEAT 500ML",
+        "category": "DRINKS",
+        "qty": 2,
+        "price": 55,
+        "cost": 44.58,
+        "total": 110
+      },
+      {
+        "productId": "10226",
+        "name": "KROPEK NI MANGJUAN 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 29.98,
+        "cost": 23.01,
+        "total": 29.98
+      },
+      {
+        "productId": "10485",
+        "name": "PLASTIC CUPS",
+        "category": "MISC",
+        "qty": 1,
+        "price": 3,
+        "cost": 0,
+        "total": 3
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      },
+      {
+        "productId": "10299",
+        "name": "ICE CUBE 2KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 35,
+        "cost": 24,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21357",
+    "receiptNo": "2-1357",
+    "ts": 1790344740000,
+    "date": "25/09/2026 21:59",
+    "total": 80,
+    "subtotal": 80,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 80,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "10107",
+        "name": "COCA COLA 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.5,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21356",
+    "receiptNo": "2-1356",
+    "ts": 1790343180000,
+    "date": "25/09/2026 21:33",
+    "total": 10,
+    "subtotal": 10,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 10,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10317",
+        "name": "CLOVER CHEESIER 24G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.5,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21355",
+    "receiptNo": "2-1355",
+    "ts": 1790341980000,
+    "date": "25/09/2026 21:13",
+    "total": 67.98,
+    "subtotal": 67.98,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 67.98,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10272",
+        "name": "PILLOWS CHOCO 38G",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 12,
+        "cost": 9,
+        "total": 24
+      },
+      {
+        "productId": "10222",
+        "name": "OVERLOAD BLACK FOREST",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10325",
+        "name": "NISSIN BREAD STIX",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 9.98,
+        "cost": 6.15,
+        "total": 9.98
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21354",
+    "receiptNo": "2-1354",
+    "ts": 1790341620000,
+    "date": "25/09/2026 21:07",
+    "total": 64.75,
+    "subtotal": 64.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 64.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10266",
+        "name": "CHIZ CURLS 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 9.75,
+        "cost": 7.25,
+        "total": 9.75
+      },
+      {
+        "productId": "10486",
+        "name": "COCA COLA 1L BOTTLE",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 55,
+        "cost": 33.5,
+        "total": 55
+      }
+    ]
+  },
+  {
+    "id": "TXN-21353",
+    "receiptNo": "2-1353",
+    "ts": 1790339760000,
+    "date": "25/09/2026 20:36",
+    "total": 100,
+    "subtotal": 100,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 100,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000108",
+        "name": "VITAMILK(DOUBLECHOCO) 300ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 29.5,
+        "total": 35
+      },
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 20,
+        "cost": 16.15,
+        "total": 40
+      },
+      {
+        "productId": "10362",
+        "name": "CREAMLINE MILKY POP LOLLY MILK CHOCO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.88,
+        "total": 15
+      },
+      {
+        "productId": "10231",
+        "name": "CLOUD 9 CLASSIC",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.35,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21352",
+    "receiptNo": "2-1352",
+    "ts": 1790338680000,
+    "date": "25/09/2026 20:18",
+    "total": 9.96,
+    "subtotal": 9.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 9.96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10045",
+        "name": "AJINOMOTO SEASONING",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 4.98,
+        "cost": 0,
+        "total": 9.96
+      }
+    ]
+  },
+  {
+    "id": "TXN-21351",
+    "receiptNo": "2-1351",
+    "ts": 1790338320000,
+    "date": "25/09/2026 20:12",
+    "total": 28,
+    "subtotal": 28,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 28,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28,
+        "cost": 16.43,
+        "total": 28
+      }
+    ]
+  },
+  {
+    "id": "TXN-21350",
+    "receiptNo": "2-1350",
+    "ts": 1790337660000,
+    "date": "25/09/2026 20:01",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 5,
+        "price": 10,
+        "cost": 8.02,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21349",
+    "receiptNo": "2-1349",
+    "ts": 1790337480000,
+    "date": "25/09/2026 19:58",
+    "total": 45,
+    "subtotal": 45,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 45,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10362",
+        "name": "CREAMLINE MILKY POP LOLLY MILK CHOCO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.88,
+        "total": 15
+      },
+      {
+        "productId": "10340",
+        "name": "CREAMLINE JUMBO CONE COOKIES & CREAM 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21348",
+    "receiptNo": "2-1348",
+    "ts": 1790337060000,
+    "date": "25/09/2026 19:51",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000116",
+        "name": "WINSTON WHITE STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.92,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21347",
+    "receiptNo": "2-1347",
+    "ts": 1790336880000,
+    "date": "25/09/2026 19:48",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 43.9,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21346",
+    "receiptNo": "2-1346",
+    "ts": 1790336880000,
+    "date": "25/09/2026 19:48",
+    "total": 350.48,
+    "subtotal": 350.48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 350.48,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10288",
+        "name": "NESTLE 2in1 ROCKY ROAD & DOUBLE DUTCH 750ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 209.98,
+        "cost": 168,
+        "total": 209.98
+      },
+      {
+        "productId": "10227",
+        "name": "PIATTOS ROADHOUSE BBQ 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 33.22,
+        "total": 38.5
+      },
+      {
+        "productId": "10272",
+        "name": "PILLOWS CHOCO 38G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12,
+        "cost": 9,
+        "total": 12
+      },
+      {
+        "productId": "98000132",
+        "name": "DINGDONG HOT& SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 27,
+        "total": 35
+      },
+      {
+        "productId": "10231",
+        "name": "CLOUD 9 CLASSIC",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 6.35,
+        "total": 10
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 45,
+        "cost": 0,
+        "total": 45
+      }
+    ]
+  },
+  {
+    "id": "TXN-21345",
+    "receiptNo": "2-1345",
+    "ts": 1790336400000,
+    "date": "25/09/2026 19:40",
+    "total": 30,
+    "subtotal": 30,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 30,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21344",
+    "receiptNo": "2-1344",
+    "ts": 1790336400000,
+    "date": "25/09/2026 19:40",
+    "total": 90,
+    "subtotal": 90,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 90,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10437",
+        "name": "NATURE'S SPRING PURE 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.06,
+        "total": 15
+      },
+      {
+        "productId": "10083",
+        "name": "RED HORSE 500",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 75,
+        "cost": 60,
+        "total": 75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21343",
+    "receiptNo": "2-1343",
+    "ts": 1790335800000,
+    "date": "25/09/2026 19:30",
+    "total": 86,
+    "subtotal": 86,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 86,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 2,
+        "price": 25,
+        "cost": 13,
+        "total": 50
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21342",
+    "receiptNo": "2-1342",
+    "ts": 1790335740000,
+    "date": "25/09/2026 19:29",
+    "total": 136,
+    "subtotal": 136,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 136,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10129",
+        "name": "C2 SOLO APPLE 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 11.79,
+        "total": 17
+      },
+      {
+        "productId": "98000132",
+        "name": "DINGDONG HOT& SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 27,
+        "total": 35
+      },
+      {
+        "productId": "10483",
+        "name": "HOLIDAY CORNED BEEF 150G",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 42,
+        "cost": 35.95,
+        "total": 84
+      }
+    ]
+  },
+  {
+    "id": "TXN-21341",
+    "receiptNo": "2-1341",
+    "ts": 1790335200000,
+    "date": "25/09/2026 19:20",
+    "total": 36,
+    "subtotal": 36,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 36,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 3,
+        "price": 12,
+        "cost": 9.1,
+        "total": 36
+      }
+    ]
+  },
+  {
+    "id": "TXN-21340",
+    "receiptNo": "2-1340",
+    "ts": 1790334180000,
+    "date": "25/09/2026 19:03",
+    "total": 229.5,
+    "subtotal": 229.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 229.5,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10275",
+        "name": "MOUNTAIN DEW 1.5L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 72,
+        "cost": 62,
+        "total": 72
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      },
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.1,
+        "total": 24
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21339",
+    "receiptNo": "2-1339",
+    "ts": 1790332740000,
+    "date": "25/09/2026 18:39",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 1,
+        "price": 25,
+        "cost": 13,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21338",
+    "receiptNo": "2-1338",
+    "ts": 1790332680000,
+    "date": "25/09/2026 18:38",
+    "total": 50,
+    "subtotal": 50,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 50,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10298",
+        "name": "ICE CUBE 1KG",
+        "category": "ICE",
+        "qty": 2,
+        "price": 25,
+        "cost": 13,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21337",
+    "receiptNo": "2-1337",
+    "ts": 1790330700000,
+    "date": "25/09/2026 18:05",
+    "total": 48,
+    "subtotal": 48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 4,
+        "price": 12,
+        "cost": 9.1,
+        "total": 48
+      }
+    ]
+  },
+  {
+    "id": "TXN-21336",
+    "receiptNo": "2-1336",
+    "ts": 1790330340000,
+    "date": "25/09/2026 17:59",
+    "total": 15,
+    "subtotal": 15,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 15,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10109",
+        "name": "COCA COLA 190ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 11,
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "TXN-21335",
+    "receiptNo": "2-1335",
+    "ts": 1790329920000,
+    "date": "25/09/2026 17:52",
+    "total": 78.96,
+    "subtotal": 78.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 78.96,
+    "change": 0,
+    "method": "Card",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10233",
+        "name": "LA MIA TUNA AFRTDA",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 38,
+        "cost": 33.18,
+        "total": 38
+      },
+      {
+        "productId": "10174",
+        "name": "KOPIKO BLACK 2PK",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 16.98,
+        "cost": 13.4,
+        "total": 16.98
+      },
+      {
+        "productId": "10330",
+        "name": "LEMON SQUARE CHEESE CAKE",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 11.98,
+        "cost": 7.7,
+        "total": 11.98
+      },
+      {
+        "productId": "10272",
+        "name": "PILLOWS CHOCO 38G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12,
+        "cost": 9,
+        "total": 12
+      }
+    ]
+  },
+  {
+    "id": "TXN-21334",
+    "receiptNo": "2-1334",
+    "ts": 1790327340000,
+    "date": "25/09/2026 17:09",
+    "total": 134.75,
+    "subtotal": 134.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 134.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000046",
+        "name": "COCA COLA 1.75L",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 84.75,
+        "cost": 61.67,
+        "total": 84.75
+      },
+      {
+        "productId": "10119",
+        "name": "VINO KULAFU 350",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 43.9,
+        "total": 50
+      }
+    ]
+  },
+  {
+    "id": "TXN-21333",
+    "receiptNo": "2-1333",
+    "ts": 1790325420000,
+    "date": "25/09/2026 16:37",
+    "total": 96.48,
+    "subtotal": 96.48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 96.48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10396",
+        "name": "TATTOOS CORN TUBE PIZZA 60G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 14.98,
+        "cost": 10.9,
+        "total": 14.98
+      },
+      {
+        "productId": "10487",
+        "name": "Royal 1.25L",
+        "category": "MISC",
+        "qty": 1,
+        "price": 60,
+        "cost": 0,
+        "total": 60
+      },
+      {
+        "productId": "10187",
+        "name": "BLACK CHILI CORN CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 11.5,
+        "cost": 8.25,
+        "total": 11.5
+      },
+      {
+        "productId": "10235",
+        "name": "#misc",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 0,
+        "total": 10
+      }
+    ]
+  },
+  {
+    "id": "TXN-21332",
+    "receiptNo": "2-1332",
+    "ts": 1790323500000,
+    "date": "25/09/2026 16:05",
+    "total": 155,
+    "subtotal": 155,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 155,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10355",
+        "name": "CREAMLINE FAMILY DOU ROCKY ROAD/VANILLA 950ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 155,
+        "cost": 112.75,
+        "total": 155
+      }
+    ]
+  },
+  {
+    "id": "TXN-21331",
+    "receiptNo": "2-1331",
+    "ts": 1790322360000,
+    "date": "25/09/2026 15:46",
+    "total": 96,
+    "subtotal": 96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10471",
+        "name": "ALASKA CONDENSADA 300ML",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 66,
+        "cost": 56,
+        "total": 66
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 3,
+        "price": 10,
+        "cost": 8.02,
+        "total": 30
+      }
+    ]
+  },
+  {
+    "id": "TXN-21330",
+    "receiptNo": "2-1330",
+    "ts": 1790320440000,
+    "date": "25/09/2026 15:14",
+    "total": 38,
+    "subtotal": 38,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 38,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 18,
+        "cost": 9.94,
+        "total": 18
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21329",
+    "receiptNo": "2-1329",
+    "ts": 1790320080000,
+    "date": "25/09/2026 15:08",
+    "total": 76,
+    "subtotal": 76,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 76,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10359",
+        "name": "CREAMLINE PINOY CLASSIC MANGGO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 13.3,
+        "total": 20
+      },
+      {
+        "productId": "10223",
+        "name": "OVERLOAD CHOCO STRAWBERRY",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10222",
+        "name": "OVERLOAD BLACK FOREST",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10,
+        "cost": 7.92,
+        "total": 10
+      },
+      {
+        "productId": "10139",
+        "name": "MANG JUAN SUKANG PAOMBONG 26G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 12.25,
+        "cost": 8,
+        "total": 12.25
+      },
+      {
+        "productId": "10109",
+        "name": "COCA COLA 190ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 15,
+        "cost": 11,
+        "total": 15
+      },
+      {
+        "productId": "10149",
+        "name": "NOVA COUNTRY CHEDDAR 20G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 8.75,
+        "cost": 6.66,
+        "total": 8.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21328",
+    "receiptNo": "2-1328",
+    "ts": 1790319540000,
+    "date": "25/09/2026 14:59",
+    "total": 24,
+    "subtotal": 24,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 24,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000116",
+        "name": "WINSTON WHITE STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 12,
+        "cost": 9.92,
+        "total": 24
+      }
+    ]
+  },
+  {
+    "id": "TXN-21327",
+    "receiptNo": "2-1327",
+    "ts": 1790319480000,
+    "date": "25/09/2026 14:58",
+    "total": 68,
+    "subtotal": 68,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 68,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10340",
+        "name": "CREAMLINE JUMBO CONE COOKIES & CREAM 140ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.1,
+        "total": 30
+      },
+      {
+        "productId": "10224",
+        "name": "MAGIC CHIPS BBQ",
+        "category": "SNACKS",
+        "qty": 2,
+        "price": 10,
+        "cost": 7.92,
+        "total": 20
+      },
+      {
+        "productId": "10438",
+        "name": "NATURE'S SPRING DISTILLED 500ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 18,
+        "cost": 9.94,
+        "total": 18
+      }
+    ]
+  },
+  {
+    "id": "TXN-21326",
+    "receiptNo": "2-1326",
+    "ts": 1790318820000,
+    "date": "25/09/2026 14:47",
+    "total": 25,
+    "subtotal": 25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21325",
+    "receiptNo": "2-1325",
+    "ts": 1790318640000,
+    "date": "25/09/2026 14:44",
+    "total": 175,
+    "subtotal": 175,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 175,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10441",
+        "name": "NESTLE FRESH MILK 250ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 50,
+        "cost": 39.55,
+        "total": 50
+      },
+      {
+        "productId": "98000135",
+        "name": "DELIGHT PROBIOTIC 400ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 60,
+        "cost": 48,
+        "total": 60
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 4,
+        "price": 10,
+        "cost": 8.02,
+        "total": 40
+      },
+      {
+        "productId": "10253",
+        "name": "STING 290ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 25,
+        "cost": 16.75,
+        "total": 25
+      }
+    ]
+  },
+  {
+    "id": "TXN-21324",
+    "receiptNo": "2-1324",
+    "ts": 1790314740000,
+    "date": "25/09/2026 13:39",
+    "total": 21.5,
+    "subtotal": 21.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 21.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000093",
+        "name": "COBRA  ASTIG CITRUS BLAST 290ML",
+        "category": "MISC",
+        "qty": 1,
+        "price": 21.5,
+        "cost": 16.58,
+        "total": 21.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21323",
+    "receiptNo": "2-1323",
+    "ts": 1790313960000,
+    "date": "25/09/2026 13:26",
+    "total": 87,
+    "subtotal": 87,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 87,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "98000112",
+        "name": "MIGHTY PUTI STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.1,
+        "total": 12
+      },
+      {
+        "productId": "10362",
+        "name": "CREAMLINE MILKY POP LOLLY MILK CHOCO 60ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 15,
+        "cost": 9.88,
+        "total": 15
+      },
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 20,
+        "cost": 16.15,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21322",
+    "receiptNo": "2-1322",
+    "ts": 1790313840000,
+    "date": "25/09/2026 13:24",
+    "total": 221.96,
+    "subtotal": 221.96,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 221.96,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10456",
+        "name": "SAMYANG BULDAK HOT CHICKEN",
+        "category": "FOOD",
+        "qty": 1,
+        "price": 95,
+        "cost": 85,
+        "total": 95
+      },
+      {
+        "productId": "98000059",
+        "name": "NOVA COUNTRY CHEDDAR 78G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 29.55,
+        "total": 38.5
+      },
+      {
+        "productId": "10220",
+        "name": "PIATTOS SOUR CREAM 85G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 38.5,
+        "cost": 28.8,
+        "total": 38.5
+      },
+      {
+        "productId": "10444",
+        "name": "NESTLE MILO 180ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 30,
+        "cost": 24.5,
+        "total": 30
+      },
+      {
+        "productId": "10325",
+        "name": "NISSIN BREAD STIX",
+        "category": "FOOD",
+        "qty": 2,
+        "price": 9.98,
+        "cost": 6.15,
+        "total": 19.96
+      }
+    ]
+  },
+  {
+    "id": "TXN-21321",
+    "receiptNo": "2-1321",
+    "ts": 1790311320000,
+    "date": "25/09/2026 12:42",
+    "total": 35,
+    "subtotal": 35,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 35,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000132",
+        "name": "DINGDONG HOT& SPICY 100G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 35,
+        "cost": 27,
+        "total": 35
+      }
+    ]
+  },
+  {
+    "id": "TXN-21320",
+    "receiptNo": "2-1320",
+    "ts": 1790311260000,
+    "date": "25/09/2026 12:41",
+    "total": 28.5,
+    "subtotal": 28.5,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 28.5,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10402",
+        "name": "MARTY'S CRACKLINGS SPCY VNGR 90G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 28.5,
+        "cost": 21.9,
+        "total": 28.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21319",
+    "receiptNo": "2-1319",
+    "ts": 1790310480000,
+    "date": "25/09/2026 12:28",
+    "total": 62,
+    "subtotal": 62,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 62,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10129",
+        "name": "C2 SOLO APPLE 230ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 17,
+        "cost": 11.79,
+        "total": 17
+      },
+      {
+        "productId": "98000077",
+        "name": "POCARI SWEAT 350ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 45,
+        "cost": 34.25,
+        "total": 45
+      }
+    ]
+  },
+  {
+    "id": "TXN-21318",
+    "receiptNo": "2-1318",
+    "ts": 1790310420000,
+    "date": "25/09/2026 12:27",
+    "total": 49.48,
+    "subtotal": 49.48,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 49.48,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10439",
+        "name": "NATURE'S SPRING DISTILLED 1000ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28,
+        "cost": 16.43,
+        "total": 28
+      },
+      {
+        "productId": "10156",
+        "name": "PEEWEE PZZA SUPREME",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.98,
+        "cost": 8.5,
+        "total": 10.98
+      },
+      {
+        "productId": "98000068",
+        "name": "FUN SIZE! PIATTOS CHEESE 18G",
+        "category": "SNACKS",
+        "qty": 1,
+        "price": 10.5,
+        "cost": 6.66,
+        "total": 10.5
+      }
+    ]
+  },
+  {
+    "id": "TXN-21317",
+    "receiptNo": "2-1317",
+    "ts": 1790307600000,
+    "date": "25/09/2026 11:40",
+    "total": 229.75,
+    "subtotal": 229.75,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 229.75,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000040",
+        "name": "CREAMLINE DOUBLE DUTCH 1.3ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 1,
+        "price": 229.75,
+        "cost": 190.75,
+        "total": 229.75
+      }
+    ]
+  },
+  {
+    "id": "TXN-21316",
+    "receiptNo": "2-1316",
+    "ts": 1790306040000,
+    "date": "25/09/2026 11:14",
+    "total": 160,
+    "subtotal": 160,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 160,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10344",
+        "name": "CREAMLINE PINIPIG CHOCOLATE 70ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 5,
+        "price": 20,
+        "cost": 16.15,
+        "total": 100
+      },
+      {
+        "productId": "10360",
+        "name": "CREAMLINE PINOY CLASSIC UBE MANGGO 60 ML",
+        "category": "ICE CREAM 🍦",
+        "qty": 2,
+        "price": 20,
+        "cost": 13.3,
+        "total": 40
+      },
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 2,
+        "price": 10,
+        "cost": 8.02,
+        "total": 20
+      }
+    ]
+  },
+  {
+    "id": "TXN-21315",
+    "receiptNo": "2-1315",
+    "ts": 1790297520000,
+    "date": "25/09/2026 08:52",
+    "total": 22,
+    "subtotal": 22,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 22,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "98000110",
+        "name": "MIGHTY PULA  STICK",
+        "category": "MISC",
+        "qty": 1,
+        "price": 10,
+        "cost": 8.02,
+        "total": 10
+      },
+      {
+        "productId": "98000117",
+        "name": "WINSTON RED STICK",
+        "category": "CIGARETTE",
+        "qty": 1,
+        "price": 12,
+        "cost": 9.1,
+        "total": 12
+      }
+    ]
+  },
+  {
     "id": "TXN-2-1314",
     "receiptNo": "2-1314",
     "ts": 1790264280000,
@@ -9926,6 +23139,41 @@ const SALES_SEED = [
     "status": "Closed",
     "source": "imported",
     "isImported": true
+  },
+  {
+    "id": "TXN-21103",
+    "receiptNo": "2-1103",
+    "ts": 1789902420000,
+    "date": "20/09/2026 19:07",
+    "total": 57.25,
+    "subtotal": 57.25,
+    "discount": 0,
+    "tax": 0,
+    "tendered": 57.25,
+    "change": 0,
+    "method": "Cash",
+    "cashier": "Owner",
+    "status": "completed",
+    "items": [
+      {
+        "productId": "10005",
+        "name": "EFFICASCENT25",
+        "category": "ESSENTIAL OILS",
+        "qty": 1,
+        "price": 28.5,
+        "cost": 0,
+        "total": 28.5
+      },
+      {
+        "productId": "98000051",
+        "name": "C2 GREEN TEA APPLE 335ML",
+        "category": "DRINKS",
+        "qty": 1,
+        "price": 28.75,
+        "cost": 22.08,
+        "total": 28.75
+      }
+    ]
   },
   {
     "id": "TXN-2-1102",
