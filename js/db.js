@@ -1383,9 +1383,17 @@ const DB = (() => {
       write(KEYS.deletedSaleIds, Array.from(curDeleted), true);
     }
     if(snap.products && snap.products.length){
-      // (2026-07-13) Set products from snapshot; was stale local merge
+      // (2026-07-13) Safely merge products in snapshot restore; was full overwrite
       const delProds = getDeletedProductIds();
-      setProducts(snap.products.filter(p => !delProds.has(p.id)));
+      const pMap = new Map();
+      getProducts().forEach(p => { if(p?.id && !delProds.has(p.id)) pMap.set(p.id, p); });
+      snap.products.forEach(p => {
+        if(p?.id && !delProds.has(p.id)){
+          const ex = pMap.get(p.id);
+          pMap.set(p.id, !ex || (p.updatedAt || 0) >= (ex.updatedAt || 0) ? { ...ex, ...p } : { ...p, ...ex });
+        }
+      });
+      setProducts(Array.from(pMap.values()));
     }
     if(snap.categories && snap.categories.length) setCategories(snap.categories);
     if(snap.sales && snap.sales.length){

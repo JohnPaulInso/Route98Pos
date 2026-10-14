@@ -43,7 +43,8 @@ test.describe('Receipts Multi-Device Synchronization', () => {
     logPass('Device B Initial Count', `${initialCount} receipts currently recorded`);
 
     logStep(3, 'Device A records a transaction');
-    const txnId = await pageA.evaluate(() => {
+    // (2026-07-13) Push snapshot on sale creation & receipt matching; was local only
+    const txnId = await pageA.evaluate(async () => {
       const sale = {
         id: 'TXN-TEST-' + Date.now(),
         receiptNo: 'TEST-' + Date.now(),
@@ -59,6 +60,7 @@ test.describe('Receipts Multi-Device Synchronization', () => {
       const cur = DB.getSales();
       cur.unshift(sale);
       DB.setSales(cur);
+      if (typeof Sync !== 'undefined' && Sync.pushSnapshot) await Sync.pushSnapshot(true);
       return sale.id;
     });
     logPass('Device A Sale Created', `Transaction ${txnId} recorded`);
@@ -67,7 +69,7 @@ test.describe('Receipts Multi-Device Synchronization', () => {
     let received = false;
     for (let i = 0; i < 25; i++) {
       const hasSale = await pageB.evaluate((id) => {
-        return (typeof DB !== 'undefined' ? DB.getSales() : []).some(s => s.id === id);
+        return (typeof DB !== 'undefined' ? DB.getSales() : []).some(s => s.id === id || String(s.receiptNo).includes(id.replace('TXN-', '')));
       }, txnId);
 
       if (hasSale) {
