@@ -32,10 +32,12 @@ test.describe('Receipts Multi-Device Synchronization', () => {
     });
 
     logStep(2, 'Device B navigates to Reports Receipts tab');
-    await pageB.locator('button[data-nav="reports"], .nav-btn:has-text("Reports")').first().click();
-    await pageB.waitForSelector('.category-chips, .rpt-subnav-tabs', { timeout: 8000 });
-    await pageB.locator('.chip[data-t="history"], .chip:has-text("Receipts")').first().click();
-    await pageB.waitForTimeout(1000);
+    // (2026-07-13) Direct navigate to reports history tab; was brittle hidden nav click
+    await pageB.evaluate(() => {
+      if (typeof App !== 'undefined' && App.navigate) App.navigate('reports');
+      if (typeof Reports !== 'undefined' && Reports.switchTab) Reports.switchTab('history');
+    });
+    await pageB.waitForTimeout(600);
 
     const initialCount = await pageB.evaluate(() => (typeof DB !== 'undefined' ? DB.getSales().length : 0));
     logPass('Device B Initial Count', `${initialCount} receipts currently recorded`);

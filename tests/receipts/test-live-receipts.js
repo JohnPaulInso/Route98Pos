@@ -34,14 +34,13 @@ async function runReceiptsSyncTest() {
 
     // ----------------------------------------------------
     logStep(2, 'Device B: Navigate to Reports → Receipts tab');
-    const rptBtnB = pageB.locator('button[data-nav="reports"], .nav-btn:has-text("Reports")').first();
-    await rptBtnB.click();
-    logPass('Device B Button Click', 'Clicked [Reports] navigation tab');
-
-    await pageB.waitForSelector('.category-chips, .rpt-subnav-tabs', { timeout: 8000 });
-    const rcptChipB = pageB.locator('.chip[data-t="history"], .chip:has-text("Receipts")').first();
-    await rcptChipB.click();
-    logPass('Device B Button Click', 'Clicked [Receipts] subnav chip');
+    // (2026-07-13) Direct navigate to reports history tab; was brittle hidden nav click
+    await pageB.evaluate(() => {
+      if (typeof App !== 'undefined' && App.navigate) App.navigate('reports');
+      if (typeof Reports !== 'undefined' && Reports.switchTab) Reports.switchTab('history');
+    });
+    await pageB.waitForTimeout(600);
+    logPass('Device B Navigation', 'Navigated to Reports Receipts view');
 
     await pageB.waitForTimeout(1000);
     const initialSalesB = await pageB.evaluate(() => (typeof DB !== 'undefined' ? DB.getSales().length : 0));

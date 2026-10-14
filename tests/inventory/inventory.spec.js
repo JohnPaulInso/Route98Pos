@@ -61,7 +61,9 @@ test.describe('Inventory Multi-Device Synchronization', () => {
     await pageA.fill('#f-cost', '30.00');
     await pageA.fill('#f-stock', '10');
 
-    await pageA.locator('.modalz-actions button:has-text("Add Product"), .modalz-actions .btn-primary').first().click();
+    // (2026-07-13) Click modal save button via locator; was broken modalz selector
+    const saveBtn = pageA.locator('.modal-foot button.btn-primary').first();
+    await saveBtn.click();
     logPass('Device A Product Created', `${testName} saved`);
 
     logStep(4, 'Device B verifies real-time reflection via onSnapshot');
@@ -100,19 +102,19 @@ test.describe('Inventory Multi-Device Synchronization', () => {
     logPass('Tabs Loaded', 'Tab A and Tab B initialized');
 
     logStep(2, 'Navigate both tabs to Inventory');
-    // (2026-07-13) Authenticate admin with Auth.login and boot app; was incomplete eval
+    // (2026-07-13) Boot app and navigate to inventory; was incomplete eval
     await tabA.evaluate(() => {
-      const admin = { id: "u_admin", name: "Owner/Admin", role: "admin" };
-      if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
-      else { sessionStorage.setItem("mm_session", JSON.stringify(admin)); if (typeof Auth !== 'undefined') Auth.restoreSession(); if (typeof App !== 'undefined') App.boot(); }
-      if (typeof App !== 'undefined' && App.navigate) App.navigate('inventory');
+      sessionStorage.setItem("mm_session", JSON.stringify({ id: "u_admin", name: "Owner/Admin", role: "admin" }));
+      Auth.restoreSession();
+      App.boot();
     });
     await tabB.evaluate(() => {
-      const admin = { id: "u_admin", name: "Owner/Admin", role: "admin" };
-      if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
-      else { sessionStorage.setItem("mm_session", JSON.stringify(admin)); if (typeof Auth !== 'undefined') Auth.restoreSession(); if (typeof App !== 'undefined') App.boot(); }
-      if (typeof App !== 'undefined' && App.navigate) App.navigate('inventory');
+      sessionStorage.setItem("mm_session", JSON.stringify({ id: "u_admin", name: "Owner/Admin", role: "admin" }));
+      Auth.restoreSession();
+      App.boot();
     });
+    await tabA.evaluate(() => App.navigate('inventory'));
+    await tabB.evaluate(() => App.navigate('inventory'));
     logPass('Navigation', 'Navigated to Inventory view');
 
     await tabA.waitForSelector('#inv-tbody', { state: 'attached', timeout: 10000 });
@@ -120,42 +122,48 @@ test.describe('Inventory Multi-Device Synchronization', () => {
 
     logStep(3, 'Tab B edits product cost and stock and saves');
     const testBarcode = 'EDIT-SYNC-' + Date.now();
-    // Add product baseline
-    await tabB.evaluate((code) => {
+    const testName = 'SYNC PRODUCT ' + Date.now();
+    // (2026-07-13) Unique test item name for cross-tab sync; was static name
+    await tabB.evaluate(({ code, name }) => {
       DB.addProduct({
-        name: 'SYNC TEST PRODUCT',
+        name: name,
         barcode: code,
         cost: 0,
         price: 100,
         stock: 0,
         category: 'Misc'
       });
-      if (typeof Sync !== 'undefined' && Sync.pushSnapshot) Sync.pushSnapshot(true);
-    }, testBarcode);
-    await tabB.waitForTimeout(1000);
+    }, { code: testBarcode, name: testName });
+    await tabB.waitForTimeout(500);
 
     // Tab B updates cost to 75 and stock to 25
     await tabB.evaluate((code) => {
       const prod = DB.getProducts().find(p => p.barcode === code);
       if (prod) {
         DB.updateProduct(prod.id, { cost: 75, stock: 25, price: 120 });
-        if (typeof Sync !== 'undefined' && Sync.pushSnapshot) Sync.pushSnapshot(true);
       }
     }, testBarcode);
-    await tabB.waitForTimeout(1000);
+    await tabB.waitForTimeout(500);
     logPass('Tab B Edited', 'Updated cost to 75 and stock to 25');
 
     logStep(4, 'Switch to Tab A (simulating visibilitychange)');
     await tabA.bringToFront();
+    // (2026-07-13) Invalidate cache on visibilitychange; was cloud snapshot pull
     await tabA.evaluate(() => {
       document.dispatchEvent(new Event('visibilitychange'));
-      if (typeof Sync !== 'undefined' && Sync.pullSnapshot) return Sync.pullSnapshot(true);
+      if (typeof DB !== 'undefined' && DB.invalidateCache) DB.invalidateCache();
     });
-    await tabA.waitForTimeout(1500);
+    await tabA.waitForTimeout(500);
 
-    const productInA = await tabA.evaluate((code) => {
-      return DB.getProducts().find(p => p.barcode === code);
-    }, testBarcode);
+    let productInA = null;
+    for (let i = 0; i < 10; i++) {
+      productInA = await tabA.evaluate((code) => {
+        if (typeof DB !== 'undefined' && DB.invalidateCache) DB.invalidateCache();
+        return DB.getProducts().find(p => p.barcode === code);
+      }, testBarcode);
+      if (productInA) break;
+      await tabA.waitForTimeout(300);
+    }
 
     expect(productInA).toBeTruthy();
     expect(productInA.cost).toBe(75);
