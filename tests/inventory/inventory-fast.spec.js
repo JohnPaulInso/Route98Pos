@@ -47,9 +47,10 @@ test.describe('#ForTest Product Lifecycle (Fast / No Delays)', () => {
 
     const tapBtn = async (locatorOrSelector, label) => {
       const loc = typeof locatorOrSelector === 'string' ? page.locator(locatorOrSelector).first() : locatorOrSelector;
-      await expect(loc).toBeVisible({ timeout: 10000 });
+      // (2026-07-13) Reduce visibility timeout to 3s; was 10s causing pause on card
+      await expect(loc).toBeVisible({ timeout: 3000 });
       try {
-        await loc.click({ timeout: 4000 });
+        await loc.click({ timeout: 1500 });
       } catch (_) {
         await loc.click({ force: true });
       }
@@ -308,39 +309,36 @@ test.describe('#ForTest Product Lifecycle (Fast / No Delays)', () => {
     }
     logPass('Step 11 Done', '#ForTest product deletion confirmed');
 
-    // (2026-07-13) Wait for #sync-pill "Synced just now"; was unawaited sync
+    // ── STEP 12: Directly navigate to Minimart POS & verify 3s ─
+    logStep(12, 'Navigate directly to Minimart POS and wait 3s to verify #ForTest is gone');
+    // (2026-07-13) Direct POS navigate & wait 3s; was sync pill pause in inventory
     await page.evaluate(async () => {
       const p = (typeof DB !== 'undefined' ? DB.getProducts() : []).find(x => x.name === '#ForTest');
       if (p && DB.deleteProduct) DB.deleteProduct(p.id);
       if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
-        await Sync.pushSnapshot(true).catch(() => {});
+        Sync.pushSnapshot(true).catch(() => {});
       }
+      if (typeof App !== 'undefined' && App.navigate) App.navigate('pos');
     });
 
-    try {
-      await expect(page.locator('#sync-pill .lbl, #sync-pill')).toContainText(/Synced just now/i, { timeout: 12000 });
-    } catch (_) {}
-
-    // Final DB check — should be gone
-    const gone = await page.evaluate(() =>
-      !(typeof DB !== 'undefined' && DB.getProducts().some(p => p.name === '#ForTest'))
-    );
-    expect(gone).toBeTruthy();
-    logPass('DB Verification', '#ForTest product fully removed from database ✓');
-
-    // ── STEP 12: Verify in Minimart POS that #ForTest is gone ──
-    logStep(12, 'Navigate to Minimart POS and verify #ForTest is gone');
-    await page.evaluate(() => { if (typeof App !== 'undefined') App.navigate('pos'); });
-    await page.waitForSelector('#btn-checkout, .btn-block', { timeout: 10000 });
+    await page.waitForSelector('#btn-checkout, .btn-block, #product-grid', { timeout: 10000 });
 
     const posSearchFinal = page.locator('#pos-search, input[placeholder*="Search product"]').first();
     if (await posSearchFinal.count() > 0) {
       await fillField(posSearchFinal, '#ForTest', 'POS Search Bar');
     }
 
+    // Wait for 3 seconds to verify product is actually gone
+    await page.waitForTimeout(3000);
+
     const posCards = page.locator('.product-card').filter({ hasText: '#ForTest' });
     const posCardCount = await posCards.count();
     expect(posCardCount).toBe(0);
+
+    const gone = await page.evaluate(() =>
+      !(typeof DB !== 'undefined' && DB.getProducts().some(p => p.name === '#ForTest'))
+    );
+    expect(gone).toBeTruthy();
     logPass('LIFECYCLE COMPLETE', '#ForTest product confirmed gone from Minimart POS ✓');
 
     await ctx.close();

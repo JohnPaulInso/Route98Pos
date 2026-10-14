@@ -19,7 +19,9 @@ const DB = (() => {
     // (2026-07-13) Add deletedProductIds tombstone key; was untracked deletes
     deletedProductIds: NS+"deletedProductIds",
     // (2026-07-13) Add deletedShiftLogIds tombstone; was unpersisted
-    shiftLogs: NS+"shiftLogs", deletedShiftLogIds: NS+"deletedShiftLogIds", syncBaseline: NS+"syncBaseline"
+    shiftLogs: NS+"shiftLogs", deletedShiftLogIds: NS+"deletedShiftLogIds", syncBaseline: NS+"syncBaseline",
+    // (2026-07-13) Product trash bin; 30-day soft-delete before permanent removal
+    trash: NS+"trash"
   };
 
   const memCache = new Map();
@@ -371,7 +373,10 @@ const DB = (() => {
     const barcodeMap = new Map();
 
     list.forEach(p => {
-      if(!p || !p.name) return;
+      // (2026-07-13) Normalize product name fallback; was dropping products without name
+      if(!p) return;
+      if(!p.name && (p.title || p.productName)) p.name = p.title || p.productName;
+      if(!p.name) return;
       const cleanName = String(p.name).trim().toLowerCase();
       const rawCode = String(p.barcode || "").trim();
       const cleanCode = (rawCode === "—" || rawCode === "-" || rawCode === "N/A" || rawCode === "0") ? "" : rawCode;
@@ -542,6 +547,13 @@ const DB = (() => {
     if(!id) return;
     const s = getDeletedProductIds();
     s.add(String(id));
+    write(KEYS.deletedProductIds, Array.from(s), true);
+  };
+  const unmarkProductDeleted = (id) => {
+    if(!id) return;
+    const s = getDeletedProductIds();
+    s.delete(String(id));
+    s.delete(String(id).toLowerCase());
     write(KEYS.deletedProductIds, Array.from(s), true);
   };
   const unmarkSaleDeleted = (saleId) => {
@@ -1140,13 +1152,101 @@ const DB = (() => {
       RealtimeSync.syncSingleProduct(updatedProduct);
     }
   }
-  function deleteProduct(id){
-    if(id) markProductDeleted(id);
-    setProducts(getProducts().filter(p => p.id !== id));
-    
-    // Immediate realtime sync
+  // (2026-07-13) Fix trash restore string ID matching; was strict equal failure
+  function getTrash(){
+    return read(KEYS.trash, []);
+  }
+  function trashProduct(product){
+    if(!product) return;
+    const prodId = String(product.id ?? product._id ?? "").trim();
+    if(!prodId) return;
+    markProductDeleted(prodId);
+    const bin = getTrash().filter(p => String(p.id ?? p._id ?? "").trim() !== prodId);
+    bin.unshift({ ...product, _trashedAt: Date.now() });
+    write(KEYS.trash, bin);
+    setProducts(getProducts().filter(p => String(p.id ?? p._id ?? "").trim() !== prodId));
     if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteProductFromCloud){
-      RealtimeSync.deleteProductFromCloud(id);
+      RealtimeSync.deleteProductFromCloud(prodId);
+    }
+  }
+  // (2026-07-13) Support index & barcode in trash restore; was strict ID fail
+  function restoreProductFromTrash(id, fallbackIdx = -1){
+    const bin = getTrash();
+    if(!bin || !bin.length) return false;
+    let idx = -1;
+    const cleanId = (id !== undefined && id !== null) ? String(id).trim() : "";
+    if(cleanId && cleanId !== "undefined" && cleanId !== "null"){
+      idx = bin.findIndex(p => 
+        String(p.id ?? p._id ?? "").trim() === cleanId ||
+        (p.barcode && String(p.barcode).trim() === cleanId) ||
+        (p.name && String(p.name).trim().toLowerCase() === cleanId.toLowerCase())
+      );
+    }
+    if(idx === -1 && typeof fallbackIdx === "number" && fallbackIdx >= 0 && fallbackIdx < bin.length){
+      idx = fallbackIdx;
+    }
+    if(idx === -1) return false;
+    const product = { ...bin[idx] };
+    delete product._trashedAt;
+    product.updatedAt = Date.now();
+    // (2026-07-13) Unmark before save and restore title fallback; was reversed
+    if(!product.name && (product.title || product.productName)) product.name = product.title || product.productName;
+    if(!product.id){
+      product.id = Utils.uid("prod");
+    }
+    const targetId = String(product.id).trim();
+    unmarkProductDeleted(targetId);
+    if(cleanId && cleanId !== "undefined") unmarkProductDeleted(cleanId);
+    if(product.barcode) unmarkProductDeleted(product.barcode);
+    const prods = getProducts().filter(p => String(p.id ?? p._id ?? "").trim() !== targetId);
+    prods.push(product);
+    setProducts(prods);
+    const newBin = bin.filter((_, i) => i !== idx);
+    write(KEYS.trash, newBin);
+    cachedProducts = null;
+    if(typeof RealtimeSync !== "undefined" && RealtimeSync.syncSingleProduct){
+      RealtimeSync.syncSingleProduct(product);
+    }
+    if(typeof Sync !== "undefined" && Sync.pushSnapshot){
+      Sync.pushSnapshot(true).catch(() => {});
+    }
+    return true;
+  }
+  function permanentlyDeleteFromTrash(id, fallbackIdx = -1){
+    const bin = getTrash();
+    if(!bin || !bin.length) return;
+    let idx = -1;
+    const cleanId = (id !== undefined && id !== null) ? String(id).trim() : "";
+    if(cleanId && cleanId !== "undefined" && cleanId !== "null"){
+      idx = bin.findIndex(p => 
+        String(p.id ?? p._id ?? "").trim() === cleanId ||
+        (p.barcode && String(p.barcode).trim() === cleanId) ||
+        (p.name && String(p.name).trim().toLowerCase() === cleanId.toLowerCase())
+      );
+    }
+    if(idx === -1 && typeof fallbackIdx === "number" && fallbackIdx >= 0 && fallbackIdx < bin.length){
+      idx = fallbackIdx;
+    }
+    if(idx !== -1){
+      write(KEYS.trash, bin.filter((_, i) => i !== idx));
+    }
+  }
+  function purgeExpiredTrash(){
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    write(KEYS.trash, getTrash().filter(p => (now - (p._trashedAt || 0)) < THIRTY_DAYS));
+  }
+  function deleteProduct(id){
+    // (2026-07-13) Delegate to trashProduct; was permanent removal
+    const cleanId = String(id ?? "").trim();
+    const product = getProducts().find(p => String(p.id ?? p._id ?? "").trim() === cleanId);
+    if(product) trashProduct(product);
+    else{
+      if(id) markProductDeleted(id);
+      setProducts(getProducts().filter(p => String(p.id ?? p._id ?? "").trim() !== cleanId));
+      if(typeof RealtimeSync !== "undefined" && RealtimeSync.deleteProductFromCloud){
+        RealtimeSync.deleteProductFromCloud(id);
+      }
     }
   }
   // (2026-07-13) Support pack & piece barcodes; was single barcode match
@@ -1413,8 +1513,12 @@ const DB = (() => {
     isSyncRestoring = true;
     try{
     if(snap.deletedProductIds && Array.isArray(snap.deletedProductIds)){
+      // (2026-07-13) Skip re-tombstone if product already restored in active list; was re-adding stale IDs
+      const activeIds = new Set((getProducts() || []).map(p => String(p.id ?? p._id ?? "").trim()).filter(Boolean));
       const curDeletedProds = getDeletedProductIds();
-      snap.deletedProductIds.forEach(id => { if(id) curDeletedProds.add(String(id)); });
+      snap.deletedProductIds.forEach(id => {
+        if(id && !activeIds.has(String(id).trim())) curDeletedProds.add(String(id));
+      });
       write(KEYS.deletedProductIds, Array.from(curDeletedProds), true);
     }
     if(snap.deletedSaleIds && Array.isArray(snap.deletedSaleIds)){
@@ -1606,9 +1710,10 @@ const DB = (() => {
   return {
     KEYS, init, categoryIcon, getNextTransactionId,
     getProducts, setProducts, deduplicateProducts, addProduct, updateProduct, deleteProduct, findByBarcode, adjustStock,
+    getTrash, trashProduct, restoreProductFromTrash, permanentlyDeleteFromTrash, purgeExpiredTrash,
     getCategories, setCategories,
     // (2026-07-13) Expose unmarkSaleDeleted & product tombstone APIs; was missing
-    getSales, setSales, getDeletedSaleIds, markSaleDeleted, unmarkSaleDeleted, getDeletedProductIds, markProductDeleted, getFuelSales, setFuelSales,
+    getSales, setSales, getDeletedSaleIds, markSaleDeleted, unmarkSaleDeleted, getDeletedProductIds, markProductDeleted, unmarkProductDeleted, getFuelSales, setFuelSales,
     getFuelConfig, setFuelConfig,
     getSettings, setSettings,
     getUsers, setUsers,
