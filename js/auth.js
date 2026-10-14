@@ -362,5 +362,16 @@ const Auth = (() => {
     });
   }
 
-  return { render, currentUser, isAdmin, logout, restoreSession, requireAdminPin };
+  // (2026-07-13) Direct programmatic login for tests and automation; was missing
+  function login(user){
+    const target = user || (DB.getUsers ? DB.getUsers().find(u => u.role === "admin") : null) || { id:"u_admin", name:"Owner/Admin", role:"admin" };
+    session = { id: target.id || "u_admin", name: target.name || "Owner/Admin", role: target.role || "admin" };
+    sessionStorage.setItem("mm_session", JSON.stringify(session));
+    localStorage.setItem("last_login_role", session.role);
+    localStorage.setItem("last_login_user", session.id);
+    cleanupKeyboardListener();
+    if(typeof App !== "undefined" && App.boot) App.boot();
+  }
+
+  return { render, currentUser, isAdmin, logout, restoreSession, requireAdminPin, login };
 })();

@@ -21,14 +21,19 @@ test.describe('Inventory Multi-Device Synchronization', () => {
     logPass('Device A & B Loaded', 'Both browser contexts connected');
 
     logStep(2, 'Navigate both devices to Inventory table');
+    // (2026-07-13) Set admin session and navigate to inventory; was unauthenticated
     await pageA.evaluate(() => {
-      const admin = (typeof DB !== 'undefined' ? DB.getUsers().find(u => u.role === 'admin') : null) || { role: 'admin', name: 'Admin' };
+      const admin = (typeof DB !== 'undefined' ? DB.getUsers().find(u => u.role === 'admin') : null) || { id: 'u_admin', role: 'admin', name: 'Owner/Admin' };
+      sessionStorage.setItem('mm_session', JSON.stringify(admin));
       if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
+      else if (typeof App !== 'undefined') { App.boot(); }
       if (typeof App !== 'undefined' && App.navigate) App.navigate('inventory');
     });
     await pageB.evaluate(() => {
-      const admin = (typeof DB !== 'undefined' ? DB.getUsers().find(u => u.role === 'admin') : null) || { role: 'admin', name: 'Admin' };
+      const admin = (typeof DB !== 'undefined' ? DB.getUsers().find(u => u.role === 'admin') : null) || { id: 'u_admin', role: 'admin', name: 'Owner/Admin' };
+      sessionStorage.setItem('mm_session', JSON.stringify(admin));
       if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
+      else if (typeof App !== 'undefined') { App.boot(); }
       if (typeof App !== 'undefined' && App.navigate) App.navigate('inventory');
     });
     logPass('Navigation', 'Navigated to Inventory view');
@@ -46,16 +51,17 @@ test.describe('Inventory Multi-Device Synchronization', () => {
     const testBarcode = '99990002' + Math.floor(Math.random() * 1000);
     const testName = 'LIVE SYNC PRODUCT ' + Date.now();
 
-    await pageA.locator('#btn-add-product, button:has-text("Add Product")').first().click();
-    await pageA.waitForSelector('#prod-modal, .modal-dialog, #product-form', { timeout: 5000 });
+    // (2026-07-13) Open product form using Inventory API & correct field IDs; was prod-modal
+    await pageA.evaluate(() => Inventory.openProductForm());
+    await pageA.waitForSelector('#f-name', { timeout: 5000 });
 
-    await pageA.fill('#prod-barcode, input[name="barcode"]', testBarcode);
-    await pageA.fill('#prod-name, input[name="name"]', testName);
-    await pageA.fill('#prod-price, input[name="price"]', '45.00');
-    await pageA.fill('#prod-cost, input[name="cost"]', '30.00');
-    await pageA.fill('#prod-stock, input[name="stock"]', '10');
+    await pageA.fill('#f-barcode', testBarcode);
+    await pageA.fill('#f-name', testName);
+    await pageA.fill('#f-price', '45.00');
+    await pageA.fill('#f-cost', '30.00');
+    await pageA.fill('#f-stock', '10');
 
-    await pageA.locator('#btn-save-product, button:has-text("Save Product"), button:has-text("Save")').first().click();
+    await pageA.locator('.modalz-actions button:has-text("Add Product"), .modalz-actions .btn-primary').first().click();
     logPass('Device A Product Created', `${testName} saved`);
 
     logStep(4, 'Device B verifies real-time reflection via onSnapshot');
@@ -94,14 +100,17 @@ test.describe('Inventory Multi-Device Synchronization', () => {
     logPass('Tabs Loaded', 'Tab A and Tab B initialized');
 
     logStep(2, 'Navigate both tabs to Inventory');
+    // (2026-07-13) Authenticate admin with Auth.login and boot app; was incomplete eval
     await tabA.evaluate(() => {
-      sessionStorage.setItem("mm_session", JSON.stringify({ id: "u_admin", name: "Owner/Admin", role: "admin" }));
-      if (typeof Auth !== 'undefined' && Auth.restoreSession) Auth.restoreSession();
+      const admin = { id: "u_admin", name: "Owner/Admin", role: "admin" };
+      if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
+      else { sessionStorage.setItem("mm_session", JSON.stringify(admin)); if (typeof Auth !== 'undefined') Auth.restoreSession(); if (typeof App !== 'undefined') App.boot(); }
       if (typeof App !== 'undefined' && App.navigate) App.navigate('inventory');
     });
     await tabB.evaluate(() => {
-      sessionStorage.setItem("mm_session", JSON.stringify({ id: "u_admin", name: "Owner/Admin", role: "admin" }));
-      if (typeof Auth !== 'undefined' && Auth.restoreSession) Auth.restoreSession();
+      const admin = { id: "u_admin", name: "Owner/Admin", role: "admin" };
+      if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
+      else { sessionStorage.setItem("mm_session", JSON.stringify(admin)); if (typeof Auth !== 'undefined') Auth.restoreSession(); if (typeof App !== 'undefined') App.boot(); }
       if (typeof App !== 'undefined' && App.navigate) App.navigate('inventory');
     });
     logPass('Navigation', 'Navigated to Inventory view');

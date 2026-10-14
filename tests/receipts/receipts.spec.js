@@ -16,8 +16,20 @@ test.describe('Receipts Multi-Device Synchronization', () => {
 
     await pageA.goto('http://127.0.0.1:8181/');
     await pageB.goto('http://127.0.0.1:8181/');
-    await pageA.waitForLoadState('networkidle');
-    await pageB.waitForLoadState('networkidle');
+    // (2026-07-13) Use domcontentloaded & auth admin to prevent hang; was networkidle
+    await pageA.waitForLoadState('domcontentloaded');
+    await pageB.waitForLoadState('domcontentloaded');
+
+    await pageA.evaluate(() => {
+      const admin = (typeof DB !== 'undefined' ? DB.getUsers().find(u => u.role === 'admin') : null) || { id: 'u_admin', role: 'admin', name: 'Owner/Admin' };
+      sessionStorage.setItem('mm_session', JSON.stringify(admin));
+      if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
+    });
+    await pageB.evaluate(() => {
+      const admin = (typeof DB !== 'undefined' ? DB.getUsers().find(u => u.role === 'admin') : null) || { id: 'u_admin', role: 'admin', name: 'Owner/Admin' };
+      sessionStorage.setItem('mm_session', JSON.stringify(admin));
+      if (typeof Auth !== 'undefined' && Auth.login) Auth.login(admin);
+    });
 
     logStep(2, 'Device B navigates to Reports Receipts tab');
     await pageB.locator('button[data-nav="reports"], .nav-btn:has-text("Reports")').first().click();
