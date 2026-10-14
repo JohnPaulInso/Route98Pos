@@ -118,3 +118,24 @@ self.addEventListener("fetch", (event) => {
       })
   );
 });
+
+// (2026-07-13) Purge image cache on service worker message; was unhandled
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "PURGE_IMAGE_CACHE") {
+    const { oldUrl, newUrl } = event.data;
+    caches.open(CACHE_NAME).then((cache) => {
+      if (oldUrl) {
+        cache.delete(oldUrl, { ignoreSearch: true });
+        cache.delete(oldUrl);
+      }
+      if (newUrl) {
+        cache.delete(newUrl, { ignoreSearch: true });
+        cache.delete(newUrl);
+        fetch(newUrl, { mode: "no-cors" }).then((resp) => {
+          if (resp && (resp.status === 200 || resp.type === "opaque")) cache.put(newUrl, resp);
+        }).catch(() => {});
+      }
+    });
+  }
+});
+

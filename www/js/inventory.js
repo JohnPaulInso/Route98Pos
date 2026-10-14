@@ -445,6 +445,12 @@ const Inventory = (() => {
     }
     Utils.toast(product ? "Product updated." : "Product added.", "success");
     Modalz.close();
+    // (2026-07-13) Invalidate image cache on product save; was unpurged
+    if(product && product.imageUrl && payload.imageUrl !== product.imageUrl){
+      if(typeof Utils !== "undefined" && Utils.purgeImageCache){
+        Utils.purgeImageCache(product.imageUrl, payload.imageUrl);
+      }
+    }
     renderTable();
     // (2026-07-13) Re-render POS catalog on product save; was inventory table only
     if(typeof POS !== "undefined" && POS.renderCatalog) POS.renderCatalog();
@@ -2512,8 +2518,7 @@ const Inventory = (() => {
     selectMode = false;
     // (2026-09-16) Deduplicate stored products on render; was never cleaned up
     DB.deduplicateProducts();
-    // (2026-07-13) Auto-reset inventory search term on navigation; was persistent
-    searchTerm = "";
+    // (2026-07-13) Retain search term on inventory rerender; was resetting to empty
     currentPage = 1;
     const view = document.getElementById("view-root");
     if(!view) return;
@@ -2546,7 +2551,7 @@ const Inventory = (() => {
         <!-- (2026-07-13) Set 38px height on input-icon-wrap; was auto height -->
         <div class="input-icon-wrap" style="position:relative;display:flex;align-items:center;width:320px;height:38px;z-index:1;">
           ${Icons.get("search",{size:15})}
-          <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…">
+          <input class="input scan-target" id="inv-search" placeholder="Search name, brand, distributor, or barcode…" value="${Utils.escapeHtml(searchTerm)}">
           <button type="button" class="clear-search-btn" id="btn-clear-inv-search" title="Clear search">${Icons.get("x",{size:14})}</button>
         </div>
         <div id="inv-cat-filter-wrap"></div>
@@ -2605,6 +2610,10 @@ const Inventory = (() => {
 
     const search = document.getElementById("inv-search");
     const clearBtn = document.getElementById("btn-clear-inv-search");
+    if(search && searchTerm){
+      search.value = searchTerm;
+      clearBtn?.classList.add("visible");
+    }
     const onSearchChange = (val) => {
       searchTerm = val;
       currentPage = 1;

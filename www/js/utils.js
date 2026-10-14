@@ -52,6 +52,38 @@ const Utils = (() => {
     return `${iconSpan}${img}`;
   }
 
+  // (2026-07-13) Purge image cache in CacheStorage; was unevicted
+  function purgeImageCache(oldUrl, newUrl){
+    try {
+      if(typeof caches !== "undefined"){
+        caches.keys().then(keys => {
+          keys.forEach(k => {
+            caches.open(k).then(cache => {
+              if(oldUrl){
+                cache.delete(oldUrl, { ignoreSearch: true });
+                cache.delete(oldUrl);
+              }
+              if(newUrl){
+                cache.delete(newUrl, { ignoreSearch: true });
+                cache.delete(newUrl);
+                fetch(newUrl, { mode: "no-cors" }).then(res => {
+                  if(res) cache.put(newUrl, res);
+                }).catch(() => {});
+              }
+            });
+          });
+        }).catch(() => {});
+      }
+      if(typeof navigator !== "undefined" && navigator.serviceWorker && navigator.serviceWorker.controller){
+        navigator.serviceWorker.controller.postMessage({
+          type: "PURGE_IMAGE_CACHE",
+          oldUrl,
+          newUrl
+        });
+      }
+    } catch(e){}
+  }
+
   // (2026-07-13) Offline clipboard copy with fallback textarea. Prev: none
   async function copyToClipboard(text){
     if(!text) return;
@@ -333,6 +365,6 @@ const Utils = (() => {
     return tokens.length > 0 && tokens.every(tok => tNorm.includes(tok) || (qCol && tCol.includes(tok)));
   }
 
-  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound, openCashDrawer, matchesSearch };
+  return { uid, money, round2, fmtDate, startOfDay, daysAgo, toast, snackbarWithUndo, copyToClipboard, odometer, productThumb, purgeImageCache, debounce, escapeHtml, downloadFile, readFile, toCSV, fromCSV, randColor, Sound, openCashDrawer, matchesSearch };
 })();
 

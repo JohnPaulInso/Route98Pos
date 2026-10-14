@@ -1059,6 +1059,13 @@ const DB = (() => {
       p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p
     );
     setProducts(updatedProducts);
+
+    // (2026-07-13) Invalidate image cache when image changes; was unpurged
+    if(patch.imageUrl !== undefined && oldProduct.imageUrl && patch.imageUrl !== oldProduct.imageUrl){
+      if(typeof Utils !== "undefined" && Utils.purgeImageCache){
+        Utils.purgeImageCache(oldProduct.imageUrl, patch.imageUrl);
+      }
+    }
     
     // If stock changed, log it
     if(hasStockChange && stockDelta !== 0){

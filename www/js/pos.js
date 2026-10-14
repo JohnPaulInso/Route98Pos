@@ -1721,7 +1721,7 @@ const POS = (() => {
         <div class="pos-search-scanner-bar">
           <div class="input-icon-wrap pos-search-wrap">
             <span class="search-icon-left">${Icons.get("search",{size:16})}</span>
-            <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan barcode…" autofocus>
+            <input class="input scan-target" id="pos-search" placeholder="Search product or brand, or scan barcode…" value="${Utils.escapeHtml(searchTerm)}" autofocus>
             <button type="button" class="clear-search-btn" id="btn-clear-pos-search" title="Clear search">${Icons.get("x",{size:15})}</button>
           </div>
           <div class="pos-action-buttons">
@@ -1784,11 +1784,14 @@ const POS = (() => {
       }, { passive: false });
     }
 
-    // (2026-07-13) Auto-reset POS search term on navigation; was persistent
-    searchTerm = "";
+    // (2026-07-13) Retain search term on POS rerender; was resetting to empty
     catalogPage = 1;
     const search = document.getElementById("pos-search");
     const clearBtn = document.getElementById("btn-clear-pos-search");
+    if(search && searchTerm){
+      search.value = searchTerm;
+      clearBtn?.classList.add("visible");
+    }
     // (2026-07-13) Smooth manual search typing in POS; was premature barcode auto-add
     const onSearchChange = (val) => {
       searchTerm = val;

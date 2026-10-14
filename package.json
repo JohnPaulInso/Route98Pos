@@ -9,7 +9,9 @@
     "cap": "cap",
     "test:sync": "node tests/run-all.js",
     "test:inventory": "node tests/inventory/test-live-inventory.js",
-    "test:receipts": "node tests/receipts/test-live-receipts.js"
+    "test:receipts": "node tests/receipts/test-live-receipts.js",
+    "test:flow": "node tests/full-flow/test-full-flow.js",
+    "test:e2e": "playwright test tests/full-flow/pos-lifecycle.spec.js"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",

@@ -72,15 +72,16 @@ const Auth = (() => {
     }
   }
 
-  // (2026-07-13) Remember selected user in profile options; was unselected
+  // (2026-07-13) Match selected user to active role; was stale cross-role user
   function getProfileSelectOptions(){
     const users = DB.getUsers().filter(u => u.role === pendingRole);
     if(!users.length) return `<option value="any">No registered ${pendingRole} accounts</option>`;
     const lastUser = localStorage.getItem("last_login_user");
-    return users.map(u => `<option value="${u.id}" ${lastUser === u.id ? "selected" : ""}>${Utils.escapeHtml(u.name)}</option>`).join("");
+    const activeUser = users.some(u => u.id === lastUser) ? lastUser : users[0].id;
+    return users.map(u => `<option value="${u.id}" ${activeUser === u.id ? "selected" : ""}>${Utils.escapeHtml(u.name)}</option>`).join("");
   }
 
-  // (2026-07-13) Multi-tier PIN matcher & role fallback; was rigid select-only
+  // (2026-07-13) Validate PIN for selected user only; was global fallback
   function tryLogin(){
     if(!pinBuffer || pinBuffer.length < 4) return;
     const allUsers = DB.getUsers();
@@ -92,17 +93,13 @@ const Auth = (() => {
     const matchPin = (u) => String(u?.pin ?? "").trim() === cleanInput;
 
     if(selId && selId !== "any"){
-      const specific = allUsers.find(u => u.id === selId);
+      const specific = allUsers.find(u => u.id === selId && u.role === pendingRole) || allUsers.find(u => u.id === selId);
       if(specific && matchPin(specific)){
         match = specific;
       }
-    }
-    if(!match){
+    } else {
       const roleUsers = allUsers.filter(u => u.role === pendingRole);
       match = roleUsers.find(matchPin);
-    }
-    if(!match){
-      match = allUsers.find(matchPin);
     }
 
     if(match){
@@ -189,6 +186,17 @@ const Auth = (() => {
     renderPinDots();
     document.getElementById("role-cashier").onclick = () => setRole("cashier");
     document.getElementById("role-admin").onclick = () => setRole("admin");
+    // (2026-07-13) Clear PIN and persist user on select change; was unhandled
+    const selUser = document.getElementById("login-user-select");
+    if(selUser){
+      selUser.onchange = () => {
+        pinBuffer = "";
+        renderPinDots();
+        if(selUser.value && selUser.value !== "any"){
+          localStorage.setItem("last_login_user", selUser.value);
+        }
+      };
+    }
     document.getElementById("btn-login-change-pin").onclick = () => openChangePinModal(pendingRole);
     document.getElementById("pin-pad").addEventListener("click", (e)=>{
       const btn = e.target.closest("button"); if(!btn) return;
@@ -317,13 +325,18 @@ const Auth = (() => {
     }
   }
 
-  // (2026-07-13) Update profile select options on role switch; was static tabs
+  // (2026-07-13) Sync last_login_user on role switch; was innerHTML only
   function setRole(role){
     pendingRole = role; pinBuffer = "";
     document.getElementById("role-cashier")?.classList.toggle("active", role==="cashier");
     document.getElementById("role-admin")?.classList.toggle("active", role==="admin");
     const sel = document.getElementById("login-user-select");
-    if(sel) sel.innerHTML = getProfileSelectOptions();
+    if(sel){
+      sel.innerHTML = getProfileSelectOptions();
+      if(sel.value && sel.value !== "any"){
+        localStorage.setItem("last_login_user", sel.value);
+      }
+    }
     renderPinDots();
   }
 

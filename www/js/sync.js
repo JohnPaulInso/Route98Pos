@@ -311,12 +311,71 @@ const Sync = (() => {
       manualSales.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       recentImported.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
       
-      // (2026-07-13) Cap snapshot payload under 750KB; was 1000 sales over 1MB limit
-      const syncSales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 400);
+  async function resolveRemoteSales(remoteData, database, mod){
+    if(!remoteData) return remoteData;
+    const chunkCount = Number(remoteData.salesChunkCount || 0);
+    if(chunkCount > 0){
+      try {
+        const promises = [];
+        for(let i = 0; i < chunkCount; i++){
+          promises.push(mod.getDoc(mod.doc(database, "minimart_sales_chunks", `chunk_${i}`)).catch(()=>null));
+        }
+        const docs = await Promise.all(promises);
+        const extra = [];
+        docs.forEach(d => {
+          if(d && d.exists()){
+            const cData = d.data();
+            if(Array.isArray(cData?.sales)) extra.push(...cData.sales);
+          }
+        });
+        if(extra.length){
+          const sMap = new Map();
+          (remoteData.sales || []).forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k) sMap.set(k, s); });
+          extra.forEach(s => { const k = String(s.receiptNo || s.id || '').trim(); if(k && !sMap.has(k)) sMap.set(k, s); });
+          remoteData.sales = Array.from(sMap.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+        }
+      } catch(e) {
+        console.warn("Could not fetch remote sales chunks:", e);
+      }
+    }
+    return remoteData;
+  }
+
+      // (2026-07-13) Chunk sales history in sync; was slicing 400 sales dropping dates
+      const compactSale = (s) => {
+        if(!s) return s;
+        if(!Array.isArray(s.items)) return s;
+        return {
+          ...s,
+          items: s.items.map(it => {
+            if(!it || !it.imageUrl) return it;
+            const { imageUrl, ...rest } = it;
+            return rest;
+          })
+        };
+      };
+      const allCleanSales = Array.from(sMap.values()).map(compactSale).sort((a,b)=>(b.ts||0)-(a.ts||0));
+      const syncSales = allCleanSales.slice(0, 350);
+      const remainingSales = allCleanSales.slice(350);
+      const CHUNK_SIZE = 350;
+      const salesChunkCount = Math.ceil(remainingSales.length / CHUNK_SIZE);
+      for(let ci = 0; ci < salesChunkCount; ci++){
+        const slice = remainingSales.slice(ci * CHUNK_SIZE, (ci + 1) * CHUNK_SIZE);
+        try {
+          await mod.setDoc(mod.doc(database, "minimart_sales_chunks", `chunk_${ci}`), {
+            chunkIndex: ci,
+            sales: slice,
+            updatedAt: exportTime
+          }, { merge: false });
+        } catch(cErr){
+          console.warn("Could not save sales chunk " + ci, cErr);
+        }
+      }
 
       const cloudSnap = {
         ...finalSnap,
         sales: syncSales,
+        salesChunkCount,
         restockLogs: (finalSnap.restockLogs || []).slice(0, 100),
         stockLog: (finalSnap.stockLog || []).slice(0, 100),
         voidLogs: (finalSnap.voidLogs || []).slice(0, 100),
@@ -324,7 +383,7 @@ const Sync = (() => {
         backups: finalSnap.backups || [],
         deletedSaleIds: Array.from(DB.getDeletedSaleIds ? DB.getDeletedSaleIds() : []),
         deletedShiftLogIds: Array.from(DB.getDeletedShiftLogIds ? DB.getDeletedShiftLogIds() : []),
-        isPartialSalesSync: true,
+        isPartialSalesSync: false,
         exportedAt: exportTime
       };
 
@@ -381,7 +440,8 @@ const Sync = (() => {
         snapDoc = await mod.getDoc(mod.doc(database, "minimart_snapshots", "store")).catch(()=>null);
       }
       if(snapDoc && snapDoc.exists()){
-        const remoteData = snapDoc.data();
+        let remoteData = snapDoc.data();
+        remoteData = await resolveRemoteSales(remoteData, database, mod);
         const baseline = DB.getSyncBaseline();
         const localSnap = DB.snapshot();
         const merged = threeWayMerge(baseline, localSnap, remoteData);
@@ -747,11 +807,11 @@ const Sync = (() => {
       if(unsubSnapshot) unsubSnapshot();
 
       // (2026-07-13) Skip stale cached onSnapshot; was processing cached docs
-      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, (docSnap) => {
+      unsubSnapshot = mod.onSnapshot(mod.doc(database, "minimart_snapshots", "store"), { includeMetadataChanges: true }, async (docSnap) => {
         if(docSnap.metadata?.hasPendingWrites) return;
         if(docSnap.metadata?.fromCache) return;
         if(docSnap.exists()){
-          const remoteData = docSnap.data();
+          let remoteData = docSnap.data();
           if(lastPushedExportedAt && remoteData.exportedAt === lastPushedExportedAt) return;
           DB.invalidateCache?.();
           const baseline = DB.getSyncBaseline();
@@ -759,6 +819,7 @@ const Sync = (() => {
           if(baseline && remoteData.exportedAt && baseline.exportedAt === remoteData.exportedAt) return;
           isSyncing = true;
           try {
+            remoteData = await resolveRemoteSales(remoteData, database, mod);
             const merged = threeWayMerge(baseline, localSnap, remoteData);
             DB.restoreSnapshot(merged);
             DB.setSyncBaseline(merged);

@@ -4,6 +4,8 @@
 // ============================================================
 const { runInventorySyncTest } = require('./inventory/test-live-inventory');
 const { runReceiptsSyncTest } = require('./receipts/test-live-receipts');
+// (2026-07-13) Include full lifecycle test suite in master runner; was 2 suites
+const { runFullFlowTest } = require('./full-flow/test-full-flow');
 
 const COLORS = {
   reset: '\x1b[0m',
@@ -24,6 +26,9 @@ async function runAllSuites() {
 
   console.log(`\n${COLORS.cyan}Running Test Suite 2: Live Multi-Device Receipts Sync...${COLORS.reset}`);
   await runReceiptsSyncTest();
+
+  console.log(`\n${COLORS.cyan}Running Test Suite 3: Complete POS Lifecycle & Void Flow...${COLORS.reset}`);
+  await runFullFlowTest();
 
   console.log(`\n${COLORS.green}${COLORS.bold}============================================================${COLORS.reset}`);
   console.log(`${COLORS.green}${COLORS.bold}  ALL AUTOMATED PLAYWRIGHT TEST SUITES COMPLETED!           ${COLORS.reset}`);
