@@ -143,9 +143,14 @@ async function runReceiptsSyncTest() {
 
     // ----------------------------------------------------
     logStep(6, 'Clean up test transaction');
-    await pageA.evaluate((id) => {
-      const sales = DB.getSales().filter(s => s.id !== id);
+    // (2026-07-13) Delete test transaction and sync cloud snapshot; was local only
+    await pageA.evaluate(async (id) => {
+      const sales = DB.getSales().filter(s => s.id !== id && s.receiptNo !== id.replace('TXN-', ''));
       DB.setSales(sales);
+      if (typeof Sync !== 'undefined') {
+        if (Sync.deleteSaleDoc) await Sync.deleteSaleDoc(id);
+        if (Sync.pushSnapshot) await Sync.pushSnapshot(true);
+      }
     }, txnId);
     logPass('Cleanup', `Removed automated test transaction ${txnId}`);
 

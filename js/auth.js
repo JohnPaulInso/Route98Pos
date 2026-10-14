@@ -370,7 +370,8 @@ const Auth = (() => {
     localStorage.setItem("last_login_role", session.role);
     localStorage.setItem("last_login_user", session.id);
     cleanupKeyboardListener();
-    if(typeof App !== "undefined" && App.boot) App.boot();
+    // (2026-07-13) Safe window.App check in programmatic login; was unwindowed App
+    if(typeof window !== "undefined" && window.App && window.App.boot) window.App.boot();
   }
 
   return { render, currentUser, isAdmin, logout, restoreSession, requireAdminPin, login };

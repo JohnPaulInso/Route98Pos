@@ -866,7 +866,8 @@ const Inventory = (() => {
   // (2026-07-13) Filterable physical audit with All-Time default & DB sync; was sales-only
   // (2026-10-03) Add pagination to Physical Count Audit; was loading all products causing lag
   let auditPage = 1;
-  let auditRPP = 100;
+  // (2026-07-13) Set default physical count audit RPP to 40; was 100
+  let auditRPP = 40;
 
   function openPhysicalCountAudit(){
     const user = Auth.currentUser ? Auth.currentUser() : null;
@@ -1022,6 +1023,8 @@ const Inventory = (() => {
         <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
           <span style="font-weight:500;">Rows per page:</span>
           <select id="audit-pg-rpp" class="input" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
+            <!-- (2026-07-13) Default 40 rows per page option; was 50 default -->
+            <option value="40" ${auditRPP === 40 ? 'selected' : ''}>40</option>
             <option value="50" ${auditRPP === 50 ? 'selected' : ''}>50</option>
             <option value="100" ${auditRPP === 100 ? 'selected' : ''}>100</option>
             <option value="200" ${auditRPP === 200 ? 'selected' : ''}>200</option>
@@ -1167,7 +1170,8 @@ const Inventory = (() => {
       const rppSelect = modal.querySelector("#audit-pg-rpp");
       if(rppSelect){
         rppSelect.onchange = () => {
-          auditRPP = Number(rppSelect.value) || 100;
+          // (2026-07-13) Set auditRPP fallback to 40; was 100
+          auditRPP = Number(rppSelect.value) || 40;
           auditPage = 1;
           refreshAuditModal();
         };

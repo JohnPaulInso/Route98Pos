@@ -317,7 +317,8 @@ const Settings = (() => {
           <div>
             <!-- (2026-07-13) Flex row layout with left-aligned icon in headers; was block stack -->
             <h3 style="margin:0 0 2px;display:flex;align-items:center;gap:8px;">${Icons.get("database",{size:16})}<span>Daily Automated Backups (11:59 PM)</span></h3>
-            <p class="text-sm text-faint" style="margin:0;">Automated backup triggers daily at 11:59 PM. Next scheduled: <strong>${targetStr}</strong></p>
+            <!-- (2026-07-13) Show live Firestore counts under backup header; was static text -->
+            <p class="text-sm text-faint" style="margin:0;">Automated backup triggers daily at 11:59 PM. Next scheduled: <strong>${targetStr}</strong>&ensp;·&ensp;<span style="color:var(--brand);font-weight:600;">${DB.getProducts().length} Prods&ensp;·&ensp;${DB.getSales().length} Sales&ensp;·&ensp;${DB.getExpenses ? DB.getExpenses().length : 0} OPEX</span></p>
           </div>
           <button class="btn btn-sm btn-primary" id="btn-create-backup-now">${Icons.get("plus",{size:13})} Run Backup Now</button>
         </div>
@@ -516,7 +517,8 @@ const Settings = (() => {
             if(!snap && DB.buildSnapshotAt) snap = DB.buildSnapshotAt(item.createdAt);
             // (2026-07-13) Safe restore snapshot with fallback; was restoring empty item
             if(snap && (snap.products || snap.sales || snap.fuelSales || snap.dayBalances)){
-              DB.restoreSnapshot(snap);
+              // (2026-07-13) Force full overwrite on manual restore; was merge (didn't remove extras)
+              DB.restoreSnapshot(snap, true);
               Utils.toast("Backup restored successfully.", "success");
             } else {
               if(DB.init) DB.init();

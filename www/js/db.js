@@ -360,6 +360,8 @@ const DB = (() => {
     }
     // (2026-07-13) Auto-populate past daily backups history; was 2 recent only
     populateHistoricalBackups();
+    // (2026-07-13) Auto-deduplicate sales on init; was seed-only load
+    deduplicateSales();
   }
 
   // (2026-07-13) Auto-deduplicate products by id, barcode & name; was raw push
@@ -458,31 +460,68 @@ const DB = (() => {
     return cachedCategories;
   };
   const setCategories = (v) => { cachedCategories = null; return write(KEYS.categories, dedupeCats(v)); };
-  // (2026-07-13) Dedupe sales & normalize numeric timestamps; was raw array
+  // (2026-07-13) Dedupe sales & purge imported duplicates; was simple receipt map
   function dedupeSalesList(list){
     if(!Array.isArray(list) || list.length <= 1) return list || [];
     const map = new Map();
+    const sigMap = new Map();
+    const normalizeTxn = (str) => String(str || "").replace(/^TXN-/i, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
     list.forEach(s => {
       if(!s) return;
       if(s.ts === undefined || typeof s.ts !== "number"){
         const parsed = (typeof Analytics !== "undefined" && Analytics.parseTs) ? Analytics.parseTs(s.ts ?? s.timestamp ?? s.date ?? s.createdAt) : (new Date(s.ts ?? s.timestamp ?? s.date ?? s.createdAt).getTime() || Date.now());
         if(!isNaN(parsed) && parsed > 0) s.ts = parsed;
       }
-      const key = String(s.receiptNo || s.id || '').trim();
-      if(key && map.has(key)){
-        const ex = map.get(key);
-        if((!ex.items || !ex.items.length) && (s.items && s.items.length)) ex.items = s.items;
-      } else if(key){
-        map.set(key, s);
+      const rawKey = String(s.receiptNo || s.id || '').trim();
+      const normId = normalizeTxn(s.id);
+      const normRc = normalizeTxn(s.receiptNo);
+      const isImp = Boolean(s.isImported || s.source === "imported");
+
+      const sigKey = `${Math.floor((s.ts || 0) / 1000)}_${Utils.round2(s.total || 0)}_${(s.items || []).length}_${normId || normRc}`;
+      const altSigKey = `${Math.floor((s.ts || 0) / 1000)}_${Utils.round2(s.total || 0)}_${(s.items || []).length}`;
+
+      let existing = null;
+      if(rawKey && map.has(rawKey)) existing = map.get(rawKey);
+      else if(sigMap.has(sigKey)) existing = sigMap.get(sigKey);
+      else if(sigMap.has(altSigKey)) existing = sigMap.get(altSigKey);
+
+      if(existing){
+        const exImp = Boolean(existing.isImported || existing.source === "imported");
+        if(exImp && !isImp){
+          if(!s.items || !s.items.length) s.items = existing.items;
+          if(rawKey) map.set(rawKey, s);
+          sigMap.set(sigKey, s);
+          sigMap.set(altSigKey, s);
+        } else {
+          if((!existing.items || !existing.items.length) && (s.items && s.items.length)) existing.items = s.items;
+        }
+      } else {
+        if(rawKey) map.set(rawKey, s);
+        sigMap.set(sigKey, s);
+        sigMap.set(altSigKey, s);
       }
     });
-    return Array.from(map.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    return Array.from(new Set(sigMap.values())).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   }
-  // (2026-07-13) Memoize getSales output to eliminate lag; was parsing 1.8MB per call
+  // (2026-07-13) Deduplicate sales and sync clean store; was products only
+  function deduplicateSales(){
+    const current = read(KEYS.sales, []);
+    const deduped = dedupeSalesList(current);
+    if(current && deduped.length !== current.length){
+      write(KEYS.sales, deduped);
+      cachedProcessedSales = null;
+    }
+    return deduped;
+  }
+  // (2026-07-13) Memoize getSales and auto-save dedupe; was parsing per call
   const getSales = () => {
     if(cachedProcessedSales) return cachedProcessedSales;
     const rawSales = read(KEYS.sales, []);
     const allSales = dedupeSalesList(rawSales);
+    if(rawSales && allSales.length !== rawSales.length){
+      write(KEYS.sales, allSales);
+    }
     // (2026-07-13) Filter sales by deletedIds without mutating set; was deleting IDs
     const deletedIds = getDeletedSaleIds();
     cachedProcessedSales = allSales.filter(s => {
@@ -1368,7 +1407,8 @@ const DB = (() => {
     };
   }
   // (2026-07-13) Timestamp merge products & sync deletedSaleIds. Prev: resurrect
-  function restoreSnapshot(snap){
+  // (2026-07-13) Add forceOverwrite param; was always merging (older backups kept newer extras)
+  function restoreSnapshot(snap, forceOverwrite = false){
     if(!snap) return;
     isSyncRestoring = true;
     try{
@@ -1383,49 +1423,61 @@ const DB = (() => {
       write(KEYS.deletedSaleIds, Array.from(curDeleted), true);
     }
     if(snap.products && snap.products.length){
-      // (2026-07-13) Safely merge products in snapshot restore; was full overwrite
-      const delProds = getDeletedProductIds();
-      const pMap = new Map();
-      getProducts().forEach(p => { if(p?.id && !delProds.has(p.id)) pMap.set(p.id, p); });
-      snap.products.forEach(p => {
-        if(p?.id && !delProds.has(p.id)){
-          const ex = pMap.get(p.id);
-          pMap.set(p.id, !ex || (p.updatedAt || 0) >= (ex.updatedAt || 0) ? { ...ex, ...p } : { ...p, ...ex });
-        }
-      });
-      setProducts(Array.from(pMap.values()));
+      if(forceOverwrite){
+        // (2026-07-13) Full overwrite on manual restore; was merge (kept extras not in backup)
+        setProducts(snap.products);
+      } else {
+        const delProds = getDeletedProductIds();
+        const pMap = new Map();
+        getProducts().forEach(p => { if(p?.id && !delProds.has(p.id)) pMap.set(p.id, p); });
+        snap.products.forEach(p => {
+          if(p?.id && !delProds.has(p.id)){
+            const ex = pMap.get(p.id);
+            pMap.set(p.id, !ex || (p.updatedAt || 0) >= (ex.updatedAt || 0) ? { ...ex, ...p } : { ...p, ...ex });
+          }
+        });
+        setProducts(Array.from(pMap.values()));
+      }
+    } else if(forceOverwrite && snap.products && snap.products.length === 0){
+      setProducts([]);
     }
     if(snap.categories && snap.categories.length) setCategories(snap.categories);
     if(snap.sales && snap.sales.length){
-      const existing = getSales();
-      const deletedIds = getDeletedSaleIds();
-      // (2026-07-13) Normalize receipt keys in snapshot merge; was raw id/receiptNo
-      const sMap = new Map();
-      const normalizeKey = (s) => String(s.receiptNo || s.id || "").trim().replace(/^TXN-/i, "");
-      existing.forEach(s => {
-        const k = normalizeKey(s);
-        const sId = String(s.id || '').trim();
-        if(k && !deletedIds.has(sId) && !deletedIds.has(sId.toLowerCase()) && !deletedIds.has(k) && !deletedIds.has(k.toLowerCase())){
-          sMap.set(k, s);
-        }
-      });
-      snap.sales.forEach(s => { 
-        const k = normalizeKey(s); 
-        const sId = String(s.id || "").trim();
-        const rId = String(s.receiptNo || "").trim();
-        const clean = sId.replace(/^TXN-/i, "");
-        const isDeleted = deletedIds.has(sId) || deletedIds.has(sId.toLowerCase()) ||
-                          deletedIds.has(rId) || deletedIds.has(rId.toLowerCase()) ||
-                          deletedIds.has(clean) || deletedIds.has(clean.toLowerCase());
-        if(k && !isDeleted){
-          const curS = sMap.get(k);
-          if(!curS || (s.ts || 0) >= (curS.ts || 0)){
+      if(forceOverwrite){
+        // (2026-07-13) Full overwrite sales on manual restore; was merge (kept newer extras)
+        setSales(snap.sales);
+      } else {
+        const existing = getSales();
+        const deletedIds = getDeletedSaleIds();
+        const sMap = new Map();
+        const normalizeKey = (s) => String(s.receiptNo || s.id || "").trim().replace(/^TXN-/i, "");
+        existing.forEach(s => {
+          const k = normalizeKey(s);
+          const sId = String(s.id || '').trim();
+          if(k && !deletedIds.has(sId) && !deletedIds.has(sId.toLowerCase()) && !deletedIds.has(k) && !deletedIds.has(k.toLowerCase())){
             sMap.set(k, s);
           }
-        }
-      });
-      const merged = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
-      setSales(merged);
+        });
+        snap.sales.forEach(s => { 
+          const k = normalizeKey(s); 
+          const sId = String(s.id || "").trim();
+          const rId = String(s.receiptNo || "").trim();
+          const clean = sId.replace(/^TXN-/i, "");
+          const isDeleted = deletedIds.has(sId) || deletedIds.has(sId.toLowerCase()) ||
+                            deletedIds.has(rId) || deletedIds.has(rId.toLowerCase()) ||
+                            deletedIds.has(clean) || deletedIds.has(clean.toLowerCase());
+          if(k && !isDeleted){
+            const curS = sMap.get(k);
+            if(!curS || (s.ts || 0) >= (curS.ts || 0)){
+              sMap.set(k, s);
+            }
+          }
+        });
+        const merged = Array.from(sMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        setSales(merged);
+      }
+    } else if(forceOverwrite && snap.sales && snap.sales.length === 0){
+      setSales([]);
     }
     if(snap.fuelSales) setFuelSales(snap.fuelSales);
     if(snap.fuelConfig){
@@ -1582,6 +1634,8 @@ const DB = (() => {
     getSyncBaseline, setSyncBaseline,
     getSavedCart, saveCart,
     getCustomItems, setCustomItems, saveCustomItem,
+    // (2026-07-13) Export deduplicateSales for manual & auto dedupe; was omitted
+    deduplicateSales,
     // (2026-07-13) Export invalidateCache to clear in-memory state; was omitted
     snapshot, restoreSnapshot, wipeAll, invalidateCache
   };

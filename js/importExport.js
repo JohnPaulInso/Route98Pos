@@ -426,19 +426,30 @@ const ImportExport = (() => {
         rawSales = Array.from(grouped.values());
       }
       if(!rawSales.length){ Utils.toast("No sales found.", "warn"); return; }
-      // (2026-07-13) Deduplicate sales by receipt number & id; was order signature
+      // (2026-07-13) Dedupe import matching id, receiptNo & timestamp; was receipt only
       const existing = DB.getSales();
       const salesMap = new Map();
+      const normKey = (str) => String(str || "").replace(/^TXN-/i, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
       existing.forEach(s => {
-        const key = String(s.receiptNo || s.id || '').trim();
-        if(key) salesMap.set(key, s);
+        const rk = String(s.receiptNo || '').trim();
+        const ik = String(s.id || '').trim();
+        const nk = normKey(s.id) || normKey(s.receiptNo);
+        const sig = `${Math.floor((s.ts || 0)/1000)}_${Utils.round2(s.total || 0)}_${(s.items || []).length}`;
+        if(rk) salesMap.set(rk, s);
+        if(ik) salesMap.set(ik, s);
+        if(nk) salesMap.set(nk, s);
+        if(sig) salesMap.set(sig, s);
       });
       let addedCount = 0;
       let mergedCount = 0;
       rawSales.forEach(sale => {
-        const key = String(sale.receiptNo || sale.id || '').trim();
-        if(key && salesMap.has(key)){
-          const ex = salesMap.get(key);
+        const rk = String(sale.receiptNo || '').trim();
+        const ik = String(sale.id || '').trim();
+        const nk = normKey(sale.id) || normKey(sale.receiptNo);
+        const sig = `${Math.floor((sale.ts || 0)/1000)}_${Utils.round2(sale.total || 0)}_${(sale.items || []).length}`;
+        const ex = (rk && salesMap.get(rk)) || (ik && salesMap.get(ik)) || (nk && salesMap.get(nk)) || (sig && salesMap.get(sig));
+        if(ex){
           if(sale.items && sale.items.length) ex.items = sale.items;
           ex.method = sale.method || ex.method;
           ex.cashier = sale.cashier || ex.cashier;
@@ -448,12 +459,15 @@ const ImportExport = (() => {
             ex.tendered = sale.tendered || sale.total;
           }
           mergedCount++;
-        } else if(key){
+        } else {
+          const key = rk || ik || nk || Utils.uid("sale");
           salesMap.set(key, sale);
+          if(nk) salesMap.set(nk, sale);
+          if(sig) salesMap.set(sig, sale);
           addedCount++;
         }
       });
-      const updatedList = Array.from(salesMap.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      const updatedList = Array.from(new Set(salesMap.values())).sort((a, b) => (b.ts || 0) - (a.ts || 0));
       DB.setSales(updatedList);
       Utils.toast(`Imported ${addedCount} sales (${mergedCount} updated).`, "success");
       onDone?.();

@@ -29,6 +29,50 @@ function logFail(action, error = '') {
   console.log(`${COLORS.red}${COLORS.bold}[FAIL]${COLORS.reset} ${action} ${error ? '→ ' + error : ''}`);
 }
 
+// (2026-07-13) Add action loggers for click, fill, eval; was basic logs only
+async function tryAction(label, fn) {
+  try {
+    const res = await fn();
+    logPass(label, 'succeeded');
+    return res;
+  } catch (err) {
+    logFail(label, err.message || String(err));
+    throw err;
+  }
+}
+
+async function clickAction(target, selector, label = '') {
+  const desc = label || `Click ${selector}`;
+  return tryAction(desc, async () => {
+    if (typeof target.click === 'function') {
+      await target.click(selector);
+    } else {
+      await target.locator(selector).first().click();
+    }
+  });
+}
+
+async function fillAction(target, selector, val, label = '') {
+  const desc = label || `Fill ${selector}`;
+  return tryAction(desc, async () => {
+    await target.fill(selector, String(val));
+  });
+}
+
+async function selectAction(target, selector, val, label = '') {
+  const desc = label || `Select ${selector} -> ${val}`;
+  return tryAction(desc, async () => {
+    await target.selectOption(selector, val);
+  });
+}
+
+async function evalAction(target, fn, arg, label = '') {
+  const desc = label || `Evaluate expression`;
+  return tryAction(desc, async () => {
+    return await target.evaluate(fn, arg);
+  });
+}
+
 function logStep(stepNum, title) {
   console.log(`\n${COLORS.cyan}${COLORS.bold}▶ STEP ${stepNum}:${COLORS.reset} ${COLORS.bold}${title}${COLORS.reset}`);
 }
@@ -91,21 +135,21 @@ async function launchMultiDeviceSession({ port = 8181, slowMo = 300 } = {}) {
     logPass('Local Test Server', `Already running on http://127.0.0.1:${port}/`);
   }
 
-  // Launch two separate browser instances with distinct windows so user sees everything side-by-side
+  // (2026-07-13) Launch maximized fullscreen view mode; was 800x900 window
   const browserA = await chromium.launch({
     headless: false,
     slowMo,
-    args: ['--window-size=800,900', '--window-position=50,50']
+    args: ['--start-maximized']
   });
 
   const browserB = await chromium.launch({
     headless: false,
     slowMo,
-    args: ['--window-size=800,900', '--window-position=870,50']
+    args: ['--start-maximized']
   });
 
-  const contextA = await browserA.newContext({ viewport: { width: 780, height: 850 } });
-  const contextB = await browserB.newContext({ viewport: { width: 780, height: 850 } });
+  const contextA = await browserA.newContext({ viewport: null });
+  const contextB = await browserB.newContext({ viewport: null });
 
   const pageA = await contextA.newPage();
   const pageB = await contextB.newPage();
@@ -119,6 +163,11 @@ module.exports = {
   logFail,
   logStep,
   logHeader,
+  tryAction,
+  clickAction,
+  fillAction,
+  selectAction,
+  evalAction,
   launchMultiDeviceSession,
   COLORS
 };

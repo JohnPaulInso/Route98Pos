@@ -183,9 +183,15 @@ async function runInventorySyncTest() {
 
     // ----------------------------------------------------
     logStep(8, 'Clean up test item');
-    await pageA.evaluate((barcode) => {
-      const prods = DB.getProducts().filter(p => p.barcode !== barcode);
-      DB.setProducts(prods);
+    // (2026-07-13) Delete test product and sync cloud snapshot; was local filter only
+    await pageA.evaluate(async (barcode) => {
+      const prod = DB.getProducts().find(p => p.barcode === barcode);
+      if (prod && DB.deleteProduct) {
+        DB.deleteProduct(prod.id);
+      } else {
+        DB.setProducts(DB.getProducts().filter(p => p.barcode !== barcode));
+      }
+      if (typeof Sync !== 'undefined' && Sync.pushSnapshot) await Sync.pushSnapshot(true);
     }, testBarcode);
     logPass('Cleanup', `Removed automated test product ${testBarcode}`);
 

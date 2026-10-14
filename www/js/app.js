@@ -110,7 +110,17 @@ const App = (() => {
     if(dot){ dot.textContent = count; dot.style.display = count > 0 ? "inline-flex" : "none"; }
     const dotB = document.getElementById("inv-badge-dot-bn");
     if(dotB){ dotB.style.display = count > 0 ? "block" : "none"; }
-    document.getElementById("topbar-title-view") && (document.getElementById("topbar-title-view").textContent = VIEWS.find(v=>v.id===currentView)?.label || "");
+    // (2026-07-13) Append live counts to topbar title; was static label text
+    const titleViewEl = document.getElementById("topbar-title-view");
+    if(titleViewEl){
+      const baseLabel = VIEWS.find(v=>v.id===currentView)?.label || "";
+      if(currentView === "inventory"){
+        const prodCount = typeof DB !== "undefined" && DB.getProducts ? DB.getProducts().length : 0;
+        titleViewEl.textContent = `${baseLabel} (${prodCount} Products)`;
+      } else {
+        titleViewEl.textContent = baseLabel;
+      }
+    }
     paintShiftIndicator();
   }
 
@@ -478,5 +488,7 @@ document.addEventListener("wheel", (e) => {
     chips.addEventListener("scroll", () => updateGradientFade(chips), { passive: true });
   });
 })();
+// (2026-07-13) Attach App to window for global cross-module access; was local const
+if(typeof window !== "undefined") window.App = App;
 
 document.addEventListener("DOMContentLoaded", App.init);

@@ -29,7 +29,8 @@ const Reports = (() => {
   let selectedReceiptIds = new Set();
   // (2026-07-13) Track receipt pagination state; was unpaginated
   let receiptPage = 1;
-  let receiptRPP = 100;
+  // (2026-07-13) Set default receipts rows per page to 30; was 40
+  let receiptRPP = 30;
   // (2026-07-13) Add purchases and fuel sales pagination state; was unpaginated
   let purchasesPage = 1;
   let purchasesRPP = 25;
@@ -984,21 +985,22 @@ const Reports = (() => {
     });
   }
 
-  // (2026-07-13) Log stock before/after on batch deletion; was qty & name only
+  // (2026-07-13) Support unique saleKey in batch deletion; was id only
   function batchDeleteSales(saleIds){
     if(deleteConfirmOpen) return;
     if(!saleIds || !saleIds.length) return;
-    // (2026-07-13) Fix batch receipt matching & direct Firestore sync; was partial
+    const toSaleKey = (x) => String(x.uid || (String(x.id || '') + '__' + String(x.receiptNo || '') + '__' + String(x.ts || '') + '__' + (x.isImported ? 'imp' : 'man')));
     const idSet = new Set(saleIds.flatMap(id => [String(id), Number(id)].filter(v => v !== "" && (!isNaN(v) || typeof v === "string"))));
     const allSales = DB.getSales();
     const toDelete = allSales.filter(x => {
+      const sk = toSaleKey(x);
       const sid = String(x.id || "");
       const snum = Number(x.id);
       const rnum = Number(x.receiptNo);
       const cleanId = sid.replace(/^TXN-/i, "");
       const rId = String(x.receiptNo || "");
       const cleanRc = rId.replace(/^TXN-/i, "");
-      return idSet.has(x.id) || idSet.has(sid) || (!isNaN(snum) && idSet.has(snum)) || (!isNaN(rnum) && idSet.has(rnum)) || idSet.has(cleanId) || idSet.has(rId) || idSet.has(cleanRc);
+      return idSet.has(sk) || idSet.has(x.id) || idSet.has(sid) || (!isNaN(snum) && idSet.has(snum)) || (!isNaN(rnum) && idSet.has(rnum)) || idSet.has(cleanId) || idSet.has(rId) || idSet.has(cleanRc);
     });
     if(!toDelete.length) return;
 
@@ -1052,25 +1054,11 @@ const Reports = (() => {
           });
           DB.setProducts(products);
           voidLogsPage = 1;
-          const deleteKeySet = new Set();
+          const toDeleteKeys = new Set(toDelete.map(toSaleKey));
+          DB.setSales(allSales.filter(x => !toDeleteKeys.has(toSaleKey(x))));
           toDelete.forEach(s => {
-            if(s.id != null){ deleteKeySet.add(String(s.id)); deleteKeySet.add(s.id); }
-            if(s.receiptNo != null){ deleteKeySet.add(String(s.receiptNo)); deleteKeySet.add(s.receiptNo); }
-            const cId = String(s.id || "").replace(/^TXN-/i, "");
-            const cRc = String(s.receiptNo || "").replace(/^TXN-/i, "");
-            if(cId) deleteKeySet.add(cId);
-            if(cRc) deleteKeySet.add(cRc);
-          });
-          DB.setSales(allSales.filter(x => {
-            const sid = String(x.id || "");
-            const snum = Number(x.id);
-            const rId = String(x.receiptNo || "");
-            const cId = sid.replace(/^TXN-/i, "");
-            const cRc = rId.replace(/^TXN-/i, "");
-            return !deleteKeySet.has(x.id) && !deleteKeySet.has(sid) && (!isNaN(snum) ? !deleteKeySet.has(snum) : true) &&
-                   !deleteKeySet.has(x.receiptNo) && !deleteKeySet.has(rId) && !deleteKeySet.has(cId) && !deleteKeySet.has(cRc);
-          }));
-          toDelete.forEach(s => {
+            const sk = toSaleKey(s);
+            selectedReceiptIds.delete(sk);
             selectedReceiptIds.delete(s.id);
             selectedReceiptIds.delete(String(s.id));
             DB.markSaleDeleted(s.id, s.receiptNo);
@@ -1656,6 +1644,8 @@ const Reports = (() => {
             </div>
           </div>
         </div>
+        <!-- (2026-07-13) Live sales count flush-right on filter bar; was absent -->
+        <span class="rpt-live-count" style="margin-left:auto;white-space:nowrap;font-size:0.78rem;font-weight:700;color:var(--brand);opacity:0.85;padding:0 2px;" id="rpt-sales-count-pill">${(()=>{ const r2=getActiveRange(); const ff=getReportFilterFn(); return DB.getSales().filter(s=>s.ts>=r2.start&&s.ts<=r2.end&&ff(s)).length; })()} Sales</span>
       </div>`;
   }
 
@@ -2178,10 +2168,37 @@ const Reports = (() => {
         return false;
       });
     }
-    
-    // (2026-07-13) Checkbox selection matching string/num; was strict
-    const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id)));
-    const selectedCount = sales.filter(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id))).length;
+    const toSaleKey = (s) => String(s.uid || (String(s.id || '') + '__' + String(s.receiptNo || '') + '__' + String(s.ts || '') + '__' + (s.isImported ? 'imp' : 'man')));
+    // (2026-07-13) Apply column sorting for receipts; was unsorted
+    const sortCol = sortState.receipts?.column || 'ts';
+    const sortDir = sortState.receipts?.direction || 'desc';
+    sales.sort((a, b) => {
+      let valA, valB;
+      if(sortCol === 'source'){
+        const isImpA = Boolean(a.isImported || a.source === "imported" || (typeof a.id === "string" && (a.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(a.id))));
+        const isImpB = Boolean(b.isImported || b.source === "imported" || (typeof b.id === "string" && (b.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(b.id))));
+        valA = isImpA ? "Imported" : "Manual";
+        valB = isImpB ? "Imported" : "Manual";
+        return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      } else if(sortCol === 'total'){
+        valA = a.total || 0;
+        valB = b.total || 0;
+      } else if(sortCol === 'id'){
+        valA = String(a.receiptNo || a.id || '');
+        valB = String(b.receiptNo || b.id || '');
+        return sortDir === 'asc' ? valA.localeCompare(valB, undefined, { numeric: true }) : valB.localeCompare(valA, undefined, { numeric: true });
+      } else {
+        valA = a.ts || 0;
+        valB = b.ts || 0;
+      }
+      if(valA < valB) return sortDir === 'asc' ? -1 : 1;
+      if(valA > valB) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    // (2026-07-13) Checkbox selection matching unique saleKey; was id only
+    const allChecked = sales.length > 0 && sales.every(s => selectedReceiptIds.has(toSaleKey(s)) || selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id)));
+    const selectedCount = sales.filter(s => selectedReceiptIds.has(toSaleKey(s)) || selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id))).length;
     const receiptColSpan = window.innerWidth <= 767 ? 5 : 10;
 
     // (2026-07-13) Daily starting/ending balance DB save; was shift cash all ranges
@@ -2340,7 +2357,8 @@ const Reports = (() => {
           <!-- (2026-07-13) Add column classes for PC width tuning; was unclassed th -->
           <th class="desktop-only receipt-col-time">Time</th>
           <th class="desktop-only receipt-col-txnid">Txn ID</th>
-          <th class="desktop-only receipt-col-source">Source</th>
+          <!-- (2026-07-13) Sortable source column header; was static text -->
+          <th class="desktop-only receipt-col-source sortable-header" data-table="receipts" data-col="source" style="cursor:pointer;" title="Sort by Source (Manual / Imported)">Source ${sortState.receipts.column === 'source' ? (sortState.receipts.direction === 'asc' ? '↑' : '↓') : '<span style="opacity:0.3">⇅</span>'}</th>
           <th class="receipt-col-items">Items</th>
           <th class="receipt-col-total">Total</th>
           <th class="desktop-only receipt-col-method">Method</th>
@@ -2377,17 +2395,18 @@ const Reports = (() => {
           </td>
         </tr>
         ${pagedSales.map((s, idx) => {
+          const saleKey = toSaleKey(s);
           const isImp = s.isImported || s.source === "imported" || (typeof s.id === "string" && (s.id.includes("OLD") || /^(?:TXN-)?(?:1|2)-\d+/.test(s.id)));
-          const isChecked = selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id));
+          const isChecked = selectedReceiptIds.has(saleKey) || selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id));
           // (2026-07-13) Line-break max 3 items with +N more; was comma-joined text
           const sItems = s.items || [];
           const dispItems = sItems.slice(0, 3);
           const moreCount = sItems.length - 3;
           const fullTitle = sItems.map(it => `@${it.qty}x ${it.name}`).join("\n");
           // (2026-07-13) Inline row & button receipt click; was unhandled delegated
-          return `<tr class="receipt-row ${isChecked ? "selected-row" : ""}" data-sale-idx="${idx}" data-sale-row-id="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="if(!event.target.closest('.receipt-select-cell, input, [data-edit-sale-row], [data-reprint], [data-delete-sale]')) Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');" style="cursor:pointer;${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
+          return `<tr class="receipt-row ${isChecked ? "selected-row" : ""}" data-sale-idx="${idx}" data-sale-row-id="${Utils.escapeHtml(String(s.id || ''))}" data-sale-key="${saleKey}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="if(!event.target.closest('.receipt-select-cell, input, [data-edit-sale-row], [data-reprint], [data-delete-sale]')) Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');" style="cursor:pointer;${isChecked ? "background:var(--brand-tint, rgba(47,66,216,0.08));" : ""}">
           <td style="width:32px;text-align:center;" class="receipt-select-cell">
-            <input type="checkbox" class="receipt-select-chk" data-sale-id="${Utils.escapeHtml(String(s.id || ''))}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
+            <input type="checkbox" class="receipt-select-chk" data-sale-key="${saleKey}" data-sale-id="${Utils.escapeHtml(String(s.id || ''))}" ${isChecked ? "checked" : ""} style="cursor:pointer;width:16px;height:16px;vertical-align:middle;">
           </td>
           <!-- (2026-07-13) Show row num & txn id; was row num truncated -->
           <td class="receipt-col-txn" style="cursor:pointer;" data-sale-idx="${idx}" data-view-receipt="${Utils.escapeHtml(String(s.id || ''))}" data-receipt-no="${Utils.escapeHtml(String(s.receiptNo || ''))}" onclick="event.stopPropagation(); Reports.viewReceiptByIndex(${idx}, '${Utils.escapeHtml(String(s.id || ''))}');">
@@ -2568,6 +2587,8 @@ const Reports = (() => {
           <select class="pg-select" id="${idPrefix}-rpp" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
             <option value="10" ${pageSize === 10 ? "selected" : ""}>10</option>
             <option value="25" ${pageSize === 25 ? "selected" : ""}>25</option>
+            <!-- (2026-07-13) Default 40 rows per page option; was 50/100 jump -->
+            <option value="40" ${pageSize === 40 ? "selected" : ""}>40</option>
             <option value="50" ${pageSize === 50 ? "selected" : ""}>50</option>
             <option value="100" ${pageSize === 100 ? "selected" : ""}>100</option>
           </select>
@@ -2674,7 +2695,8 @@ const Reports = (() => {
     const rppSel = document.getElementById("void-pg-rpp");
     if(rppSel){
       rppSel.onchange = (e) => {
-        voidLogsRPP = parseInt(e.target.value, 10) || 100;
+        // (2026-07-13) Set voidLogsRPP fallback to 40; was 100
+        voidLogsRPP = parseInt(e.target.value, 10) || 40;
         voidLogsPage = 1;
         rerender();
       };
@@ -3541,25 +3563,29 @@ const Reports = (() => {
           return true;
         });
         
+        // (2026-07-13) Track cost per product for profit dataset; was revenue only
+        const costMap = {};
+        (DB.getProducts ? DB.getProducts() : []).forEach(p => { if(p.id) costMap[p.id] = p.costPrice || 0; });
         const productMap = {};
         allSales.forEach(sale => {
           (sale.items || []).forEach(item => {
             const key = item.productId || item.name;
             if (!productMap[key]) {
-              productMap[key] = {
-                name: item.name,
-                revenue: 0,
-                quantity: 0
-              };
+              productMap[key] = { name: item.name, revenue: 0, cost: 0, quantity: 0 };
             }
-            productMap[key].revenue += ((item.price || 0) * (item.qty || 1));
-            productMap[key].quantity += (item.qty || 1);
+            const qty = item.qty || 1;
+            const rev = (item.price || 0) * qty;
+            const cst = (item.cost !== undefined ? Number(item.cost) : (costMap[item.productId] || 0)) * qty;
+            productMap[key].revenue += rev;
+            productMap[key].cost += cst;
+            productMap[key].quantity += qty;
           });
         });
-        
+
         const topProducts = Object.values(productMap)
           .sort((a, b) => b.revenue - a.revenue)
           .slice(0, 8);
+        topProducts.forEach(p => { p.profit = Math.max(0, p.revenue - p.cost); });
         
         overviewCharts.topProducts = new Chart(topProdsCtx, {
           type: "bar",
@@ -3568,74 +3594,46 @@ const Reports = (() => {
             datasets: [{
               label: "Revenue",
               data: topProducts.length ? topProducts.map(p => p.revenue) : [0],
-              backgroundColor: (context) => {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea || !isFinite(chartArea.left) || !isFinite(chartArea.right) || chartArea.right <= chartArea.left) return '#3B82F6';
-                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                gradient.addColorStop(0, '#3B82F6');
-                gradient.addColorStop(0.5, '#6366F1');
-                gradient.addColorStop(1, '#8B5CF6');
-                return gradient;
-              },
-              borderRadius: 10,
+              // (2026-07-13) Per-bar colors; was two-dataset with profit (removed)
+              backgroundColor: ['#3B82F6','#6366F1','#8B5CF6','#4F46E5','#60A5FA','#7C3AED','#2563EB','#818CF8'].slice(0, topProducts.length),
+              hoverBackgroundColor: ['#2563EB','#4F46E5','#7C3AED','#3730A3','#1D4ED8','#6D28D9','#1E40AF','#4338CA'].slice(0, topProducts.length),
+              borderRadius: { topRight: 8, bottomRight: 8, topLeft: 0, bottomLeft: 0 },
               borderSkipped: false,
-              barThickness: 26,
               borderWidth: 0,
-              hoverBackgroundColor: (context) => {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea || !isFinite(chartArea.left) || !isFinite(chartArea.right) || chartArea.right <= chartArea.left) return '#2563EB';
-                const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                gradient.addColorStop(0, '#2563EB');
-                gradient.addColorStop(0.5, '#4F46E5');
-                gradient.addColorStop(1, '#7C3AED');
-                return gradient;
-              }
+              maxBarThickness: 22,
+              categoryPercentage: 0.8,
+              barPercentage: 0.7
             }]
           },
           options: {
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
-            layout: {
-              padding: {
-                top: 15,
-                right: 30,
-                bottom: 15,
-                left: 15
-              }
-            },
+            layout: { padding: { top: 4, right: 72, bottom: 4, left: 8 } },
             plugins: {
-              legend: { 
-                display: false
-              },
+              // (2026-07-13) No legend needed for single dataset; was showing Revenue+Profit
+              legend: { display: false },
               tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                backgroundColor: 'rgba(15,23,42,0.95)',
                 titleColor: '#fff',
-                bodyColor: '#e2e8f0',
-                padding: 16,
-                cornerRadius: 12,
-                titleFont: { size: 14, weight: 'bold', family: 'Poppins' },
-                bodyFont: { size: 13, weight: '600', family: 'Poppins' },
+                bodyColor: '#cbd5e1',
+                padding: 14,
+                cornerRadius: 10,
+                titleFont: { size: 13, weight: '700' },
+                bodyFont: { size: 12, weight: '500' },
                 displayColors: false,
-                borderColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgba(99,102,241,0.4)',
                 borderWidth: 1,
                 callbacks: {
-                  title: (items) => {
-                    const label = items[0]?.label || '';
-                    return label;
-                  },
+                  title: (items) => items[0]?.label || '',
                   label: (context) => {
                     const value = context.parsed.x || 0;
-                    const idx = context.dataIndex;
-                    const prod = topProducts[idx];
+                    const prod = topProducts[context.dataIndex];
                     const qty = prod?.quantity || 1;
-                    const avgPrice = value / qty;
                     return [
-                      `Revenue: ₱${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                      `Units Sold: ${qty.toLocaleString()} units`,
-                      `Avg. Price: ₱${avgPrice.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      `Revenue: ₱${value.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}`,
+                      `Units Sold: ${qty.toLocaleString()}`,
+                      `Avg: ₱${(value/qty).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}`
                     ];
                   }
                 }
@@ -3644,55 +3642,60 @@ const Reports = (() => {
             scales: {
               x: {
                 beginAtZero: true,
-                grid: {
-                  color: 'rgba(148, 163, 184, 0.08)',
-                  drawBorder: false,
-                  lineWidth: 1
-                },
-                border: {
-                  display: false
-                },
+                grid: { color: 'rgba(148,163,184,0.07)', drawBorder: false },
+                border: { display: false },
                 ticks: {
-                  font: { size: 11, weight: '600', family: 'Poppins' },
-                  color: '#64748b',
-                  padding: 10,
+                  font: { size: 10, weight: '600' },
+                  color: '#94a3b8',
+                  padding: 6,
                   maxRotation: 0,
-                  callback: (value) => {
-                    if (value >= 1000000) return '₱' + (value/1000000).toFixed(1) + 'M';
-                    if (value >= 1000) return '₱' + (value/1000).toFixed(0) + 'k';
-                    return '₱' + (value || 0).toLocaleString();
+                  callback: (v) => {
+                    if(v >= 1000000) return '₱'+(v/1000000).toFixed(1)+'M';
+                    if(v >= 1000) return '₱'+(v/1000).toFixed(0)+'k';
+                    return '₱'+(v||0).toLocaleString();
                   }
                 }
               },
               y: {
-                grid: { 
-                  display: false,
-                  drawBorder: false
-                },
-                border: {
-                  display: false
-                },
+                grid: { display: false, drawBorder: false },
+                border: { display: false },
                 ticks: {
-                  font: { size: 12, weight: '700', family: 'Poppins' },
-                  color: '#1e293b',
-                  padding: 16,
+                  // (2026-07-13) Compact label style; was bold dark overflowing
+                  font: { size: 11, weight: '500' },
+                  color: '#64748b',
+                  padding: 10,
                   crossAlign: 'far',
                   autoSkip: false,
-                  callback: function(value, index) {
+                  callback: function(value, index){
                     const label = this.getLabelForValue(value) || '';
-                    if (label.length > 22) {
-                      return label.substring(0, 20) + '...';
-                    }
-                    return label;
+                    return label.length > 18 ? label.substring(0,16)+'…' : label;
                   }
                 }
               }
             },
-            animation: {
-              duration: 800,
-              easing: 'easeOutQuart'
+            animation: { duration: 600, easing: 'easeOutCubic' }
+          },
+          // (2026-07-13) Inline value labels on bars via plugin; was no labels
+          plugins: [{
+            id: 'barValueLabels',
+            afterDatasetsDraw(chart){
+              const { ctx, data, scales: { x, y } } = chart;
+              ctx.save();
+              data.datasets[0].data.forEach((val, i) => {
+                if(!val) return;
+                const bar = chart.getDatasetMeta(0).data[i];
+                const xPos = x.getPixelForValue(val) + 6;
+                const yPos = bar.y;
+                const label = val >= 1000 ? '₱'+(val/1000).toFixed(1)+'k' : '₱'+val.toLocaleString();
+                ctx.fillStyle = '#64748b';
+                ctx.font = '600 10px system-ui';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, xPos, yPos);
+              });
+              ctx.restore();
             }
-          }
+          }]
         });
       }
     } catch(err) {
@@ -3702,6 +3705,13 @@ const Reports = (() => {
 
   function renderOverview(){
     const wrap = document.getElementById("report-body");
+    // (2026-07-13) Pre-compute bar count for dynamic chart height; was fixed 280px
+    const topProdsCount = Math.min(8, Object.keys((() => {
+      const r = getActiveRange(); const ff = getReportFilterFn();
+      const pm = {};
+      (DB.getSales ? DB.getSales() : []).filter(s => s.ts >= r.start && s.ts <= r.end && ff(s)).forEach(s => (s.items||[]).forEach(it => { pm[it.productId||it.name] = 1; }));
+      return pm;
+    })()).length || 8);
     // (2026-07-13) Remove ov-pl summary container; was pl-summary id=ov-pl
     wrap.innerHTML = `
       <div class="chart-grid">
@@ -3733,10 +3743,11 @@ const Reports = (() => {
           <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-category-pie"></canvas></div>
         </div>
         <div class="chart-card">
-          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);">
+          <h3 style="display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:4px;">
             ${Icons.get("package",{size:18})} Top Products
           </h3>
-          <div style="position:relative;height:200px;width:100%;"><canvas id="ov-chart-top-products"></canvas></div>
+          <!-- (2026-07-13) Fixed 240px — enough for 8 bars, no dead space; was dynamic -->
+          <div style="position:relative;height:240px;width:100%;"><canvas id="ov-chart-top-products" style="max-height:240px !important;"></canvas></div>
         </div>
       </div>
       <div id="ov-store-sales"></div>
@@ -4313,7 +4324,8 @@ const Reports = (() => {
       document.getElementById("report-body").innerHTML = salesByPaymentTable();
       document.querySelectorAll("[data-period]").forEach(chip => chip.onclick = () => { periodKey = chip.dataset.period; activeRange = null; render(); });
     } else if(tab === "voids"){
-      voidLogsRPP = 100; // Set to 100 for dedicated void audit page
+      // (2026-07-13) Set voidLogsRPP default to 40 for speed; was 100
+      voidLogsRPP = 30;
       document.getElementById("report-body").innerHTML = voidLogsCard(true);
       bindVoidLogsEvents(true);
     } else if(tab === "purchases"){
@@ -4708,14 +4720,22 @@ const Reports = (() => {
             return false;
           });
         }
-        const selectedCount = curSales.filter(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id))).length;
-        const allChecked = curSales.length > 0 && curSales.every(s => selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id)));
+        const toSaleKey = (s) => String(s.uid || (String(s.id || '') + '__' + String(s.receiptNo || '') + '__' + String(s.ts || '') + '__' + (s.isImported ? 'imp' : 'man')));
+        const selectedCount = curSales.filter(s => {
+          const k = toSaleKey(s);
+          return selectedReceiptIds.has(k) || selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id));
+        }).length;
+        const allChecked = curSales.length > 0 && curSales.every(s => {
+          const k = toSaleKey(s);
+          return selectedReceiptIds.has(k) || selectedReceiptIds.has(s.id) || selectedReceiptIds.has(String(s.id));
+        });
         const selAllEl = document.getElementById("receipt-select-all");
         if(selAllEl) selAllEl.checked = allChecked;
 
         document.querySelectorAll(".receipt-select-chk").forEach(chk => {
+          const key = chk.dataset.saleKey;
           const id = chk.dataset.saleId;
-          const isChecked = selectedReceiptIds.has(id) || selectedReceiptIds.has(Number(id)) || selectedReceiptIds.has(String(id));
+          const isChecked = (key && selectedReceiptIds.has(key)) || (id && (selectedReceiptIds.has(id) || selectedReceiptIds.has(Number(id)) || selectedReceiptIds.has(String(id))));
           chk.checked = isChecked;
           const tr = chk.closest("tr");
           if(tr){
@@ -4751,7 +4771,7 @@ const Reports = (() => {
               if(ids.length > 0) batchDeleteSales(ids);
             });
             document.getElementById("btn-delete-all-receipts")?.addEventListener("click", () => {
-              const ids = curSales.map(s => s.id);
+              const ids = curSales.map(toSaleKey);
               if(ids.length > 0) batchDeleteSales(ids);
             });
           } else {
@@ -4779,7 +4799,11 @@ const Reports = (() => {
             });
           }
           if(selectAll.checked){
-            curSales.forEach(s => { selectedReceiptIds.add(s.id); selectedReceiptIds.add(String(s.id)); });
+            curSales.forEach(s => {
+              const k = toSaleKey(s);
+              selectedReceiptIds.add(k);
+              selectedReceiptIds.add(s.id);
+            });
           } else {
             selectedReceiptIds.clear();
           }
@@ -4792,15 +4816,18 @@ const Reports = (() => {
         };
         chk.onchange = (e) => {
           e.stopPropagation();
+          const key = chk.dataset.saleKey;
           const id = chk.dataset.saleId;
           if(chk.checked){
-            selectedReceiptIds.add(id);
-            const num = Number(id);
-            if(!isNaN(num)) selectedReceiptIds.add(num);
+            if(key) selectedReceiptIds.add(key);
+            else if(id) selectedReceiptIds.add(id);
           } else {
-            selectedReceiptIds.delete(id);
-            const num = Number(id);
-            if(!isNaN(num)) selectedReceiptIds.delete(num);
+            if(key) selectedReceiptIds.delete(key);
+            if(id) {
+              selectedReceiptIds.delete(id);
+              const num = Number(id);
+              if(!isNaN(num)) selectedReceiptIds.delete(num);
+            }
           }
           updateReceiptSelectionUI();
         };
@@ -4859,7 +4886,8 @@ const Reports = (() => {
       const rppReceiptSel = document.getElementById("receipt-pg-rpp");
       if(rppReceiptSel){
         rppReceiptSel.onchange = (e) => {
-          receiptRPP = parseInt(e.target.value, 10) || 100;
+          // (2026-07-13) Set receiptRPP fallback to 40; was 100
+          receiptRPP = parseInt(e.target.value, 10) || 40;
           receiptPage = 1;
           render();
         };
