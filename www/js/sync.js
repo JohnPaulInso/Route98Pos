@@ -187,11 +187,18 @@ const Sync = (() => {
     merged.heldSales = mergeArray3Way(base.heldSales, local.heldSales, remote.heldSales, "id", "ts");
     // (2026-07-13) 3-way merge backups metadata in sync; was omitted and reset
     merged.backups = mergeArray3Way(base.backups, local.backups, remote.backups, "id", "createdAt").sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    // (2026-07-13) Merge deletedProductIds & deletedSaleIds tombstones; was sales only
-    merged.deletedSaleIds = Array.from(new Set([...(base.deletedSaleIds || []), ...(local.deletedSaleIds || []), ...(remote.deletedSaleIds || [])]));
-    merged.deletedProductIds = Array.from(new Set([...(base.deletedProductIds || []), ...(local.deletedProductIds || []), ...(remote.deletedProductIds || [])]));
-    const delProdSet = new Set(merged.deletedProductIds);
-    merged.products = (merged.products || []).filter(p => !delProdSet.has(p.id));
+    // (2026-07-13) Filter restored products from tombstone merge; was raw union
+    const localDelProdSet = new Set(local.deletedProductIds || []);
+    const localProdMap = new Map((local.products || []).map(p => [String(p.id ?? p._id ?? "").trim(), p]));
+    const delProdSet = new Set();
+    [...(base.deletedProductIds || []), ...(local.deletedProductIds || []), ...(remote.deletedProductIds || [])].forEach(id => {
+      const cleanId = String(id || "").trim();
+      if(!cleanId) return;
+      if(localProdMap.has(cleanId) && !localDelProdSet.has(cleanId)) return;
+      delProdSet.add(cleanId);
+    });
+    merged.deletedProductIds = Array.from(delProdSet);
+    merged.products = (merged.products || []).filter(p => !delProdSet.has(String(p.id ?? p._id ?? "").trim()));
 
     const catSet = new Set([...(remote.categories || []), ...(local.categories || [])]);
     merged.categories = Array.from(catSet);

@@ -85,7 +85,19 @@ const Modal = (() => {
     });
   }
 
-  return { open, close, confirm };
+  // (2026-07-13) Add modal alert dialog helper; was missing causing TypeError
+  function alert({ title = "Notice", message, onOk }){
+    return open({
+      title,
+      body: `<p>${message}</p>`,
+      actions: [
+        { label: "OK", cls: "btn-primary", onClick: () => { close(); onOk?.(); } }
+      ],
+      onClose: onOk
+    });
+  }
+
+  return { open, close, confirm, alert };
 })();
 window.Modal = Modal;
 window.Modalz = Modal;

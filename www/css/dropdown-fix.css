@@ -23,7 +23,8 @@
   /* Inventory Tools Dropdown */
   #btn-inv-tools {
     pointer-events: auto !important;
-    -webkit-tap-highlight-color: rgba(47, 66, 216, 0.1) !important;
+    /* (2026-07-13) Transparent tap highlight; was rgba(47, 66, 216, 0.1) */
+    -webkit-tap-highlight-color: transparent !important;
     cursor: pointer !important;
     position: relative !important;
     z-index: 100 !important;
@@ -56,7 +57,8 @@
   /* Reports Breadcrumb Dropdown */
   #rpt-crumb-active {
     pointer-events: auto !important;
-    -webkit-tap-highlight-color: rgba(47, 66, 216, 0.1) !important;
+    /* (2026-07-13) Transparent tap highlight; was rgba(47, 66, 216, 0.1) */
+    -webkit-tap-highlight-color: transparent !important;
     cursor: pointer !important;
     position: relative !important;
     z-index: 100 !important;

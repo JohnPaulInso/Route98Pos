@@ -2277,6 +2277,19 @@ const Inventory = (() => {
     // (2026-07-13) Always render header action buttons in renderTable. Prev: select-only
     renderHeaderActions();
     document.getElementById("inv-count").innerHTML = `${allItems.length} item${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Pg ${currentPage}/${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</strong> rev · <strong style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</strong> profit`;
+    // (2026-10-15) Update h2 context label; was no filter context on h2
+    const h2Ctx = document.getElementById("inv-h2-context");
+    if(h2Ctx){
+      const ctxParts = [];
+      if(searchTerm && searchTerm.trim()){
+        const truncated = searchTerm.trim().length > 18 ? searchTerm.trim().slice(0,18) + "…" : searchTerm.trim();
+        ctxParts.push(`"${truncated}"`);
+      }
+      if(categoryFilter && categoryFilter !== "All") ctxParts.push(categoryFilter);
+      if(stockFilter && stockFilter !== "all" && stockFilter !== "in") ctxParts.push(stockFilter === "out" ? "Out of stock" : stockFilter === "low" ? "Low stock" : stockFilter);
+      const label = ctxParts.length ? `(${ctxParts.join(" · ")} — ${allItems.length} product${allItems.length===1?"":"s"})` : allItems.length > 0 ? `(${allItems.length} product${allItems.length===1?"":"s"})` : "";
+      h2Ctx.textContent = label;
+    }
     tbody.innerHTML = items.length ? items.map(p => {
       const pct = p.lowStockThreshold ? Math.min(100, Math.round((p.stock/(p.lowStockThreshold*3))*100)) : 100;
       const low = p.stock <= p.lowStockThreshold;
@@ -2396,7 +2409,10 @@ const Inventory = (() => {
     // (2026-07-13) Render grid cards or toggle table view; was table only
     const tableWrap = document.getElementById("inv-table-wrap");
     const gridWrap = document.getElementById("inv-grid-wrap");
-    if(tableWrap) tableWrap.style.setProperty("display", invViewMode === "grid" ? "none" : "block", "important");
+    const isMobile = window.innerWidth < 768;
+    // (2026-10-15) Fix grid bleeding into list mode on mobile; was not clearing gridWrap
+    if(tableWrap) tableWrap.style.setProperty("display", invViewMode === "grid" ? "none" : (isMobile ? "none" : "block"), "important");
+    if(mobileCardsContainer) mobileCardsContainer.style.setProperty("display", isMobile && invViewMode !== "grid" ? "flex" : (isMobile && invViewMode === "grid" ? "none" : ""), "important");
     if(gridWrap){
       gridWrap.style.setProperty("display", invViewMode === "grid" ? "grid" : "none", "important");
       if(invViewMode === "grid"){
@@ -2760,7 +2776,7 @@ const Inventory = (() => {
       <div class="view-head" style="position:relative;z-index:50;">
         <div style="flex:1;min-width:0;">
           <!-- (2026-07-13) Hide inv-count and remove view-sub; was view-sub div -->
-          <h2>${Icons.get("package",{size:22})} Inventory</h2>
+          <h2>${Icons.get("package",{size:22})} Inventory <span id="inv-h2-context" style="font-size:0.72rem;font-weight:600;color:var(--ink-soft);letter-spacing:0;vertical-align:middle;"></span></h2>
           <div id="inv-count" style="display:none;"></div>
         </div>
         <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
@@ -2778,8 +2794,8 @@ const Inventory = (() => {
         <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
         <!-- (2026-07-13) Add list/grid toggle on right of inv-toolbar; was none -->
         <div class="inv-view-toggle" id="inv-view-toggle" style="margin-left:auto;display:flex;align-items:center;background:var(--paper-dim);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:2px;gap:2px;flex-shrink:0;">
-          <button type="button" class="btn btn-xs btn-icon ${invViewMode==='list'?'btn-primary':'btn-ghost'}" id="btn-inv-view-list" title="List View" style="height:32px;width:34px;padding:0;border-radius:6px;">${Icons.get("list",{size:16})}</button>
-          <button type="button" class="btn btn-xs btn-icon ${invViewMode==='grid'?'btn-primary':'btn-ghost'}" id="btn-inv-view-grid" title="Grid View" style="height:32px;width:34px;padding:0;border-radius:6px;">${Icons.get("grid",{size:16})}</button>
+          <button type="button" class="inv-toggle-btn btn btn-xs btn-icon ${invViewMode==='list'?'btn-primary':'btn-ghost'}" id="btn-inv-view-list" title="List View">${Icons.get("list",{size:16})}</button>
+          <button type="button" class="inv-toggle-btn btn btn-xs btn-icon ${invViewMode==='grid'?'btn-primary':'btn-ghost'}" id="btn-inv-view-grid" title="Grid View">${Icons.get("grid",{size:16})}</button>
         </div>
       </div>
       <!-- (2026-07-13) Zero bottom margin & pad on inv-cat-chips; was 10px -->

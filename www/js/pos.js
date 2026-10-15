@@ -1017,30 +1017,59 @@ const POS = (() => {
   }
 
   // ---------- rendering ----------
-  // (2026-07-13) Format categoryList as uppercase & match case-insensitively; was raw
+  // (2026-07-13) Add NEWEST ADDED right of ALL & sort earliest; was ALL & A-Z only
   function categoryList(){
-    const set = new Set(["ALL"]);
+    const list = ["ALL"];
+    const now = Date.now();
+    const oneMonth = 30 * 24 * 60 * 60 * 1000;
+    const hasNewest = DB.getProducts().some(p => {
+      const rawT = p.createdAt || p.updatedAt || p.ts || p.timestamp;
+      const t = rawT ? (typeof rawT === "number" ? rawT : new Date(rawT).getTime()) : 0;
+      return t > 0 && (now - t) <= oneMonth;
+    });
+    if(hasNewest){
+      list.push("NEWEST ADDED");
+    }
     DB.getCategories().forEach(c => {
       if(!c) return;
       const t = c.trim().toUpperCase();
-      if(t) set.add(t);
+      if(t && !list.includes(t)) list.push(t);
     });
-    return [...set];
+    return list;
   }
 
-  // (2026-07-13) Include category name in search filtering; was name/brand/barcode
-  // (2026-07-13) Sort catalog with # items first then A-Z; was unsorted list
+  // (2026-07-13) Filter newest added within 1 month sorted to earliest; was all only
   function filteredProducts(){
     const products = DB.getProducts();
     const term = searchTerm.toLowerCase();
     const activeCatLower = (activeCategory || "All").trim().toLowerCase();
+    const isNewest = activeCatLower === "newest added";
+    const oneMonth = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
     const list = products.filter(p => {
-      const prodCatLower = (p.category || "").trim().toLowerCase();
-      const matchCat = activeCatLower === "all" || prodCatLower === activeCatLower;
+      if(isNewest){
+        const rawT = p.createdAt || p.updatedAt || p.ts || p.timestamp;
+        const t = rawT ? (typeof rawT === "number" ? rawT : new Date(rawT).getTime()) : 0;
+        if(!t || (now - t) > oneMonth) return false;
+      } else {
+        const prodCatLower = (p.category || "").trim().toLowerCase();
+        const matchCat = activeCatLower === "all" || prodCatLower === activeCatLower;
+        if(!matchCat) return false;
+      }
       // (2026-07-13) Ignore punctuation in search matching; was strict includes
       const matchSearch = Utils.matchesSearch(`${p.name || ""} ${p.brand || ""} ${p.category || ""} ${p.barcode || ""}`, searchTerm);
-      return matchCat && matchSearch;
+      return matchSearch;
     });
+    if(isNewest){
+      return list.sort((a,b) => {
+        const aT = a.createdAt || a.updatedAt || a.ts || a.timestamp || 0;
+        const bT = b.createdAt || b.updatedAt || b.ts || b.timestamp || 0;
+        const aTime = typeof aT === "number" ? aT : new Date(aT).getTime() || 0;
+        const bTime = typeof bT === "number" ? bT : new Date(bT).getTime() || 0;
+        if(aTime !== bTime) return aTime - bTime;
+        return String(a?.name || "").localeCompare(String(b?.name || ""));
+      });
+    }
     return list.sort((a,b) => {
       const aName = String(a?.name || "").trim();
       const bName = String(b?.name || "").trim();

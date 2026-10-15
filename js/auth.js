@@ -12,14 +12,14 @@ const Auth = (() => {
   function currentUser(){ return session; }
   function isAdmin(){ return session?.role === "admin"; }
 
-  // (2026-07-13) Guard logout against active open shift; was unverified logout
+  // (2026-07-13) Prompt to close shift before logout; was missing alert fn
   function logout(force = false){
     if(!force){
       const activeShift = (typeof Shift !== "undefined" && Shift.getActiveShift) ? Shift.getActiveShift() : (DB.getShift?.()?.status === "open" ? DB.getShift() : null);
       if(activeShift){
         Modalz.alert({
           title: "Active Shift In Progress",
-          message: `Logging out is not allowed while a shift is open (${activeShift.cashier || "Cashier"}). Please end your shift first.`
+          message: "You must close your shift before logging out. Please close shift in Shift Management."
         });
         return false;
       }

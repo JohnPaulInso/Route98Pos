@@ -2623,19 +2623,18 @@ const Reports = (() => {
         </div>
         ${logs.length ? `
           <div class="table-wrap" style="${tableStyle}">
-            <!-- (2026-07-13) Fix void audit table width; was leaving right side blank -->
+            <!-- (2026-07-13) Balance void log columns; was wide Items Altered -->
             <table class="data void-table" style="width:100%;min-width:600px;font-size:0.86rem;">
-              <thead><tr><th class="void-col-time" style="width:90px;padding:8px 8px;font-size:0.76rem;">Time</th><th class="void-col-txn" style="width:85px;padding:8px 8px;font-size:0.76rem;">Txn ID</th><th style="min-width:140px;padding:8px 10px;font-size:0.76rem;">Items Altered</th><th style="width:85px;padding:8px 10px;font-size:0.76rem;">Price Diff</th><th style="width:80px;padding:8px 10px;font-size:0.76rem;">Admin</th><th style="min-width:120px;padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
+              <thead><tr><th class="void-col-time" style="width:145px;padding:8px 10px;font-size:0.76rem;white-space:nowrap;">Time</th><th class="void-col-txn" style="width:130px;padding:8px 10px;font-size:0.76rem;white-space:nowrap;">Txn ID</th><th class="void-col-items" style="width:26%;min-width:160px;padding:8px 10px;font-size:0.76rem;">Items Altered</th><th class="void-col-diff" style="width:95px;padding:8px 10px;font-size:0.76rem;white-space:nowrap;text-align:right;">Price Diff</th><th class="void-col-admin" style="width:120px;padding:8px 10px;font-size:0.76rem;white-space:nowrap;">Admin</th><th class="void-col-reason" style="min-width:180px;padding:8px 10px;font-size:0.76rem;">Reason</th></tr></thead>
               <tbody>
                 ${pagedLogs.map(l => `
                   <tr style="font-size:0.86rem;">
-                    <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 8px;white-space:nowrap;">${Utils.fmtDate(l.ts)}</td>
-                    <td class="mono font-bold void-col-txn" style="padding:8px 8px;word-break:break-all;max-width:120px;line-height:1.3;white-space:normal;">${Utils.escapeHtml(l.origTxnId)}</td>
-                    <!-- (2026-07-13) Support negative stock chips & unclip summary; was [0-9.] & 9em -->
-                    <td style="max-width:320px;padding:8px 10px;font-size:0.85rem;word-break:break-word;white-space:normal;vertical-align:top;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}" style="display:block;overflow:visible;word-break:break-word;overflow-wrap:anywhere;line-height:1.65;max-width:320px;">${Utils.escapeHtml(l.itemSummary).replace(/\(Stock:\s*(-?[0-9.]+)\s*(?:→|->|-&gt;)\s*(-?[0-9.]+)\)/gi, '<span class="void-stock-chip" style="display:inline-block;padding:1px 6px;margin:1px 3px;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.78rem;line-height:1.3;vertical-align:middle;white-space:nowrap;">Stock: $1 → $2</span>')}</div></td>
-                    <td class="mono font-bold" style="padding:8px 10px;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};white-space:nowrap;">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
-                    <td style="padding:8px 10px;font-size:0.85rem;word-break:break-word;">${Utils.escapeHtml(l.admin || "Admin")}</td>
-                    <td class="text-sm text-faint" style="font-size:0.82rem;padding:8px 10px;word-break:break-word;max-width:140px;white-space:normal;">${Utils.escapeHtml(l.reason)}</td>
+                    <td class="text-sm text-faint void-col-time" style="font-size:0.82rem;padding:8px 10px;white-space:nowrap;">${Utils.fmtDate(l.ts)}</td>
+                    <td class="mono font-bold void-col-txn" style="padding:8px 10px;line-height:1.3;white-space:nowrap;">${Utils.escapeHtml(l.origTxnId)}</td>
+                    <td class="void-col-items" style="padding:8px 10px;font-size:0.85rem;word-break:break-word;white-space:normal;vertical-align:top;"><div class="void-item-summary" title="${Utils.escapeHtml(l.itemSummary)}" style="display:block;overflow:visible;word-break:break-word;overflow-wrap:anywhere;line-height:1.65;">${Utils.escapeHtml(l.itemSummary).replace(/\(Stock:\s*(-?[0-9.]+)\s*(?:→|->|-&gt;)\s*(-?[0-9.]+)\)/gi, '<span class="void-stock-chip" style="display:inline-block;padding:1px 6px;margin:1px 3px;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.78rem;line-height:1.3;vertical-align:middle;white-space:nowrap;">Stock: $1 → $2</span>')}</div></td>
+                    <td class="mono font-bold void-col-diff" style="padding:8px 10px;text-align:right;color:${l.priceDiff < 0 ? "var(--danger)" : l.priceDiff > 0 ? "var(--success-deep)" : "var(--ink)"};white-space:nowrap;">${l.priceDiff >= 0 ? "+" : ""}${Utils.money(l.priceDiff)}</td>
+                    <td class="void-col-admin" style="padding:8px 10px;font-size:0.85rem;white-space:nowrap;">${Utils.escapeHtml(l.admin || "Admin")}</td>
+                    <td class="text-sm text-faint void-col-reason" style="font-size:0.82rem;padding:8px 10px;word-break:break-word;white-space:normal;">${Utils.escapeHtml(l.reason)}</td>
                   </tr>
                 `).join("")}
               </tbody>

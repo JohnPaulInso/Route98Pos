@@ -1044,7 +1044,8 @@ table.data th:first-child{
   .grid-4{ grid-template-columns:repeat(2,1fr); }
   .grid-3{ grid-template-columns:repeat(2,1fr); }
 }
-@media (max-width: 860px){
+/* (2026-07-13) Set mobile shell breakpoint to 767px; was 860px */
+@media (max-width: 767px){
   .sidebar{ display:none; }
   .bottom-nav{ display:block; }
   /* (2026-07-13) Show mobile menu toggle button; was hidden */

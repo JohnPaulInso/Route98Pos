@@ -17,12 +17,22 @@ const Inventory = (() => {
     return [...new Set(DB.getProducts().map(p=>p.distributor).filter(Boolean))].sort();
   }
 
-  // (2026-07-13) Add in-stock filter & bidirectional column sorting; was fixed name
+  // (2026-07-13) Filter newest added within 1 month sorted to earliest; was all only
   function list(){
     const catFilterLower = (categoryFilter || "All").trim().toLowerCase();
+    const isNewest = catFilterLower === "newest added";
+    const oneMonth = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
     let items = DB.getProducts().filter(p => {
-      const prodCatLower = (p.category || "").trim().toLowerCase();
-      const matchCat = catFilterLower === "all" || prodCatLower === catFilterLower;
+      if(isNewest){
+        const rawT = p.createdAt || p.updatedAt || p.ts || p.timestamp;
+        const t = rawT ? (typeof rawT === "number" ? rawT : new Date(rawT).getTime()) : 0;
+        if(!t || (now - t) > oneMonth) return false;
+      } else {
+        const prodCatLower = (p.category || "").trim().toLowerCase();
+        const matchCat = catFilterLower === "all" || prodCatLower === catFilterLower;
+        if(!matchCat) return false;
+      }
       const term = searchTerm.toLowerCase();
       // (2026-07-13) Ignore punctuation in search matching; was strict includes
       const matchSearch = Utils.matchesSearch(`${p.name || ""} ${p.brand || ""} ${p.distributor || ""} ${p.category || ""} ${p.barcode || ""}`, searchTerm);
@@ -30,9 +40,16 @@ const Inventory = (() => {
         (stockFilter === "in" && p.stock > 0) ||
         (stockFilter === "low" && p.stock > 0 && p.stock <= p.lowStockThreshold) ||
         (stockFilter === "out" && p.stock <= 0);
-      return matchCat && matchSearch && matchStock;
+      return matchSearch && matchStock;
     });
     items.sort((a,b) => {
+      if(isNewest && sortBy === "name"){
+        const aT = a.createdAt || a.updatedAt || a.ts || a.timestamp || 0;
+        const bT = b.createdAt || b.updatedAt || b.ts || b.timestamp || 0;
+        const aTime = typeof aT === "number" ? aT : new Date(aT).getTime() || 0;
+        const bTime = typeof bT === "number" ? bT : new Date(bT).getTime() || 0;
+        if(aTime !== bTime) return sortOrder === "desc" ? bTime - aTime : aTime - bTime;
+      }
       let res = 0;
       // (2026-07-13) Prioritize # items first in name sort; was standard locale
       if(sortBy === "name"){
@@ -71,8 +88,12 @@ const Inventory = (() => {
     try { localStorage.removeItem(DRAFT_KEY); } catch(e){}
   }
 
-  // (2026-07-13) Block product edit form for cashier; was open to all
-  function openProductForm(product = null){
+  // (2026-07-13) Support overlay in openProductForm; was replacing active modal
+  function openProductForm(product = null, opts = {}){
+    if(typeof opts === "function") opts = { onSaved: opts };
+    const isOverlay = !!opts?.overlay;
+    const onSavedCallback = opts?.onSaved;
+    const onCloseCallback = opts?.onClose;
     if(typeof Auth !== "undefined" && !Auth.isAdmin()){
       Utils.toast("Product management is restricted to Admin accounts.", "warn");
       return;
@@ -170,10 +191,24 @@ const Inventory = (() => {
     const modal = Modalz.open({
       title: isEdit ? `${Icons.get("edit",{size:17})} Edit Product` : `${Icons.get("plus",{size:17})} Add Product`,
       body, wide: true, modalClass: "modal-product-formz",
+      overlay: isOverlay,
+      onClose: () => {
+        if(typeof onCloseCallback === "function") onCloseCallback();
+      },
       actions: [
-        { label:"Cancel", cls:"btn-ghost" },
-        ...(isEdit ? [{ label:"Delete", cls:"btn-danger", onClick: () => { Modalz.close(); deleteProduct(product); } }] : []),
-        { label: isEdit ? "Save Changes" : "Add Product", cls:"btn-primary", onClick: () => saveProduct(product, modal) }
+        { label:"Cancel", cls:"btn-ghost", onClick: () => {
+          Modalz.close(modal);
+          if(typeof onCloseCallback === "function") onCloseCallback();
+        } },
+        // (2026-07-13) Pass onDone callback to deleteProduct; was called immediately
+        ...(isEdit ? [{ label:"Delete", cls:"btn-danger", onClick: () => {
+          Modalz.close(modal);
+          deleteProduct(product, () => {
+            if(typeof onSavedCallback === "function") onSavedCallback();
+            else if(typeof onCloseCallback === "function") onCloseCallback();
+          });
+        } }] : []),
+        { label: isEdit ? "Save Changes" : "Add Product", cls:"btn-primary", onClick: () => saveProduct(product, modal, onSavedCallback) }
       ]
     });
 
@@ -375,7 +410,8 @@ const Inventory = (() => {
     }
   }
 
-  function saveProduct(product, modal){
+  // (2026-07-13) Support onSavedCallback in saveProduct; was closing all modals
+  function saveProduct(product, modal, onSavedCallback){
     const name = modal.querySelector("#f-name").value.trim();
     if(!name){ Utils.toast("Product name is required.", "error"); return; }
     const hasDual = modal.querySelector("#f-has-dual")?.checked;
@@ -432,6 +468,7 @@ const Inventory = (() => {
       savedProduct = payload;
       clearProductDraft();
       if(payload.stock > 0){
+        // (2026-07-13) Set oldStock 0 & newStock on initial restock; was missing stock
         DB.addRestockLog({
           product_id: payload.barcode || payload.name,
           product_name: payload.name,
@@ -439,12 +476,15 @@ const Inventory = (() => {
           unit_cost: cost,
           total_cost: payload.stock * cost,
           supplier_name: payload.distributor || payload.brand || "Initial Stock",
+          oldStock: 0,
+          newStock: payload.stock,
           timestamp: Date.now()
         });
       }
     }
     Utils.toast(product ? "Product updated." : "Product added.", "success");
-    Modalz.close();
+    Modalz.close(modal);
+    if(typeof onSavedCallback === "function") onSavedCallback();
     // (2026-07-13) Invalidate image cache on product save; was unpurged
     if(product && product.imageUrl && payload.imageUrl !== product.imageUrl){
       if(typeof Utils !== "undefined" && Utils.purgeImageCache){
@@ -1322,7 +1362,7 @@ const Inventory = (() => {
     renderTable();
   }
 
-  // (2026-07-13) Block batch delete for cashier; was open to all
+  // (2026-07-13) Double confirmation for batch delete; was single confirm
   function deleteSelectedProducts(){
     const count = selectedIds.size;
     if(count <= 0) return;
@@ -1335,19 +1375,26 @@ const Inventory = (() => {
       message: `${count} selected product${count===1?"":"s"} will be permanently removed from inventory.`,
       danger: true,
       onConfirm: () => {
-        // (2026-07-13) Delete products via DB.deleteProduct for tombstones; was raw filter
-        selectedIds.forEach(id => DB.deleteProduct(id));
-        Utils.toast(`${count} product${count===1?"":"s"} deleted.`, "success");
-        selectedIds.clear();
-        toggleSelectMode(false);
-        // (2026-07-13) Push snapshot on batch product delete; was unpushed
-        if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
+        Modalz.confirm({
+          title: "Are you absolutely sure?",
+          message: `This will permanently erase ${count} selected product${count===1?"":"s"}. This action cannot be undone.`,
+          danger: true,
+          onConfirm: () => {
+            // (2026-07-13) Delete products via DB.deleteProduct for tombstones; was raw filter
+            selectedIds.forEach(id => DB.deleteProduct(id));
+            Utils.toast(`${count} product${count===1?"":"s"} deleted.`, "success");
+            selectedIds.clear();
+            toggleSelectMode(false);
+            // (2026-07-13) Push snapshot on batch product delete; was unpushed
+            if(typeof Sync !== "undefined" && Sync.pushSnapshot) Sync.pushSnapshot(true).catch(()=>{});
+          }
+        });
       }
     });
   }
 
-  // (2026-07-13) Block product delete for cashier; was open to all
-  function deleteProduct(product){
+  // (2026-07-13) Double confirmation for product delete; was single confirm
+  function deleteProduct(product, onDone){
     if(!product) return;
     if(typeof Auth !== "undefined" && !Auth.isAdmin()){
       Utils.toast("Product deletion is restricted to Admin accounts.", "warn");
@@ -1358,19 +1405,33 @@ const Inventory = (() => {
       message: `Delete "${product.name}"? This will permanently remove the product from inventory.`,
       danger: true,
       onConfirm: () => {
-        DB.deleteProduct(product.id);
-        Utils.toast(`"${product.name}" deleted.`, "success");
-        renderTable();
-        
-        // Force immediate sync to cloud (bypasses debounce)
-        console.log('[Inventory] Forcing immediate sync after delete');
-        if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
-          Sync.pushSnapshot(true).then(() => {
-            console.log('[Inventory] Delete synced to cloud successfully');
-          }).catch(err => {
-            console.error('[Inventory] Failed to sync delete:', err);
-          });
-        }
+        Modalz.confirm({
+          title: "Are you absolutely sure?",
+          message: `This will permanently erase "${product.name}". This action cannot be undone.`,
+          danger: true,
+          onConfirm: () => {
+            DB.deleteProduct(product.id);
+            Utils.toast(`"${product.name}" deleted.`, "success");
+            renderTable();
+            if(typeof onDone === "function") onDone();
+            
+            // Force immediate sync to cloud (bypasses debounce)
+            console.log('[Inventory] Forcing immediate sync after delete');
+            if (typeof Sync !== 'undefined' && Sync.pushSnapshot) {
+              Sync.pushSnapshot(true).then(() => {
+                console.log('[Inventory] Delete synced to cloud successfully');
+              }).catch(err => {
+                console.error('[Inventory] Failed to sync delete:', err);
+              });
+            }
+          },
+          onCancel: () => {
+            if(typeof onDone === "function") onDone();
+          }
+        });
+      },
+      onCancel: () => {
+        if(typeof onDone === "function") onDone();
       }
     });
   }
@@ -1399,7 +1460,7 @@ const Inventory = (() => {
       document.getElementById("btn-delete-selected").onclick = () => deleteSelectedProducts();
       document.getElementById("btn-cancel-select").onclick = () => toggleSelectMode(false);
     } else {
-      // (2026-07-13) Responsive actions: desktop row & mobile tools dropdown; was full row
+      // (2026-07-13) Move trash to settings page; was inventory header & modal
       act.innerHTML = `
         <div class="inv-desktop-actions">
           <button class="btn btn-ghost" id="btn-select-mode">${Icons.get("check",{size:15})} Select</button>
@@ -1514,6 +1575,55 @@ const Inventory = (() => {
     }
   }
 
+  // (2026-07-13) Set overlay true on restock delete confirm; was non-overlay
+  function deleteRestockLogConfirm(log, onDone){
+    const name = log.product_name || log.productName || "item";
+    const qty = Number(log.quantity_added ?? log.quantity ?? 0);
+    const qtySign = qty >= 0 ? `+${qty}` : `${qty}`;
+    Modalz.confirm({
+      title: "Delete Restock Record?",
+      message: `Delete restock entry for ${name} (${qtySign} pcs)? This will automatically roll back ${Math.abs(qty)} pcs from inventory stock.`,
+      danger: true,
+      overlay: true,
+      onConfirm: () => {
+        DB.deleteRestockLog(log.id);
+        Utils.toast("Restock log deleted & stock rolled back.", "success");
+        if(typeof onDone === "function") onDone();
+        renderTable();
+        if(typeof Sync !== 'undefined' && Sync.pushSnapshot){
+          Sync.pushSnapshot(true).catch(err => console.error('[Restock] Failed to sync delete:', err));
+        }
+      }
+    });
+  }
+
+  function showProductNotFoundModal(prodName, prodId){
+    Modalz.open({
+      title: `${Icons.get("alert-circle", { size: 18, color: "var(--danger)" })} Product Not Found`,
+      overlay: true,
+      body: `
+        <div style="text-align:center;padding:16px 8px;">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--danger-tint);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--danger);">
+            ${Icons.get("alert-triangle", { size: 24 })}
+          </div>
+          <h3 style="font-size:1.15rem;font-weight:800;margin-bottom:8px;color:var(--ink);">Unable to Find Product</h3>
+          <p style="font-size:.90rem;color:var(--ink-light);margin-bottom:14px;line-height:1.5;">
+            The product <strong style="color:var(--ink);">${Utils.escapeHtml(prodName || "Unknown Product")}</strong> was not found in your inventory.
+          </p>
+          <div style="background:var(--paper-dim);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:.82rem;color:var(--ink-soft);text-align:left;display:flex;flex-direction:column;gap:6px;">
+            <div style="font-weight:700;color:var(--ink);">Possible reasons:</div>
+            <div>• The product was <strong>renamed</strong> in inventory.</div>
+            <div>• The product was permanently <strong>deleted</strong>.</div>
+            ${prodId ? `<div class="mono" style="font-size:.74rem;color:var(--ink-faint);margin-top:4px;">Recorded ID: ${Utils.escapeHtml(prodId)}</div>` : ""}
+          </div>
+        </div>
+      `,
+      actions: [
+        { label: "Close", cls: "btn-primary", onClick: () => Modalz.close() }
+      ]
+    });
+  }
+
   // (2026-07-13) Add potential rev column & restock log modal; was plain inventory
   // (2026-07-13) Group restock logs by day & add batch scanner; was single PO
   function openRestockLogModal(){
@@ -1521,6 +1631,8 @@ const Inventory = (() => {
     // (2026-07-13) Restock log pagination state; was unpaginated modal
     let restockPage = 1;
     let restockRPP = 5;
+    // (2026-07-13) Track accordion open state per day key; was always-expanded
+    const openDays = new Set();
     function renderModalBody(modal){
       const summary = Analytics.restockSummary(filter);
       const dayGroups = {};
@@ -1552,105 +1664,200 @@ const Inventory = (() => {
       const startIdx = (restockPage - 1) * restockRPP;
       const pagedDayKeys = dayKeys.slice(startIdx, startIdx + restockRPP);
 
+      // (2026-07-13) Rework modal: accordion toggle, overflow-x, smaller fonts; was fixed-height no-click
       modal.querySelector("#restock-modal-content").innerHTML = `
-        <div class="grid-3" style="margin-bottom:16px;gap:12px;">
-          <div class="card card-tight" style="border:1.5px solid var(--brand);background:var(--brand-tint);padding:14px 18px;border-radius:12px;">
-            <div class="text-faint text-xs" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;color:var(--brand-deep);">Total Capital Spent</div>
-            <strong class="mono" style="font-size:1.65rem;font-weight:900;color:var(--brand-deep);">${Utils.money(summary.totalCapitalSpent)}</strong>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+          <div style="border:1.5px solid var(--brand);background:var(--brand-tint);padding:10px 14px;border-radius:10px;">
+            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;color:var(--brand-deep);">Total Capital Spent</div>
+            <strong class="mono" style="font-size:1.25rem;font-weight:900;color:var(--brand-deep);">${Utils.money(summary.totalCapitalSpent)}</strong>
           </div>
-          <div class="card card-tight" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
-            <div class="text-faint text-xs" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Total Units Added</div>
-            <strong class="mono" style="font-size:1.65rem;font-weight:850;">${summary.totalUnitsPurchased.toLocaleString()} pcs</strong>
+          <div style="border:1.5px solid var(--line);background:var(--paper-dim);padding:10px 14px;border-radius:10px;">
+            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;color:var(--ink-light);">Total Units Added</div>
+            <strong class="mono" style="font-size:1.25rem;font-weight:850;">${summary.totalUnitsPurchased.toLocaleString()} pcs</strong>
           </div>
-          <div class="card card-tight" style="border:1.5px solid var(--line);background:var(--paper-dim);padding:14px 18px;border-radius:12px;">
-            <div class="text-faint text-xs" style="font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Restock Orders</div>
-            <strong class="mono" style="font-size:1.65rem;font-weight:850;">${summary.count} orders</strong>
+          <div style="border:1.5px solid var(--line);background:var(--paper-dim);padding:10px 14px;border-radius:10px;">
+            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;color:var(--ink-light);">Restock Orders</div>
+            <strong class="mono" style="font-size:1.25rem;font-weight:850;">${summary.count} orders</strong>
           </div>
         </div>
-        <div style="max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+        <!-- (2026-07-13) Flow day groups naturally in modal body; was inner max-height trap -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
           ${pagedDayKeys.length ? pagedDayKeys.map(k => {
             const grp = dayGroups[k];
+            const isOpen = openDays.has(k);
+            const chevron = isOpen ? Icons.get("chevron-up",{size:14}) : Icons.get("chevron-down",{size:14});
             return `
-            <div class="card" style="padding:0;overflow:hidden;border:1.5px solid var(--line);">
-              <div class="flex-between" style="background:var(--paper-dim);padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:8px;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <strong style="font-size:1.15rem;color:var(--ink);">${grp.label}</strong>
-                  <span class="badge badge-brand" style="font-size:.84rem;font-weight:800;">${grp.logs.length} item(s)</span>
+            <div class="card" style="padding:0;overflow:hidden;border:1.5px solid var(--line);border-radius:10px;">
+              <div class="flex-between rstk-acc-hdr" data-day-key="${k}" style="background:var(--paper-dim);padding:9px 14px;cursor:pointer;user-select:none;flex-wrap:wrap;gap:6px;transition:background .15s;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="rstk-acc-chevron" style="color:var(--ink-light);display:flex;align-items:center;">${chevron}</span>
+                  <strong style="font-size:.92rem;color:var(--ink);">${grp.label}</strong>
+                  <span class="badge badge-brand" style="font-size:.72rem;font-weight:800;padding:2px 7px;">${grp.logs.length} item(s)</span>
                 </div>
-                <div style="font-size:1rem;font-weight:750;">
-                  <span class="text-faint">+${grp.totalUnits.toLocaleString()} units</span> · <strong class="mono" style="color:var(--brand-deep);font-size:1.15rem;">${Utils.money(grp.totalCost)}</strong>
+                <div style="font-size:.84rem;font-weight:700;">
+                  <span class="text-faint">${grp.totalUnits >= 0 ? '+' : ''}${grp.totalUnits.toLocaleString()} units</span>
+                  <span style="margin:0 4px;">·</span>
+                  <strong class="mono" style="color:var(--brand-deep);font-size:.92rem;">${Utils.money(grp.totalCost)}</strong>
                 </div>
               </div>
-              <div class="table-wrap" style="border:none;border-radius:0;">
-                <table class="data" style="font-size:1.02rem;">
+              <div class="rstk-acc-body" id="rstk-body-${k}" style="display:${isOpen ? 'block' : 'none'};overflow-x:auto;">
+                <table class="data" style="font-size:.8rem;min-width:560px;">
                   <thead>
-                    <tr style="font-size:.82rem;text-transform:uppercase;background:transparent;">
-                      <th style="padding:10px 14px;">Time</th>
-                      <th style="padding:10px 14px;">Product</th>
-                      <th style="padding:10px 14px;">Supplier</th>
-                      <th style="padding:10px 14px;text-align:center;">Qty Added</th>
-                      <th style="padding:10px 14px;text-align:right;">Unit Cost</th>
-                      <th style="padding:10px 14px;text-align:right;">Total Cost</th>
+                    <tr style="font-size:.7rem;text-transform:uppercase;background:var(--paper-dim);">
+                      <th style="padding:6px 10px;white-space:nowrap;">Time</th>
+                      <th style="padding:6px 10px;">Product</th>
+                      <th style="padding:6px 10px;">Supplier</th>
+                      <th style="padding:6px 10px;text-align:center;">Qty</th>
+                      <th style="padding:6px 10px;text-align:right;">Unit Cost</th>
+                      <th style="padding:6px 10px;text-align:right;">Total Cost</th>
+                      <th style="padding:6px 8px;text-align:center;">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${grp.logs.map(l => {
-                      const qty = l.quantity_added || l.quantity || 0;
+                      const qty = Number(l.quantity_added ?? l.quantity ?? 0);
                       const isNegative = qty < 0;
                       const absQty = Math.abs(qty);
                       const reason = l.reason || "";
                       const isTheftDamage = isNegative && (reason.toLowerCase().includes("theft") || reason.toLowerCase().includes("damage") || reason.toLowerCase().includes("spoil"));
-                      
+                      const uCost = Number(l.unit_cost ?? l.unitCost ?? 0);
+                      const tCost = Number(l.total_cost ?? l.totalCost ?? Math.abs(qty) * uCost);
+                      // (2026-07-13) Add title tooltip & stock transition chip; was plain name
+                      const prodName = l.product_name || l.productName || "—";
+                      let sBefore = l.oldStock ?? l.beforeStock ?? l.stock_before;
+                      let sAfter = l.newStock ?? l.afterStock ?? l.stock_after;
+                      if(sBefore == null && sAfter != null){
+                        sBefore = sAfter - qty;
+                      } else if(sBefore != null && sAfter == null){
+                        sAfter = sBefore + qty;
+                      } else if(sBefore == null && sAfter == null){
+                        if((l.supplier_name || "").toLowerCase().includes("initial") || (l.reason || "").toLowerCase().includes("initial")){
+                          sBefore = 0;
+                          sAfter = qty;
+                        } else {
+                          const prod = DB.getProducts().find(x => x.id === (l.product_id || l.productId) || x.name === (l.product_name || l.productName));
+                          if(prod && prod.stock != null){
+                            sAfter = prod.stock;
+                            sBefore = prod.stock - qty;
+                          }
+                        }
+                      }
+                      const showStockChip = sBefore != null && sAfter != null;
                       return `
                       <tr style="${isNegative ? 'background:var(--danger-tint);' : ''}">
-                        <td class="text-sm text-faint" style="font-size:.92rem;">${new Date(l.timestamp||l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</td>
-                        <td>
-                          <strong style="font-size:1.04rem;">${Utils.escapeHtml(l.product_name||l.productName)}</strong>
-                          ${reason ? `<div class="text-xs text-faint" style="margin-top:2px;font-weight:600;">${Icons.get(isTheftDamage ? "alert-triangle" : "info", {size:12})} ${Utils.escapeHtml(reason)}</div>` : ""}
+                        <td style="font-size:.75rem;white-space:nowrap;color:var(--ink-light);">${new Date(l.timestamp||l.ts).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</td>
+                        <td style="min-width:160px;max-width:260px;" title="${Utils.escapeHtml(prodName)}">
+                          <span style="font-size:.8rem;font-weight:700;" title="${Utils.escapeHtml(prodName)}">${Utils.escapeHtml(prodName)}</span>
+                          ${showStockChip ? `<div style="margin-top:2px;"><span class="receipt-item-stock-chip" style="display:inline-block;padding:1px 6px;background:rgba(47,66,216,0.08);border:1px solid rgba(47,66,216,0.2);border-radius:4px;font-weight:700;color:var(--brand-deep);font-size:0.72rem;line-height:1.3;white-space:nowrap;">Stock: ${sBefore} → ${sAfter}</span></div>` : ""}
+                          ${reason ? `<div style="font-size:.68rem;color:var(--ink-light);margin-top:2px;">${Icons.get(isTheftDamage?"alert-triangle":"info",{size:11})} ${Utils.escapeHtml(reason)}</div>` : ""}
                         </td>
-                        <td class="text-sm text-faint" style="font-size:.95rem;">${Utils.escapeHtml(l.supplier_name||l.supplierName||"—")}</td>
-                        <td class="mono font-bold" style="font-size:1.12rem;color:${isNegative ? 'var(--danger)' : 'var(--success-deep)'};text-align:center;">
-                          ${isNegative ? '−' : '+'}${absQty}
-                          ${isTheftDamage ? ` ${Icons.get("alert-circle",{size:14,color:"var(--danger)"})}` : ""}
+                        <td style="font-size:.75rem;color:var(--ink-light);white-space:nowrap;">${Utils.escapeHtml(l.supplier_name||l.supplierName||"—")}</td>
+                        <td class="mono" style="font-size:.84rem;font-weight:800;color:${isNegative?'var(--danger)':'var(--success-deep)'};text-align:center;white-space:nowrap;">
+                          ${isNegative?'−':'+'}${absQty}${isTheftDamage?` ${Icons.get("alert-circle",{size:12,color:"var(--danger)"})}`:""}
                         </td>
-                        <td class="mono" style="font-size:1.02rem;text-align:right;">${Utils.money(l.unit_cost||l.unitCost||0)}</td>
-                        <td class="mono font-bold" style="font-size:1.12rem;color:${isNegative ? 'var(--danger)' : 'var(--brand-deep)'};text-align:right;">
-                          ${isNegative ? '−' : ''}${Utils.money(Math.abs(l.total_cost||0))}
+                        <td class="mono" style="font-size:.78rem;text-align:right;">${Utils.money(uCost)}</td>
+                        <td class="mono" style="font-size:.84rem;font-weight:700;color:${isNegative?'var(--danger)':'var(--brand-deep)'};text-align:right;">${isNegative?'−':''}${Utils.money(tCost)}</td>
+                        <td style="text-align:center;white-space:nowrap;">
+                          <button class="btn btn-xs btn-ghost btn-edit-restock-item" data-log-id="${l.id||''}" data-prod-id="${l.product_id||l.productId||''}" data-prod-name="${Utils.escapeHtml(l.product_name||l.productName||'')}" data-log-ts="${l.timestamp||l.ts||''}" title="Edit Product" style="padding:4px 7px;color:var(--brand);cursor:pointer;">${Icons.get("edit",{size:14})}</button>
+                          <button class="btn btn-xs btn-ghost btn-delete-restock-item" data-log-id="${l.id||''}" data-prod-id="${l.product_id||l.productId||''}" data-prod-name="${Utils.escapeHtml(l.product_name||l.productName||'')}" data-log-ts="${l.timestamp||l.ts||''}" title="Delete Restock Log" style="padding:4px 7px;color:var(--danger);cursor:pointer;">${Icons.get("trash",{size:14})}</button>
                         </td>
-                      </tr>
-                    `}).join("")}
+                      </tr>`;
+                    }).join("")}
                   </tbody>
                 </table>
               </div>
             </div>`;
-          }).join("") : `<div class="empty" style="padding:36px;"><p class="text-faint" style="font-size:1.1rem;">No purchase/restock records found for this period.</p></div>`}
+          }).join("") : `<div style="padding:32px;text-align:center;"><p style="font-size:.9rem;color:var(--ink-light);">No purchase/restock records found for this period.</p></div>`}
         </div>
         ${totalDays > restockRPP ? `
-          <div id="restock-pagination" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:12px;background:var(--paper-raised);border-radius:8px;margin-top:12px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);border-radius:8px;padding:4px;">
-              <button class="btn btn-sm btn-ghost" id="rstk-pg-prev" ${restockPage <= 1 ? "disabled" : ""} style="padding:8px 12px;border:none;background:transparent;cursor:${restockPage <= 1 ? 'not-allowed' : 'pointer'};display:flex;align-items:center;opacity:${restockPage <= 1 ? '0.3' : '1'};">
-                ${Icons.get("chevron-left",{size:18})}
-              </button>
-              <button class="btn btn-sm btn-ghost" id="rstk-pg-next" ${restockPage >= totalPages ? "disabled" : ""} style="padding:8px 12px;border:none;background:transparent;cursor:${restockPage >= totalPages ? 'not-allowed' : 'pointer'};display:flex;align-items:center;opacity:${restockPage >= totalPages ? '0.3' : '1'};">
-                ${Icons.get("chevron-right",{size:18})}
-              </button>
+          <!-- (2026-07-13) Prevent pagination line breaks; was wrapping words -->
+          <div id="restock-pagination" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 14px;background:var(--paper-raised);border-radius:8px;margin-top:12px;flex-wrap:wrap;box-sizing:border-box;">
+            <div style="display:flex;align-items:center;gap:6px;background:white;border:1px solid var(--line);border-radius:8px;padding:3px;flex-shrink:0;">
+              <button class="btn btn-sm btn-ghost" id="rstk-pg-prev" ${restockPage<=1?"disabled":""} style="padding:6px 10px;border:none;background:transparent;opacity:${restockPage<=1?'0.3':'1'};">${Icons.get("chevron-left",{size:16})}</button>
+              <button class="btn btn-sm btn-ghost" id="rstk-pg-next" ${restockPage>=totalPages?"disabled":""} style="padding:6px 10px;border:none;background:transparent;opacity:${restockPage>=totalPages?'0.3':'1'};">${Icons.get("chevron-right",{size:16})}</button>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
-              <span style="font-weight:500;">Page:</span>
-              <input type="number" id="rstk-pg-input" class="input" min="1" max="${totalPages}" value="${restockPage}" style="width:70px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;text-align:center;font-size:16px;font-weight:600;">
-              <span style="font-weight:500;">of ${totalPages} (${totalDays} days)</span>
+            <div style="display:flex;align-items:center;gap:6px;font-size:.84rem;color:var(--ink);white-space:nowrap;flex-shrink:0;">
+              <span style="white-space:nowrap;">Page:</span>
+              <input type="number" id="rstk-pg-input" class="input" min="1" max="${totalPages}" value="${restockPage}" style="width:56px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;text-align:center;font-size:.84rem;">
+              <span style="white-space:nowrap;">of ${totalPages} (${totalDays} days)</span>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ink);">
-              <span style="font-weight:500;">Days per page:</span>
-              <select id="rstk-pg-rpp" class="input" style="padding:8px 32px 8px 12px;border:1px solid var(--line);border-radius:6px;font-size:16px;font-weight:600;background:white;cursor:pointer;">
-                <option value="5" ${restockRPP === 5 ? 'selected' : ''}>5</option>
-                <option value="10" ${restockRPP === 10 ? 'selected' : ''}>10</option>
-                <option value="20" ${restockRPP === 20 ? 'selected' : ''}>20</option>
-                <option value="50" ${restockRPP === 50 ? 'selected' : ''}>50</option>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--ink);white-space:nowrap;flex-shrink:0;">
+              <span style="white-space:nowrap;">Days per page:</span>
+              <select id="rstk-pg-rpp" class="input" style="padding:5px 28px 5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.84rem;background:white;cursor:pointer;">
+                <option value="5" ${restockRPP===5?'selected':''}>5</option>
+                <option value="10" ${restockRPP===10?'selected':''}>10</option>
+                <option value="20" ${restockRPP===20?'selected':''}>20</option>
+                <option value="50" ${restockRPP===50?'selected':''}>50</option>
               </select>
             </div>
           </div>
         ` : ""}`;
+
+      // (2026-07-13) In-place accordion toggle; was full modal rerender and scroll trap
+      modal.querySelectorAll(".rstk-acc-hdr").forEach(hdr => {
+        hdr.onmouseenter = () => hdr.style.background = "var(--paper-raised)";
+        hdr.onmouseleave = () => hdr.style.background = "var(--paper-dim)";
+        hdr.onclick = () => {
+          const k = hdr.dataset.dayKey;
+          const body = modal.querySelector(`#rstk-body-${k}`);
+          const chv = hdr.querySelector(".rstk-acc-chevron");
+          if(!body) return;
+          if(openDays.has(k)){
+            openDays.delete(k);
+            body.style.display = "none";
+            if(chv) chv.innerHTML = Icons.get("chevron-down",{size:14});
+          } else {
+            openDays.add(k);
+            body.style.display = "block";
+            if(chv) chv.innerHTML = Icons.get("chevron-up",{size:14});
+          }
+        };
+      });
+
+      // (2026-07-13) Open product form as overlay; was non-overlay destroying modal
+      modal.querySelectorAll(".btn-edit-restock-item").forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const prodId = b.dataset.prodId;
+          const prodName = b.dataset.prodName;
+          const prods = DB.getProducts();
+          let prod = null;
+          if(prodId){
+            prod = prods.find(p => p.id === prodId || p.barcode === prodId);
+          }
+          if(!prod && prodName){
+            prod = prods.find(p => p.name && p.name.trim().toLowerCase() === prodName.trim().toLowerCase());
+          }
+          if(prod){
+            openProductForm(prod, {
+              overlay: true,
+              onSaved: () => renderModalBody(modal),
+              onClose: () => renderModalBody(modal)
+            });
+          } else {
+            showProductNotFoundModal(prodName, prodId);
+          }
+        };
+      });
+
+      modal.querySelectorAll(".btn-delete-restock-item").forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const logId = b.dataset.logId;
+          const logTs = Number(b.dataset.logTs);
+          const prodName = b.dataset.prodName;
+          const allLogs = DB.getRestockLogs();
+          let l = null;
+          if(logId) l = allLogs.find(x => x.id === logId);
+          if(!l && logTs) l = allLogs.find(x => (x.timestamp === logTs || x.ts === logTs) && (x.product_name === prodName || x.productName === prodName));
+          if(!l && prodName) l = allLogs.find(x => (x.product_name === prodName || x.productName === prodName));
+          if(l){
+            deleteRestockLogConfirm(l, () => renderModalBody(modal));
+          } else {
+            Utils.toast("Restock record not found.", "error");
+          }
+        };
+      });
 
       const prevBtn = modal.querySelector("#rstk-pg-prev");
       if(prevBtn) prevBtn.onclick = () => { if(restockPage > 1){ restockPage--; renderModalBody(modal); } };
@@ -1682,12 +1889,19 @@ const Inventory = (() => {
       </div>
       <div id="restock-modal-content"></div>`;
 
+    // (2026-07-13) Set modalClass & desktop full width; was default wide
     const modal = Modalz.open({
       title: `${Icons.get("truck",{size:18})} Purchase Expense Tracking & Restock Log`,
       body,
       wide: true,
+      modalClass: "modal-restock-logz",
       actions: [{ label:"Close", cls:"btn-ghost btn-lg" }]
     });
+    const dlg = modal.querySelector(".modal, .modalz");
+    if(dlg && window.innerWidth >= 768){
+      dlg.style.setProperty("max-width", "min(1380px, calc(100vw - 32px))", "important");
+      dlg.style.setProperty("width", "calc(100vw - 32px)", "important");
+    }
 
     renderModalBody(modal);
 
@@ -2063,6 +2277,19 @@ const Inventory = (() => {
     // (2026-07-13) Always render header action buttons in renderTable. Prev: select-only
     renderHeaderActions();
     document.getElementById("inv-count").innerHTML = `${allItems.length} item${allItems.length===1?"":"s"}${allItems.length > PAGE_SIZE ? ` · Pg ${currentPage}/${totalPages}` : ""}${selectMode ? ` · ${selectedIds.size} selected` : ""} · <strong style="color:var(--brand-deep);">${Utils.money(totalPotentialRev)}</strong> rev · <strong style="color:var(--success-deep);">${Utils.money(totalPotentialProfit)}</strong> profit`;
+    // (2026-10-15) Update h2 context label; was no filter context on h2
+    const h2Ctx = document.getElementById("inv-h2-context");
+    if(h2Ctx){
+      const ctxParts = [];
+      if(searchTerm && searchTerm.trim()){
+        const truncated = searchTerm.trim().length > 18 ? searchTerm.trim().slice(0,18) + "…" : searchTerm.trim();
+        ctxParts.push(`"${truncated}"`);
+      }
+      if(categoryFilter && categoryFilter !== "All") ctxParts.push(categoryFilter);
+      if(stockFilter && stockFilter !== "all" && stockFilter !== "in") ctxParts.push(stockFilter === "out" ? "Out of stock" : stockFilter === "low" ? "Low stock" : stockFilter);
+      const label = ctxParts.length ? `(${ctxParts.join(" · ")} — ${allItems.length} product${allItems.length===1?"":"s"})` : allItems.length > 0 ? `(${allItems.length} product${allItems.length===1?"":"s"})` : "";
+      h2Ctx.textContent = label;
+    }
     tbody.innerHTML = items.length ? items.map(p => {
       const pct = p.lowStockThreshold ? Math.min(100, Math.round((p.stock/(p.lowStockThreshold*3))*100)) : 100;
       const low = p.stock <= p.lowStockThreshold;
@@ -2182,7 +2409,10 @@ const Inventory = (() => {
     // (2026-07-13) Render grid cards or toggle table view; was table only
     const tableWrap = document.getElementById("inv-table-wrap");
     const gridWrap = document.getElementById("inv-grid-wrap");
-    if(tableWrap) tableWrap.style.setProperty("display", invViewMode === "grid" ? "none" : "block", "important");
+    const isMobile = window.innerWidth < 768;
+    // (2026-10-15) Fix grid bleeding into list mode on mobile; was not clearing gridWrap
+    if(tableWrap) tableWrap.style.setProperty("display", invViewMode === "grid" ? "none" : (isMobile ? "none" : "block"), "important");
+    if(mobileCardsContainer) mobileCardsContainer.style.setProperty("display", isMobile && invViewMode !== "grid" ? "flex" : (isMobile && invViewMode === "grid" ? "none" : ""), "important");
     if(gridWrap){
       gridWrap.style.setProperty("display", invViewMode === "grid" ? "grid" : "none", "important");
       if(invViewMode === "grid"){
@@ -2546,7 +2776,7 @@ const Inventory = (() => {
       <div class="view-head" style="position:relative;z-index:50;">
         <div style="flex:1;min-width:0;">
           <!-- (2026-07-13) Hide inv-count and remove view-sub; was view-sub div -->
-          <h2>${Icons.get("package",{size:22})} Inventory</h2>
+          <h2>${Icons.get("package",{size:22})} Inventory <span id="inv-h2-context" style="font-size:0.72rem;font-weight:600;color:var(--ink-soft);letter-spacing:0;vertical-align:middle;"></span></h2>
           <div id="inv-count" style="display:none;"></div>
         </div>
         <div class="input-row" id="inv-actions" style="width:auto;flex-wrap:wrap;"></div>
@@ -2564,8 +2794,8 @@ const Inventory = (() => {
         <button class="btn btn-ghost btn-icon" id="btn-categories-icon" title="Manage Categories" style="flex-shrink:0;">${Icons.get("tag",{size:18})}</button>
         <!-- (2026-07-13) Add list/grid toggle on right of inv-toolbar; was none -->
         <div class="inv-view-toggle" id="inv-view-toggle" style="margin-left:auto;display:flex;align-items:center;background:var(--paper-dim);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:2px;gap:2px;flex-shrink:0;">
-          <button type="button" class="btn btn-xs btn-icon ${invViewMode==='list'?'btn-primary':'btn-ghost'}" id="btn-inv-view-list" title="List View" style="height:32px;width:34px;padding:0;border-radius:6px;">${Icons.get("list",{size:16})}</button>
-          <button type="button" class="btn btn-xs btn-icon ${invViewMode==='grid'?'btn-primary':'btn-ghost'}" id="btn-inv-view-grid" title="Grid View" style="height:32px;width:34px;padding:0;border-radius:6px;">${Icons.get("grid",{size:16})}</button>
+          <button type="button" class="inv-toggle-btn btn btn-xs btn-icon ${invViewMode==='list'?'btn-primary':'btn-ghost'}" id="btn-inv-view-list" title="List View">${Icons.get("list",{size:16})}</button>
+          <button type="button" class="inv-toggle-btn btn btn-xs btn-icon ${invViewMode==='grid'?'btn-primary':'btn-ghost'}" id="btn-inv-view-grid" title="Grid View">${Icons.get("grid",{size:16})}</button>
         </div>
       </div>
       <!-- (2026-07-13) Zero bottom margin & pad on inv-cat-chips; was 10px -->
@@ -2584,8 +2814,16 @@ const Inventory = (() => {
       <input type="file" id="inv-import-file" accept=".csv,.json" class="hidden">`;
 
     const catChips = document.getElementById("inv-cat-chips");
+    const invNow = Date.now();
+    const invOneMonth = 30 * 24 * 60 * 60 * 1000;
+    const invHasNewest = DB.getProducts().some(p => {
+      const rawT = p.createdAt || p.updatedAt || p.ts || p.timestamp;
+      const t = rawT ? (typeof rawT === "number" ? rawT : new Date(rawT).getTime()) : 0;
+      return t > 0 && (invNow - t) <= invOneMonth;
+    });
+    // (2026-07-13) Add Newest Added chip right of All if within 1 mo; was All only
+    const allCats = invHasNewest ? ["All", "Newest Added", ...sortedCats] : ["All", ...sortedCats];
     if(catChips){
-      const allCats = ["All", ...sortedCats];
       catChips.innerHTML = allCats.map(c => {
         const val = c === "All" ? Object.values(catValuationMap).reduce((s,x)=>s+x,0) : (catValuationMap[c.toUpperCase()] || 0);
         return `<div class="chip ${c.toUpperCase()===(categoryFilter||"All").toUpperCase()?"active":""}" data-c="${Utils.escapeHtml(c)}" title="Valuation: ${Utils.money(val)}">${Utils.escapeHtml(c)}</div>`;
@@ -2639,7 +2877,7 @@ const Inventory = (() => {
       };
     }
 
-    document.getElementById("inv-cat-filter-wrap").innerHTML = UISelect.render("inv-cat-filter", ["All", ...cats], categoryFilter || "All");
+    document.getElementById("inv-cat-filter-wrap").innerHTML = UISelect.render("inv-cat-filter", invHasNewest ? ["All", "Newest Added", ...cats] : ["All", ...cats], categoryFilter || "All");
     UISelect.bind("inv-cat-filter", (v)=>{
       categoryFilter = v;
       currentPage = 1;
@@ -2684,7 +2922,8 @@ const Inventory = (() => {
     renderTable();
   }
 
-  function resetSearch(){ searchTerm = ""; }
+  // (2026-07-13) Reset category & stock filters on resetSearch; was search only
+  function resetSearch(){ searchTerm = ""; categoryFilter = "All"; stockFilter = "all"; currentPage = 1; }
 
   // (2026-07-13) Restrict openAddProductModal to admin role; was unrestricted
   function openAddProductModal(prefillValue = null){

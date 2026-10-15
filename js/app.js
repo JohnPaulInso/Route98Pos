@@ -279,21 +279,39 @@ const App = (() => {
       <div id="toast-stack"></div>`;
 
     document.querySelectorAll(".nav-btn, .bn-btn[data-nav]").forEach(b => b.onclick = () => navigate(b.dataset.nav));
-    document.getElementById("btn-topbar-menu")?.addEventListener("click", openMobileNav);
+    // (2026-07-13) Toggle tablet sidebar on menu click; was openMobileNav only
+    document.getElementById("btn-topbar-menu")?.addEventListener("click", () => {
+      if(window.innerWidth >= 768){
+        document.querySelector(".sidebar")?.classList.toggle("tablet-hidden");
+      } else {
+        openMobileNav();
+      }
+    });
+    // (2026-07-13) Toggle tablet sidebar on brand logo; was non-clickable
+    document.querySelector(".sidebar .brand")?.addEventListener("click", () => {
+      if(window.innerWidth >= 768){
+        const sb = document.querySelector(".sidebar");
+        if(sb){
+          sb.classList.remove("tablet-hidden");
+          sb.classList.toggle("tablet-expanded");
+        }
+      }
+    });
     document.getElementById("btn-bn-more")?.addEventListener("click", openMobileNav);
     // (2026-07-13) Click shift indicator to open shift management; was no handler
     document.getElementById("topbar-shift-indicator")?.addEventListener("click", () => navigate("shift"));
-    // (2026-07-13) Check active shift before logout confirm; was direct confirm
+    // (2026-07-13) Prompt cashier to close shift on logout; was missing alert fn
     document.getElementById("user-chip").onclick = () => {
+      const u = Auth.currentUser();
       const activeShift = (typeof Shift !== "undefined" && Shift.getActiveShift) ? Shift.getActiveShift() : (DB.getShift?.()?.status === "open" ? DB.getShift() : null);
       if(activeShift){
         Modalz.alert({
           title: "Active Shift In Progress",
-          message: "You have an active shift in progress. Please end your shift first in the Shift menu."
+          message: "You must close your shift before logging out. Please close shift in Shift Management."
         });
         return;
       }
-      Modalz.confirm({ title:"Log out?", message:`Sign out ${Auth.currentUser()?.name}?`, onConfirm: () => Auth.logout() });
+      Modalz.confirm({ title:"Log out?", message:`Sign out ${u?.name || "user"}?`, onConfirm: () => Auth.logout() });
     };
     const themeBtn = document.getElementById("theme-toggle-btn");
     const paintThemeIcon = () => { themeBtn.innerHTML = Icons.get(document.documentElement.dataset.theme === "dark" ? "sun" : "moon", { size:16 }); };

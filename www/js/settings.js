@@ -531,6 +531,129 @@ const Settings = (() => {
     });
   }
 
+  // (2026-07-13) Move trash to settings tab; was inventory button and modal
+  function renderTrashTab(){
+    DB.purgeExpiredTrash();
+    const wrap = document.getElementById("view-tab-body");
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const bin = DB.getTrash();
+    wrap.innerHTML = `
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div>
+            <h3 style="margin:0;display:flex;align-items:center;gap:8px;">${Icons.get("trash",{size:18})} Product Trash Bin</h3>
+            <p class="text-sm text-faint" style="margin:4px 0 0 0;">${Icons.get("info",{size:13})} Products are automatically purged 30 days after deletion. You can restore them here.</p>
+          </div>
+          ${bin.length > 0 ? `<button class="btn btn-sm btn-ghost" id="btn-empty-trash" style="color:var(--danger);">${Icons.get("trash",{size:13})} Empty Trash</button>` : ""}
+        </div>
+        <div id="trash-table-wrap">
+          ${!bin.length ? `
+            <div style="padding:48px 16px;text-align:center;">
+              ${Icons.get("trash",{size:36,color:"var(--ink-faint)"})}
+              <p style="color:var(--ink-faint);font-size:.95rem;margin-top:12px;font-weight:600;">Trash is empty</p>
+              <p style="color:var(--ink-faint);font-size:.8rem;margin:0;">Deleted products appear here for 30 days before being permanently removed.</p>
+            </div>
+          ` : `
+            <div class="table-wrap" style="overflow-x:auto;">
+              <table class="data" style="font-size:.84rem;width:100%;">
+                <thead>
+                  <tr style="font-size:.72rem;text-transform:uppercase;background:var(--paper-dim);">
+                    <th style="padding:8px 12px;">Product</th>
+                    <th style="padding:8px 12px;">Category</th>
+                    <th style="padding:8px 12px;text-align:center;">Stock</th>
+                    <th style="padding:8px 12px;">Deleted</th>
+                    <th style="padding:8px 12px;">Expires</th>
+                    <th style="padding:8px 12px;text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${bin.map((p, idx) => {
+                    const trashedAt = p._trashedAt || 0;
+                    const expiresAt = trashedAt + THIRTY_DAYS;
+                    const daysLeft = Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000));
+                    const urgent = daysLeft <= 3;
+                    const pKey = String(p.id || p._id || p.barcode || p.name || "");
+                    // (2026-07-13) Support index fallback for restore & delete; was bare ID
+                    return `<tr>
+                      <td style="padding:8px 12px;font-weight:600;max-width:240px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                          <span class="prod-thumb-sm" style="width:34px;height:34px;border-radius:8px;overflow:hidden;flex-shrink:0;position:relative;background:#fff;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;">${Utils.productThumb(p,{iconSize:18})}</span>
+                          <span style="font-size:.85rem;font-weight:600;color:var(--ink);" title="${Utils.escapeHtml(p.name||p.title||"")}">${Utils.escapeHtml(p.name||p.title||"—")}</span>
+                        </div>
+                      </td>
+                      <td style="padding:8px 12px;font-size:.8rem;color:var(--ink-soft);text-transform:uppercase;">${Utils.escapeHtml(p.category||"—")}</td>
+                      <td style="padding:8px 12px;text-align:center;font-weight:700;">${p.stock??0}</td>
+                      <td style="padding:8px 12px;font-size:.78rem;color:var(--ink-soft);white-space:nowrap;">${trashedAt?new Date(trashedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}</td>
+                      <td style="padding:8px 12px;font-size:.78rem;white-space:nowrap;color:${urgent?"var(--danger)":"var(--ink-soft)"};font-weight:${urgent?"700":"normal"};">
+                        ${urgent?Icons.get("alert-triangle",{size:12,color:"var(--danger)"})+" ":""}${daysLeft}d left
+                      </td>
+                      <td style="padding:8px 12px;text-align:center;white-space:nowrap;">
+                        <button class="btn btn-sm btn-primary btn-trash-restore" data-id="${Utils.escapeHtml(pKey)}" data-idx="${idx}" style="margin-right:6px;" title="Restore">${Icons.get("refresh-cw",{size:13})} Restore</button>
+                        <button class="btn btn-sm btn-danger btn-trash-purge" data-id="${Utils.escapeHtml(pKey)}" data-idx="${idx}" data-name="${Utils.escapeHtml(p.name||p.title||"")}" title="Delete permanently">${Icons.get("trash",{size:13})}</button>
+                      </td>
+                    </tr>`;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+      </div>`;
+
+    wrap.querySelectorAll(".btn-trash-restore").forEach(b => {
+      b.onclick = () => {
+        const id = b.dataset.id;
+        const idx = Number(b.dataset.idx);
+        const ok = DB.restoreProductFromTrash(id, idx);
+        if(ok){
+          Utils.toast("Product restored to inventory.", "success");
+        } else {
+          Utils.toast("Product could not be restored.", "error");
+        }
+        // (2026-07-13) Reset inventory filters on restore; was keeping old filters
+        if(typeof Inventory !== "undefined" && Inventory.resetSearch) Inventory.resetSearch();
+        if(typeof POS !== "undefined" && POS.renderCatalog) POS.renderCatalog();
+        if(typeof Inventory !== "undefined" && Inventory.renderTable) Inventory.renderTable();
+        renderTrashTab();
+      };
+    });
+
+    wrap.querySelectorAll(".btn-trash-purge").forEach(b => {
+      b.onclick = () => {
+        const id = b.dataset.id;
+        const idx = Number(b.dataset.idx);
+        const name = b.dataset.name;
+        Modalz.confirm({
+          title: "Permanently Delete?",
+          message: `"${name}" will be erased forever. This cannot be undone.`,
+          danger: true,
+          onConfirm: () => {
+            DB.permanentlyDeleteFromTrash(id, idx);
+            Utils.toast(`"${name}" permanently deleted.`, "success");
+            renderTrashTab();
+          }
+        });
+      };
+    });
+
+    const emptyBtn = wrap.querySelector("#btn-empty-trash");
+    if(emptyBtn){
+      emptyBtn.onclick = () => {
+        Modalz.confirm({
+          title: "Empty Trash Bin?",
+          message: "All deleted products will be permanently erased. This cannot be undone.",
+          danger: true,
+          onConfirm: () => {
+            bin.forEach(p => DB.permanentlyDeleteFromTrash(p.id));
+            Utils.toast("Trash emptied.", "success");
+            renderTrashTab();
+          }
+        });
+      };
+    }
+  }
+
   function renderTabBody(){
     const wrap = document.getElementById("view-tab-body");
     const s = DB.getSettings();
@@ -594,6 +717,9 @@ const Settings = (() => {
     else if(tab === "data"){
       renderDataTab();
     }
+    else if(tab === "trash"){
+      renderTrashTab();
+    }
   }
 
   // (2026-07-13) Make settings view scrollable with bottom padding; was overflow hidden
@@ -609,7 +735,7 @@ const Settings = (() => {
       <div class="view-body" style="overflow-y:auto;flex:1;min-height:0;padding-bottom:5rem;-webkit-overflow-scrolling:touch;">
         <div class="view-head"><div><h2>${Icons.get("settings",{size:22})} Settings</h2></div></div>
         <div class="category-chips">
-          ${[["business","store","Business"],["staff","users","Staff"],["fuel","fuel","Fuel Pumps"],["data","database","Data & Backups"]].map(([k,ic,l])=>`<div class="chip ${tab===k?"active":""}" data-tab="${k}">${Icons.get(ic,{size:13})}${l}</div>`).join("")}
+          ${[["business","store","Business"],["staff","users","Staff"],["fuel","fuel","Fuel Pumps"],["data","database","Data & Backups"],["trash","trash","Product Trash"]].map(([k,ic,l])=>`<div class="chip ${tab===k?"active":""}" data-tab="${k}">${Icons.get(ic,{size:13})}${l}</div>`).join("")}
         </div>
         <div id="view-tab-body" style="margin-top:14px;"></div>
       </div>`;

@@ -938,11 +938,12 @@
     pointer-events: auto !important;
   }
   
-  /* (2026-07-13) Set expanded cart height above bottom navbar; was 75vh floating */
+  /* (2026-07-13) Animate cart upwards below topbar; was top 0 full screen */
   .pos-cart.expanded,
   .pos-cart.mobile-open {
     height: calc(100vh - var(--topbar-h, 56px) - var(--bottomnav-h, 60px)) !important;
     max-height: calc(100vh - var(--topbar-h, 56px) - var(--bottomnav-h, 60px)) !important;
+    top: auto !important;
     bottom: var(--bottomnav-h, 60px) !important;
     left: 0 !important;
     right: 0 !important;
@@ -1957,17 +1958,17 @@
   }
 
   /* ============ TOASTS ============ */
-  /* (2026-07-13) Move toast to bottom-right above nav; was bottom-left cut off */
+  /* (2026-07-13) Move mobile toast to left above cart-head; was right side */
   #toast-stack {
     position: fixed !important;
     top: auto !important;
-    bottom: calc(var(--bottomnav-h, 56px) + 14px + env(safe-area-inset-bottom, 0px)) !important;
-    left: auto !important;
-    right: 14px !important;
+    bottom: calc(var(--bottomnav-h, 60px) + 68px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 14px !important;
+    right: auto !important;
     max-width: min(320px, calc(100vw - 28px)) !important;
     z-index: 99999 !important; /* ✅ Toast stack - notifications layer */
     pointer-events: none !important;
-    align-items: flex-end !important;
+    align-items: flex-start !important;
   }
   
   .toast {
@@ -3850,17 +3851,16 @@
     flex: 1 1 auto !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: 16px 16px 120px !important;
+    padding: 16px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
   }
 
+  /* (2026-07-13) Sticky modal-foot inside modal-product-form; was fixed bottom */
   .modalz.modal-product-formz .modal-footz {
-    position: fixed !important;
+    position: sticky !important;
     bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
     z-index: 25 !important;
     background: var(--paper-raised, #ffffff) !important;
     border-top: 1px solid var(--line, #e2e8f0) !important;
@@ -3869,6 +3869,8 @@
     flex-direction: column-reverse !important;
     gap: 8px !important;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .modalz.modal-product-formz .modal-footz .btn {
@@ -5310,13 +5312,23 @@
   word-break: break-word !important;
   overflow-wrap: break-word !important;
 }
-/* (2026-07-13) Unclip void item summary; was line-clamp 2 and 1.25 line-height */
+/* (2026-07-13) Prevent audit column wrapping; was wrapping Admin/Price */
+.void-table .void-col-admin,
+.void-table .void-col-diff,
+.void-table .void-col-time,
+.void-table .void-col-txn {
+  white-space: nowrap !important;
+  word-break: normal !important;
+}
+.void-table .void-col-diff {
+  text-align: right !important;
+}
+/* (2026-07-13) Responsive void item summary; was fixed max-width 320px */
 .void-item-summary {
   display: block;
   overflow: visible;
   word-break: break-word;
   overflow-wrap: anywhere;
-  max-width: 320px;
   line-height: 1.65;
 }
 /* (2026-07-13) Padding-left for receipt search icon; was overlapping */
@@ -5416,10 +5428,9 @@ button:active,
   }
 }
 
-/* (2026-07-13) Tinted hover states for buttons & chips; was plain white / dim */
+/* (2026-07-13) Refine button & chip hover without square box; was button:hover */
 @media (hover: hover), (min-width: 768px) {
   .btn:hover,
-  button:hover,
   .chip:hover,
   .dropdown-item:hover,
   .product-card:hover,
@@ -5427,6 +5438,37 @@ button:active,
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
     transition: all 0.2s ease !important;
+    border-radius: var(--r-md, 10px);
+  }
+
+  .bn-btn:hover,
+  .bn-btn:active,
+  .bn-btn:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  .bn-btn:hover .ic,
+  .bn-btn:active .ic {
+    filter: brightness(0.75);
+    transition: filter 0.15s ease;
+  }
+  [data-theme="dark"] .bn-btn:hover .ic,
+  [data-theme="dark"] .bn-btn:active .ic {
+    filter: brightness(1.3);
+  }
+  .topbar-shift-badge:hover,
+  .topbar-shift-badge:active,
+  .topbar-shift-badge:focus {
+    border-radius: 20px !important;
+    box-shadow: none !important;
+    filter: brightness(0.9);
+  }
+  .topbar-shift-badge.shift-closed:hover {
+    background: rgba(239, 68, 68, 0.22) !important;
+  }
+  .topbar-shift-badge.shift-open:hover {
+    background: rgba(16, 185, 129, 0.22) !important;
   }
 
   .btn:not(.btn-primary):not(.btn-danger):not(.btn-amber):hover,
@@ -5477,15 +5519,17 @@ button:active,
   }
 }
 
-/* Ripple effect on tap (mobile) */
+/* (2026-07-13) Transparent tap highlight without square box; was rgba box */
 @media (max-width: 767px) {
   .btn,
   button,
   .chip,
   .product-card,
   .inv-mobile-card,
-  .dropdown-item {
-    -webkit-tap-highlight-color: rgba(59, 90, 251, 0.1) !important;
+  .dropdown-item,
+  .bn-btn,
+  .topbar-shift-badge {
+    -webkit-tap-highlight-color: transparent !important;
   }
 }
 
@@ -5586,4 +5630,29 @@ textarea {
 [data-mob-nav="venue"],
 [data-mob-nav="restaurant"] {
   display: none !important;
+}
+
+/* (2026-10-15) Size inv-view-toggle buttons; was inline style only */
+.inv-toggle-btn {
+  height: 32px !important;
+  width: 34px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+}
+@media (max-width: 767px) {
+  /* (2026-10-15) Larger toggle buttons on mobile; was too small to tap */
+  .inv-toggle-btn {
+    height: 38px !important;
+    width: 40px !important;
+    border-radius: 8px !important;
+  }
+  .inv-view-toggle {
+    border-radius: 12px !important;
+    padding: 3px !important;
+  }
+  /* (2026-10-15) Safety: hide grid wrap on mobile in list mode via CSS fallback */
+  .inv-grid-wrap:not([style*="display: grid"]):not([style*="display:grid"]) {
+    display: none !important;
+  }
 }

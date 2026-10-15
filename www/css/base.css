@@ -202,11 +202,13 @@ h1 > .ic-svg, h2 > .ic-svg, h3 > .ic-svg, h4 > .ic-svg{ margin-right:8px; vertic
   padding:6px 4px max(6px, env(safe-area-inset-bottom));
 }
 .bottom-nav-inner{ display:flex; height:100%; }
+/* (2026-07-13) Darken icon on bn-btn hover without square box; was none */
 .bn-btn{
   flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
   background:none; border:none; color:var(--ink-faint); font-size:.62rem; font-weight:700; cursor:pointer;
-  position:relative;
+  position:relative; border-radius:var(--r-md); -webkit-tap-highlight-color:transparent;
 }
+.bn-btn:hover .ic{ filter:brightness(0.75); }
 .bn-btn.active{ color:var(--brand); }
 
 /* ============ BUTTONS ============ */
@@ -438,6 +440,11 @@ table.data tr.low-stock td{ background:var(--warning-tint); }
   }
   .modalz.modal-widez .modal-footz{ 
     padding:10px 18px !important; 
+  }
+  /* (2026-07-13) Full-width restock log modal on desktop; was 70vw 860px */
+  .modalz.modal-restock-logz{ 
+    max-width:min(1380px, calc(100vw - 32px)) !important; 
+    width:calc(100vw - 32px) !important; 
   }
 }
 /* (2026-07-13) Dual standard and z selectors for modal elements; was z-only */
